@@ -55,8 +55,11 @@ assert.equal(pluralCategory("ru", 3), "few");
 const placeholders = (text) => [...text.matchAll(/\{(\w+)\}/g)].map((match) => match[1]).sort();
 for (const lang of LANGS) {
   for (const [key, text] of Object.entries(DICTIONARIES[lang])) {
-    assert.ok(key in DICTIONARIES.en, `${lang} has the key "${key}" English lacks`);
-    assert.deepEqual(placeholders(text), placeholders(DICTIONARIES.en[key]), `${lang} "${key}" placeholders differ`);
+    // A language may have plural forms English lacks (Russian .few and .many):
+    // they stand on English's ".other" of the same message.
+    const base = /\.(zero|two|few|many)$/.test(key) ? key.replace(/\.[a-z]+$/, ".other") : key;
+    assert.ok(base in DICTIONARIES.en, `${lang} has the key "${key}" English lacks`);
+    assert.deepEqual(placeholders(text), placeholders(DICTIONARIES.en[base]), `${lang} "${key}" placeholders differ`);
   }
 }
 
