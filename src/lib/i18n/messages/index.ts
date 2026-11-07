@@ -10,6 +10,7 @@ import { enAdminStorage } from "./en/adminStorage.ts";
 import { enAdminUsers } from "./en/adminUsers.ts";
 import { enAdminReports } from "./en/adminReports.ts";
 import { enAdminLog } from "./en/adminLog.ts";
+import { enAdminUsage } from "./en/adminUsage.ts";
 import { enCommon } from "./en/common.ts";
 import { ruAdmin } from "./ru/admin.ts";
 import { ruAdminSettings } from "./ru/adminSettings.ts";
@@ -18,11 +19,12 @@ import { ruAdminStorage } from "./ru/adminStorage.ts";
 import { ruAdminUsers } from "./ru/adminUsers.ts";
 import { ruAdminReports } from "./ru/adminReports.ts";
 import { ruAdminLog } from "./ru/adminLog.ts";
+import { ruAdminUsage } from "./ru/adminUsage.ts";
 import { ruCommon } from "./ru/common.ts";
 
-export const en = { ...enCommon, ...enAdmin, ...enAdminSettings, ...enAdminBackup , ...enAdminStorage , ...enAdminUsers , ...enAdminReports , ...enAdminLog };
+export const en = { ...enCommon, ...enAdmin, ...enAdminSettings, ...enAdminBackup , ...enAdminStorage , ...enAdminUsers , ...enAdminReports , ...enAdminLog , ...enAdminUsage };
 export type MessageKey = keyof typeof en;
 
-const ru: Record<string, string> = { ...ruCommon, ...ruAdmin, ...ruAdminSettings , ...ruAdminBackup , ...ruAdminStorage , ...ruAdminUsers , ...ruAdminReports , ...ruAdminLog } as Record<string, string>;
+const ru: Record<string, string> = { ...ruCommon, ...ruAdmin, ...ruAdminSettings , ...ruAdminBackup , ...ruAdminStorage , ...ruAdminUsers , ...ruAdminReports , ...ruAdminLog , ...ruAdminUsage } as Record<string, string>;
 
 export const DICTIONARIES: Dictionaries = { en, ru };
