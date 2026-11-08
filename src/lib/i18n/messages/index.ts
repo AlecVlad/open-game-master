@@ -22,6 +22,7 @@ import { enAdminBuiltinSpeech } from "./en/adminBuiltinSpeech.ts";
 import { enAdminHarness } from "./en/adminHarness.ts";
 import { enAdminAddonCard } from "./en/adminAddonCard.ts";
 import { enAdminAddons } from "./en/adminAddons.ts";
+import { enAdminWorlds } from "./en/adminWorlds.ts";
 import { enCommon } from "./en/common.ts";
 import { ruAdmin } from "./ru/admin.ts";
 import { ruAdminSettings } from "./ru/adminSettings.ts";
@@ -42,11 +43,12 @@ import { ruAdminBuiltinSpeech } from "./ru/adminBuiltinSpeech.ts";
 import { ruAdminHarness } from "./ru/adminHarness.ts";
 import { ruAdminAddonCard } from "./ru/adminAddonCard.ts";
 import { ruAdminAddons } from "./ru/adminAddons.ts";
+import { ruAdminWorlds } from "./ru/adminWorlds.ts";
 import { ruCommon } from "./ru/common.ts";
 
-export const en = { ...enCommon, ...enAdmin, ...enAdminSettings, ...enAdminBackup , ...enAdminStorage , ...enAdminUsers , ...enAdminReports , ...enAdminLog , ...enAdminUsage , ...enAdminInvites , ...enAdminAgents , ...enAdminNetwork , ...enAdminQuality , ...enAdminFields , ...enAdminSpeech , ...enAdminImages , ...enAdminBuiltinSpeech , ...enAdminHarness , ...enAdminAddonCard , ...enAdminAddons };
+export const en = { ...enCommon, ...enAdmin, ...enAdminSettings, ...enAdminBackup , ...enAdminStorage , ...enAdminUsers , ...enAdminReports , ...enAdminLog , ...enAdminUsage , ...enAdminInvites , ...enAdminAgents , ...enAdminNetwork , ...enAdminQuality , ...enAdminFields , ...enAdminSpeech , ...enAdminImages , ...enAdminBuiltinSpeech , ...enAdminHarness , ...enAdminAddonCard , ...enAdminAddons , ...enAdminWorlds };
 export type MessageKey = keyof typeof en;
 
-const ru: Record<string, string> = { ...ruCommon, ...ruAdmin, ...ruAdminSettings , ...ruAdminBackup , ...ruAdminStorage , ...ruAdminUsers , ...ruAdminReports , ...ruAdminLog , ...ruAdminUsage , ...ruAdminInvites , ...ruAdminAgents , ...ruAdminNetwork , ...ruAdminQuality , ...ruAdminFields , ...ruAdminSpeech , ...ruAdminImages , ...ruAdminBuiltinSpeech , ...ruAdminHarness , ...ruAdminAddonCard , ...ruAdminAddons } as Record<string, string>;
+const ru: Record<string, string> = { ...ruCommon, ...ruAdmin, ...ruAdminSettings , ...ruAdminBackup , ...ruAdminStorage , ...ruAdminUsers , ...ruAdminReports , ...ruAdminLog , ...ruAdminUsage , ...ruAdminInvites , ...ruAdminAgents , ...ruAdminNetwork , ...ruAdminQuality , ...ruAdminFields , ...ruAdminSpeech , ...ruAdminImages , ...ruAdminBuiltinSpeech , ...ruAdminHarness , ...ruAdminAddonCard , ...ruAdminAddons , ...ruAdminWorlds } as Record<string, string>;
 
 export const DICTIONARIES: Dictionaries = { en, ru };
