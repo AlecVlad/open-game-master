@@ -16,6 +16,7 @@ import { enAdminAgents } from "./en/adminAgents.ts";
 import { enAdminNetwork } from "./en/adminNetwork.ts";
 import { enAdminQuality } from "./en/adminQuality.ts";
 import { enAdminFields } from "./en/adminFields.ts";
+import { enAdminSpeech } from "./en/adminSpeech.ts";
 import { enCommon } from "./en/common.ts";
 import { ruAdmin } from "./ru/admin.ts";
 import { ruAdminSettings } from "./ru/adminSettings.ts";
@@ -30,11 +31,12 @@ import { ruAdminAgents } from "./ru/adminAgents.ts";
 import { ruAdminNetwork } from "./ru/adminNetwork.ts";
 import { ruAdminQuality } from "./ru/adminQuality.ts";
 import { ruAdminFields } from "./ru/adminFields.ts";
+import { ruAdminSpeech } from "./ru/adminSpeech.ts";
 import { ruCommon } from "./ru/common.ts";
 
-export const en = { ...enCommon, ...enAdmin, ...enAdminSettings, ...enAdminBackup , ...enAdminStorage , ...enAdminUsers , ...enAdminReports , ...enAdminLog , ...enAdminUsage , ...enAdminInvites , ...enAdminAgents , ...enAdminNetwork , ...enAdminQuality , ...enAdminFields };
+export const en = { ...enCommon, ...enAdmin, ...enAdminSettings, ...enAdminBackup , ...enAdminStorage , ...enAdminUsers , ...enAdminReports , ...enAdminLog , ...enAdminUsage , ...enAdminInvites , ...enAdminAgents , ...enAdminNetwork , ...enAdminQuality , ...enAdminFields , ...enAdminSpeech };
 export type MessageKey = keyof typeof en;
 
-const ru: Record<string, string> = { ...ruCommon, ...ruAdmin, ...ruAdminSettings , ...ruAdminBackup , ...ruAdminStorage , ...ruAdminUsers , ...ruAdminReports , ...ruAdminLog , ...ruAdminUsage , ...ruAdminInvites , ...ruAdminAgents , ...ruAdminNetwork , ...ruAdminQuality , ...ruAdminFields } as Record<string, string>;
+const ru: Record<string, string> = { ...ruCommon, ...ruAdmin, ...ruAdminSettings , ...ruAdminBackup , ...ruAdminStorage , ...ruAdminUsers , ...ruAdminReports , ...ruAdminLog , ...ruAdminUsage , ...ruAdminInvites , ...ruAdminAgents , ...ruAdminNetwork , ...ruAdminQuality , ...ruAdminFields , ...ruAdminSpeech } as Record<string, string>;
 
 export const DICTIONARIES: Dictionaries = { en, ru };
