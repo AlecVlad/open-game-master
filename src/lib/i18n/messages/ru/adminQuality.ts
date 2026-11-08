@@ -1,0 +1,37 @@
+// Русский: карточка «Качество рассказчика» во вкладке «Использование» админ-панели.
+// Ключи те же, что в en/adminQuality.ts; формы .few и .many нужны только русскому.
+import type { enAdminQuality } from "../en/adminQuality.ts";
+
+export const ruAdminQuality: Partial<Record<keyof typeof enAdminQuality, string>> & Record<string, string> = {
+  "admin.quality.backend.local": "Локальный бэкенд",
+  "admin.quality.backend.api": "Облачный API",
+  "admin.quality.backend.agent": "Программа-агент",
+  "admin.quality.backend.unknown": "Неизвестно",
+  "admin.quality.mode.ai": "ИИ-мастер",
+  "admin.quality.mode.steered": "Под управлением",
+  "admin.quality.mode.human": "Мастер-человек",
+  "admin.quality.mode.assisted": "С помощником",
+  "admin.quality.err.load": "Не удалось загрузить данные о качестве рассказчика.",
+  "admin.quality.err.network": "Не удалось связаться с сервером.",
+  "admin.quality.err.export": "Не удалось экспортировать данные о качестве рассказчика.",
+  "admin.quality.title": "Качество рассказчика",
+  "admin.quality.intro": "Чем заканчивались ходы ИИ и что исправляли столы: одна строка на вид бэкенда и режим мастера. Сравнивайте доли только внутри строки, но не между строками: учитываются лишь ошибки, которые кто-то заметил.",
+  "admin.quality.empty": "С тех пор как сервер начал вести этот учёт, ни один ход ИИ не завершился.",
+  "admin.quality.f.turns": "Ходы",
+  "admin.quality.f.clean": "Без замечаний",
+  "admin.quality.f.failed": "Сбои",
+  "admin.quality.f.refused": "Инструмент отказал",
+  "admin.quality.f.capped": "Упёрлись в лимит",
+  "admin.quality.f.guard": "Сработала защита",
+  "admin.quality.f.unchecked": "Не проверено",
+  "admin.quality.f.unchecked.hint": "Читатель прозы дал сбой, либо стол отключил проверку исхода",
+  "admin.quality.f.corrected": "Исправлено",
+  "admin.quality.f.notCounted": "не учитывается",
+  "admin.quality.f.rewound": "Откатов",
+  "admin.quality.mostCorrected": "Чаще всего исправляли ",
+  "admin.quality.none": "нет",
+  "admin.quality.rule": " Графа «Исправлено» и список инструментов не учитывают правки с пометкой «передумал». За столом, который ведёт человек, правки — это обычное ведение игры, и они не считаются.",
+  "admin.quality.earlier": "{count} правок относятся к ходам, завершившимся до начала этого учёта.",
+  "admin.quality.export": "Экспортировать качество рассказчика",
+  "admin.quality.exportNote": "Один файл с этими строками: все идентификаторы захешированы, имён, промптов и текста истории нет. Сохраняется здесь и никуда не отправляется.",
+};
