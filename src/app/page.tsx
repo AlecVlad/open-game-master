@@ -11,6 +11,8 @@ import { HowToPlayDialog } from "@/components/HowToPlayDialog";
 import AuthForm from "@/app/AuthForm";
 import { ChangePasswordForm } from "@/app/ChangePasswordForm";
 import { Dashboard } from "@/app/home/Dashboard";
+import { useI18n } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages/index";
 
 export default function Home() {
   const [checking, setChecking] = useState(true);
@@ -60,18 +62,18 @@ export default function Home() {
 // Shown when a session belongs to an account flagged by an admin password
 // reset; the server rejects campaign APIs until the password is changed.
 function ForcedPasswordChange({ onChanged }: { onChanged: () => void }) {
+  const { t } = useI18n();
   return (
     <main className="bg-starfield flex flex-1 items-center justify-center p-4 sm:p-6">
       <div className="w-full max-w-sm animate-fade-up-slow">
         <div className={cn(ui.card, "ornate texture-noise auth-card shadow-elev-2")}>
           <h1 className="gold-title mb-1 font-display text-xl tracking-wide">
-            Set a new password
+            {t("door.forced.title")}
           </h1>
           <p className="mb-4 text-sm text-stone-400">
-            An admin reset your password. Enter the temporary password you were given and pick a
-            new one.
+            {t("door.forced.body")}
           </p>
-          <ChangePasswordForm submitLabel="Set new password" onChanged={onChanged} />
+          <ChangePasswordForm submitLabel={t("door.forced.submit")} onChanged={onChanged} />
         </div>
       </div>
     </main>
@@ -81,13 +83,13 @@ function ForcedPasswordChange({ onChanged }: { onChanged: () => void }) {
 // The key art behind the door: one painting per setting, a different one each
 // visit. The crops live in public/assets/ui/door.
 const DOOR_WORLDS = [
-  { key: "high-fantasy", name: "High fantasy" },
-  { key: "dark-fantasy", name: "Dark fantasy" },
-  { key: "horror", name: "Horror" },
-  { key: "mystery", name: "Mystery" },
-  { key: "steampunk", name: "Steampunk" },
-  { key: "cyberpunk", name: "Cyberpunk" },
-  { key: "post-apocalyptic", name: "Post-apocalyptic" },
+  { key: "high-fantasy", name: "door.w.high-fantasy" },
+  { key: "dark-fantasy", name: "door.w.dark-fantasy" },
+  { key: "horror", name: "door.w.horror" },
+  { key: "mystery", name: "door.w.mystery" },
+  { key: "steampunk", name: "door.w.steampunk" },
+  { key: "cyberpunk", name: "door.w.cyberpunk" },
+  { key: "post-apocalyptic", name: "door.w.post-apocalyptic" },
 ] as const;
 const DOOR_KEY = "odm.door";
 const FIREFLIES = 14;
@@ -106,6 +108,7 @@ function nextDoorWorld(): number {
 // The front door: on a desk the painting stands to the left and the form to
 // the right; a phone gets the form alone, as before.
 function AuthScreen({ onAuthed }: { onAuthed: (user: SessionUser) => void }) {
+  const { t } = useI18n();
   const [howToOpen, setHowToOpen] = useState(false);
   const [world] = useState(nextDoorWorld);
   const painting = DOOR_WORLDS[world];
@@ -121,9 +124,9 @@ function AuthScreen({ onAuthed }: { onAuthed: (user: SessionUser) => void }) {
           ))}
         </div>
         <div className="auth-door-caption">
-          <span className="eyebrow auth-door-eyebrow">Behind the door tonight</span>
-          <span className="auth-door-world font-display text-2xl tracking-wide">{painting.name}</span>
-          <span className="auth-door-line font-serif text-sm">One of seven kinds of world your table can play.</span>
+          <span className="eyebrow auth-door-eyebrow">{t("door.behind")}</span>
+          <span className="auth-door-world font-display text-2xl tracking-wide">{t(painting.name as MessageKey)}</span>
+          <span className="auth-door-line font-serif text-sm">{t("door.sevenKinds")}</span>
         </div>
       </aside>
 
@@ -137,8 +140,7 @@ function AuthScreen({ onAuthed }: { onAuthed: (user: SessionUser) => void }) {
                 Open Game Master
               </h1>
               <p className="mt-2 text-pretty font-serif text-sm leading-6 text-stone-400">
-                Gather your party. An AI Game Master runs the table; the dice
-                are honest and the story is yours.
+                {t("door.tagline")}
               </p>
             </div>
           </div>
@@ -149,21 +151,21 @@ function AuthScreen({ onAuthed }: { onAuthed: (user: SessionUser) => void }) {
 
           <div className="mt-4 flex justify-center">
             <button type="button" onClick={() => setHowToOpen(true)} className={cn(ui.btnSmall, "min-h-10")}>
-              <GameIcon icon={{ kind: "glyph", key: "tab-story" }} size="size-6" /> How to play
+              <GameIcon icon={{ kind: "glyph", key: "tab-story" }} size="size-6" /> {t("door.howto")}
             </button>
           </div>
 
           <footer className="mt-6 flex items-center justify-center gap-4 border-t border-amber-500/15 pt-4">
             <a href="/licenses" className="inline-flex min-h-10 items-center text-xs text-stone-500 hover:text-amber-200">
-              Licenses
+              {t("door.licenses")}
             </a>
             <span className="text-xs text-stone-700">&middot;</span>
             <a href="/privacy" className="inline-flex min-h-10 items-center text-xs text-stone-500 hover:text-amber-200">
-              Privacy
+              {t("door.privacy")}
             </a>
             <span className="text-xs text-stone-700">&middot;</span>
             <a href="/terms" className="inline-flex min-h-10 items-center text-xs text-stone-500 hover:text-amber-200">
-              Terms
+              {t("door.terms")}
             </a>
           </footer>
         </div>
