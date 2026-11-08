@@ -5,11 +5,13 @@ import Link from "next/link";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui";
 import { GameIcon } from "@/components/ui/GameIcon";
+import { useI18n } from "@/lib/i18n/provider";
 
 // The title screen's "finish setting up" card, for an admin whose server has
 // no working storyteller and who has neither finished the guided setup nor
 // waved it away (src/lib/setup/state.ts decides, server side).
 export function SetupNudge({ className }: { className?: string }) {
+  const { t } = useI18n();
   const [show, setShow] = useState(false);
   const [leaving, setLeaving] = useState(false);
 
@@ -52,17 +54,17 @@ export function SetupNudge({ className }: { className?: string }) {
     >
       <GameIcon icon={{ kind: "glyph", key: "tab-settings" }} size="size-8" />
       <span className="min-w-0 flex-1 text-sm text-stone-200">
-        <span className="block font-medium text-amber-100">Finish setting up your server</span>
+        <span className="block font-medium text-amber-100">{t("home.nudge.title")}</span>
         <span className="block text-xs text-stone-400">
-          No storyteller is answering yet. The guided setup finds what runs on this computer and takes a few minutes.
+          {t("home.nudge.body")}
         </span>
       </span>
       <span className="flex gap-2">
         <Link href="/setup" className={ui.btnPrimary}>
-          Set it up
+          {t("home.nudge.setup")}
         </Link>
         <button type="button" onClick={dismiss} className={ui.btnSecondary}>
-          Not now
+          {t("home.nudge.later")}
         </button>
       </span>
     </div>
