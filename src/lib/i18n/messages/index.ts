@@ -34,6 +34,7 @@ import { enAuthDoor } from "./en/authDoor.ts";
 import { enAuthForm } from "./en/authForm.ts";
 import { enAuthPassword } from "./en/authPassword.ts";
 import { enSettingsPage } from "./en/settingsPage.ts";
+import { enSettingsSmall } from "./en/settingsSmall.ts";
 import { enCommon } from "./en/common.ts";
 import { ruAdmin } from "./ru/admin.ts";
 import { ruAdminSettings } from "./ru/adminSettings.ts";
@@ -66,11 +67,12 @@ import { ruAuthDoor } from "./ru/authDoor.ts";
 import { ruAuthForm } from "./ru/authForm.ts";
 import { ruAuthPassword } from "./ru/authPassword.ts";
 import { ruSettingsPage } from "./ru/settingsPage.ts";
+import { ruSettingsSmall } from "./ru/settingsSmall.ts";
 import { ruCommon } from "./ru/common.ts";
 
-export const en = { ...enCommon, ...enAdmin, ...enAdminSettings, ...enAdminBackup , ...enAdminStorage , ...enAdminUsers , ...enAdminReports , ...enAdminLog , ...enAdminUsage , ...enAdminInvites , ...enAdminAgents , ...enAdminNetwork , ...enAdminQuality , ...enAdminFields , ...enAdminSpeech , ...enAdminImages , ...enAdminBuiltinSpeech , ...enAdminHarness , ...enAdminAddonCard , ...enAdminAddons , ...enAdminWorlds , ...enAdminPlugins , ...enAdminSpeed , ...enAdminModelChoice , ...enHome , ...enHomeBench , ...enHomeTables , ...enHomeDashboard , ...enAuthDoor , ...enAuthForm , ...enAuthPassword , ...enSettingsPage };
+export const en = { ...enCommon, ...enAdmin, ...enAdminSettings, ...enAdminBackup , ...enAdminStorage , ...enAdminUsers , ...enAdminReports , ...enAdminLog , ...enAdminUsage , ...enAdminInvites , ...enAdminAgents , ...enAdminNetwork , ...enAdminQuality , ...enAdminFields , ...enAdminSpeech , ...enAdminImages , ...enAdminBuiltinSpeech , ...enAdminHarness , ...enAdminAddonCard , ...enAdminAddons , ...enAdminWorlds , ...enAdminPlugins , ...enAdminSpeed , ...enAdminModelChoice , ...enHome , ...enHomeBench , ...enHomeTables , ...enHomeDashboard , ...enAuthDoor , ...enAuthForm , ...enAuthPassword , ...enSettingsPage , ...enSettingsSmall };
 export type MessageKey = keyof typeof en;
 
-const ru: Record<string, string> = { ...ruCommon, ...ruAdmin, ...ruAdminSettings , ...ruAdminBackup , ...ruAdminStorage , ...ruAdminUsers , ...ruAdminReports , ...ruAdminLog , ...ruAdminUsage , ...ruAdminInvites , ...ruAdminAgents , ...ruAdminNetwork , ...ruAdminQuality , ...ruAdminFields , ...ruAdminSpeech , ...ruAdminImages , ...ruAdminBuiltinSpeech , ...ruAdminHarness , ...ruAdminAddonCard , ...ruAdminAddons , ...ruAdminWorlds , ...ruAdminPlugins , ...ruAdminSpeed , ...ruAdminModelChoice , ...ruHome , ...ruHomeBench , ...ruHomeTables , ...ruHomeDashboard , ...ruAuthDoor , ...ruAuthForm , ...ruAuthPassword , ...ruSettingsPage } as Record<string, string>;
+const ru: Record<string, string> = { ...ruCommon, ...ruAdmin, ...ruAdminSettings , ...ruAdminBackup , ...ruAdminStorage , ...ruAdminUsers , ...ruAdminReports , ...ruAdminLog , ...ruAdminUsage , ...ruAdminInvites , ...ruAdminAgents , ...ruAdminNetwork , ...ruAdminQuality , ...ruAdminFields , ...ruAdminSpeech , ...ruAdminImages , ...ruAdminBuiltinSpeech , ...ruAdminHarness , ...ruAdminAddonCard , ...ruAdminAddons , ...ruAdminWorlds , ...ruAdminPlugins , ...ruAdminSpeed , ...ruAdminModelChoice , ...ruHome , ...ruHomeBench , ...ruHomeTables , ...ruHomeDashboard , ...ruAuthDoor , ...ruAuthForm , ...ruAuthPassword , ...ruSettingsPage , ...ruSettingsSmall } as Record<string, string>;
 
 export const DICTIONARIES: Dictionaries = { en, ru };
