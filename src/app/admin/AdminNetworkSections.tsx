@@ -135,7 +135,7 @@ export function AdminNetworkSections({
           <div className="grid gap-3 sm:grid-cols-2">
             <Field
               label={t("admin.network.discord.clientId")}
-              hint={inheritedHint(config.discord.clientId, env.discordClientId)}
+              hint={inheritedHint(config.discord.clientId, env.discordClientId, undefined, t)}
             >
               <input
                 className={ui.input}

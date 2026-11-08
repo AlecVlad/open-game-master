@@ -342,7 +342,7 @@ export function AdminSettingsPanel() {
             label={t("admin.settings.publicUrl.label")}
             hint={
               env.publicUrl
-                ? inheritedHint(config.publicUrl, env.publicUrl)
+                ? inheritedHint(config.publicUrl, env.publicUrl, undefined, t)
                 : t("admin.settings.publicUrl.hint")
             }
           >
@@ -487,7 +487,7 @@ export function AdminSettingsPanel() {
               blankLabel={env.localTextModel ? fromEnv(env.localTextModel, "LOCAL_TEXT_MODEL") : BLANK.story}
             />
           )}
-          <Field label={t("admin.settings.baseUrl.label")} hint={inheritedHint(config.text.customBaseUrl, env.customBaseUrl)}>
+          <Field label={t("admin.settings.baseUrl.label")} hint={inheritedHint(config.text.customBaseUrl, env.customBaseUrl, undefined, t)}>
             <input
               className={ui.input}
               value={config.text.customBaseUrl}
