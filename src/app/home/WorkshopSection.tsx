@@ -11,6 +11,7 @@ import { workshopPlate } from "@/app/workshop/plates";
 import { ui } from "@/lib/ui";
 import { Tooltip } from "@/components/ui/Tooltip";
 import type { WorkshopSummary } from "@/app/workshop/types";
+import { useI18n } from "@/lib/i18n/provider";
 
 // The bench, below the title screen. A workshop is not a game, so it gets
 // its own shelf rather than a save slot, but it is a first thought rather
@@ -28,6 +29,7 @@ export function WorkshopSection({
   // say (the dashboard today) is covered by the probe below.
   pending?: boolean;
 }) {
+  const { t } = useI18n();
   const router = useRouter();
   // An empty list and a list not yet loaded look the same from here, and the
   // "nothing on the bench" plate flashing before six workshops arrive is a
@@ -48,14 +50,14 @@ export function WorkshopSection({
   }, [pending]);
   const waiting = !workshops.length && (pending ?? !probed);
   return (
-    <section className="ts-bench" aria-label="Workshop">
+    <section className="ts-bench" aria-label={t("home.bench.aria")}>
       <div className="ts-bench-head">
         <div className="min-w-0">
-          <h2 className="ts-below-eyebrow">The workshop</h2>
-          <p className="ts-below-lede">Build maps, NPCs, monsters, story and rules before a table exists.</p>
+          <h2 className="ts-below-eyebrow">{t("home.bench.eyebrow")}</h2>
+          <p className="ts-below-lede">{t("home.bench.lede")}</p>
         </div>
         <Link href="/workshop" className="ts-ghost motion-press">
-          <Hammer className="size-4" /> Open workshop
+          <Hammer className="size-4" /> {t("home.bench.open")}
         </Link>
       </div>
 
@@ -74,8 +76,8 @@ export function WorkshopSection({
               label={workshop.title}
               // The row's link and its one button again; both stay on the row.
               items={[
-                { id: "open", label: "Open", glyph: "system-storyboard", onSelect: () => router.push(`/workshop/${workshop.id}`) },
-                { id: "duplicate", label: "Duplicate", glyph: "ui-duplicate", disabled: cloningId === workshop.id, onSelect: () => onClone(workshop.id) },
+                { id: "open", label: t("home.bench.menuOpen"), glyph: "system-storyboard", onSelect: () => router.push(`/workshop/${workshop.id}`) },
+                { id: "duplicate", label: t("home.bench.menuDup"), glyph: "ui-duplicate", disabled: cloningId === workshop.id, onSelect: () => onClone(workshop.id) },
               ]}
             >
               <Link href={`/workshop/${workshop.id}`} className="ts-bench-door" data-no-motion>
@@ -84,15 +86,14 @@ export function WorkshopSection({
                 <span className="min-w-0 pr-8">
                   <span className="ts-slot-title block truncate">{workshop.title}</span>
                   <span className="ts-slot-line block">
-                    Party of {workshop.gameSettings.targetParty.size} at level{" "}
-                    {workshop.gameSettings.targetParty.level}
+                    {t("home.bench.party", { size: workshop.gameSettings.targetParty.size, level: workshop.gameSettings.targetParty.level })}
                   </span>
                 </span>
               </Link>
-              <Tooltip content="Copy this workshop and everything in it">
+              <Tooltip content={t("home.bench.dupTip")}>
                 <button
                   type="button"
-                  aria-label={`Duplicate ${workshop.title}`}
+                  aria-label={t("home.bench.dupAria", { title: workshop.title })}
                   disabled={cloningId === workshop.id}
                   onClick={() => onClone(workshop.id)}
                   className={cn("absolute right-2 top-2", ui.iconAction, "hover:text-amber-300")}
@@ -108,7 +109,7 @@ export function WorkshopSection({
           ))}
         </ul>
       ) : (
-        <EmptyState size="md" art="map" title="Nothing on the bench yet. A workshop is yours alone, and nothing in it reaches a table until you bring it in." />
+        <EmptyState size="md" art="map" title={t("home.bench.empty")} />
       )}
     </section>
   );
