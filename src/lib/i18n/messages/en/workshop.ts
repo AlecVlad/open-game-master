@@ -34,7 +34,7 @@ export const enWorkshop = {
   "workshop.shelf.button.delete": "Delete {title}",
   "workshop.shelf.empty.title": "No workshops yet.",
   "workshop.shelf.empty.hint": "A workshop is yours alone: prepare a game on your own time. Nothing in it reaches a table until a campaign brings it in, when it is created, from its lobby or from its Settings.",
-  "workshop.shelf.load.label": "Your workshops"
+  "workshop.shelf.load.label": "Your workshops",
   "workshop.bundle.author": "by {author}",
   "workshop.bundle.shared.intro": "The records its cards pick from \"{name}\":",
   "workshop.bundle.shared.label": "Shared records",
