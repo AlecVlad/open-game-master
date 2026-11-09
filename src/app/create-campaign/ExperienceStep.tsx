@@ -151,9 +151,9 @@ function MultiCharacterField({ draft, patch }: Pick<StepProps, "draft" | "patch"
         value={draft.multiCharacter}
         onChange={(multiCharacter) => patch({ multiCharacter })}
         options={[
-          { value: "off", label: t("createCampaign.experience.multiCharacter.oneEach") },
-          { value: "one_active", label: t("createCampaign.experience.multiCharacter.severalOne") },
-          { value: "all_active", label: t("createCampaign.experience.multiCharacter.severalAll") },
+          { value: "off", label: t(MULTI_LABELS.off) },
+          { value: "one_active", label: t(MULTI_LABELS.one_active) },
+          { value: "all_active", label: t(MULTI_LABELS.all_active) },
         ]}
       />
       <p key={draft.multiCharacter} className="live-in mt-1 text-[11px] text-stone-500">
