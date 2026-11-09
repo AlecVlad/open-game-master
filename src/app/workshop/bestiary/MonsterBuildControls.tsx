@@ -12,6 +12,7 @@ import { crLabel } from "@/lib/bestiary/derive-cr";
 import { CR_CHOICES, type Found } from "@/app/workshop/bestiary/types";
 import { needsLabel } from "@/lib/content/levelup-logic";
 import { BEST_EFFORT_CHIP } from "@/lib/content/reading-logic";
+import { useI18n } from "@/lib/i18n/provider";
 
 const CR_OPTIONS = CR_CHOICES.map((cr) => ({ value: String(cr), label: crLabel(cr) }));
 
@@ -48,6 +49,7 @@ export function MonsterBuildControls({
   // The table's setting, so a high-rating find draws the boss plate.
   genre?: string | null;
 }) {
+  const { t } = useI18n();
   const [newName, setNewName] = useState("");
   const [newCr, setNewCr] = useState(1);
 
@@ -66,18 +68,18 @@ export function MonsterBuildControls({
       )}
     >
       {variant === "card" ? (
-        <SectionHead title="Build a monster" glyph="system-bestiary" className="mb-0" />
+        <SectionHead title={t("workshop.bestiary.build")} glyph="system-bestiary" className="mb-0" />
       ) : null}
       <div className="flex flex-wrap items-end gap-2">
-        <Field as="label" label="Name" className="min-w-40 flex-1 sm:max-w-64">
+        <Field as="label" label={t("workshop.bestiary.field.name")} className="min-w-40 flex-1 sm:max-w-64">
           <input
             value={newName}
             onChange={(event) => setNewName(event.target.value.slice(0, MONSTER_NAME_MAX))}
-            placeholder="Bone Tyrant"
+            placeholder={t("workshop.bestiary.placeholder.name")}
             className={ui.input}
           />
         </Field>
-        <Field label="Starting CR" className="w-24">
+        <Field label={t("workshop.bestiary.startingCR")} className="w-24">
           <Select label="Starting CR" value={String(newCr)} onChange={(next) => setNewCr(Number(next))} options={CR_OPTIONS} />
         </Field>
         <button
@@ -86,12 +88,12 @@ export function MonsterBuildControls({
           onClick={() => void create({ from: "cr", name: newName.trim(), cr: newCr })}
           className={ui.btnPrimary}
         >
-          Start from the baseline
+          {t("workshop.bestiary.startBaseline")}
         </button>
       </div>
 
       <div className="flex flex-wrap items-end gap-2">
-        <Field as="label" label="Or start from something that exists" className="flex-1">
+        <Field as="label" label={t("workshop.bestiary.startExisting")} className="flex-1">
           <div className="flex gap-1.5">
             <input
               value={query}
@@ -101,7 +103,7 @@ export function MonsterBuildControls({
                   onFind();
                 }
               }}
-              placeholder="owlbear"
+              placeholder={t("workshop.bestiary.find.placeholder")}
               className={cn(ui.input, "flex-1")}
             />
             <button type="button" onClick={onFind} className={ui.btnSecondary}>
