@@ -32,6 +32,8 @@ import {
 import { DictateField } from "@/components/DictateField";
 import { appendDictation } from "@/lib/dictation";
 import { KNOWN_BEFORE_HOW_CHARS, type KnownBeforeGrade } from "@/lib/dm/known-before-logic";
+import { useI18n } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages/index";
 
 // "Before the story" (issue 731): whether the whole party already knows this
 // person when the story begins, and how. Each grade says in plain words the
@@ -83,6 +85,7 @@ export function NpcEditorFields({
   // host never does, and the section stays out).
   knownBeforeOpen?: boolean;
 }) {
+  const { t } = useI18n();
   const roleListId = useId();
   const placeListId = useId();
   const knownLabelId = useId();
@@ -97,21 +100,21 @@ export function NpcEditorFields({
         className="panel space-y-2 rounded-xl p-3"
         data-tour="cast-fields"
       >
-        <SectionHead title="On the surface" glyph="system-cast" className="mb-0" />
+        <SectionHead title={t("workshop.cast.surface")} glyph="system-cast" className="mb-0" />
         <div className="flex flex-wrap items-center gap-1.5">
           <input
             value={draft.name}
             onChange={(event) => onChange({ ...draft, name: event.target.value })}
-            placeholder="Their name"
+            placeholder={t("workshop.cast.name")}
             className={cn(ui.input, "min-w-32 flex-1")}
           />
           <input
             list={roleListId}
             value={draft.role}
             onChange={(event) => onChange({ ...draft, role: event.target.value })}
-            placeholder="What they do"
-            aria-label="Role: pick one or type your own"
-            title="Pick a role or type your own. It chooses their stand-in face until a portrait exists."
+            placeholder={t("workshop.cast.whatTheyDo")}
+            aria-label={t("workshop.cast.role.aria")}
+            title={t("workshop.cast.role.hint")}
             className={cn(ui.input, "w-full sm:w-40")}
           />
           <datalist id={roleListId}>
@@ -123,7 +126,7 @@ export function NpcEditorFields({
           </datalist>
           <span className="w-full sm:w-60">
           <Select<NpcDraft["attitude"]>
-            label="Attitude to the party"
+            label={t("workshop.cast.attitude")}
             value={draft.attitude}
             onChange={(attitude) => onChange({ ...draft, attitude })}
             options={ATTITUDES.map((attitude) => ({
@@ -143,7 +146,7 @@ export function NpcEditorFields({
           </span>
           <span className="w-full sm:w-40">
           <Select<Gender>
-            label="Gender"
+            label={t("workshop.cast.gender")}
             value={draft.gender}
             onChange={(gender) => onChange({ ...draft, gender })}
             options={[{ value: "", label: "Unspecified" }, ...GENDERS.map((gender) => ({ value: gender, label: gender }))]}
@@ -156,7 +159,7 @@ export function NpcEditorFields({
           {keepsRace ? (
             <span className="w-full sm:w-48">
             <Select<string>
-              label="Race"
+              label={t("workshop.cast.race")}
               value={draft.race ?? ""}
               onChange={(race) => onChange({ ...draft, race })}
               options={[{ value: "", label: "Unspecified" }, ...NPC_RACE_OPTIONS]}
@@ -178,8 +181,8 @@ export function NpcEditorFields({
           value={draft.location}
           list={places.length ? placeListId : undefined}
           onChange={(event) => onChange({ ...draft, location: event.target.value })}
-          placeholder="Where they are usually found"
-          aria-label="Location: pick a place on the map or type your own"
+          placeholder={t("workshop.cast.location")}
+          aria-label={t("workshop.cast.location.aria")}
           className={ui.input}
         />
         {places.length ? (
@@ -198,13 +201,13 @@ export function NpcEditorFields({
               aliases: event.target.value.split(",").map((alias) => alias.trim()).filter(Boolean),
             })
           }
-          placeholder="Other names they answer to, separated by commas"
+          placeholder={t("workshop.cast.aliases")}
           className={ui.input}
         />
 
         <div className="flex items-start gap-1.5">
           <DictateField
-            label="What a player notices first"
+            label={t("workshop.cast.firstNotice")}
             className="min-w-0 flex-1"
             onTranscript={(text) => onChange({ ...draft, trait: appendDictation(draft.trait, text) })}
           >
@@ -212,7 +215,7 @@ export function NpcEditorFields({
               value={draft.trait}
               onChange={(event) => onChange({ ...draft, trait: event.target.value })}
               rows={2}
-              placeholder="What a player notices about them first"
+              placeholder={t("workshop.cast.firstNotice.placeholder")}
               className={ui.input}
             />
           </DictateField>
@@ -221,7 +224,7 @@ export function NpcEditorFields({
 
         {factions.length ? (
           <Select
-            label="Faction"
+            label={t("workshop.cast.faction")}
             value={draft.factionId}
             onChange={(factionId) => onChange({ ...draft, factionId })}
             options={[
@@ -235,13 +238,13 @@ export function NpcEditorFields({
             brings them in as it, under their own name. */}
         <div className="flex flex-wrap items-center gap-1.5">
           <GameIcon icon={{ kind: "glyph", key: "system-bestiary" }} size="size-7" />
-          <span className="text-xs text-stone-400">Fights as</span>
+          <span className="text-xs text-stone-400">{t("workshop.cast.fightAs")}</span>
           {draft.statBlock ? (
             <span className="pop-in inline-flex items-center gap-1 rounded-full border border-amber-500/25 bg-stone-900/60 py-0.5 pl-2.5 pr-1 text-xs text-stone-200">
               {draft.statBlock.startsWith("homebrew:") ? "your own stat block" : draft.statBlock.replace(/-/g, " ")}
               <button
                 type="button"
-                aria-label="Clear the stat block"
+                aria-label={t("workshop.cast.clearStat")}
                 onClick={() => onChange({ ...draft, statBlock: "" })}
                 className={cn(ui.iconAction, "rounded-full p-1 opacity-100 hover:text-red-300")}
               >
@@ -251,7 +254,7 @@ export function NpcEditorFields({
           ) : null}
           <ContentPick
             kind="monsters"
-            label="Pick the stat block they fight with"
+            label={t("workshop.cast.statBlock")}
             placeholder={draft.statBlock ? "Another stat block..." : "Veteran, Bandit Captain, Priest..."}
             className="min-w-48 flex-1"
             onPick={(entry) => onChange({ ...draft, statBlock: entry.slug ?? entry.name })}
@@ -265,7 +268,7 @@ export function NpcEditorFields({
           <GameIcon icon={{ kind: "glyph", key: "tab-ambience" }} size="size-7" />
           <span className="min-w-0 flex-1 sm:max-w-72">
           <VoicePicker
-            label="Voice"
+            label={t("workshop.cast.voice")}
             value={draft.voice?.voiceId ?? ""}
             onChange={(voiceId) =>
               onChange({
@@ -284,7 +287,7 @@ export function NpcEditorFields({
                 Pace
                 <span className="w-28">
                 <Slider
-                  label="Pace"
+                  label={t("workshop.cast.pace.label")}
                   min={0.7}
                   max={1.4}
                   step={0.05}
@@ -304,7 +307,7 @@ export function NpcEditorFields({
           with someone (issue 731); a person hostile to the party has none. */}
       {knownBeforeOpen && draft.attitude !== "hostile" ? (
         <section className="panel space-y-2 rounded-xl p-3" data-tour="cast-known-before">
-          <SectionHead title="Before the story" glyph="tab-bonds" className="mb-0" />
+          <SectionHead title={t("workshop.cast.known.beforeLabel")} glyph="tab-bonds" className="mb-0" />
           <p id={knownLabelId} className="text-xs text-stone-300">
             Does the whole party already know them when the story begins?
           </p>
@@ -345,12 +348,12 @@ export function NpcEditorFields({
       ) : null}
 
       <section className="panel space-y-2 rounded-xl p-3">
-        <SectionHead title="Who they are" glyph="tab-bonds" className="mb-0" aside={suggest("personality")} />
+        <SectionHead title={t("workshop.cast.personality.title")} glyph="tab-bonds" className="mb-0" aside={suggest("personality")} />
         <PersonalitySliders draft={draft} onChange={onChange} />
       </section>
 
       <section className="panel space-y-2 rounded-xl p-3">
-        <SectionHead title="What they want" glyph="quest-active" className="mb-0" />
+        <SectionHead title={t("workshop.cast.goals.title")} glyph="quest-active" className="mb-0" />
         {GOAL_FIELDS.map(([field, placeholder]) => (
           <div key={field} className="flex items-center gap-1.5">
             <input
@@ -374,7 +377,7 @@ export function NpcEditorFields({
       </section>
 
       <section className="panel space-y-2 rounded-xl p-3">
-        <SectionHead title="How they feel about other people" glyph="attitude-wary" className="mb-0" />
+        <SectionHead title={t("workshop.cast.relationships.title")} glyph="attitude-wary" className="mb-0" />
         <RelationEditor draft={draft} graph={graph} others={others} onChange={onChange} />
       </section>
     </>
