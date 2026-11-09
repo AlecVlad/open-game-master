@@ -264,5 +264,6 @@ export const ruCreateCampaign: Partial<Record<keyof typeof enCreateCampaign, str
   "createCampaign.experience.voiceChat.wallsMuffleHint": "Стена приглушает голос, а не полностью блокирует его",
   "createCampaign.experience.voiceChat.downedDeaf": "Потеря слуха при потере сознания",
   "createCampaign.experience.voiceChat.downedDeafHint": "При 0 хитов персонаж перестаёт слышать остальных",
-  "createCampaign.experience.voiceChat.serverHelp": "На сервере есть отдельный переключатель голосовой связи. Пока владелец его не включит, эти настройки не подействуют. Распознавание речи включается в игровых настройках лобби; все участники стола будут уведомлены об этом.",
+  "createCampaign.experience.voiceChat.serverHelp": "На сервере есть отдельный переключатель голосовой связи. Пока владелец его не включит, эти настройки не подействуют. Распознавание речи включается в игровых настройках лобби; все участники стола будут уведомлены об этом.",  "createCampaign.experience.voiceChat.hearingRangeValue": "{feet} футов",
+
 };
