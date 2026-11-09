@@ -9,7 +9,6 @@ import { ui } from "@/lib/ui";
 import {
   IMPORT_KINDS,
   WORLD_RECORD_KINDS,
-  IMPORT_KIND_LABELS,
   SINGULAR_KINDS,
   standingUnsaid,
   type ImportKind,
