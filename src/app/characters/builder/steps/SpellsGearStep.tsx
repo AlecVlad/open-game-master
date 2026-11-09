@@ -711,7 +711,7 @@ export function SpellsSection({
           supply: spellSupplyOf(pool, maxSpellLevel, [...racialCantrips, ...featSpells.cantrips, ...featSpells.spells, ...subclassSpells]),
           cantripCap,
           listCap: wizard ? bookCap : spellCap,
-          listVerb: wizard ? t("builder.spells.listVerb.book") : spellStyle === "known" ? t("builder.spells.listVerb.known") : t("builder.spells.listVerb.prepared"),
+          listVerb: wizard ? "write in your spellbook" : spellStyle === "known" ? "know" : "prepare",
           maxSpellLevel,
         });
   return (
