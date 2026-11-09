@@ -41,6 +41,7 @@ import type { WorkshopSummary } from "@/app/workshop/types";
 import { parseRef, refOf } from "@/lib/worldforge/model";
 import type { RecordVersions } from "@/app/workshop/[workshopId]/useWorkshopVersions";
 import { CreateButton } from "@/app/workshop/[workshopId]/CreateChooser";
+import { useI18n } from "@/lib/i18n/provider";
 
 // One system, open. A way back to the hub, the system's name with its count,
 // a sideways rail to hop to a neighbour, and then the panel itself.
@@ -103,13 +104,14 @@ export function SystemView({
   // when its own kind's moves.
   versions: RecordVersions;
 }) {
+  const { t, tp } = useI18n();
   const current = WORKSHOP_SYSTEMS.find((entry) => entry.id === system) ?? WORKSHOP_SYSTEMS[0];
-  const count = systemCount(current.id, workshop, bestiary, homebrew, pregens, plugin, world);
+  const count = systemCount(current.id, workshop, bestiary, homebrew, pregens, plugin, world, { t, tp });
   const items: IconRailItem<SystemId>[] = WORKSHOP_SYSTEMS.map((entry) => {
-    const entryCount = systemCount(entry.id, workshop, bestiary, homebrew, pregens, plugin, world);
+    const entryCount = systemCount(entry.id, workshop, bestiary, homebrew, pregens, plugin, world, { t, tp });
     return {
       value: entry.id,
-      label: entry.label,
+      label: t(`workshop.system.${entry.id}.label` as import("@/lib/i18n/messages/index").MessageKey),
       icon: entry.icon,
       badge: entryCount.total || undefined,
       tour: `system-tab-${entry.id}`,
@@ -127,13 +129,13 @@ export function SystemView({
       </button>
       <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-1">
         <GameIcon icon={systemGlyph(current.id)} size="size-9" />
-        <h2 className="gold-title font-display text-xl tracking-wide">{current.label}</h2>
+        <h2 className="gold-title font-display text-xl tracking-wide">{t(`workshop.system.${current.id}.label` as import("@/lib/i18n/messages/index").MessageKey)}</h2>
         <span className="text-sm text-stone-500">{count.phrase}</span>
         <CreateButton onClick={onCreate} className="ml-auto" />
         <button
           type="button"
-          aria-label={`How ${current.label} works`}
-          title="Guide and tour for this tool"
+          aria-label={t("workshop.systemView.help.aria", { system: t(`workshop.system.${current.id}.label` as import("@/lib/i18n/messages/index").MessageKey) })}
+          title={t("workshop.systemView.help.title")}
           onClick={onHelp}
           data-tour="system-help"
           className={cn(ui.iconAction, headIcon)}
@@ -153,7 +155,7 @@ export function SystemView({
 
       {from && parseRef(from) && system !== "world" ? (
         <button type="button" onClick={() => onWorldEntry(from)} className={cn(ui.btnSmall, "mb-3")} data-testid="back-to-world-entry">
-          <ArrowLeft className="size-3.5" /> Back to the World entry
+          <ArrowLeft className="size-3.5" /> {t("workshop.systemView.backToWorld")}
         </button>
       ) : null}
       {/* Keyed by system so the incoming tool rises in instead of cutting. */}
