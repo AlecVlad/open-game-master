@@ -62,7 +62,6 @@ export const enBuilderExtras = {
   "builder.extra.ability.throw.saved": "from your sheet",
   "builder.extra.ability.throw.inHand": "in hand",
   "builder.extra.ability.throw.free": "free",
-  "builder.extra.ability.throw.rolling": "The dice are in the air…",
   "builder.extra.ability.throw.kept": "Your kept roll{date}.",
   "builder.extra.ability.throw.total": "Total {total}",
   "builder.extra.ability.throw.placePrompt": "Now tap the ability that should get it.",
