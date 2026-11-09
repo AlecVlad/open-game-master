@@ -182,6 +182,23 @@ for (const key of experienceShellMessages) {
   assert.ok(key in DICTIONARIES.ru, `Russian experience-step message missing: ${key}`);
 }
 
+const variantRuleIds = [
+  "flanking", "criticalFumbles", "encumbrance", "lingeringInjuries",
+  "powerfulCritical", "criticalDamageMods", "ammunition", "supplies",
+];
+const variantRuleMessages = ["title", "restLengths", "on", "off"];
+for (const id of variantRuleIds) {
+  variantRuleMessages.push(`${id}.label`, `${id}.tip`);
+}
+for (const rest of ["standard", "gritty", "heroic"]) {
+  variantRuleMessages.push(`rest.${rest}`);
+}
+for (const part of variantRuleMessages) {
+  const key = `createCampaign.experience.variantRules.${part}`;
+  assert.ok(key in DICTIONARIES.en, `English variant-rule message missing: ${key}`);
+  assert.ok(key in DICTIONARIES.ru, `Russian variant-rule message missing: ${key}`);
+}
+
 // Report (not fail on) what Russian still lacks, so progress is visible.
 const missing = Object.keys(DICTIONARIES.en).filter((key) => !(key in DICTIONARIES.ru));
 console.log(`i18n: ${Object.keys(DICTIONARIES.en).length} messages, ${missing.length} not yet in Russian`);
