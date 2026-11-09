@@ -26,6 +26,7 @@ export function PluginWizard({
   onDone: (pull: boolean) => void;
   onCancel: () => void;
 }) {
+  const { t } = useI18n();
   const [pull, setPull] = useState(true);
   const props = { draft, onDraft };
   return (
