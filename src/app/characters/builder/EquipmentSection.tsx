@@ -117,9 +117,9 @@ export default function EquipmentSection({
   const gearShelf = GEAR_SHELF.map((section) => ({
     ...section,
     label: t(
-      section.key === "items:weapon"
+      section.key.toLowerCase().includes("weapon")
         ? "builder.gear.shelf.weapons"
-        : section.key === "items:armor"
+        : section.key.toLowerCase().includes("armor")
           ? "builder.gear.shelf.armor"
           : "builder.gear.shelf.gear",
     ),
