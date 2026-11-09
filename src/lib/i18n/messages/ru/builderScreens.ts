@@ -42,6 +42,8 @@ export const ruBuilderScreens: Partial<Record<keyof typeof enBuilderScreens, str
   "builder.screen.levelup.nothing": "На {level}-м уровне нечего выбирать. Сохранение сразу повысит уровень.",
   "builder.screen.levelup.owed.one": "Ниже остался один выбор. «Выбрать за меня» заполнит только пустые пункты.",
   "builder.screen.levelup.owed.other": "Ниже осталось выборов: {count}. «Выбрать за меня» заполнит только пустые пункты.",
+  "builder.screen.levelup.owed.few": "Ниже осталось выборов: {count}. «Выбрать за меня» заполнит только пустые пункты.",
+  "builder.screen.levelup.owed.many": "Ниже осталось выборов: {count}. «Выбрать за меня» заполнит только пустые пункты.",
   "builder.screen.levelup.done": "Все решения для этого уровня приняты.",
   "builder.screen.levelup.action.choose": "Выбрать за меня",
   "builder.screen.levelup.action.choosing": "Подбираем...",
