@@ -713,7 +713,7 @@ export function SpellsSection({
           listCap: wizard ? bookCap : spellCap,
           listVerb: wizard ? "write in your spellbook" : spellStyle === "known" ? "know" : "prepare",
           maxSpellLevel,
-        });
+        }, t);
   return (
     <StepPanel
       title={t("builder.spells.title")}
