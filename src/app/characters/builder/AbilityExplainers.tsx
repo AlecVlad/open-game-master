@@ -153,7 +153,7 @@ export function HpExplainerDialog({
   onOpenChange: (open: boolean) => void;
   hp: HpExplainerInput;
 }) {
-  const { t } = useI18n();
+  const { t, tp } = useI18n();
   const { parts, method, kept, maxHp } = hp.hp;
   const klass = hp.className.toLowerCase();
   const later = hp.level > 1;
@@ -191,7 +191,7 @@ export function HpExplainerDialog({
         ? t("builder.screen.hp.step.later", {
             die: laterDie,
             levels: hp.level - 1,
-            levelWord: t(hp.level === 2 ? "builder.screen.hp.level.one" : "builder.screen.hp.level.other"),
+            levelWord: tp("builder.screen.hp.level", hp.level - 1, { count: hp.level - 1 }),
             total: parts.laterLevels,
             maxHp: parts.total,
           })
