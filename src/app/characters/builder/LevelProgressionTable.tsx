@@ -49,6 +49,12 @@ export function LevelProgressionTable({
     </>
   );
   const toChoose = <span className="text-amber-300">{t("builder.levelProgression.stillChoose")}</span>;
+  const spellListLabel = (label: string) =>
+    label === "Known"
+      ? t("builder.spells.cap.known")
+      : label === "Prepared"
+        ? t("builder.spells.cap.prepared")
+        : label;
   return (
     <StepPanel title={t("builder.levelProgression.title")} className={cn("border-amber-500/20", className)}>
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
@@ -178,14 +184,14 @@ export function LevelProgressionTable({
                         row.casters
                           .map((caster) =>
                             caster.spells
-                              ? `${caster.name}: ${caster.spells.count} ${caster.spells.label}${caster.spells.spellbook ? `, ${caster.spells.spellbook} in the spellbook` : ""}`
+                              ? `${caster.name}: ${caster.spells.count} ${spellListLabel(caster.spells.label)}${caster.spells.spellbook ? `, ${caster.spells.spellbook} ${t("builder.levelProgression.spellbook")}` : ""}`
                               : `${caster.name}: none yet`,
                           )
                           .join("; ")
                       ) : row.spells ? (
                         <>
-                          {row.spells.count} {row.spells.label}
-                          {row.spells.spellbook ? `, ${row.spells.spellbook} in the spellbook` : ""}
+                          {row.spells.count} {spellListLabel(row.spells.label)}
+                          {row.spells.spellbook ? `, ${row.spells.spellbook} ${t("builder.levelProgression.spellbook")}` : ""}
                         </>
                       ) : (
                         none
