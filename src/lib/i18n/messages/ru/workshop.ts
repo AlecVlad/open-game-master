@@ -701,4 +701,11 @@ export const ruWorkshop: Partial<Record<keyof typeof enWorkshop, string>> & Reco
   "workshop.testFight.button.busy": "Подготавливаем стол...",
   "workshop.testFight.button.start": "Начать проверочный бой",
 
+  "workshop.encounter.budget.aria": "Скорректированный опыт: {xp} XP при пороге {ceiling} XP",
+  "workshop.testFight.heroes.one": "герой",
+  "workshop.testFight.heroes.few": "героя",
+  "workshop.testFight.heroes.many": "героев",
+  "workshop.testFight.heroes.other": "героя",
+  "workshop.testFight.error.setup": "Не удалось подготовить проверочный бой.",
+
 };
