@@ -653,4 +653,18 @@ export const enWorkshop = {
   "workshop.party.levelDescription": "Level {level}",
   "workshop.party.offerLabel": "Offer to players",
 
+  "workshop.party.intro.one": "Built for {size} hero at level {level}; every encounter and odds preview budgets against that. The characters below are pregens: sheets ready for anyone who sits down without one. They ride along in the bundle.",
+  "workshop.party.intro.other": "Built for {size} heroes at level {level}; every encounter and odds preview budgets against that. The characters below are pregens: sheets ready for anyone who sits down without one. They ride along in the bundle.",
+  "workshop.party.find": "Find a pregen",
+  "workshop.party.roster.title": "The roster",
+  "workshop.party.library.title": "Your characters",
+  "workshop.party.loading.label": "Reading the roster...",
+  "workshop.party.draft.intro": "The AI GM reads this adventure and proposes a balanced party of {heroes}, one for each seat of the party set above, each with a backstory tied to it. The builder's own rules make every sheet at level {level}. Drafts are not offered to players until you tick Offer to players.",
+  "workshop.party.draft.heroes.one": "{count} hero",
+  "workshop.party.draft.heroes.other": "{count} heroes",
+  "workshop.party.draft.error.readiness": "Could not ask whether the AI GM can draft.",
+  "workshop.party.draft.error.connect": "Could not reach the server to ask whether the AI GM can draft.",
+  "workshop.party.draft.error.failed": "The pregens were not drafted.",
+  "workshop.party.draft.error.connectFailed": "Could not reach the server, so nothing was drafted.",
+
 } satisfies Record<string, string>;
