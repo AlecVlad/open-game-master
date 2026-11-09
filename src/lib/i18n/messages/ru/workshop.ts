@@ -504,4 +504,11 @@ export const ruWorkshop: Partial<Record<keyof typeof enWorkshop, string>> & Reco
   "workshop.bestiary.traitsFull": "Блок заполнен: максимум {count} строк.",
   "workshop.bestiary.field.add": "Добавить",
 
+  "workshop.bestiary.fold.actions": "Действия и особые способности",
+  "workshop.bestiary.fold.spellcasting": "Использование заклинаний",
+  "workshop.bestiary.fold.regeneration": "Регенерация",
+  "workshop.bestiary.fold.senses": "Навыки, чувства и языки",
+  "workshop.bestiary.rating.expected": "{label}",
+  "workshop.bestiary.rating.wants": "Для ПО {cr} ожидается {expected}",
+
 };
