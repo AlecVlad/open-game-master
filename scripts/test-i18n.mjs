@@ -238,6 +238,14 @@ for (const key of worldSetupMessages) {
   assert.ok(key in DICTIONARIES.ru, `Russian world setup message missing: ${key}`);
 }
 
+const reviewMessages = ["cover.untitledAdventure","cover.untitledCampaign","cover.defaultTheme","cover.party.solo","cover.party.players","cover.meta","cover.lengthActs.short","cover.lengthActs.standard","cover.lengthActs.epic","cover.level","cover.chip.climate","cover.chip.length","cover.packSetting","row.runsGame","row.setting","row.party","row.difficulty","row.dice","row.narration","row.safety","row.rules","row.prep","row.tableFeatures","edit","editAria","lobby.solo","lobby.group","soloAiMissing","followUp.adventureIntro","followUp.campaignIntro","followUp.help","followUp.openAdventure","followUp.openCampaign","storyClash"].map((part) => `createCampaign.review.${part}`);
+for (const key of reviewMessages) {
+  assert.ok(key in DICTIONARIES.en, `English review message missing: ${key}`);
+  assert.ok(key in DICTIONARIES.ru, `Russian review message missing: ${key}`);
+}
+assert.ok("storySetupNotice.turnOff" in DICTIONARIES.en && "storySetupNotice.turnOff" in DICTIONARIES.ru, "Story Setup off action must be translated");
+assert.ok("storySetupNotice.keep" in DICTIONARIES.en && "storySetupNotice.keep" in DICTIONARIES.ru, "Story Setup keep action must be translated");
+
 // Report (not fail on) what Russian still lacks, so progress is visible.
 const missing = Object.keys(DICTIONARIES.en).filter((key) => !(key in DICTIONARIES.ru));
 console.log(`i18n: ${Object.keys(DICTIONARIES.en).length} messages, ${missing.length} not yet in Russian`);
