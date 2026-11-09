@@ -5,6 +5,8 @@ import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui";
 import { ListControls, useListControls, type Listed } from "@/components/ui/ListControls";
 import { compareNames } from "@/lib/language/text-logic";
+import { useI18n } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages/index";
 
 // The same head on every workshop list long enough to need one: the shared
 // search, tag and sort controls (src/components/ui/ListControls.tsx) and a
@@ -44,17 +46,21 @@ export function ListHead({
   placeholder?: string;
   className?: string;
 }) {
+  const { tp } = useI18n();
   if (!head.active) {
     return null;
   }
   const count = head.shown.length;
+  const nounKey = `workshop.list.noun.${noun[0]}` as MessageKey;
+  const nounWord = tp(nounKey, head.total);
+  const nounLabel = nounWord === nounKey ? (head.total === 1 ? noun[0] : noun[1]) : nounWord;
   return (
     <div className={className}>
       <ListControls controls={head.controls} placeholder={placeholder} />
       <p className="mt-1 text-[11px] text-stone-500" aria-live="polite">
         {count === head.total
-          ? `${head.total} ${head.total === 1 ? noun[0] : noun[1]}`
-          : `${count} of ${head.total} ${noun[1]}`}
+          ? tp("workshop.list.count.total", head.total, { noun: nounLabel })
+          : tp("workshop.list.count.filtered", count, { total: head.total, noun: nounLabel })}
       </p>
     </div>
   );
@@ -82,9 +88,13 @@ export function ListTally({
   sort: RowSort;
   onSort: (sort: RowSort) => void;
 }) {
+  const { t, tp } = useI18n();
   if (total < LIST_HEAD_MIN) {
     return null;
   }
+  const nounKey = `workshop.list.noun.${noun[0]}` as MessageKey;
+  const nounWord = tp(nounKey, total);
+  const nounLabel = nounWord === nounKey ? (total === 1 ? noun[0] : noun[1]) : nounWord;
   const button = (value: RowSort, label: string) => (
     <button
       type="button"
@@ -99,11 +109,13 @@ export function ListTally({
   return (
     <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-stone-500">
       <span aria-live="polite">
-        {shown === total ? `${total} ${total === 1 ? noun[0] : noun[1]}` : `${shown} of ${total} ${noun[1]}`}
+        {shown === total
+          ? tp("workshop.list.count.total", total, { noun: nounLabel })
+          : tp("workshop.list.count.filtered", shown, { total, noun: nounLabel })}
       </span>
       <span data-pill-group="" className="ml-auto flex items-center gap-1">
-        {button("made", "As made")}
-        {button("name", "By name")}
+        {button("made", t("workshop.list.sort.made"))}
+        {button("name", t("workshop.list.sort.name"))}
       </span>
     </div>
   );
