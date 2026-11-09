@@ -75,6 +75,7 @@ export const enBuilderExtras = {
   "builder.extra.ability.throw.server": "The server throws the dice and keeps them, so a rolled hero is one the table can trust.",
   "builder.extra.ability.racial": "+{count} racial",
   "builder.extra.ability.final": "Final {score} ({modifier})",
+  "builder.extra.ability.finalLabel": "Final",
   "builder.extra.ability.socket.return": "Tap again to send it back to the tray",
   "builder.extra.ability.socket.swap": "Tap to swap",
   "builder.extra.ability.socket.pickup": "Tap to pick it up",
