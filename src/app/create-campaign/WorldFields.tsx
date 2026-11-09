@@ -80,8 +80,6 @@ const WORLD_FACT_VALUE_PARTS: Record<string, GenreMessagePart> = {
   "Who lives here": "fact.people",
 };
 
-
-
 // The setting as eight painted portals, its custom description, the theme the
 // preset writes (and the person may overwrite) and the premise. One component
 // because the portals and the theme field share the type-in: picking a
@@ -149,7 +147,7 @@ export function WorldFields({
           {portalCards(draft.genre).map((card) => {
             const cardName = t(genreMessageKey(card.id, "name"));
             return (
-            <div key={card.id} className="cc-portal-slot" style={{ "--cc-delay": `${card.delayMs}ms` } as CSSProperties}>
+              <div key={card.id} className="cc-portal-slot" style={{ "--cc-delay": `${card.delayMs}ms` } as CSSProperties}>
               <button type="button" onClick={() => pick(card.id)} aria-pressed={card.chosen} className="cc-portal motion-card">
                 <span
                   role="img"
@@ -173,7 +171,7 @@ export function WorldFields({
                   ✓ {t("createCampaign.identity.genre.chosen")}
                 </span>
               ) : null}
-            </div>
+              </div>
             );
           })}
         </div>
@@ -280,12 +278,14 @@ export function WorldDetailsFields({
     const label = t(WORLD_FACT_LABEL_KEYS[fact.key]);
     if (fact.key === "Sky") {
       return {
-        key: label,
+        id: fact.key,
+        label,
         value: t("createCampaign.identity.fact.skyValue", { climate: t(CLIMATE_MESSAGE_KEYS[climate]) }),
       };
     }
     return {
-      key: label,
+      id: fact.key,
+      label,
       value: t(genreMessageKey(draft.genre, WORLD_FACT_VALUE_PARTS[fact.key])),
     };
   });
@@ -301,8 +301,8 @@ export function WorldDetailsFields({
         </p>
         <div key={`facts-${draft.genre}`} className="cc-facts">
           {facts.map((fact, index) => (
-            <span key={fact.key} className="cc-fact" style={{ animationDelay: `${index * 70}ms` }}>
-              <span className="cc-fact-key">{fact.key}</span>
+            <span key={fact.id} className="cc-fact" style={{ animationDelay: `${index * 70}ms` }}>
+              <span className="cc-fact-key">{fact.label}</span>
               <span className="cc-fact-value">{fact.value}</span>
             </span>
           ))}
