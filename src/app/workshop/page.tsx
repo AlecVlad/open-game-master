@@ -85,7 +85,7 @@ export default function WorkshopListPage() {
     return () => {
       cancelled = true;
     };
-  }, [reloads, settle]);
+  }, [reloads, settle, t]);
 
   async function create(event: FormEvent) {
     event.preventDefault();
@@ -230,7 +230,7 @@ export default function WorkshopListPage() {
                 }}
                 className={ui.btnSecondary}
               >
-                Cancel
+                {t("workshop.shelf.button.cancel")}
               </button>
             </div>
           </form>
@@ -294,8 +294,7 @@ export default function WorkshopListPage() {
                   {workshop.title}
                 </span>
                 <span className="text-xs text-stone-500">
-                  {t("workshop.shelf.tile.party", { count: workshop.gameSettings.targetParty.size })} {t("workshop.shelf.tile.level", { level: workshop.gameSettings.targetParty.level })}{" "}
-                  {workshop.gameSettings.targetParty.level}
+                  {t("workshop.shelf.tile.party", { count: workshop.gameSettings.targetParty.size })} {t("workshop.shelf.tile.level", { level: workshop.gameSettings.targetParty.level })}
                 </span>
               </Link>
               <div className="absolute right-2 top-2 flex gap-0.5">
