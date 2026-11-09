@@ -68,6 +68,26 @@ const identityMessages = Object.keys(DICTIONARIES.en).filter((key) => key.starts
 const untranslatedIdentityMessages = identityMessages.filter((key) => !(key in DICTIONARIES.ru));
 assert.deepEqual(untranslatedIdentityMessages, [], "campaign identity messages must be translated into Russian");
 
+const worldScreenGenres = ["high_fantasy", "dark_fantasy", "mystery", "horror", "cyberpunk", "steampunk", "post_apocalyptic", "custom"];
+const worldScreenParts = ["dmFlavor", "fact.maps", "fact.names", "fact.people"];
+for (const genre of worldScreenGenres) {
+  for (const part of worldScreenParts) {
+    const key = `createCampaign.identity.genre.${genre}.${part}`;
+    assert.ok(key in DICTIONARIES.en, `English world-screen message missing: ${key}`);
+    assert.ok(key in DICTIONARIES.ru, `Russian world-screen message missing: ${key}`);
+  }
+}
+
+for (const climate of ["temperate", "arid", "boreal", "tropical", "blighted"]) {
+  const key = `createCampaign.identity.climate.${climate}`;
+  assert.ok(key in DICTIONARIES.en && key in DICTIONARIES.ru, `Climate label missing: ${key}`);
+}
+
+for (const language of ["english", "danish", "dutch", "finnish", "french", "german", "hungarian", "indonesian", "irish", "italian", "norwegian", "portuguese", "russian", "spanish", "swedish"]) {
+  const key = `createCampaign.identity.tableLanguage.${language}`;
+  assert.ok(key in DICTIONARIES.en && key in DICTIONARIES.ru, `Table-language label missing: ${key}`);
+}
+
 // Report (not fail on) what Russian still lacks, so progress is visible.
 const missing = Object.keys(DICTIONARIES.en).filter((key) => !(key in DICTIONARIES.ru));
 console.log(`i18n: ${Object.keys(DICTIONARIES.en).length} messages, ${missing.length} not yet in Russian`);
