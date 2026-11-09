@@ -162,7 +162,7 @@ export const enBuilderRemaining = {
   "builder.race.variant.choose": "Choose one...",
   "builder.race.ability.label": "Ability increase {index}",
   "builder.race.ability.placeholder": "Choose an ability...",
-  "builder.race.ability.term": "Ability",
+  "builder.race.ability.term": "Ability score increase",
   "builder.race.ability.increases": "increases",
   "builder.race.ability.ofChoice": "{count} abilities of your choice",
   "builder.race.ability.ofChoice.one": "{count} ability of your choice",
