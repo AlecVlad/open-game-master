@@ -37,6 +37,8 @@ import { useWorkshopVersions } from "@/app/workshop/[workshopId]/useWorkshopVers
 import { mayLeaveDrafts } from "@/app/workshop/unsaved";
 import { CreateChooser } from "@/app/workshop/[workshopId]/CreateChooser";
 import type { CreateStep } from "@/lib/workshop/create-choices";
+import { useI18n } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages/index";
 
 // The workshop shell: a hub of system cards, or one system open.
 //
@@ -51,6 +53,7 @@ import type { CreateStep } from "@/lib/workshop/create-choices";
 // panel that owns the editor in question answers it.
 
 function WorkshopPageInner({ workshopId }: { workshopId: string }) {
+  const { t, tp } = useI18n();
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
@@ -281,15 +284,15 @@ function WorkshopPageInner({ workshopId }: { workshopId: string }) {
   // tool's own.
   const helpTours: HelpTour[] = [
     {
-      label: "Tour the workshop",
-      detail: "The hub: the party bar, the tool cards and the actions on the workshop.",
+      label: t("workshop.hub.tour.label" as MessageKey),
+      detail: t("workshop.hub.tour.detail" as MessageKey),
       onStart: () => setTour(HUB_TOUR_ID),
     },
     ...(system
       ? [
           {
-            label: `Tour ${WORKSHOP_SYSTEMS.find((entry) => entry.id === system)?.label ?? system}`,
-            detail: "This tool's controls, one at a time.",
+            label: t("workshop.systemView.tour.label" as MessageKey, { system: t(`workshop.system.${system}.label` as MessageKey) }),
+            detail: t("workshop.systemView.tour.detail" as MessageKey),
             onStart: () => setTour(systemTourId(system)),
           },
         ]
@@ -310,9 +313,9 @@ function WorkshopPageInner({ workshopId }: { workshopId: string }) {
           href="/workshop"
           className="mb-4 inline-flex items-center gap-1.5 text-sm text-stone-500 hover:text-amber-200"
         >
-          <ArrowLeft className="size-4" /> Workshop
+          <ArrowLeft className="size-4" /> {t("workshop.shelf.title")}
         </Link>
-        <p className="text-stone-400">That workshop does not exist, or is not yours.</p>
+        <p className="text-stone-400">{t("workshop.hub.missing")}</p>
       </main>
     );
   }
@@ -375,11 +378,11 @@ function WorkshopPageInner({ workshopId }: { workshopId: string }) {
           }
           aside={
             <CommandPalette
-              title="Workshop commands"
-              placeholder="Jump to, or create"
+              title={t("workshop.hub.commands.title" as MessageKey)}
+              placeholder={t("workshop.hub.commands.placeholder" as MessageKey)}
               commands={workshopCommands({
                 current: system,
-                phrase: (id) => systemCount(id, workshop, bestiary, homebrew, pregens, plugin, world).phrase,
+                phrase: (id) => systemCount(id, workshop, bestiary, homebrew, pregens, plugin, world, { t, tp }).phrase,
                 onJump: openSystem,
                 onCreate: createIn,
                 onHub: () => void go(pathname),
