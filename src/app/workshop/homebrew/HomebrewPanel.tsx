@@ -493,8 +493,8 @@ export function HomebrewPanel({
       ) : loaded && ofKind.length === 0 ? (
         <EmptyState
           art="chest"
-          title="Nothing of your own yet. Start from something in the books and change what you like."
-          hint="The character builder, shops and inventories offer what you make here beside the books' own: in your own library, and at every table you run as its owner, GM or assistant GM."
+          title={t("workshop.homebrew.empty.title")}
+          hint={t("workshop.homebrew.empty.hint")}
         />
       ) : shown.length === 0 ? (
         <p className="live-in text-xs text-stone-500">Nothing by that name.</p>
