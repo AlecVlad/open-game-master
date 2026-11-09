@@ -88,6 +88,31 @@ for (const language of ["english", "danish", "dutch", "finnish", "french", "germ
   assert.ok(key in DICTIONARIES.en && key in DICTIONARIES.ru, `Table-language label missing: ${key}`);
 }
 
+// The party and character-rule controls are one translation unit.
+const partyMessages = Object.keys(DICTIONARIES.en).filter((key) => key.startsWith("createCampaign.party."));
+const untranslatedPartyMessages = partyMessages.filter((key) => !(key in DICTIONARIES.ru));
+assert.deepEqual(untranslatedPartyMessages, [], "campaign party messages must be translated into Russian");
+
+for (const difficulty of ["easy", "normal", "hard", "deadly"]) {
+  for (const suffix of ["", "Hint"]) {
+    const key = `createCampaign.party.difficulty.${difficulty}${suffix}`;
+    assert.ok(key in DICTIONARIES.en && key in DICTIONARIES.ru, `Difficulty message missing: ${key}`);
+  }
+}
+
+for (const choice of ["average", "rolled", "max"]) {
+  const key = `createCampaign.party.hp.${choice}`;
+  assert.ok(key in DICTIONARIES.en && key in DICTIONARIES.ru, `Hit point choice missing: ${key}`);
+}
+
+for (const wealth of ["equipment", "rolled"]) {
+  const key = `createCampaign.party.wealth.${wealth}`;
+  assert.ok(key in DICTIONARIES.en && key in DICTIONARIES.ru, `Starting wealth choice missing: ${key}`);
+}
+
+assert.ok("createCampaign.party.stats.serverDetail" in DICTIONARIES.en, "English server reroll detail missing");
+assert.ok("createCampaign.party.stats.serverDetail" in DICTIONARIES.ru, "Russian server reroll detail missing");
+
 // Report (not fail on) what Russian still lacks, so progress is visible.
 const missing = Object.keys(DICTIONARIES.en).filter((key) => !(key in DICTIONARIES.ru));
 console.log(`i18n: ${Object.keys(DICTIONARIES.en).length} messages, ${missing.length} not yet in Russian`);
