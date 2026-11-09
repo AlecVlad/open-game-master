@@ -15,6 +15,8 @@ import {
 } from "@/app/workshop/[workshopId]/systems";
 import type { WorkshopSummary } from "@/app/workshop/types";
 import { HUB_TASKS } from "@/app/workshop/[workshopId]/CreateChooser";
+import { useI18n } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages";
 
 // The hub: one card per system, each wearing its live count so a DM sees at
 // a glance what is built and what is still empty. Tapping one opens that
@@ -48,6 +50,7 @@ export function SystemCards({
   // A task on the row above the tools: opens the Create chooser on it.
   onTask?: (choiceId: string) => void;
 }) {
+  const { t } = useI18n();
   const total = totalPieces(workshop, bestiary, homebrew, pregens, plugin, world);
   return (
     <section className="mt-5">
@@ -56,7 +59,7 @@ export function SystemCards({
         // which tool makes it. Each opens the Create chooser on that job;
         // every tool stays below.
         <div className="mb-5" data-hub-tasks>
-          <Ribbon className="mb-2">Start with a task</Ribbon>
+          <Ribbon className="mb-2">{t("workshop.hub.task.ribbon" as MessageKey)}</Ribbon>
           <ul className="stagger-up grid grid-cols-2 gap-2 sm:grid-cols-4">
             {HUB_TASKS.map((task) => (
               <li key={task.id}>
@@ -67,7 +70,7 @@ export function SystemCards({
                   data-hub-task={task.id}
                 >
                   <GameIcon icon={{ kind: "glyph", key: task.glyph }} size="size-7" className="shrink-0" />
-                  {task.label}
+                  {t(`workshop.hub.task.${task.id}` as MessageKey)}
                 </button>
               </li>
             ))}
@@ -75,9 +78,9 @@ export function SystemCards({
         </div>
       ) : null}
       <div className="mb-1.5 flex items-center gap-3">
-        <Ribbon className="flex-1">Systems</Ribbon>
+        <Ribbon className="flex-1">{t("workshop.hub.ribbon" as MessageKey)}</Ribbon>
         <span className="shrink-0 text-xs text-stone-500">
-          {total} {total === 1 ? "piece" : "pieces"} of prep
+          {t("workshop.hub.total" as MessageKey, { count: total })}
         </span>
       </div>
       {/* The counts are what is here, not what is missing: a workshop with
@@ -129,9 +132,9 @@ export function SystemCards({
                 />
                 <div className="mt-auto">
                   <p className="font-display text-[13px] font-semibold tracking-[0.12em] text-amber-50">
-                    {system.label}
+                    {t(`workshop.system.${system.id}.label` as MessageKey)}
                   </p>
-                  <p className="text-xs text-stone-500">{system.blurb}</p>
+                  <p className="text-xs text-stone-500">{t(`workshop.system.${system.id}.blurb` as MessageKey)}</p>
                 </div>
               </button>
             </li>
@@ -139,7 +142,7 @@ export function SystemCards({
         })}
       </ul>
       <p className="mt-4 text-sm text-stone-500">
-        Everything here is yours alone. Import any of it into a campaign when you start one.
+        {t("workshop.hub.own" as MessageKey)}
       </p>
     </section>
   );
