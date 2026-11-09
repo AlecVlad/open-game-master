@@ -405,8 +405,7 @@ export default function AbilityEditor({
         // The roll on record is not lost by choosing another method; it
         // waits for a character that uses it (issue #128).
         <p className="mb-3 text-xs text-stone-500" aria-live="polite">
-          Your rolled six ({openPool.pool.map((entry) => entry.total).join(", ")}) stay on record until a
-          character uses them. {t("builder.extra.ability.previousPool", { scores: openPool.pool.map((entry) => entry.total).join(", ") })}
+          {t("builder.extra.ability.previousPool", { scores: openPool.pool.map((entry) => entry.total).join(", ") })}
         </p>
       ) : null}
       {asiCount > 0 ? (
@@ -471,7 +470,7 @@ export default function AbilityEditor({
                       </span>
                       {rolling ? null : (
                         <span className={cn("pool-tier", `roll-tier-${rollTier(entry.total)}`)} aria-hidden="true">
-                          {rollWord(entry.total)}
+                          {rollWord(entry.total, t)}
                         </span>
                       )}
                       <span className="pool-tag">{owner ? owner.toUpperCase() : inHand ? t("builder.extra.ability.throw.inHand") : t("builder.extra.ability.throw.free")}</span>
