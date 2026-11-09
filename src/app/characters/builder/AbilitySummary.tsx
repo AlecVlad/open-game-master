@@ -114,7 +114,7 @@ export function AbilitySummary({
                 ) : null}
                 <td
                   style={style}
-                  className={cn(cell, "text-center font-display text-[1.0625rem] font-bold", `roll-tier-${rollTier(row.base, t)}`)}
+                  className={cn(cell, "text-center font-display text-[1.0625rem] font-bold", `roll-tier-${rollTier(row.base)}`)}
                 >
                   <CountPop value={final} />
                 </td>
