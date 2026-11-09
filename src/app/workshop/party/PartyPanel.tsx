@@ -73,7 +73,7 @@ export function PartyPanel({
   targetParty: TargetParty;
   onChanged: () => void;
 }) {
-  const { t } = useI18n();
+  const { t, tp } = useI18n();
   const describe = (character: Pick<Pregen, "level" | "race" | "class" | "subclass">) => describePregen(character).replace("Level " + character.level, t("workshop.party.levelDescription", { level: character.level }));
   const [pregens, setPregens] = useState<Pregen[] | null>(null);
   const [library, setLibrary] = useState<LibraryEntry[]>([]);
@@ -146,7 +146,7 @@ export function PartyPanel({
     <section className="space-y-4">
       <SectionHead title={t("workshop.party.title")} glyph="system-party" level="h3" className="mb-0" />
       <p className="text-sm text-stone-400">
-        {t("workshop.party.intro", { size: targetParty.size, level: targetParty.level })}
+        {tp("workshop.party.intro", targetParty.size, { level: targetParty.level })}
       </p>
       <p className="text-xs text-stone-400">
         Tick Offer to players and anyone joining a table that starts from this workshop can take
@@ -271,7 +271,7 @@ export function PartyPanel({
             onClick={() => void change("POST", picked)}
             className={ui.btnPrimary}
           >
-            {busy ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />} Add it
+            {busy ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />} {t("workshop.party.add")}
           </button>
           {/* A pregen is a player character, built at the party's level: the
               builder starts there instead of asking. */}
