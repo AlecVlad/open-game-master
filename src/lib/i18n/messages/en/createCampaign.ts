@@ -496,4 +496,5 @@ export const enCreateCampaign = {
   "createCampaign.review.prep.none": "None brought in",
   "createCampaign.review.prep.workshop": "a workshop",
   "createCampaign.review.tableFeatures": "{count} on",
+  "createCampaign.review.rulesBook": "The book as written",
 } satisfies Record<string, string>;
