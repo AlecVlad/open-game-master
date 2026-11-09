@@ -17,6 +17,8 @@ export const enBuilderScreens = {
   "builder.screen.hp.formula.hitDie": "Hit die max",
   "builder.screen.hp.formula.con": "Con mod",
   "builder.screen.hp.formula.levels": "Levels {from} to {to}",
+  "builder.screen.hp.level.one": "level adds",
+  "builder.screen.hp.level.other": "levels add",
   "builder.screen.hp.formula.max": "Max HP",
   "builder.screen.hp.formula.start": "Starting HP",
   "builder.screen.hp.formula.saved": "as saved",
