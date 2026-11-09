@@ -148,29 +148,29 @@ export function WorldFields({
             const cardName = t(genreMessageKey(card.id, "name"));
             return (
               <div key={card.id} className="cc-portal-slot" style={{ "--cc-delay": `${card.delayMs}ms` } as CSSProperties}>
-              <button type="button" onClick={() => pick(card.id)} aria-pressed={card.chosen} className="cc-portal motion-card">
-                <span
-                  role="img"
-                  aria-label={t("createCampaign.identity.coverPlate", { name: cardName })}
-                  className="cc-plate"
-                  style={{ backgroundImage: `url("${card.plate}")` }}
-                >
-                  <span className="cc-plate-name">{cardName}</span>
-                  {card.humansOnly ? <span className="cc-humans">{t("createCampaign.identity.genre.allHuman")}</span> : null}
-                </span>
-                <span className="cc-portal-body">
-                  <span className="cc-portal-blurb">{t(genreMessageKey(card.id, "blurb"))}</span>
-                  <span className="cc-portal-foot">
-                    <span className="cc-chip">{t(CLIMATE_MESSAGE_KEYS[card.climate])}</span>
-                    <span className="cc-cta">{card.chosen ? t("createCampaign.identity.genre.chosen") : t("createCampaign.identity.genre.tapToChoose")}</span>
+                <button type="button" onClick={() => pick(card.id)} aria-pressed={card.chosen} className="cc-portal motion-card">
+                  <span
+                    role="img"
+                    aria-label={t("createCampaign.identity.coverPlate", { name: cardName })}
+                    className="cc-plate"
+                    style={{ backgroundImage: `url("${card.plate}")` }}
+                  >
+                    <span className="cc-plate-name">{cardName}</span>
+                    {card.humansOnly ? <span className="cc-humans">{t("createCampaign.identity.genre.allHuman")}</span> : null}
                   </span>
-                </span>
-              </button>
-              {card.chosen ? (
-                <span className="cc-chosen" aria-hidden="true">
-                  ✓ {t("createCampaign.identity.genre.chosen")}
-                </span>
-              ) : null}
+                  <span className="cc-portal-body">
+                    <span className="cc-portal-blurb">{t(genreMessageKey(card.id, "blurb"))}</span>
+                    <span className="cc-portal-foot">
+                      <span className="cc-chip">{t(CLIMATE_MESSAGE_KEYS[card.climate])}</span>
+                      <span className="cc-cta">{card.chosen ? t("createCampaign.identity.genre.chosen") : t("createCampaign.identity.genre.tapToChoose")}</span>
+                    </span>
+                  </span>
+                </button>
+                {card.chosen ? (
+                  <span className="cc-chosen" aria-hidden="true">
+                    ✓ {t("createCampaign.identity.genre.chosen")}
+                  </span>
+                ) : null}
               </div>
             );
           })}
