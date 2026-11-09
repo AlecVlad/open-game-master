@@ -7,6 +7,7 @@ import { ui } from "@/lib/ui";
 import { MAX_BUNDLE_BYTES } from "@/lib/workshop/bundle";
 import { navigateTo } from "@/lib/navigation";
 import { BundlePreview, kindsOf, type BundlePreviewData } from "@/app/workshop/BundlePreview";
+import { useI18n } from "@/lib/i18n/provider";
 
 // Opening somebody else's workshop, or a world from WorldForge: its JSON
 // export opens the same way, its world landing in the new workshop's
@@ -21,12 +22,14 @@ import { BundlePreview, kindsOf, type BundlePreviewData } from "@/app/workshop/B
 // `label` and `className` let the hub header show the same control as a
 // small "Import a bundle" action; the shelf keeps the defaults.
 export function ImportBundleButton({
-  label = "Open a bundle",
+  label,
   className = ui.btnSecondary,
 }: {
   label?: string;
   className?: string;
 } = {}) {
+  const { t, tp } = useI18n();
+  const buttonLabel = label ?? t("workshop.import.button");
   const input = useRef<HTMLInputElement>(null);
   const [text, setText] = useState("");
   const [preview, setPreview] = useState<BundlePreviewData | null>(null);
@@ -45,11 +48,11 @@ export function ImportBundleButton({
       body: JSON.stringify(body),
     }).catch(() => {
       // The browser's own words ("Failed to fetch") say nothing to anybody.
-      throw new Error("Could not reach the server. Nothing was imported; try again.");
+      throw new Error(t("workshop.import.error.reach"));
     });
     const data = await response.json().catch(() => ({}));
     if (!response.ok) {
-      throw new Error(data.error ?? "That bundle could not be read.");
+      throw new Error(data.error ?? t("workshop.import.error.read"));
     }
     return data;
   }
@@ -63,7 +66,7 @@ export function ImportBundleButton({
     // Checked here as well as on the server: reading a gigabyte into memory
     // to be told no is a bad experience even when the answer is correct.
     if (file.size > MAX_BUNDLE_BYTES) {
-      setError(`That file is larger than ${MAX_BUNDLE_BYTES / 1024 / 1024} MB.`);
+      setError(t("workshop.import.error.large", { max: MAX_BUNDLE_BYTES / 1024 / 1024 }));
       return;
     }
     setBusy(true);
@@ -75,7 +78,7 @@ export function ImportBundleButton({
       setKinds(kindsOf(data));
       setSharedWorkshopId((data as BundlePreviewData).sharedHomes?.[0]?.id ?? "");
     } catch (thrown) {
-      setError(thrown instanceof Error ? thrown.message : "That bundle could not be read.");
+      setError(thrown instanceof Error ? thrown.message : t("workshop.import.error.read"));
     } finally {
       setBusy(false);
     }
@@ -91,16 +94,16 @@ export function ImportBundleButton({
       const shelf = (data as { shelf?: { renamed?: string[]; refused?: string[] } }).shelf;
       const renamed = (shelf?.renamed ?? []).filter(Boolean);
       if (renamed.length) {
-        await appNotice(`${renamed.join(" ")} The new workshop's Cast, fights and pregens use these names; your other workshops are unchanged.`, "Kept beside your own");
+        await appNotice(t("workshop.import.notice.renamed", { names: renamed.join(" ") }), t("workshop.import.notice.renamed.title"));
       }
       // An entry this server refuses, with why, rather than lost unsaid.
       const refused = (shelf?.refused ?? []).filter(Boolean);
       if (refused.length) {
-        await appNotice(`${refused.join(" ")} The rest of the workshop came in without ${refused.length === 1 ? "it" : "them"}.`, "Left out");
+        await appNotice(tp("workshop.import.notice.refused", refused.length, { names: refused.join(" ") }), t("workshop.import.notice.refused.title"));
       }
       navigateTo(`/workshop/${data.workshopId}`);
     } catch (thrown) {
-      setError(thrown instanceof Error ? thrown.message : "That bundle could not be imported.");
+      setError(thrown instanceof Error ? thrown.message : t("workshop.import.error.failed"));
       setBusy(false);
     }
   }
@@ -119,14 +122,14 @@ export function ImportBundleButton({
         onClick={() => input.current?.click()}
         disabled={busy}
         className={className}
-        title="A workshop bundle, or a world exported from WorldForge"
+        title={t("workshop.import.title")}
       >
         {busy && !preview ? (
           <Loader2 className="size-4 animate-spin" />
         ) : (
           <FileUp className="size-4" />
         )}
-        {label}
+        {buttonLabel}
       </button>
 
       {error ? <p className="motion-shake mt-2 text-sm text-red-300">{error}</p> : null}
