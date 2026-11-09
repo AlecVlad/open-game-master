@@ -16,6 +16,8 @@ import {
   type ImportPlan,
 } from "@/lib/workshop/import";
 import type { ImportSourceSummary } from "@/app/workshop/types";
+import { useI18n } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages/index";
 
 // Choosing what crosses over into a table.
 //
@@ -92,6 +94,8 @@ export function ContentImportPicker({
   // warning.
   onChosen?: (chosen: { title: string; arcComing: boolean } | null) => void;
 }) {
+  const { t, tp } = useI18n();
+  const kindLabel = (kind: ImportKind) => t(`workshop.import.kind.${kind}` as MessageKey);
   const [sources, setSources] = useState<ImportSourceSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [plan, setPlan] = useState<ImportPlan | null>(null);
@@ -239,7 +243,7 @@ export function ContentImportPicker({
     setBusy(true);
     setNote(null);
     try {
-      const outcome = await postContentImport(campaignId, selection);
+      const outcome = await postContentImport(campaignId, selection, { t, tp });
       if (!outcome.ok) {
         setNote({ tone: "error", text: outcome.error });
         return;
@@ -266,8 +270,7 @@ export function ContentImportPicker({
       <p role="alert" className="flex items-start gap-1.5 text-xs text-amber-300/90">
         <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
         <span>
-          Could not load what you can copy from. Check the connection and open this again; nothing has been
-          brought in.
+          {t("workshop.import.picker.sourcesError")}
         </span>
       </p>
     );
@@ -276,8 +279,7 @@ export function ContentImportPicker({
   if (!offered.length) {
     return (
       <p className="text-xs text-stone-500">
-        You have nothing to copy from yet. Build maps, lore and encounters in the Workshop, or run
-        a campaign, and you can bring any of it straight in here.
+        {t("workshop.import.picker.sourcesEmpty")}
       </p>
     );
   }
@@ -290,9 +292,7 @@ export function ContentImportPicker({
     <p className="flex items-start gap-1.5 text-xs text-stone-400" data-testid="import-party">
       <Info className="mt-0.5 size-3.5 shrink-0 text-sky-300/70" />
       <span>
-        Party: {offeredPregens.length} pregen{offeredPregens.length === 1 ? "" : "s"} offered to players who join
-        tables you run ({offeredPregens.join(", ")}). One player each; tick or untick them in the
-        workshop&apos;s Party panel.
+        {tp("workshop.import.picker.party", offeredPregens.length, { names: offeredPregens.join(", ") })}
       </span>
     </p>
   ) : null;
@@ -308,7 +308,7 @@ export function ContentImportPicker({
         className={ui.btnSmall}
       >
         {busy ? <Loader2 className="size-3.5 animate-spin" /> : <Hammer className="size-3.5" />}
-        Bring it in
+        {t("workshop.import.picker.action")}
       </button>
       {note ? (
         <span
@@ -321,8 +321,7 @@ export function ContentImportPicker({
     </div>
   ) : (
     <p className="text-xs text-stone-500">
-      This lands in the campaign right after it is created. Nothing is removed from
-      where it came from.
+      {t("workshop.import.picker.createdNote")}
     </p>
   );
 
@@ -332,28 +331,28 @@ export function ContentImportPicker({
         <p className="flex items-start gap-1.5 text-xs text-amber-300/90" data-testid="import-kept-standing">
           <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
           <span>
-            Kept from an earlier import, until you choose on the entry in the World tab: {unsaid.join(" ")}
+            {t("workshop.import.picker.kept", { names: unsaid.join(" ") })}
           </span>
         </p>
       ) : null}
       <div className="block">
-        <FieldLabel className="mb-1 block">Start from</FieldLabel>
+        <FieldLabel className="mb-1 block">{t("workshop.import.picker.startFrom")}</FieldLabel>
         <Select
-          label="Start from"
+          label={t("workshop.import.picker.startFrom")}
           value={selection.sourceId}
           onChange={(id) => choose(offered.find((source) => source.id === id) ?? null)}
           options={[
-            { value: "", label: "None" },
+            { value: "", label: t("workshop.import.picker.none") },
             ...workshops.map((source) => ({
               value: source.id,
               label: source.title,
-              group: "Workshops",
+              group: t("workshop.import.picker.group.workshops"),
               icon: { kind: "glyph" as const, key: "system-storyboard" },
             })),
             ...campaigns.map((source) => ({
               value: source.id,
               label: source.title,
-              group: "Campaigns",
+              group: t("workshop.import.picker.group.campaigns"),
               icon: { kind: "glyph" as const, key: "tab-campaigns" },
             })),
           ]}
@@ -366,14 +365,14 @@ export function ContentImportPicker({
             <div className="stagger space-y-1">
               {available.map((kind) => (
                 <div key={kind} className="flex min-h-9 items-center gap-2 text-sm text-stone-300">
-                  <Switch on={selection.select.includes(kind)} onChange={() => toggle(kind)} label={IMPORT_KIND_LABELS[kind]} />
-                  <span>{IMPORT_KIND_LABELS[kind]}</span>
+                  <Switch on={selection.select.includes(kind)} onChange={() => toggle(kind)} label={kindLabel(kind)} />
+                  <span>{kindLabel(kind)}</span>
                   {SINGULAR_KINDS.has(kind) ? null : (
                     <span className="text-xs text-stone-500">({chosen.contents[kind]})</span>
                   )}
                   {selection.select.includes("world") && (WORLD_RECORD_KINDS as readonly string[]).includes(kind) ? (
                     <span className="text-xs text-stone-500" data-testid={`import-world-needs-${kind}`}>
-                      {selection.select.includes(kind) ? "WorldForge needs these" : "Left out on purpose"}
+                      {selection.select.includes(kind) ? t("workshop.import.picker.world.needs") : t("workshop.import.picker.world.leftOut")}
                     </span>
                   ) : null}
                 </div>
@@ -384,14 +383,14 @@ export function ContentImportPicker({
 
             {selection.select.includes("houseRules") ? (
               <div className="block">
-                <FieldLabel className="mb-1 block">Existing house rules</FieldLabel>
+                <FieldLabel className="mb-1 block">{t("workshop.import.picker.rules.label")}</FieldLabel>
                 <Select<"replace" | "append">
-                  label="Existing house rules"
+                  label={t("workshop.import.picker.rules.label")}
                   value={selection.houseRules}
                   onChange={(houseRules) => onChange({ ...selection, houseRules })}
                   options={[
-                    { value: "replace", label: "Replace them" },
-                    { value: "append", label: "Keep them and add these" },
+                    { value: "replace", label: t("workshop.import.picker.rules.replace") },
+                    { value: "append", label: t("workshop.import.picker.rules.append") },
                   ]}
                 />
               </div>
@@ -399,21 +398,21 @@ export function ContentImportPicker({
 
             {selection.select.includes("storyboard") && plan?.board?.targetHasArc ? (
               <div className="reveal block">
-                <FieldLabel className="mb-1 block">The board&apos;s beats</FieldLabel>
+                <FieldLabel className="mb-1 block">{t("workshop.import.picker.board.label")}</FieldLabel>
                 <Select<"leave" | "append">
-                  label="The board's beats"
+                  label={t("workshop.import.picker.board.label")}
                   value={selection.arc ?? "leave"}
                   onChange={(arc) => onChange({ ...selection, arc })}
                   options={[
                     {
                       value: "leave",
-                      label: "Leave this campaign's arc alone",
-                      hint: "Places, quests, fights and notes still land.",
+                      label: t("workshop.import.picker.board.leave"),
+                      hint: t("workshop.import.picker.board.leaveHint"),
                     },
                     {
                       value: "append",
-                      label: `Add them as act ${plan.board.act}`,
-                      hint: "After the beats already played. Nothing played is changed.",
+                      label: t("workshop.import.picker.board.append", { act: plan.board.act }),
+                      hint: t("workshop.import.picker.board.appendHint"),
                     },
                   ]}
                 />
@@ -424,14 +423,14 @@ export function ContentImportPicker({
 
             {plan?.kept || selection.again === "copy" ? (
               <div className="reveal block">
-                <FieldLabel className="mb-1 block">Already brought in before</FieldLabel>
+                <FieldLabel className="mb-1 block">{t("workshop.import.picker.again.label")}</FieldLabel>
                 <Select<"skip" | "copy">
-                  label="Already brought in before"
+                  label={t("workshop.import.picker.again.label")}
                   value={selection.again ?? "skip"}
                   onChange={(again) => onChange({ ...selection, again })}
                   options={[
-                    { value: "skip", label: "Keep them as this campaign has them" },
-                    { value: "copy", label: "Bring second copies, numbered" },
+                    { value: "skip", label: t("workshop.import.picker.again.skip") },
+                    { value: "copy", label: t("workshop.import.picker.again.copy") },
                   ]}
                 />
               </div>
@@ -465,7 +464,7 @@ export function ContentImportPicker({
             {campaignId && planFailed ? (
               <p role="alert" className="flex flex-wrap items-center gap-1.5 text-xs text-amber-300/90">
                 <AlertTriangle className="size-3.5 shrink-0" />
-                <span>Could not check what this would bring in or replace here.</span>
+                <span>{t("workshop.import.picker.previewError")}</span>
                 <button type="button" onClick={() => void refreshPlan()} className={`${ui.btnSmall} min-h-10`}>
                   Check again
                 </button>
@@ -488,8 +487,8 @@ export function ContentImportPicker({
                 // only those is not empty, and saying so sent people looking for
                 // a copy step that does not exist (workshop import audit F06).
                 // Its pregens come with choosing it once one is offered.
-                "That workshop has no campaign prep to copy: places, cast, maps, fights, lore, tables, shops, the storyboard, WorldForge or house rules. Its Homebrew needs no copy, since it already counts at every table you run. To offer its pregens to players here, tick Offer to players in its Party panel, then choose it again."
-              : "That campaign has no prep to copy yet."}
+                t("workshop.import.picker.workshopNoPrep")
+              : t("workshop.import.picker.campaignNoPrep")}
           </p>
         )
       ) : null}
