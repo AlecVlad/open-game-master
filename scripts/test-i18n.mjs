@@ -113,6 +113,16 @@ for (const wealth of ["equipment", "rolled"]) {
 assert.ok("createCampaign.party.stats.serverDetail" in DICTIONARIES.en, "English server reroll detail missing");
 assert.ok("createCampaign.party.stats.serverDetail" in DICTIONARIES.ru, "Russian server reroll detail missing");
 
+const voiceChatMessages = [
+  "title", "toggle", "toggleHint", "turnFloor", "turn.off", "turn.soft", "turn.strict",
+  "proximity", "proximityHint", "hearingRange", "whisperShout", "whisperShoutHint",
+  "wallsMuffle", "wallsMuffleHint", "downedDeaf", "downedDeafHint", "serverHelp",
+].map((part) => `createCampaign.experience.voiceChat.${part}`);
+for (const key of voiceChatMessages) {
+  assert.ok(key in DICTIONARIES.en, `English voice-chat message missing: ${key}`);
+  assert.ok(key in DICTIONARIES.ru, `Russian voice-chat message missing: ${key}`);
+}
+
 // Report (not fail on) what Russian still lacks, so progress is visible.
 const missing = Object.keys(DICTIONARIES.en).filter((key) => !(key in DICTIONARIES.ru));
 console.log(`i18n: ${Object.keys(DICTIONARIES.en).length} messages, ${missing.length} not yet in Russian`);
