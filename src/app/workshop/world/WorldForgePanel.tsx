@@ -144,6 +144,7 @@ export function WorldForgePanel({
   const params = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
+  const { t } = useI18n();
   const [tablePlace, setTablePlace] = useState<Place>(() => (atTable ? readPlace(campaignId) : { view: "wiki", entry: null }));
   const askedView = atTable ? tablePlace.view : params.get("view");
   const chosenView: View = VIEWS.some((entry) => entry.value === askedView) ? (askedView as View) : "wiki";
