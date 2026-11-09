@@ -50,7 +50,7 @@ export function SystemCards({
   // A task on the row above the tools: opens the Create chooser on it.
   onTask?: (choiceId: string) => void;
 }) {
-  const { t } = useI18n();
+  const { t, tp } = useI18n();
   const total = totalPieces(workshop, bestiary, homebrew, pregens, plugin, world);
   return (
     <section className="mt-5">
@@ -94,7 +94,7 @@ export function SystemCards({
       </p>
       <ul className="stagger-up grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5" data-tour="hub-systems">
         {WORKSHOP_SYSTEMS.map((system) => {
-          const count = systemCount(system.id, workshop, bestiary, homebrew, pregens, plugin, world);
+          const count = systemCount(system.id, workshop, bestiary, homebrew, pregens, plugin, world, { t, tp });
           const empty = count.figure === "0" || count.figure === "none";
           return (
             <li key={system.id}>
