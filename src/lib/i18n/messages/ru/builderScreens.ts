@@ -20,6 +20,8 @@ export const ruBuilderScreens: Partial<Record<keyof typeof enBuilderScreens, str
   "builder.screen.hp.formula.con": "Мод. Телосложения",
   "builder.screen.hp.formula.levels": "Уровни с {from} по {to}",
   "builder.screen.hp.level.one": "уровень даёт",
+  "builder.screen.hp.level.few": "уровня дают",
+  "builder.screen.hp.level.many": "уровней дают",
   "builder.screen.hp.level.other": "уровней дают",
   "builder.screen.hp.formula.max": "Макс. HP",
   "builder.screen.hp.formula.start": "Начальные HP",
