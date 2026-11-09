@@ -79,7 +79,7 @@ export function SheetRows({
               <span className="cc-row-label">
                 {t(
                   row.key === "multiCharacter"
-                    ? `createCampaign.experience.sheet.multiCharacter.${draft.multiCharacter === "off" ? "off" : draft.multiCharacter === "one_active" ? "oneActive" : "allActive"}`
+                    ? (`createCampaign.experience.sheet.multiCharacter.${draft.multiCharacter === "off" ? "off" : draft.multiCharacter === "one_active" ? "oneActive" : "allActive"}` as MessageKey)
                     : ROW_MESSAGES[row.key].label,
                 )}
               </span>
