@@ -95,29 +95,34 @@ export type ProgressionRow = {
 };
 
 const ORDINALS = ["", "1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th"];
+type ProgressionTranslator = (key: MessageKey, params?: Params) => string;
 
-export function ordinal(level: number): string {
+export function ordinal(level: number, translate?: ProgressionTranslator): string {
+  if (translate) {
+    const key = level === 1 ? "builder.spells.ordinal.1" : level === 2 ? "builder.spells.ordinal.2" : level === 3 ? "builder.spells.ordinal.3" : "builder.spells.ordinal.other";
+    return translate(key, { level });
+  }
   return ORDINALS[level] ?? `${level}th`;
 }
 
 // An improvement as the player picked it: "+2 Strength", "+1 Strength, +1
 // Constitution", "Feat: Alert".
-export function improvementWords(choice: AsiChoice): string {
+export function improvementWords(choice: AsiChoice, translate?: ProgressionTranslator): string {
   if (choice.mode === "plus2") {
-    return `+2 ${ABILITY_NAMES[choice.ability] ?? choice.ability}`;
+    return `+2 ${translate ? translate((`builder.extra.ability.${choice.ability}`) as MessageKey) : ABILITY_NAMES[choice.ability] ?? choice.ability}`;
   }
   if (choice.mode === "plus1x2") {
     const [first, second] = choice.abilities;
-    return first === second
-      ? `+2 ${ABILITY_NAMES[first] ?? first}`
-      : `+1 ${ABILITY_NAMES[first] ?? first}, +1 ${ABILITY_NAMES[second] ?? second}`;
+    const firstName = translate ? translate((`builder.extra.ability.${first}`) as MessageKey) : ABILITY_NAMES[first] ?? first;
+    const secondName = translate ? translate((`builder.extra.ability.${second}`) as MessageKey) : ABILITY_NAMES[second] ?? second;
+    return first === second ? `+2 ${firstName}` : `+1 ${firstName}, +1 ${secondName}`;
   }
-  return `Feat: ${choice.feat}${choice.ability ? ` (+1 ${ABILITY_NAMES[choice.ability] ?? choice.ability})` : ""}`;
+  return translate ? translate("builder.asi.final.feat", { feat: choice.feat, raise: choice.ability ? ` (+1 ${translate((`builder.extra.ability.${choice.ability}`) as MessageKey)})` : "" }) : `Feat: ${choice.feat}${choice.ability ? ` (+1 ${ABILITY_NAMES[choice.ability] ?? choice.ability})` : ""}`;
 }
 
 const TEN: AbilityScores = { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 };
 
-export function levelProgressionRows(input: ProgressionInput): ProgressionRow[] {
+export function levelProgressionRows(input: ProgressionInput, translate?: ProgressionTranslator): ProgressionRow[] {
   if ((input.classes?.length ?? 0) > 1) {
     return classListRows(input, input.classes ?? []);
   }
@@ -170,7 +175,7 @@ export function levelProgressionRows(input: ProgressionInput): ProgressionRow[] 
       features,
       subclass: pickLevel === level ? { pick: input.subclass.trim() || null } : null,
       improvement:
-        slotIndex >= 0 ? { pick: choice ? improvementWords(choice) : null, takenInPlay: takenInPlay && !choice } : null,
+        slotIndex >= 0 ? { pick: choice ? improvementWords(choice, translate) : null, takenInPlay: takenInPlay && !choice } : null,
       slots,
       cantrips: caster.casts ? caster.cantripCap : null,
       spells,
