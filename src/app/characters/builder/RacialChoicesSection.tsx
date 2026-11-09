@@ -1,6 +1,8 @@
 "use client";
 
 import { useId } from "react";
+import { useI18n } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages/index";
 import CatalogBrowser from "@/app/characters/builder/CatalogBrowser";
 import ContentPicker from "@/app/characters/builder/ContentPicker";
 import type { RaceOption } from "@/app/characters/builder/useBuilderOptions";
@@ -109,6 +111,8 @@ export function RacialChoicesSection({
   known?: KnownTraining;
   inputClass: string;
 }) {
+  const { t, tp } = useI18n();
+  const abilityName = (ability: Ability) => t(`builder.race.ability.${ability}` as MessageKey);
   const draconic = takesDraconicAncestry(race.id);
   const racialFeats = onFeatsChange ? racialFeatCount(race.id) : 0;
   const hasChoices = Boolean(
@@ -139,23 +143,23 @@ export function RacialChoicesSection({
 
   return (
     <div className="space-y-3 rounded-lg border border-amber-900/40 bg-amber-950/10 p-3">
-      <p className="text-xs text-amber-200/90">{race.name} choices</p>
+      <p className="text-xs text-amber-200/90">{t("builder.race.title", { race: race.name })}</p>
 
       {/* First: what it gives changes what the picks below may be. */}
       {race.variants && onVariantChange ? (
         <div data-builder-target="variant">
           <label className="block">
             <span className="mb-1 block text-stone-400">
-              {race.variants.label}: it changes what your {race.name} gets
+              {t("builder.race.variant.explainer", { label: race.variants.label, race: race.name })}
             </span>
             <Select<string>
               value={variant}
               onChange={onVariantChange}
               className="w-full"
               label={race.variants.label}
-              placeholder="Choose one..."
+              placeholder={t("builder.race.variant.choose")}
               options={[
-                { value: "", label: "Choose one..." },
+                { value: "", label: t("builder.race.variant.choose") },
                 ...race.variants.options.map((option) => ({ value: option.id, label: `${option.name} (${variantShort(option)})` })),
               ]}
             />
@@ -172,10 +176,10 @@ export function RacialChoicesSection({
       {race.asiChoice ? (
         <div data-builder-target="racialAsi">
           <span className="mb-1 flex flex-wrap items-center gap-1 text-stone-400">
-            <GameTerm id="ability_score">Ability</GameTerm> increases (+{race.asiChoice.amount} to{" "}
+            <GameTerm id="ability_score">{t("builder.race.ability.term")}</GameTerm> (+{race.asiChoice.amount} к{" "}
             {asiFrom
-              ? asiFrom.map((ability) => ABILITY_NAMES[ability]).join(" or ")
-              : `${race.asiChoice.count} abilities of your choice`}
+              ? asiFrom.map(abilityName).join(t("builder.feat.choice.spellSlot.schoolJoin"))
+              : tp("builder.race.ability.ofChoice", race.asiChoice.count, { count: race.asiChoice.count })}
             )
           </span>
           <div className="grid grid-cols-2 gap-2">
@@ -185,23 +189,21 @@ export function RacialChoicesSection({
                   value={asi[index] ?? ""}
                   onChange={(next) => onAsiChange(index, next)}
                   className="min-w-0 grow"
-                  label={`Ability increase ${index + 1}`}
-                  placeholder="Choose an ability..."
+                  label={t("builder.race.ability.label", { index: index + 1 })}
+                  placeholder={t("builder.race.ability.placeholder")}
                   options={[
                     // Still a row of its own, so a pick can be taken back.
-                    { value: "" as const, label: "Choose an ability..." },
+                    { value: "" as const, label: t("builder.race.ability.placeholder") },
                     ...ABILITIES.filter(
                       (ability) =>
                         !fixedAbilities.has(ability) &&
                         (!asiFrom || asiFrom.includes(ability)) &&
                         (asi[index] === ability || !asi.includes(ability)),
-                    ).map((ability) => ({ value: ability, label: ABILITY_NAMES[ability] })),
+                    ).map((ability) => ({ value: ability, label: abilityName(ability) })),
                   ]}
                 />
                 {asi[index] ? (
-                  <GameTerm id={asi[index] as Ability} className="shrink-0 text-xs text-stone-500">
-                    what is this?
-                  </GameTerm>
+                  <GameTerm id={asi[index] as Ability} className="shrink-0 text-xs text-stone-500">{abilityName(asi[index] as Ability)}</GameTerm>
                 ) : null}
               </span>
             ))}
@@ -212,8 +214,7 @@ export function RacialChoicesSection({
       {race.skillChoice ? (
         <div data-builder-target="racialSkills">
           <span className="mb-1 flex flex-wrap items-center gap-1 text-stone-400">
-            <GameTerm id="skill">Skill</GameTerm> proficiencies ({race.skillChoice.count} of your
-            choice)
+            <GameTerm id="skill">{t("builder.race.skill.term")}</GameTerm> {tp("builder.race.skill.proficiencies", race.skillChoice.count, { count: race.skillChoice.count })}
           </span>
           <div className="grid grid-cols-2 gap-2">
             {Array.from({ length: race.skillChoice.count }, (_, index) => (
@@ -222,10 +223,10 @@ export function RacialChoicesSection({
                   value={skills[index] ?? ""}
                   onChange={(next) => onSkillsChange(index, next)}
                   className="min-w-0 grow"
-                  label={`Skill proficiency ${index + 1}`}
-                  placeholder="Choose a skill..."
+                  label={t("builder.race.skill.label", { index: index + 1 })}
+                  placeholder={t("builder.race.skill.placeholder")}
                   options={[
-                    { value: "", label: "Choose a skill..." },
+                    { value: "", label: t("builder.race.skill.placeholder") },
                     ...(race.skillChoice?.from?.length ? race.skillChoice.from : ALL_SKILLS).filter(
                       (skill) => skills[index] === skill || (!skills.includes(skill) && !grantedSkills.includes(skill)),
                     ).map((skill) => ({ value: skill as string, label: skillName(skill) })),
