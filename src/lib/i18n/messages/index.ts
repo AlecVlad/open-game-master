@@ -47,6 +47,8 @@ import { enCharReady } from "./en/charReady.ts";
 import { enCharEdit } from "./en/charEdit.ts";
 import { enBuilderShell } from "./en/builderShell.ts";
 import { enWizard } from "./en/wizard.ts";
+import { enBuilderShared } from "./en/builderShared.ts";
+import { enBuilderFinish } from "./en/builderFinish.ts";
 import { enCommon } from "./en/common.ts";
 import { ruAdmin } from "./ru/admin.ts";
 import { ruAdminSettings } from "./ru/adminSettings.ts";
@@ -92,11 +94,13 @@ import { ruCharReady } from "./ru/charReady.ts";
 import { ruCharEdit } from "./ru/charEdit.ts";
 import { ruBuilderShell } from "./ru/builderShell.ts";
 import { ruWizard } from "./ru/wizard.ts";
+import { ruBuilderShared } from "./ru/builderShared.ts";
+import { ruBuilderFinish } from "./ru/builderFinish.ts";
 import { ruCommon } from "./ru/common.ts";
 
-export const en = { ...enCommon, ...enAdmin, ...enAdminSettings, ...enAdminBackup , ...enAdminStorage , ...enAdminUsers , ...enAdminReports , ...enAdminLog , ...enAdminUsage , ...enAdminInvites , ...enAdminAgents , ...enAdminNetwork , ...enAdminQuality , ...enAdminFields , ...enAdminSpeech , ...enAdminImages , ...enAdminBuiltinSpeech , ...enAdminHarness , ...enAdminAddonCard , ...enAdminAddons , ...enAdminWorlds , ...enAdminPlugins , ...enAdminSpeed , ...enAdminModelChoice , ...enHome , ...enHomeBench , ...enHomeTables , ...enHomeDashboard , ...enAuthDoor , ...enAuthForm , ...enAuthPassword , ...enSettingsPage , ...enSettingsSmall , ...enSettingsAgents , ...enSettingsReceiver , ...enAvatarCrop , ...enCharactersPage , ...enRosterPortrait , ...enCharUse , ...enCharSheet , ...enCharDetail , ...enCharReady , ...enCharEdit , ...enBuilderShell , ...enWizard };
+export const en = { ...enCommon, ...enAdmin, ...enAdminSettings, ...enAdminBackup , ...enAdminStorage , ...enAdminUsers , ...enAdminReports , ...enAdminLog , ...enAdminUsage , ...enAdminInvites , ...enAdminAgents , ...enAdminNetwork , ...enAdminQuality , ...enAdminFields , ...enAdminSpeech , ...enAdminImages , ...enAdminBuiltinSpeech , ...enAdminHarness , ...enAdminAddonCard , ...enAdminAddons , ...enAdminWorlds , ...enAdminPlugins , ...enAdminSpeed , ...enAdminModelChoice , ...enHome , ...enHomeBench , ...enHomeTables , ...enHomeDashboard , ...enAuthDoor , ...enAuthForm , ...enAuthPassword , ...enSettingsPage , ...enSettingsSmall , ...enSettingsAgents , ...enSettingsReceiver , ...enAvatarCrop , ...enCharactersPage , ...enRosterPortrait , ...enCharUse , ...enCharSheet , ...enCharDetail , ...enCharReady , ...enCharEdit , ...enBuilderShell , ...enWizard , ...enBuilderShared , ...enBuilderFinish };
 export type MessageKey = keyof typeof en;
 
-const ru: Record<string, string> = { ...ruCommon, ...ruAdmin, ...ruAdminSettings , ...ruAdminBackup , ...ruAdminStorage , ...ruAdminUsers , ...ruAdminReports , ...ruAdminLog , ...ruAdminUsage , ...ruAdminInvites , ...ruAdminAgents , ...ruAdminNetwork , ...ruAdminQuality , ...ruAdminFields , ...ruAdminSpeech , ...ruAdminImages , ...ruAdminBuiltinSpeech , ...ruAdminHarness , ...ruAdminAddonCard , ...ruAdminAddons , ...ruAdminWorlds , ...ruAdminPlugins , ...ruAdminSpeed , ...ruAdminModelChoice , ...ruHome , ...ruHomeBench , ...ruHomeTables , ...ruHomeDashboard , ...ruAuthDoor , ...ruAuthForm , ...ruAuthPassword , ...ruSettingsPage , ...ruSettingsSmall , ...ruSettingsAgents , ...ruSettingsReceiver , ...ruAvatarCrop , ...ruCharactersPage , ...ruRosterPortrait , ...ruCharUse , ...ruCharSheet , ...ruCharDetail , ...ruCharReady , ...ruCharEdit , ...ruBuilderShell , ...ruWizard } as Record<string, string>;
+const ru: Record<string, string> = { ...ruCommon, ...ruAdmin, ...ruAdminSettings , ...ruAdminBackup , ...ruAdminStorage , ...ruAdminUsers , ...ruAdminReports , ...ruAdminLog , ...ruAdminUsage , ...ruAdminInvites , ...ruAdminAgents , ...ruAdminNetwork , ...ruAdminQuality , ...ruAdminFields , ...ruAdminSpeech , ...ruAdminImages , ...ruAdminBuiltinSpeech , ...ruAdminHarness , ...ruAdminAddonCard , ...ruAdminAddons , ...ruAdminWorlds , ...ruAdminPlugins , ...ruAdminSpeed , ...ruAdminModelChoice , ...ruHome , ...ruHomeBench , ...ruHomeTables , ...ruHomeDashboard , ...ruAuthDoor , ...ruAuthForm , ...ruAuthPassword , ...ruSettingsPage , ...ruSettingsSmall , ...ruSettingsAgents , ...ruSettingsReceiver , ...ruAvatarCrop , ...ruCharactersPage , ...ruRosterPortrait , ...ruCharUse , ...ruCharSheet , ...ruCharDetail , ...ruCharReady , ...ruCharEdit , ...ruBuilderShell , ...ruWizard , ...ruBuilderShared , ...ruBuilderFinish } as Record<string, string>;
 
 export const DICTIONARIES: Dictionaries = { en, ru };
