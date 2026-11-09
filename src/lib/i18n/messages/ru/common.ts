@@ -13,4 +13,5 @@ export const ruCommon: Partial<Record<keyof typeof enCommon, string>> = {
   "appearance.theme.light": "Пергаментный день",
   "appearance.scale": "Масштаб интерфейса",
   "appearance.reset": "Сбросить",
+  "common.action.save": "Сохранить",
 };
