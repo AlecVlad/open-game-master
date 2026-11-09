@@ -1,0 +1,37 @@
+// Русский: шаг конструктора «Герой».
+// Ключи те же, что в en/builderIdentity.ts; формы .few и .many нужны только русскому.
+import type { enBuilderIdentity } from "../en/builderIdentity.ts";
+
+export const ruBuilderIdentity: Partial<Record<keyof typeof enBuilderIdentity, string>> & Record<string, string> = {
+  "builder.id.name.title": "Назовите героя",
+  "builder.id.name": "Имя",
+  "builder.id.roll": "Бросить кости на имя",
+  "builder.id.details": "Подробности",
+  "builder.id.gender": "Пол",
+  "builder.id.gender.none": "Не выбран",
+  "builder.id.gender.change": "Изменить на шаге «Класс»",
+  "builder.id.align": "Мировоззрение",
+  "builder.id.align.help": "Как он обычно поступает. Это не меняет ни одной цифры на листе.",
+  "builder.id.portrait": "Портрет (необязательно)",
+  "builder.id.portrait.alt": "Портрет вашего героя",
+  "builder.id.photo.replace": "Заменить фото",
+  "builder.id.photo.upload": "Загрузить фото",
+  "builder.id.photo.regen": "Создать портрет заново",
+  "builder.id.photo.remove": "Убрать фото",
+  "builder.id.photo.asis.paint": "Это фото используется как есть; портрет за вас рисоваться не будет.",
+  "builder.id.photo.asis": "Это фото используется как есть.",
+  "builder.id.photo.add.paint": "Добавьте изображение или позвольте ИИ нарисовать его после сохранения.",
+  "builder.id.photo.add": "Загрузите фото, чтобы у персонажа появилось лицо.",
+  "builder.id.look": "Внешность",
+  "builder.id.look.help.paint": "Используется для рисования портрета персонажа, если вы не загрузите фото.",
+  "builder.id.look.help": "Как выглядит ваш персонаж — чтобы группа и ведущий могли его представить.",
+  "builder.id.look.ph": "Серебристые волосы, обветренное лицо, шрам через глаз...",
+  "builder.id.back.title": "Предыстория (необязательно)",
+  "builder.id.back.help": "Кем он был до приключения и кому служит: богу, покровителю, делу? Группа может это прочитать, а ведущий читает всё и вплетает в историю.",
+  "builder.id.back.ph": "Опозоренный храмовый страж богини луны, ищущий второй шанс...",
+  "builder.id.back.aria": "Предыстория",
+  "builder.id.hopes.title": "Надежды на эту историю (необязательно)",
+  "builder.id.hopes.help": "Что бы вы хотели увидеть? Роман, соперника, искупление, возвращённый старый долг. Это видите только вы и ведущий. Ведущий читает это каждый ход и ведёт историю в эту сторону, когда сюжет позволяет. Позже это можно изменить на листе персонажа.",
+  "builder.id.hopes.ph": "Роман со спутником, который путешествует с нами, и расплата с рыцарем, предавшим меня...",
+  "builder.id.hopes.aria": "Надежды на эту историю",
+};
