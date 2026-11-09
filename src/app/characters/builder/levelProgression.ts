@@ -124,7 +124,7 @@ const TEN: AbilityScores = { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 1
 
 export function levelProgressionRows(input: ProgressionInput, translate?: ProgressionTranslator): ProgressionRow[] {
   if ((input.classes?.length ?? 0) > 1) {
-    return classListRows(input, input.classes ?? []);
+    return classListRows(input, input.classes ?? [], translate);
   }
   const last = Math.max(1, Math.min(20, Math.floor(input.level)));
   const pickLevel = subclassLevelFor(input.classId);
@@ -191,7 +191,7 @@ export function levelProgressionRows(input: ProgressionInput, translate?: Progre
 // and the casting of the levels taken so far: the shared slots as the
 // server works them, a warlock's pact slots apart, and the casting class's
 // counts at its own level.
-function classListRows(input: ProgressionInput, classes: ReadonlyArray<ProgressionClass>): ProgressionRow[] {
+function classListRows(input: ProgressionInput, classes: ReadonlyArray<ProgressionClass>, translate?: ProgressionTranslator): ProgressionRow[] {
   const last = Math.max(1, Math.min(20, Math.floor(input.level)));
   const styles = [...(input.styles ?? [])];
   const list = classes.map((entry) => ({ ...entry, id: entry.classId }));
@@ -259,7 +259,7 @@ function classListRows(input: ProgressionInput, classes: ReadonlyArray<Progressi
       features,
       subclass: subclassLevelFor(entry.classId) === classLevel ? { pick: entry.subclass.trim() || null } : null,
       improvement:
-        slotIndex >= 0 ? { pick: choice ? improvementWords(choice) : null, takenInPlay: takenInPlay && !choice } : null,
+        slotIndex >= 0 ? { pick: choice ? improvementWords(choice, translate) : null, takenInPlay: takenInPlay && !choice } : null,
       slots,
       pact: pactRow ? { level: pactRow.level, count: pactRow.max } : null,
       classLabel: `${entry.name} ${classLevel}`,
@@ -286,6 +286,6 @@ export function progressionColumns(rows: readonly ProgressionRow[]): { subclass:
 }
 
 // A row's slots in words: "1st 4, 2nd 3", or a dash.
-export function slotWords(slots: ProgressionRow["slots"]): string {
-  return slots.length ? slots.map((slot) => `${ordinal(slot.level)} ${slot.count}`).join(", ") : "-";
+export function slotWords(slots: ProgressionRow["slots"], translate?: ProgressionTranslator): string {
+  return slots.length ? slots.map((slot) => `${ordinal(slot.level, translate)} ${slot.count}`).join(", ") : "-";
 }
