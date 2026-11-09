@@ -39,6 +39,7 @@ export const ruCampaignSession: Partial<Record<keyof typeof enCampaignSession, s
   "campaign.roll.natural.twenty": "Натуральная 20!",
   "campaign.roll.natural.one": "Натуральная 1",
   "campaign.roll.expression.aria": "Бросок: {expression}",
+  "campaign.roll.dc": "КС",
 
   "campaign.tableWait.title.waiting": "Ведущий ждёт ответа от",
   "campaign.tableWait.title.answered": "Все ответили",
