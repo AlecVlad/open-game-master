@@ -12,4 +12,5 @@ export const enCommon = {
   "appearance.scale": "Interface scale",
   "appearance.reset": "Reset",
   "common.action.save": "Save",
+  "voicePicker.narratorLanguageNote": "Kokoro has no {language} voice, so narration is read by a voice of another language.",
 } satisfies Record<string, string>;
