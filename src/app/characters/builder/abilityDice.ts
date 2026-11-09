@@ -258,7 +258,7 @@ export function summaryLine({
     const lead = translate(`builder.extra.ability.summary.method.${method}` as MessageKey);
     if (!best) return lead;
     const tail = who
-      ? translate("builder.extra.ability.summary.tail.withWho", { article: /^[aeiou]/i.test(who) ? "an" : "a", who })
+      ? translate("builder.extra.ability.summary.tail.withWho", { who })
       : translate("builder.extra.ability.summary.tail.withoutWho");
     return translate("builder.extra.ability.summary.lead", { lead, ability: best.label, score: best.final, tail });
   }
