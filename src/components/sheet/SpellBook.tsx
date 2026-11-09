@@ -4,6 +4,7 @@ import { BookOpen, Check, Hourglass, Lock, Star } from "lucide-react";
 import { useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
 import { useI18n } from "@/lib/i18n/provider";
 import type { MessageKey } from "@/lib/i18n/messages/index";
+import type { Params } from "@/lib/i18n/core";
 import { GameIcon } from "@/components/ui/GameIcon";
 import { InfoButton } from "@/components/ui/InfoDialog";
 import { Select } from "@/components/ui/Select";
@@ -95,19 +96,11 @@ export function tilePressed(state: SpellTileState, writingBook = false): boolean
 
 export type SpellCounter = { label: string; value: number; max?: number | null; extra?: string };
 
-const STATE_TEXT: Record<SpellTileState, string> = {
-  ready: "Ready",
-  pending: "At long rest",
-  granted: "Always prepared",
-  inBook: "In spellbook",
-  available: "Available",
-};
-
 const RANK: Record<SpellTileState, number> = { granted: 0, ready: 1, pending: 2, inBook: 3, available: 4 };
 const ROMAN = ["", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX"];
 const noSubscribe = () => () => {};
 const levelKey = (level: number | null) => (level === null ? "other" : String(level));
-const levelLabel = (key: string, translate: (key: MessageKey, params?: Record<string, unknown>) => string) =>
+const levelLabel = (key: string, translate: (key: MessageKey, params?: Params) => string) =>
   key === "0"
     ? translate("builder.spells.book.level.cantrips")
     : key === "other"
