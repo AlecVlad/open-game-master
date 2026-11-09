@@ -1,6 +1,7 @@
 "use client";
 
 import type { CSSProperties, ReactNode } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { CampaignCover } from "@/components/CampaignCover";
 import { StorySetupNotice } from "@/components/StorySetupNotice";
 import { useTtsVoices, voiceLabel } from "@/components/VoicePicker";
@@ -49,11 +50,12 @@ export function ReviewStep({
   onEdit: (target: EditTarget) => void;
   defaultsPanel: ReactNode;
 }) {
+  const { t } = useI18n();
   const { solo, storyKnownMissing } = gates;
   const preset = genrePreset(draft.genre);
   const sheet = coverSheet(draft, gates, selectedPack?.name ?? null);
   const voices = useTtsVoices();
-  const rules = customRules(draft);
+  const rules = customRules(draft, t);
   const importing = bringsSomething(draft.contentImport);
   const storyboardClash = Boolean(prep?.arcComing && importing && gates.aiNarrates && draft.aiStorySetup && !draft.storySetupKept);
   let index = 0;
@@ -93,11 +95,11 @@ export function ReviewStep({
             {row("Dice", sheet.dice, { step: "essentials", group: "character" })}
             {row(
               "Narration",
-              narrationSummary(draft, gates, voiceLabel(voices, draft.ttsVoice)),
+              narrationSummary(draft, gates, voiceLabel(voices, draft.ttsVoice), t),
               { step: "experience" },
               { wrap: true },
             )}
-            {row("Safety", safetySummary(draft), { step: "experience", group: "safety" }, { wrap: true })}
+            {row("Safety", safetySummary(draft, t), { step: "experience", group: "safety" }, { wrap: true })}
             {row("Rules", rules ?? "The book as written", { step: "experience", group: "variants" }, { wrap: true })}
             {row(
               "Prep",
