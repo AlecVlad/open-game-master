@@ -199,6 +199,10 @@ for (const part of variantRuleMessages) {
   assert.ok(key in DICTIONARIES.ru, `Russian variant-rule message missing: ${key}`);
 }
 
+const summaryMessages = Object.keys(DICTIONARIES.en).filter((key) => key.startsWith("createCampaign.summary."));
+const untranslatedSummaryMessages = summaryMessages.filter((key) => !(key in DICTIONARIES.ru));
+assert.deepEqual(untranslatedSummaryMessages, [], "campaign summary messages must be translated into Russian");
+
 // Report (not fail on) what Russian still lacks, so progress is visible.
 const missing = Object.keys(DICTIONARIES.en).filter((key) => !(key in DICTIONARIES.ru));
 console.log(`i18n: ${Object.keys(DICTIONARIES.en).length} messages, ${missing.length} not yet in Russian`);
