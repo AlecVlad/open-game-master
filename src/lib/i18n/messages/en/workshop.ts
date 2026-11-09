@@ -726,4 +726,9 @@ export const enWorkshop = {
   "workshop.testFight.button.busy": "Setting the table...",
   "workshop.testFight.button.start": "Start the test fight",
 
+  "workshop.encounter.budget.aria": "{xp} adjusted XP against a {ceiling} ceiling",
+  "workshop.testFight.heroes.one": "hero",
+  "workshop.testFight.heroes.other": "heroes",
+  "workshop.testFight.error.setup": "The test fight could not be set up.",
+
 } satisfies Record<string, string>;
