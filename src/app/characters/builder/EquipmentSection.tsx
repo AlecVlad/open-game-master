@@ -13,6 +13,7 @@ import ContentPicker, { type PickerEntry } from "./ContentPicker";
 import GearReceipt, { type ReceiptView } from "./GearReceipt";
 import { Chip } from "./steps/shared";
 import { textKey } from "@/lib/language/text-logic";
+import { useI18n } from "@/lib/i18n/provider";
 
 // What a catalog row brings into the pack beside its name: a homebrew row
 // its mechanics (so the live AC and attack lines read it before it is
@@ -107,6 +108,7 @@ export default function EquipmentSection({
   purse: PurseView;
   inputClass: string;
 }) {
+  const { t, tp } = useI18n();
   const have = new Set(equipment.map((item) => textKey(item.name)));
   const openSuggestions = suggestions.filter((entry) => !have.has(textKey(entry.name)));
   // Only what the kit does not already carry: most class kits come with a
@@ -115,11 +117,11 @@ export default function EquipmentSection({
 
   return (
     <section className="panel rounded-xl p-4">
-      <h2 className="eyebrow mb-1 text-xs text-amber-200/90">Equipment</h2>
+      <h2 className="eyebrow mb-1 text-xs text-amber-200/90">{t("builder.gear.title")}</h2>
       {kit}
       {openSuggestions.length ? (
         <div className="mb-2">
-          <p className="mb-1.5 text-xs text-stone-500">Suggested for your class:</p>
+          <p className="mb-1.5 text-xs text-stone-500">{t("builder.gear.suggested")}</p>
           <div className="flex flex-wrap gap-1.5">
             {openSuggestions.map((entry) => (
               <span
@@ -150,16 +152,16 @@ export default function EquipmentSection({
           disabled={!starterMissing.length}
           title={
             starterMissing.length
-              ? `Adds ${starterMissing.map((entry) => (entry.qty > 1 ? `${entry.name} x${entry.qty}` : entry.name)).join(", ")}.`
-              : "Your kit already carries the basics: a backpack, bedroll, rations, rope, torches and a waterskin."
+              ? t("builder.gear.starter.tooltip.adds", { items: starterMissing.map((entry) => (entry.qty > 1 ? `${entry.name} x${entry.qty}` : entry.name)).join(", ") })
+              : t("builder.gear.starter.tooltip.already")
           }
           className="rounded-md border border-stone-700 px-2.5 py-1 text-xs text-stone-300 hover:bg-stone-900 disabled:cursor-not-allowed disabled:opacity-50 motion-press"
         >
           {starterMissing.length
-            ? `Add adventurer's starter pack (${starterMissing.length} ${starterMissing.length === 1 ? "item" : "items"} the kit lacks)`
-            : "Starter pack already in the kit"}
+            ? t("builder.gear.starter.missing", { count: starterMissing.length, unit: tp("builder.gear.starter.item", starterMissing.length) })
+            : t("builder.gear.starter.already")}
         </button>
-        <span className="text-xs text-stone-500">plus search armor, weapons, and gear:</span>
+        <span className="text-xs text-stone-500">{t("builder.gear.plusSearch")}</span>
       </div>
       {/* What stops Continue, where the items are added: the purse's line
           sat under the whole inventory and out of view (issue #111). */}
@@ -172,7 +174,7 @@ export default function EquipmentSection({
       ) : null}
       <ContentPicker
         kind="items"
-        placeholder="Search items (e.g. longsword, chain mail, rope)"
+        placeholder={t("builder.gear.search")}
         onPick={(entry) => onAdd(pickedGear(entry))}
         renderMeta={(entry) => entry.rarity || entry.kind || ""}
         hide={isMagicRow}
@@ -182,15 +184,15 @@ export default function EquipmentSection({
           top and a ⓘ on every row. */}
       <CatalogBrowser
         kind="items"
-        buttonLabel="Browse every weapon, armor and item"
+        buttonLabel={t("builder.gear.browse")}
         selectedNames={equipment.map((item) => item.name)}
         onPick={(entry) => onAdd(pickedGear(entry))}
         onUnpick={onRemove}
         recommended={
           suggestions.length
             ? {
-                label: "Suggested for your class",
-                note: "What this class is proficient with, plus the kit everyone carries.",
+                label: t("builder.gear.suggested"),
+                note: t("builder.gear.suggested.note"),
                 entries: [
                   ...suggestions.map((entry) => ({ name: entry.name, note: entry.note })),
                   ...STARTER_PACK.map((entry) => ({ name: entry.name, note: "kit" })),
@@ -236,14 +238,14 @@ export default function EquipmentSection({
             className="flex items-center gap-2 rounded-md border border-amber-800/70 bg-amber-950/30 px-3 py-1.5 text-xs text-amber-100 hover:bg-amber-950/60 disabled:opacity-60 motion-press"
           >
             {purse.wealth.busy ? <Loader2 className="size-3.5 animate-spin" /> : <Dices className="size-3.5" />}
-            Roll starting wealth ({purse.wealth.dice})
+            {t("builder.gear.wealth.roll", { dice: purse.wealth.dice })}
           </button>
         ) : null}
         {/* The receipt's foot carries the coin left when there is one. */}
         {purse.receipt ? null : (
           <div className="flex items-baseline gap-2">
             <Coins className="size-3.5 self-center text-amber-300/80" />
-            <span className="text-xs text-stone-400">Coin left after the gear</span>
+            <span className="text-xs text-stone-400">{t("builder.gear.coin.left")}</span>
             <span key={`${purse.gold}-${purse.copper}`} className="reveal font-mono text-sm text-amber-200">
               {formatPrice(purseCopper(purse))}
             </span>
@@ -251,7 +253,7 @@ export default function EquipmentSection({
         )}
         <p className="text-sm text-stone-500">
           {purse.wealth?.rolled
-            ? `The server rolled ${purse.wealth.rolled.faces.join(", ")} on ${purse.wealth.dice}: ${purse.wealth.rolled.gold} gp. `
+            ? t("builder.gear.wealth.rolled", { faces: purse.wealth.rolled.faces.join(", "), dice: purse.wealth.dice, gold: purse.wealth.rolled.gold })
             : ""}
           {purse.source}
         </p>
@@ -262,8 +264,7 @@ export default function EquipmentSection({
         ) : null}
         {purse.problems.length ? (
           <p className={cn("reveal text-sm text-amber-300")}>
-            {purse.problems.length === 1 ? "One item above" : `${purse.problems.length} items above`} cannot be paid for; the
-            Continue button waits on that.
+            {tp("builder.gear.cannotPay", purse.problems.length, { count: purse.problems.length })}
           </p>
         ) : null}
       </div>
