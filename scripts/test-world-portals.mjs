@@ -281,7 +281,7 @@ test("the cover uses Russian messages without changing the underlying draft", ()
   const sheet = coverSheet(DRAFT, TABLE, null, translateRu);
   assert.equal(sheet.title, "Кампания без названия");
   assert.equal(sheet.theme, "Мир, который вы опишете сами.");
-  assert.equal(sheet.meta, "Игроков: 5 · Только цифровые");
+  assert.equal(sheet.meta, "Игроков: 5 · уровень 1 · Только цифровые");
   assert.equal(sheet.difficulty, "Обычная");
   assert.equal(sheet.stampSub, "4–5 актов");
   assert.equal(sheet.setting, "Высокое фэнтези");
