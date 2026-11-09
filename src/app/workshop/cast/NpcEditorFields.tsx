@@ -133,10 +133,10 @@ export function NpcEditorFields({
               value: attitude,
               label:
                 attitude === "hostile"
-                  ? "Hostile to the party"
+                  ? t("workshop.cast.attitude.hostileLabel")
                   : attitude === "friendly"
-                    ? "Friendly to the party"
-                    : "Indifferent",
+                    ? t("workshop.cast.attitude.friendlyLabel")
+                    : t("workshop.cast.attitude.neutralLabel"),
               icon: {
                 kind: "glyph" as const,
                 key: attitude === "hostile" ? "attitude-hostile" : attitude === "friendly" ? "attitude-friendly" : "attitude-neutral",
@@ -149,7 +149,7 @@ export function NpcEditorFields({
             label={t("workshop.cast.gender")}
             value={draft.gender}
             onChange={(gender) => onChange({ ...draft, gender })}
-            options={[{ value: "", label: "Unspecified" }, ...GENDERS.map((gender) => ({ value: gender, label: gender }))]}
+            options={[{ value: "", label: t("workshop.cast.gender.unspecified") }, ...GENDERS.map((gender) => ({ value: gender, label: gender }))]}
           />
           </span>
           {/* Beside the gender because the two pick the stand-in face
@@ -162,7 +162,7 @@ export function NpcEditorFields({
               label={t("workshop.cast.race")}
               value={draft.race ?? ""}
               onChange={(race) => onChange({ ...draft, race })}
-              options={[{ value: "", label: "Unspecified" }, ...NPC_RACE_OPTIONS]}
+              options={[{ value: "", label: t("workshop.cast.race.unspecified") }, ...NPC_RACE_OPTIONS]}
             />
             </span>
           ) : null}
@@ -228,7 +228,7 @@ export function NpcEditorFields({
             value={draft.factionId}
             onChange={(factionId) => onChange({ ...draft, factionId })}
             options={[
-              { value: "", label: "No faction" },
+              { value: "", label: t("workshop.cast.noFaction") },
               ...factions.map((faction) => ({ value: faction.id, label: faction.name, icon: { kind: "glyph" as const, key: "system-factions" } })),
             ]}
           />
@@ -241,7 +241,7 @@ export function NpcEditorFields({
           <span className="text-xs text-stone-400">{t("workshop.cast.fightAs")}</span>
           {draft.statBlock ? (
             <span className="pop-in inline-flex items-center gap-1 rounded-full border border-amber-500/25 bg-stone-900/60 py-0.5 pl-2.5 pr-1 text-xs text-stone-200">
-              {draft.statBlock.startsWith("homebrew:") ? "your own stat block" : draft.statBlock.replace(/-/g, " ")}
+              {draft.statBlock.startsWith("homebrew:") ? t("workshop.cast.statBlock.own") : draft.statBlock.replace(/-/g, " ")}
               <button
                 type="button"
                 aria-label={t("workshop.cast.clearStat")}
@@ -255,7 +255,7 @@ export function NpcEditorFields({
           <ContentPick
             kind="monsters"
             label={t("workshop.cast.statBlock")}
-            placeholder={draft.statBlock ? "Another stat block..." : "Veteran, Bandit Captain, Priest..."}
+            placeholder={draft.statBlock ? t("workshop.cast.statBlock.another") : t("workshop.cast.statBlock.search")}
             className="min-w-48 flex-1"
             onPick={(entry) => onChange({ ...draft, statBlock: entry.slug ?? entry.name })}
           />
@@ -276,7 +276,7 @@ export function NpcEditorFields({
                 voice: voiceId ? { voiceId, speed: draft.voice?.speed ?? 1 } : null,
               })
             }
-            noneLabel="The narrator's voice"
+            noneLabel={t("workshop.cast.voice.narrator")}
             className="w-full"
           />
           </span>
@@ -284,7 +284,7 @@ export function NpcEditorFields({
             <>
               <VoicePreviewButton voice={draft.voice.voiceId} />
               <span className="flex items-center gap-2 text-xs text-stone-400">
-                Pace
+                {t("workshop.cast.pace")}
                 <span className="w-28">
                 <Slider
                   label={t("workshop.cast.pace.label")}
@@ -309,16 +309,16 @@ export function NpcEditorFields({
         <section className="panel space-y-2 rounded-xl p-3" data-tour="cast-known-before">
           <SectionHead title={t("workshop.cast.known.beforeLabel")} glyph="tab-bonds" className="mb-0" />
           <p id={knownLabelId} className="text-xs text-stone-300">
-            Does the whole party already know them when the story begins?
+            {t("workshop.cast.known.question")}
           </p>
           <span className="block sm:max-w-md" aria-describedby={knownLabelId}>
             <Select<KnownBeforeGrade | "none">
-              label="Does the whole party already know them when the story begins?"
+              label={t("workshop.cast.known.question")}
               value={known?.grade ?? "none"}
               onChange={(grade) =>
                 onChange({ ...draft, knownBefore: grade === "none" ? null : { grade, how: known?.how ?? "" } })
               }
-              options={KNOWN_BEFORE_OPTIONS.map((option) => ({ ...option, icon: { kind: "glyph" as const, key: option.value === "none" ? "attitude-neutral" : "tab-bonds" } }))}
+              options={KNOWN_BEFORE_OPTIONS.map((option) => ({ value: option.value, label: t("workshop.cast.known." + option.value as MessageKey), hint: t("workshop.cast.known." + option.value + ".hint" as MessageKey), icon: { kind: "glyph" as const, key: option.value === "none" ? "attitude-neutral" : "tab-bonds" } }))}
             />
           </span>
           {known ? (
@@ -331,7 +331,7 @@ export function NpcEditorFields({
                 value={known.how}
                 maxLength={KNOWN_BEFORE_HOW_CHARS}
                 onChange={(event) => onChange({ ...draft, knownBefore: { grade: known.grade, how: event.target.value } })}
-                placeholder="She hired you twice to guard her caravans"
+                placeholder={t("workshop.cast.known.example")}
                 aria-describedby={howHintId}
                 aria-invalid={!known.how.trim()}
                 className={ui.input}
@@ -371,8 +371,7 @@ export function NpcEditorFields({
           </div>
         ))}
         <p className="text-[11px] text-stone-500">
-          The middle one advances on background dice at the end of a chapter, so its progress is
-          the engine&apos;s to move, not yours.
+          {t("workshop.cast.personality.progressHint")}
         </p>
       </section>
 
