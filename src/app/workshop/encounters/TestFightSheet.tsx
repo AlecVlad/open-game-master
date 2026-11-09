@@ -14,6 +14,7 @@ import { TARGET_PARTY_LIMITS } from "@/lib/workshop/kind";
 import { TEST_ALLY_LIMIT } from "@/lib/workshop/test-seats-logic";
 import { hostOffers, useCapabilities } from "@/lib/use-capabilities";
 import type { PreparedEncounter } from "@/app/workshop/encounters/types";
+import { useI18n } from "@/lib/i18n/provider";
 
 // Test fight (issue 553): who fights the prepared fight, then the table
 // (src/lib/workshop/test-fight.ts). Each question has a default that needs
@@ -52,8 +53,8 @@ type Who = "stand-ins" | "characters";
 
 // "Level 4 Variant Human Fighter", in the words the library's cards use: the
 // ids themselves ("variant_human", "srd-2024-goliath") read as code here.
-function describe(character: Character): string {
-  return `Level ${character.level} ${[speciesName(character), classWordsAfterLevel(character)].filter(Boolean).join(" ")}`;
+function describe(character: Character, t: (key: string, params?: Record<string, string | number>) => string): string {
+  return `${t("workshop.party.levelDescription", { level: character.level })} ${[speciesName(character), classWordsAfterLevel(character)].filter(Boolean).join(" ")}`;
 }
 
 function listed(names: string[]): string {
@@ -85,6 +86,7 @@ export function TestFightSheet({
   info: TestFightInfo | null;
   onClose: () => void;
 }) {
+  const { t, tp } = useI18n();
   const [whoChoice, setWho] = useState<Who | null>(null);
   const [runner, setRunner] = useState<"ai" | "person">("ai");
   const [pickedChoice, setPicked] = useState<string[] | null>(null);
@@ -114,8 +116,8 @@ export function TestFightSheet({
     if (!open) return;
     let cancelled = false;
     Promise.all([
-      readLoad<{ pregens?: Character[] }>(fetch(`/api/workshops/${workshopId}/pregens`), "The roster"),
-      readLoad<{ characters?: Character[] }>(fetch("/api/characters"), "Your characters"),
+      readLoad<{ pregens?: Character[] }>(fetch(`/api/workshops/${workshopId}/pregens`), t("workshop.testFight.pregens")),
+      readLoad<{ characters?: Character[] }>(fetch("/api/characters"), t("workshop.testFight.library")),
     ]).then(([roster, shelf]) => {
       if (cancelled) return;
       setLoadError(roster.error ?? shelf.error ?? "");
@@ -125,7 +127,7 @@ export function TestFightSheet({
     return () => {
       cancelled = true;
     };
-  }, [open, workshopId]);
+  }, [open, workshopId, t]);
 
   function close(next: boolean) {
     if (next) return;
@@ -173,7 +175,7 @@ export function TestFightSheet({
           runner: info?.ready ? runner : "person",
         }),
       }),
-      "The test fight could not be set up.",
+      t("workshop.testFight.error.setup"),
     );
     if (sent.error !== null) {
       setError(
@@ -213,10 +215,10 @@ export function TestFightSheet({
             <span className="flex flex-wrap items-center gap-1.5 text-sm text-stone-100">
               {character.name}
               {ally ? (
-                <span className="rounded-full border border-stone-600 px-1.5 text-[10px] uppercase tracking-[0.12em] text-amber-200">Ally</span>
+                <span className="rounded-full border border-stone-600 px-1.5 text-[10px] uppercase tracking-[0.12em] text-amber-200">{t("workshop.testFight.ally")}</span>
               ) : null}
             </span>
-            <span className="block text-xs text-stone-400">{describe(character)}</span>
+            <span className="block text-xs text-stone-400">{describe(character, t)}</span>
           </span>
         </label>
       </li>
@@ -237,16 +239,15 @@ export function TestFightSheet({
   const legend = "mb-1.5 font-display text-xs uppercase tracking-[0.14em] text-amber-200/90";
 
   return (
-    <Sheet open={open} onOpenChange={close} title={encounter ? `Test ${encounter.name}` : "Test fight"} className="lg:w-[min(92vw,34rem)]">
+    <Sheet open={open} onOpenChange={close} title={encounter ? t("workshop.testFight.titleNamed", { name: encounter.name }) : t("workshop.testFight.title")} className="lg:w-[min(92vw,34rem)]">
       <div className="space-y-4" data-testid="test-fight-sheet">
         <p className="text-sm text-stone-300">
-          Play this fight on a table only you can see, on its map and by its plan. You play the
-          party, each hero on their own turn.
+          {t("workshop.testFight.intro")}
         </p>
 
         {encounter?.setup?.length ? (
           <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-xs text-amber-50" data-testid="test-fight-setup">
-            <p className="font-display text-amber-200">It opens on its saved set-up.</p>
+            <p className="font-display text-amber-200">{t("workshop.testFight.setup")}</p>
             <ul className="mt-1 space-y-0.5 text-stone-300">
               {encounter.setup.map((line) => (
                 <li key={line}>{line}</li>
@@ -254,19 +255,19 @@ export function TestFightSheet({
             </ul>
             {setupParty && !sameAsSetup(setupParty, who, picked, allies) ? (
               <p className="mt-1 text-amber-200/90">
-                This is another party than the set-up was saved with: the foes and the order start as saved, the heroes fresh.
+                {t("workshop.testFight.changedParty")}
               </p>
             ) : null}
           </div>
         ) : null}
 
         <fieldset className="space-y-2">
-          <legend className={legend}>Who fights it</legend>
+          <legend className={legend}>{t("workshop.testFight.whoFights")}</legend>
           {radio(
             "test-fight-party",
             who === "stand-ins",
             () => setWho("stand-ins"),
-            "The stand-in party",
+            t("workshop.testFight.standIns"),
             standIns
               ? `${standIns.size} ${standIns.size === 1 ? "hero" : "heroes"} at level ${standIns.level}, the party this workshop is built for: ${listed(standIns.classes)}. Built by the rules when the test starts.`
               : "The party this workshop is built for, built by the rules when the test starts.",
@@ -275,7 +276,7 @@ export function TestFightSheet({
             "test-fight-party",
             who === "characters",
             () => setWho("characters"),
-            "Characters you pick",
+            t("workshop.testFight.characters"),
             "This workshop's pregens or anyone in your library, at their own levels. They fight as copies: nothing in the test reaches your library.",
           )}
         </fieldset>
@@ -288,19 +289,19 @@ export function TestFightSheet({
               </p>
             ) : heroPregens.length + others.length === 0 ? (
               <p className="text-xs text-stone-400">
-                You have no heroes to pick yet. Build one from the Party tool, or test with the stand-ins.
+                {t("workshop.testFight.none")}
               </p>
             ) : (
               <>
                 {heroPregens.length ? (
                   <section>
-                    <h4 className="mb-1.5 text-xs text-stone-400">This workshop&apos;s pregens</h4>
+                    <h4 className="mb-1.5 text-xs text-stone-400">{t("workshop.testFight.pregens")}</h4>
                     <ul className="grid gap-1.5 sm:grid-cols-2">{heroPregens.map(checkbox)}</ul>
                   </section>
                 ) : null}
                 {others.length ? (
                   <section>
-                    <h4 className="mb-1.5 text-xs text-stone-400">Your library</h4>
+                    <h4 className="mb-1.5 text-xs text-stone-400">{t("workshop.testFight.library")}</h4>
                     <ul className="grid gap-1.5 sm:grid-cols-2">{others.map(checkbox)}</ul>
                   </section>
                 ) : null}
@@ -319,7 +320,7 @@ export function TestFightSheet({
             companion, on a host that seats them (issue 685). */}
         {allyOffer && allyChoices.length ? (
           <fieldset className="reveal space-y-2" data-testid="test-fight-allies">
-            <legend className={legend}>Allies beside them</legend>
+            <legend className={legend}>{t("workshop.testFight.allies.title")}</legend>
             <p className="text-xs text-stone-400">
               Optional. Companions you keep fight beside the party as copies, at their own levels. Whoever runs
               the test plays them; to play one yourself, take command of them on their card in the Party panel.
@@ -342,19 +343,19 @@ export function TestFightSheet({
           </p>
         ) : info?.ready ? (
           <fieldset className="space-y-2">
-            <legend className={legend}>Who runs it</legend>
+            <legend className={legend}>{t("workshop.testFight.runner.title")}</legend>
             {radio(
               "test-fight-runner",
               runner === "ai",
               () => setRunner("ai"),
-              "The AI GM",
+              t("workshop.testFight.runner.ai"),
               "It opens the fight and runs the enemies by their plan, as at a table the AI runs. You keep the GM console for set-ups and corrections.",
             )}
             {radio(
               "test-fight-runner",
               runner === "person",
               () => setRunner("person"),
-              "You",
+              t("workshop.testFight.runner.person"),
               "You run the enemies with their cards and the party with theirs, as a GM at a table you run. No AI is called.",
             )}
           </fieldset>
@@ -365,13 +366,13 @@ export function TestFightSheet({
           </p>
         ) : null}
         {info?.open ? (
-          <p className="text-xs text-stone-400">Starting this ends the test already open, {info.open.title}.</p>
+          <p className="text-xs text-stone-400">{t("workshop.testFight.open", { name: info.open.title })}</p>
         ) : null}
 
         <div className="flex flex-wrap items-center gap-2">
           <button type="button" disabled={!canStart} aria-busy={busy} onClick={() => void start()} className={cn(ui.btnPrimary, "min-h-11")}>
             {busy ? <Loader2 className="size-4 animate-spin" /> : <Swords className="size-4" />}
-            {busy ? "Setting the table..." : "Start the test fight"}
+            {busy ? "{t("workshop.testFight.button.busy")}" : "{t("workshop.testFight.button.start")}"}
           </button>
         </div>
         {error ? <PanelError>{error}</PanelError> : null}
