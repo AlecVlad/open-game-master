@@ -247,6 +247,43 @@ for (const key of reviewMessages) {
 assert.ok("storySetupNotice.turnOff" in DICTIONARIES.en && "storySetupNotice.turnOff" in DICTIONARIES.ru, "Story Setup off action must be translated");
 assert.ok("storySetupNotice.keep" in DICTIONARIES.en && "storySetupNotice.keep" in DICTIONARIES.ru, "Story Setup keep action must be translated");
 
+const setupMessages = [
+  "page.adminOnly", "page.backCampaigns", "page.deviceWorld", "page.openAdmin", "page.loadFailed",
+  "wizard.saveFailed", "wizard.storyRequired", "wizard.storyPickModel", "wizard.storyCheckKey", "wizard.storyChooseProgram",
+  "wizard.voiceKokoroAddress", "wizard.voiceOpenAiKey", "wizard.voicePickModel", "wizard.leave", "wizard.title",
+  "wizard.saving", "wizard.begin", "wizard.startCampaign",
+  "step.welcome.label", "step.welcome.eyebrow", "step.welcome.title", "step.welcome.blurb",
+  "step.story.label", "step.story.eyebrow", "step.story.title", "step.story.blurb", "step.story.later.label", "step.story.later.title",
+  "step.pictures.label", "step.pictures.eyebrow", "step.pictures.title", "step.pictures.blurb", "step.pictures.skip.label", "step.pictures.skip.title",
+  "step.voice.label", "step.voice.eyebrow", "step.voice.title", "step.voice.blurb", "step.voice.skip.label", "step.voice.skip.title",
+  "step.players.label", "step.players.eyebrow", "step.players.title", "step.players.blurb", "step.players.skip.label", "step.players.skip.title",
+  "step.agent.label", "step.agent.eyebrow", "step.agent.title", "step.agent.blurb",
+  "step.ready.label", "step.ready.eyebrow", "step.ready.title", "step.ready.blurb",
+  "welcome.serverName", "welcome.serverNameHelp", "welcome.whatWeSetUp",
+  "welcome.stop.story.title", "welcome.stop.story.line", "welcome.stop.pictures.title", "welcome.stop.pictures.line",
+  "welcome.stop.voice.title", "welcome.stop.voice.line", "welcome.stop.players.title", "welcome.stop.players.line",
+  "welcome.stop.agent.title", "welcome.stop.agent.line", "welcome.scanning", "welcome.found", "welcome.nothing",
+  "welcome.nothingHelp", "welcome.foundService", "welcome.foundServiceModels",
+  "players.findTitle", "players.homeNetwork", "players.networkAddress", "players.noNetwork", "players.internetOptional",
+  "players.publicAddressPlaceholder", "players.publicAddressAria", "players.publicAddressHelp", "players.signupTitle",
+  "players.signupAria", "players.invite.title", "players.invite.sub", "players.recommended", "players.open.title",
+  "players.open.sub", "players.fineAtHome", "players.closed.title", "players.closed.sub", "players.openWarning", "players.roomCodeHelp",
+  "parts.suggested", "parts.useSuggestion", "parts.recommended",
+  "ready.header", "ready.recheck", "ready.change", "ready.tryStory", "ready.tryAgent",
+  "ready.story.title", "ready.story.none", "ready.story.asking", "ready.story.answering", "ready.story.notReadyAgent", "ready.story.notReadyModel",
+  "ready.pictures.title", "ready.pictures.off", "ready.pictures.asking", "ready.pictures.found", "ready.pictures.notSet", "ready.pictures.comfyui", "ready.pictures.openai", "ready.pictures.agent", "ready.pictures.needsModel", "ready.pictures.notAnswering",
+  "ready.narration.title", "ready.narration.off", "ready.narration.asking", "ready.narration.found", "ready.narration.notSet", "ready.narration.kokoro", "ready.narration.openai", "ready.narration.needsModel", "ready.narration.notAnswering",
+  "ready.dictation.title", "ready.dictation.asking", "ready.dictation.ready", "ready.dictation.whisper", "ready.dictation.builtin", "ready.dictation.openai", "ready.dictation.off",
+  "ready.players.title", "ready.players.invite", "ready.players.open", "ready.players.closed",
+  "ready.agent.title", "ready.agent.connected", "ready.agent.notConnected",
+  "agent.defaultName", "agent.connectionMade", "agent.tokenHelp", "agent.manageTokens", "agent.description",
+  "agent.name", "agent.permissions", "agent.makeConnection", "agent.connectionError", "agent.serverError"
+].map((part) => `setup.${part}`);
+for (const key of setupMessages) {
+  assert.ok(key in DICTIONARIES.en, `English setup message missing: ${key}`);
+  assert.ok(key in DICTIONARIES.ru, `Russian setup message missing: ${key}`);
+}
+
 // Report (not fail on) what Russian still lacks, so progress is visible.
 const missing = Object.keys(DICTIONARIES.en).filter((key) => !(key in DICTIONARIES.ru));
 console.log(`i18n: ${Object.keys(DICTIONARIES.en).length} messages, ${missing.length} not yet in Russian`);
