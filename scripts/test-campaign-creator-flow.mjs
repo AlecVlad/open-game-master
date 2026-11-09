@@ -142,7 +142,7 @@ await test("creator summaries use Russian interface messages when a translator i
   const draft = { ...DEFAULT_DRAFT };
   assert.equal(
     summaries.narrationSummary({ ...draft, ttsEnabled: false }, allGates, "Heart", translateRu),
-    "Выключено",
+    "Выключено: текст не озвучивается",
   );
   assert.equal(
     summaries.bondsSummary({ relationships: "off", romance: "off" }, translateRu),
