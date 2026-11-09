@@ -3,6 +3,8 @@
 import { Minus, Plus, X } from "lucide-react";
 import { useState } from "react";
 import { useI18n } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages/index";
+import type { Params } from "@/lib/i18n/core";
 import { InfoButton } from "@/components/ui/InfoDialog";
 import { contentSlug } from "@/lib/help";
 import { formatPrice } from "@/lib/srd/currency";
@@ -13,7 +15,7 @@ export type ReceiptView = Receipt & { setQty: (name: string, qty: number) => voi
 const signed = (value: number) => (value >= 0 ? `+${value}` : `${value}`);
 
 // Free, bought, or both, in words a player reads at a glance.
-function sourceLabel(row: ReceiptRow, t: (key: string, params?: Record<string, unknown>) => string): string {
+function sourceLabel(row: ReceiptRow, t: (key: MessageKey, params?: Params) => string): string {
   if (row.refused) {
     return row.refused === "homebrew" ? t("builder.receipt.source.granted") : row.refused === "magic" ? t("builder.receipt.source.found") : t("builder.receipt.source.noPrice");
   }
@@ -115,8 +117,8 @@ export default function GearReceipt({ receipt }: { receipt: ReceiptView }) {
                       className={stepClass}
                       aria-label={
                         stepDown(row) === 0 && row.qty > 1
-                          ? `Remove the kit's ${row.qty} ${row.name}`
-                          : `One fewer ${row.name}`
+                          ? t("builder.receipt.action.remove.set", { count: row.qty, name: row.name })
+                          : t("builder.receipt.action.remove.one", { name: row.name })
                       }
                       title={stepDown(row) === 0 && row.qty > 1 ? t("builder.receipt.action.remove.set.title") : undefined}
                       onClick={() => receipt.setQty(row.name, stepDown(row))}
@@ -136,7 +138,7 @@ export default function GearReceipt({ receipt }: { receipt: ReceiptView }) {
                   </div>
                 </td>
                 <td className="hidden px-2 py-1.5 text-stone-400 sm:table-cell">
-                  <span className={row.refused ? "text-amber-300" : undefined}>{sourceLabel(row)}</span>
+                  <span className={row.refused ? "text-amber-300" : undefined}>{sourceLabel(row, t)}</span>
                 </td>
                 <td className="px-2 py-1.5 text-right font-mono text-stone-300">
                   <div className="flex items-start justify-end gap-1">
