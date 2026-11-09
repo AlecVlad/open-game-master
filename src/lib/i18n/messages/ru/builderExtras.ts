@@ -79,6 +79,7 @@ export const ruBuilderExtras: Partial<Record<keyof typeof enBuilderExtras, strin
   "builder.extra.ability.throw.server": "Кости бросает и сохраняет сервер. Поэтому результат нельзя подменить после броска.",
   "builder.extra.ability.racial": "Бонус расы: +{count}",
   "builder.extra.ability.final": "Итог: {score} ({modifier})",
+  "builder.extra.ability.finalLabel": "Итог",
   "builder.extra.ability.socket.return": "Нажмите ещё раз, чтобы вернуть значение в лоток",
   "builder.extra.ability.socket.swap": "Нажмите, чтобы поменять местами",
   "builder.extra.ability.socket.pickup": "Нажмите, чтобы взять значение",
