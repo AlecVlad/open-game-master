@@ -10,6 +10,7 @@ import { GameIcon } from "@/components/ui/GameIcon";
 import { RowMenu } from "@/app/workshop/kit";
 import { ListHead, useListHead } from "@/app/workshop/ListHead";
 import type { Monster } from "@/app/workshop/bestiary/types";
+import { useI18n } from "@/lib/i18n/provider";
 
 // The workshop's bestiary list: one full-width row per built monster with
 // the numbers a DM scans a stat block for (rating, armour, hit points, how
@@ -43,20 +44,21 @@ export function MonsterRows({
   onDuplicate: (monster: Monster) => void;
   onDelete: (monster: Monster) => void;
 }) {
+  const { t } = useI18n();
   const head = useListHead(monsters, readMonster);
   if (!monsters.length) {
     return (
       <EmptyState
         size="md"
         art="chest"
-        title="Nothing built yet. A monster made here answers to its name wherever a fight starts."
-        hint="Start from a challenge rating or a rulebook monster. Then add it to a fight in Encounters, or give it a World entry to tie it to your setting; a campaign that brings that prep in gets its own copy."
+        title={t("workshop.bestiary.empty")}
+        hint={t("workshop.bestiary.empty.hint")}
       />
     );
   }
   return (
     <>
-    <ListHead head={head} noun={["monster", "monsters"]} placeholder="Find a monster" />
+    <ListHead head={head} noun={["monster", "monsters"]} placeholder={t("workshop.bestiary.find")} />
     <ul className="stagger space-y-2">
       {head.shown.map((monster) => {
         const { stats } = monster.draft;
@@ -64,9 +66,9 @@ export function MonsterRows({
         // One list for both doors: the kebab on the row and the right-click
         // or long-press menu. Opening stays the row itself.
         const items: ContextMenuItem[] = [
-          { id: "open", label: "Open", glyph: "system-bestiary", onSelect: () => onOpen(monster) },
-          { id: "duplicate", label: "Duplicate", glyph: "ui-duplicate", disabled: busy, onSelect: () => onDuplicate(monster) },
-          { id: "delete", label: "Delete", glyph: "ui-delete", tone: "danger", separated: true, onSelect: () => onDelete(monster) },
+          { id: "open", label: t("workshop.bestiary.menu.open"), glyph: "system-bestiary", onSelect: () => onOpen(monster) },
+          { id: "duplicate", label: t("workshop.bestiary.menu.duplicate"), glyph: "ui-duplicate", disabled: busy, onSelect: () => onDuplicate(monster) },
+          { id: "delete", label: t("workshop.bestiary.menu.delete"), glyph: "ui-delete", tone: "danger", separated: true, onSelect: () => onDelete(monster) },
         ];
         return (
           <ContextMenu
