@@ -441,9 +441,11 @@ export const ruCreateCampaign: Partial<Record<keyof typeof enCreateCampaign, str
   "createCampaign.summary.variant.noneOn": "дополнительные правила выключены",
   "createCampaign.summary.variant.ruleCount": "включено дополнительных правил: {count}",
   "createCampaign.summary.voice.on": "включено",
-  "createCampaign.summary.voice.off": "выключено",
+  "createCampaign.summary.voice.off": "Выключено",
   "createCampaign.summary.voice.turn.off": "очередность не учитывается",
   "createCampaign.summary.voice.turn.soft": "очередность показывается",
   "createCampaign.summary.voice.turn.strict": "очередность соблюдается",
   "createCampaign.summary.voice.proximity": "дальность: {feet} фут.",
+  "createCampaign.summary.customRules.variantCount": "Дополнительных правил: {count}",
+  "createCampaign.summary.customRules.houseRules": "Домашние правила",
 };
