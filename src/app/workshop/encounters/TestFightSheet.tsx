@@ -269,15 +269,15 @@ export function TestFightSheet({
             () => setWho("stand-ins"),
             t("workshop.testFight.standIns"),
             standIns
-              ? `${standIns.size} ${standIns.size === 1 ? "hero" : "heroes"} at level ${standIns.level}, the party this workshop is built for: ${listed(standIns.classes)}. Built by the rules when the test starts.`
-              : "The party this workshop is built for, built by the rules when the test starts.",
+              ? t("workshop.testFight.standIns.hint", { count: standIns.size, heroes: tp("workshop.testFight.heroes", standIns.size), level: standIns.level, classes: listed(standIns.classes) })
+              : t("workshop.testFight.standIns.short"),
           )}
           {radio(
             "test-fight-party",
             who === "characters",
             () => setWho("characters"),
             t("workshop.testFight.characters"),
-            "This workshop's pregens or anyone in your library, at their own levels. They fight as copies: nothing in the test reaches your library.",
+            t("workshop.testFight.characters.hint"),
           )}
         </fieldset>
 
@@ -307,8 +307,8 @@ export function TestFightSheet({
                 ) : null}
                 <p className="text-xs text-stone-500">
                   {picked.length
-                    ? `${picked.length} picked${full ? `, the most a test party holds` : ""}.`
-                    : `Pick up to ${TARGET_PARTY_LIMITS.size.max}.`}
+                    ? full ? t("workshop.testFight.picked.max", { count: picked.length }) : t("workshop.testFight.picked.one", { count: picked.length })
+                    : t("workshop.testFight.pickUpTo", { count: TARGET_PARTY_LIMITS.size.max })}
                 </p>
               </>
             )}
@@ -322,14 +322,13 @@ export function TestFightSheet({
           <fieldset className="reveal space-y-2" data-testid="test-fight-allies">
             <legend className={legend}>{t("workshop.testFight.allies.title")}</legend>
             <p className="text-xs text-stone-400">
-              Optional. Companions you keep fight beside the party as copies, at their own levels. Whoever runs
-              the test plays them; to play one yourself, take command of them on their card in the Party panel.
+              {t("workshop.testFight.allies.hint")}
             </p>
             <ul className="grid gap-1.5 sm:grid-cols-2">{allyChoices.map((character) => pickCard(character, true))}</ul>
             <p className="text-xs text-stone-500">
               {allies.length
-                ? `${allies.length} beside the party${alliesFull ? ", the most a test seats" : ""}.`
-                : `None unless you pick them, up to ${TEST_ALLY_LIMIT}.`}
+                ? alliesFull ? t("workshop.testFight.allies.max", { count: allies.length }) : t("workshop.testFight.allies.count", { count: allies.length })
+                : t("workshop.testFight.allies.none", { count: TEST_ALLY_LIMIT })}
             </p>
           </fieldset>
         ) : null}
@@ -349,14 +348,14 @@ export function TestFightSheet({
               runner === "ai",
               () => setRunner("ai"),
               t("workshop.testFight.runner.ai"),
-              "It opens the fight and runs the enemies by their plan, as at a table the AI runs. You keep the GM console for set-ups and corrections.",
+              t("workshop.testFight.runner.aiHint"),
             )}
             {radio(
               "test-fight-runner",
               runner === "person",
               () => setRunner("person"),
               t("workshop.testFight.runner.person"),
-              "You run the enemies with their cards and the party with theirs, as a GM at a table you run. No AI is called.",
+              t("workshop.testFight.runner.personHint"),
             )}
           </fieldset>
         ) : info ? (
