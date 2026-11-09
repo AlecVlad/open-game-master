@@ -10,6 +10,8 @@ import { GameIcon } from "@/components/ui/GameIcon";
 import { ListHead, useListHead } from "@/app/workshop/ListHead";
 import { GlyphPlate, RowMenu } from "@/app/workshop/kit";
 import type { MapOption, PreparedEncounter, TemplateReadout } from "@/app/workshop/encounters/types";
+import { useI18n } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages/index";
 
 // The workshop's encounter list: one full-width row per prepared fight with
 // what matters at a glance (the roster, where it happens, which map, and how
@@ -66,10 +68,11 @@ function shortVerdict(verdict: string): string {
 }
 
 export function DifficultyPill({ readout }: { readout: TemplateReadout }) {
+  const { t } = useI18n();
   if (readout.unknownMonster) {
     return (
       <span className="rounded-sm border border-red-500/40 bg-red-500/10 px-1.5 py-0.5 font-display text-[10px] tracking-wider text-red-300">
-        unknown monster
+        {t("workshop.encounter.difficulty.unknown")}
       </span>
     );
   }
@@ -100,6 +103,7 @@ export function BudgetBar({
       </p>
     );
   }
+  const { t, tp } = useI18n();
   const geometry = budgetBarGeometry({
     adjustedXp: readout.adjustedXp,
     ceiling: readout.ceiling,
@@ -173,28 +177,29 @@ export function EncounterRows({
   // A linked map that has since been forgotten still says so, rather than
   // silently reading as the generator's choice, because deploy will fall
   // back to the generator and the DM should know before the table does.
+  const { t } = useI18n();
   const mapName = (encounter: PreparedEncounter) =>
     encounter.map.mapId
       ? (maps.find((map) => map.id === encounter.map.mapId)?.name ??
-        "a map no longer in the drawer")
-      : "Generator's choice";
+        t("workshop.encounter.map.missing" as MessageKey))
+      : t("workshop.encounter.map.generator" as MessageKey);
   const head = useListHead(encounters, readEncounter);
 
   return (
     <div className="space-y-2">
-      <ListHead head={head} noun={["fight", "fights"]} placeholder="Find a fight" className="" />
+      <ListHead head={head} noun={["fight", "fights"]} placeholder={t("workshop.encounter.find")} className="" />
       <ul className="stagger-up grid gap-3 lg:grid-cols-2" data-tour="encounters-list">
         {head.shown.map((encounter) => {
           // The kebab and the right-click or long-press menu list the same
           // doors; Deploy stays the row's one visible button.
           const items: ContextMenuItem[] = [
-            { id: "open", label: "Open", glyph: "system-encounters", onSelect: () => onOpen(encounter) },
+            { id: "open", label: t("workshop.encounter.menu.open"), glyph: "system-encounters", onSelect: () => onOpen(encounter) },
             { id: "deploy", label: deployLabel, glyph: "tab-battle", disabled: busy, onSelect: () => onDeploy(encounter) },
-            { id: "duplicate", label: "Duplicate", glyph: "ui-duplicate", disabled: busy, onSelect: () => onDuplicate(encounter) },
+            { id: "duplicate", label: t("workshop.encounter.menu.duplicate"), glyph: "ui-duplicate", disabled: busy, onSelect: () => onDuplicate(encounter) },
             ...(encounter.setup && onRemoveSetup
-              ? [{ id: "remove-setup", label: "Remove its set-up", glyph: "ui-delete", disabled: busy, onSelect: () => onRemoveSetup(encounter) } satisfies ContextMenuItem]
+              ? [{ id: "remove-setup", label: t("workshop.encounter.menu.removeSetup"), glyph: "ui-delete", disabled: busy, onSelect: () => onRemoveSetup(encounter) } satisfies ContextMenuItem]
               : []),
-            { id: "delete", label: "Delete", glyph: "ui-delete", tone: "danger", separated: true, onSelect: () => onDelete(encounter) },
+            { id: "delete", label: t("workshop.encounter.menu.delete"), glyph: "ui-delete", tone: "danger", separated: true, onSelect: () => onDelete(encounter) },
           ];
           return (
             <ContextMenu as="li" key={encounter.id} label={encounter.name} items={items} className={cn(ui.cardHover, "flex min-w-0 flex-col gap-2 p-3")}>
@@ -229,9 +234,9 @@ export function EncounterRows({
                 <details className="reveal group rounded-md border border-amber-500/25 bg-amber-500/5 px-2.5" data-encounter-setup={encounter.id}>
                   <summary className="flex min-h-10 cursor-pointer list-none items-center gap-1.5 text-xs text-amber-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/40">
                     <GameIcon icon={{ kind: "glyph", key: "tab-battle" }} size="size-4" />
-                    Starts from a saved set-up
-                    <span className="ml-auto text-[10px] text-amber-200/70 group-open:hidden">Show</span>
-                    <span className="ml-auto hidden text-[10px] text-amber-200/70 group-open:inline">Hide</span>
+                    {t("workshop.encounter.setup.saved")}
+                    <span className="ml-auto text-[10px] text-amber-200/70 group-open:hidden">{t("workshop.encounter.setup.show")}</span>
+                    <span className="ml-auto hidden text-[10px] text-amber-200/70 group-open:inline">{t("workshop.encounter.setup.hide")}</span>
                   </summary>
                   <ul className="space-y-0.5 pb-2 text-[11px] text-stone-300">
                     {encounter.setup.map((line) => (
@@ -262,13 +267,13 @@ export function EncounterRows({
               <GameIcon icon={{ kind: "glyph", key: "system-encounters" }} size="size-10" />
               <Plus className="absolute -bottom-1 -right-1 size-4 rounded-full bg-stone-900 text-amber-300" aria-hidden="true" />
             </span>
-            <span className="font-display tracking-wide">New encounter</span>
+            <span className="font-display tracking-wide">{t("workshop.encounter.new")}</span>
           </button>
         </li>
       </ul>
       {encounters.length === 0 ? (
         <p className="reveal text-[11px] text-stone-500">
-          Nothing prepared. Write a roster and it is one button at the table.
+          {t("workshop.encounter.empty")}
         </p>
       ) : null}
     </div>
