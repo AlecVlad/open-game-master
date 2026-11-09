@@ -446,4 +446,10 @@ export const enCreateCampaign = {
   "createCampaign.summary.voice.proximity": "proximity, {feet} ft",
   "createCampaign.summary.customRules.variantCount": "Variant rules: {count}",
   "createCampaign.summary.customRules.houseRules": "house rules",
+  "createCampaign.essentials.more.title": "More about this campaign",
+  "createCampaign.essentials.optional": "optional",
+  "createCampaign.essentials.group.world": "World and story",
+  "createCampaign.essentials.group.character": "Character creation",
+  "createCampaign.essentials.group.prep": "House rules, lore and prep",
+  "createCampaign.essentials.bringPrep": "Bring in prep",
 } satisfies Record<string, string>;
