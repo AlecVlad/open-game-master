@@ -27,10 +27,6 @@ import { countableRows, featuresOn } from "@/app/create-campaign/table-sheet";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import type { CampaignDraft } from "@/app/create-campaign/draft";
 
-// The switches only describe themselves on hover, which a finger never
-// makes; this is the same text, reachable by tap and keyboard.
-const VARIANT_INFO = `${VARIANT_TOGGLES.map((toggle) => `**${toggle.label}**: ${toggle.tip}`).join("\n\n")}\n\n**Rest lengths**: ${Object.values(REST_LABELS).join("; ")}.`;
-
 // Step 2, the experience: first how the table sounds (narration and who
 // voices the characters, side by side), then its atmosphere and a safety
 // entry nobody has to hunt for. Everything else waits in named groups, each
@@ -38,6 +34,15 @@ const VARIANT_INFO = `${VARIANT_TOGGLES.map((toggle) => `**${toggle.label}**: ${
 // table sheet's: the same rows, counted the same way.
 export function ExperienceStep(props: StepProps & { active: boolean; groups: GroupControl }) {
   const { t } = useI18n();
+  const variantInfo = [
+    ...VARIANT_TOGGLES.map(
+      (toggle) =>
+        `**${t(`createCampaign.experience.variantRules.${toggle.key}.label` as MessageKey)}**: ${t(`createCampaign.experience.variantRules.${toggle.key}.tip` as MessageKey)}`,
+    ),
+    `**${t("createCampaign.experience.variantRules.restLengths")}**: ${Object.keys(REST_LABELS)
+      .map((variant) => t(`createCampaign.experience.variantRules.rest.${variant}` as MessageKey))
+      .join("; ")}.`,
+  ].join("\n\n");
   const { draft, gates, active, groups } = props;
   const counter = useRef<HTMLSpanElement>(null);
   // The total answers every press, including one that does not move it.
@@ -110,7 +115,7 @@ export function ExperienceStep(props: StepProps & { active: boolean; groups: Gro
         <DetailGroup {...groupProps(groups, "variants")} title={t("createCampaign.experience.variants.title")} glyph="system-rules" summary={variantSummary(draft)}>
           <p className="flex items-center gap-1 text-xs text-stone-500">
             {t("createCampaign.experience.variants.info")}
-            <InfoButton label={t("createCampaign.experience.variants.infoLabel")} text={VARIANT_INFO} />
+            <InfoButton label={t("createCampaign.experience.variants.infoLabel")} text={variantInfo} />
           </p>
           <VariantRulesFields value={draft.variantRules} onChange={(variantRules) => props.patch({ variantRules })} />
         </DetailGroup>
