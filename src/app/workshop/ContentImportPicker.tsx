@@ -499,41 +499,37 @@ export function ContentImportPicker({
 export type ImportOutcome = { ok: true; copied: number; note: string } | { ok: false; error: string };
 
 // What an import brought, in one line for the person who asked for it.
-function importNote(data: Record<string, unknown>): string {
+type ImportMessages = {
+  t: (key: MessageKey, params?: import("@/lib/i18n/core").Params) => string;
+  tp: (key: string, count: number, params?: import("@/lib/i18n/core").Params) => string;
+};
+
+function importNote(data: Record<string, unknown>, messages?: ImportMessages): string {
   const copied = Number(data.copied) || 0;
   const names = (value: unknown) => (Array.isArray(value) ? value.map(String) : []);
   const unresolved = names(data.unresolved);
-  // The workshop's pregens its players can take here now; a choice that
-  // brought only those is not "0 items".
   const offered = names(data.pregensOffered);
+  const t = messages?.t;
+  const tp = messages?.tp;
   const lines = [
-    copied || !offered.length ? `Brought ${copied} item${copied === 1 ? "" : "s"} across.` : "",
-    data.kept ? `Kept ${String(data.kept)} already here.` : "",
-    data.beatsAdded ? `${String(data.beatsAdded)} beat${data.beatsAdded === 1 ? "" : "s"} joined the arc.` : "",
-    // Names this table's Cast or fights use that nothing here answers to (a
-    // monster on another author's shelf), and links both worlds changed
-    // (src/lib/db/content-import.ts).
-    unresolved.length
-      ? `No monster here answers to ${unresolved.join(", ")}: add them to your bestiary, or point those NPCs and fights at another.`
-      : "",
+    copied || !offered.length ? (tp?.("workshop.import.note.items", copied) ?? ("Brought " + copied + " item" + (copied === 1 ? "" : "s") + " across.")) : "",
+    data.kept ? (t?.("workshop.import.note.kept", { count: String(data.kept) }) ?? ("Kept " + String(data.kept) + " already here.")) : "",
+    data.beatsAdded ? (tp?.("workshop.import.note.beats", Number(data.beatsAdded)) ?? (String(data.beatsAdded) + " beat" + (data.beatsAdded === 1 ? "" : "s") + " joined the arc.")) : "",
+    unresolved.length ? (t?.("workshop.import.note.unresolved", { names: unresolved.join(", ") }) ?? ("No monster here answers to " + unresolved.join(", ") + ": add them to your bestiary, or point those NPCs and fights at another.")) : "",
     names(data.worldConflicts).join(" "),
-    // Roll-table rows whose table, NPC or lore entry stayed behind and that
-    // now name this campaign's own of that name, or nothing.
     names(data.referenceNotes).join(" "),
-    // Hand-built monsters and items this table's authors did not have,
-    // copied in so what names them still works (WF-07, WF-17).
-    names(data.monstersBrought).length ? `Copied into this table's bestiary: ${names(data.monstersBrought).join(", ")}.` : "",
-    names(data.monstersReused).length ? `Already in this table's bestiary: ${names(data.monstersReused).join(", ")}.` : "",
-    names(data.itemsBrought).length ? `Copied into this table's Homebrew: ${names(data.itemsBrought).join(", ")}.` : "",
-    names(data.itemsReused).length ? `Already in this table's Homebrew: ${names(data.itemsReused).join(", ")}.` : "",
-    offered.length ? `Offered to players here: ${offered.join(", ")}.` : "",
+    names(data.monstersBrought).length ? (t?.("workshop.import.note.monstersBrought", { names: names(data.monstersBrought).join(", ") }) ?? ("Copied into this table's bestiary: " + names(data.monstersBrought).join(", ") + ".")) : "",
+    names(data.monstersReused).length ? (t?.("workshop.import.note.monstersReused", { names: names(data.monstersReused).join(", ") }) ?? ("Already in this table's bestiary: " + names(data.monstersReused).join(", ") + ".")) : "",
+    names(data.itemsBrought).length ? (t?.("workshop.import.note.itemsBrought", { names: names(data.itemsBrought).join(", ") }) ?? ("Copied into this table's Homebrew: " + names(data.itemsBrought).join(", ") + ".")) : "",
+    names(data.itemsReused).length ? (t?.("workshop.import.note.itemsReused", { names: names(data.itemsReused).join(", ") }) ?? ("Already in this table's Homebrew: " + names(data.itemsReused).join(", ") + ".")) : "",
+    offered.length ? (t?.("workshop.import.note.offered", { names: offered.join(", ") }) ?? ("Offered to players here: " + offered.join(", ") + ".")) : "",
   ];
   return lines.filter(Boolean).join(" ");
 }
 
 // One import, answered: what it brought, or why it brought nothing. A
 // refusal and a dropped connection are both failures the caller must show.
-export async function postContentImport(campaignId: string, selection: ImportSelection): Promise<ImportOutcome> {
+export async function postContentImport(campaignId: string, selection: ImportSelection, messages?: ImportMessages): Promise<ImportOutcome> {
   try {
     const response = await fetch(`/api/campaigns/${campaignId}/import`, {
       method: "POST",
@@ -544,7 +540,7 @@ export async function postContentImport(campaignId: string, selection: ImportSel
     if (!response.ok) {
       return { ok: false, error: typeof data.error === "string" && data.error ? data.error : "The import was refused." };
     }
-    return { ok: true, copied: Number(data.copied) || 0, note: importNote(data) };
+    return { ok: true, copied: Number(data.copied) || 0, note: importNote(data, messages) };
   } catch {
     return { ok: false, error: "Could not reach the server." };
   }
