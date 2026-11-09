@@ -100,6 +100,7 @@ export function TableRows({
   onDuplicate,
   onDelete,
 }: RowsProps) {
+  const { t, tp } = useI18n();
   const [query, setQuery] = useState("");
   const needle = textKey(query);
   const [sort, setSort] = useState<RowSort>("made");
@@ -116,8 +117,8 @@ export function TableRows({
         <input
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          placeholder="Search your tables"
-          aria-label="Search your tables by name"
+          placeholder={t("workshop.tables.search")}
+          aria-label={t("workshop.tables.search.aria")}
           className={`${ui.input} pl-9`}
         />
       </label>
@@ -130,10 +131,10 @@ export function TableRows({
           // Roll stays the row's visible button; the rest live behind the
           // kebab and the right-click or long-press menu, the same list.
           const items: ContextMenuItem[] = [
-            { id: "open", label: "Open", glyph: "system-tables", onSelect: () => onOpen(table) },
-            { id: "roll", label: "Roll", glyph: dieGlyph(coverage.die), disabled: busy === table.id, onSelect: () => onRoll(table) },
-            { id: "duplicate", label: "Duplicate", glyph: "ui-duplicate", disabled: busy === `copy-${table.id}`, onSelect: () => onDuplicate(table) },
-            { id: "delete", label: "Delete", glyph: "ui-delete", tone: "danger", separated: true, onSelect: () => onDelete(table) },
+            { id: "open", label: t("workshop.tables.menu.open"), glyph: "system-tables", onSelect: () => onOpen(table) },
+            { id: "roll", label: t("workshop.tables.menu.roll"), glyph: dieGlyph(coverage.die), disabled: busy === table.id, onSelect: () => onRoll(table) },
+            { id: "duplicate", label: t("workshop.tables.menu.duplicate"), glyph: "ui-duplicate", disabled: busy === `copy-${table.id}`, onSelect: () => onDuplicate(table) },
+            { id: "delete", label: t("workshop.tables.menu.delete"), glyph: "ui-delete", tone: "danger", separated: true, onSelect: () => onDelete(table) },
           ];
           return (
             <ContextMenu as="li" key={table.id} label={table.name} items={items} className={cn(ui.cardHover, "min-w-0 p-3")}>
