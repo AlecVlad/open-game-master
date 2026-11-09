@@ -73,6 +73,7 @@ export const enBuilderRemaining = {
   "builder.gear.starter.tooltip.adds": "Adds {items}.",
   "builder.gear.starter.tooltip.already": "Your kit already carries the basics: a backpack, bedroll, rations, rope, torches and a waterskin.",
   "builder.gear.search": "Search items (e.g. longsword, chain mail, rope)",
+  "builder.gear.browse": "Browse every weapon, armor and item",
   "builder.gear.suggested": "Suggested for your class",
   "builder.gear.suggested.note": "What this class is proficient with, plus the kit everyone carries.",
   "builder.gear.plusSearch": "plus search armor, weapons, and gear:",
