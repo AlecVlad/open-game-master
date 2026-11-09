@@ -65,7 +65,7 @@ export function TableWaitBanner({
                 className={bannerButtonClass(true)}
                 title={t("campaign.tableWait.tooltip.pass")}
               >
-                Pass
+                {t("campaign.tableWait.action.pass")}
               </button>
             ) : null}
             {steersStory && wait.deadline && onGoOn ? (
@@ -75,7 +75,7 @@ export function TableWaitBanner({
                 className={bannerButtonClass()}
                 title={t("campaign.tableWait.tooltip.goOn")}
               >
-                Go on now
+                {t("campaign.tableWait.action.goOn")}
               </button>
             ) : null}
           </>
