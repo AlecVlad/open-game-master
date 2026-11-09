@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import type { CharacterSheet } from "@/lib/schemas/sheet";
 import type { PendingRoll } from "@/app/campaigns/[campaignId]/useCampaignStream";
 import { CheckFrame } from "@/app/campaigns/[campaignId]/SkillCheckCard";
-import { ROLL_KIND_LABELS } from "@/lib/roll-labels";
+import { useI18n } from "@/lib/i18n/provider";
 
 const STEP_IN_AFTER_MS = 3 * 60 * 1000;
 
@@ -31,6 +31,7 @@ export function AfterRollCard({
   meUserId: string;
   steersStory: boolean;
 }) {
+  const { t } = useI18n();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   // A card already open when the wait runs long has to notice by itself: the
@@ -46,6 +47,14 @@ export function AfterRollCard({
     return null;
   }
   const character = sheets.find((sheet) => sheet.id === pending.characterId);
+  const kindLabel =
+    pending.kind === "skill_check" ? t("campaign.afterRoll.kind.skillCheck") :
+    pending.kind === "saving_throw" ? t("campaign.afterRoll.kind.savingThrow") :
+    pending.kind === "ability_check" ? t("campaign.afterRoll.kind.abilityCheck") :
+    pending.kind === "attack" ? t("campaign.afterRoll.kind.attack") :
+    pending.kind === "damage" ? t("campaign.afterRoll.kind.damage") :
+    pending.kind === "initiative" ? t("campaign.afterRoll.kind.initiative") :
+    t("campaign.afterRoll.kind.roll");
   const lead = thrown.outcome.terms[0];
   const d20s = lead?.kind === "dice" ? lead.dice : [];
   // The rest of the roll, for a die the player is choosing.
@@ -62,10 +71,10 @@ export function AfterRollCard({
       });
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        setError(data.error || "Could not send your choice.");
+        setError(data.error || t("campaign.afterRoll.error.sendChoice"));
       }
     } catch {
-      setError("Could not reach the server.");
+      setError(t("campaign.afterRoll.error.server"));
     } finally {
       setBusy(false);
     }
@@ -75,7 +84,9 @@ export function AfterRollCard({
     return (
       <CheckFrame className="mb-2 flex animate-fade-up items-center justify-between gap-2 px-3 py-2 text-xs">
         <span className="min-w-0" role="status">
-          {character?.name ?? "A player"} rolled {thrown.outcome.total} and is deciding what to do with it.
+          {character?.name
+            ? t("campaign.afterRoll.waiting.character", { character: character.name, total: thrown.outcome.total })
+            : t("campaign.afterRoll.waiting.player", { total: thrown.outcome.total })}
         </span>
         {steersStory && stale ? (
           <button
@@ -84,7 +95,7 @@ export function AfterRollCard({
             onClick={() => void choose({ keep: true })}
             className={`${PLAIN} shrink-0 font-medium`}
           >
-            Keep the roll for them
+            {t("campaign.afterRoll.keepForPlayer")}
           </button>
         ) : null}
       </CheckFrame>
@@ -95,19 +106,26 @@ export function AfterRollCard({
     <CheckFrame className="mb-2 animate-fade-up px-3 py-2.5">
       <div className="flex flex-wrap items-center gap-1.5">
         <span className="check-well px-2 py-0.5 font-display text-[11px] font-semibold uppercase tracking-[0.08em]">
-          {ROLL_KIND_LABELS[pending.kind] ?? "Roll"}
+          {kindLabel}
         </span>
         {pending.dc !== null ? (
-          <span className="check-well check-dim px-2 py-0.5 font-mono text-[11px]">Difficulty Class: {pending.dc}</span>
+          <span className="check-well check-dim px-2 py-0.5 font-mono text-[11px]">{t("campaign.afterRoll.difficulty", { dc: pending.dc })}</span>
         ) : null}
       </div>
       <p className="mt-1 text-sm">
-        {character?.name ?? "You"} rolled <strong>{thrown.outcome.total}</strong>
-        {thrown.outcome.natural !== undefined ? ` (the die shows ${thrown.outcome.natural})` : ""}.{" "}
-        {thrown.choosing ? "Choose which die counts." : "Before the game says what happens, you can still change it."}
+        {character?.name
+          ? t("campaign.afterRoll.result.character", { character: character.name, total: thrown.outcome.total })
+          : t("campaign.afterRoll.result.you", { total: thrown.outcome.total })}
+        {thrown.outcome.natural !== undefined
+          ? ` ${t("campaign.afterRoll.result.natural", { natural: thrown.outcome.natural })}`
+          : ""}.
+        {" "}
+        {thrown.choosing
+          ? t("campaign.afterRoll.chooseDie")
+          : t("campaign.afterRoll.changeBeforeResult")}
       </p>
       {pending.reason ? <p className="check-dim mt-0.5 text-xs">{pending.reason}</p> : null}
-      <div className="mt-2 flex flex-wrap items-center gap-2" role="group" aria-label={thrown.choosing ? "Choose which die counts" : "Change this roll, or keep it"}>
+      <div className="mt-2 flex flex-wrap items-center gap-2" role="group" aria-label={thrown.choosing ? t("campaign.afterRoll.aria.chooseDie") : t("campaign.afterRoll.aria.changeOrKeep")}>
         {thrown.choosing
           ? d20s.map((die, index) => (
               <button
@@ -117,7 +135,7 @@ export function AfterRollCard({
                 onClick={() => void choose({ die: index })}
                 className={OPTION}
               >
-                Use the {die.value} (total {die.value + others})
+                {t("campaign.afterRoll.useDie", { die: die.value, total: die.value + others })}
               </button>
             ))
           : thrown.options.map((option) => (
@@ -138,7 +156,7 @@ export function AfterRollCard({
             onClick={() => void choose({ keep: true })}
             className={`${PLAIN} check-dim`}
           >
-            {busy ? <Loader2 className="size-4 animate-spin" /> : "Keep this roll"}
+            {busy ? <Loader2 className="size-4 animate-spin" /> : t("campaign.afterRoll.keep")}
           </button>
         )}
       </div>
