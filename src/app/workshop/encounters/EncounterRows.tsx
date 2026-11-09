@@ -103,7 +103,6 @@ export function BudgetBar({
       </p>
     );
   }
-  const { t, tp } = useI18n();
   const geometry = budgetBarGeometry({
     adjustedXp: readout.adjustedXp,
     ceiling: readout.ceiling,
@@ -150,7 +149,7 @@ export function EncounterRows({
   busy,
   onOpen,
   onDeploy,
-  deployLabel = "Deploy",
+  deployLabel,
   onDuplicate,
   onDelete,
   onRemoveSetup,
@@ -189,7 +188,7 @@ export function EncounterRows({
           // doors; Deploy stays the row's one visible button.
           const items: ContextMenuItem[] = [
             { id: "open", label: t("workshop.encounter.menu.open"), glyph: "system-encounters", onSelect: () => onOpen(encounter) },
-            { id: "deploy", label: deployLabel, glyph: "tab-battle", disabled: busy, onSelect: () => onDeploy(encounter) },
+            { id: "deploy", label: deployText, glyph: "tab-battle", disabled: busy, onSelect: () => onDeploy(encounter) },
             { id: "duplicate", label: t("workshop.encounter.menu.duplicate"), glyph: "ui-duplicate", disabled: busy, onSelect: () => onDuplicate(encounter) },
             ...(encounter.setup && onRemoveSetup
               ? [{ id: "remove-setup", label: t("workshop.encounter.menu.removeSetup"), glyph: "ui-delete", disabled: busy, onSelect: () => onRemoveSetup(encounter) } satisfies ContextMenuItem]
