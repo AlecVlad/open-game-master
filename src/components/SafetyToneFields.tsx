@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useI18n } from "@/lib/i18n/provider";
+import type { Params } from "@/lib/i18n/core";
 import type { MessageKey } from "@/lib/i18n/messages/index";
 import { cn } from "@/lib/cn";
 import { VoicePreviewButton } from "@/components/VoicePreviewButton";
@@ -90,7 +91,7 @@ function ListField({ label, hint, value, onChange }: { label: string; hint: stri
 function personalitiesInfo(
   presets: Personality[],
   setsVoice: boolean,
-  t: (key: MessageKey, params?: { voicePart: string }) => string,
+  t: (key: MessageKey, params?: Params) => string,
 ): string {
   const descriptions = presets.map((preset) => `**${preset.name}**: ${preset.blurb}`).join("\n\n");
   const voicePart = setsVoice ? t("safetyTone.tone.voicePart") : "";
