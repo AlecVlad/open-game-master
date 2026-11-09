@@ -16,6 +16,7 @@ import { remainingWords } from "@/lib/srd/options";
 import { subclassChoiceSummary } from "@/lib/content/subclass-choices";
 import { featChoice } from "@/lib/schemas/sheet";
 import FeatChoicesFields, { knownTraining } from "../FeatChoicesFields";
+import { useI18n } from "@/lib/i18n/provider";
 
 const optionCard = (selected: boolean) =>
   cn(
@@ -39,6 +40,7 @@ export function ClassChoices({
   actions: BuilderActions;
   klass: ClassOption | undefined;
 }) {
+  const { t } = useI18n();
   const { effectiveLevel, proficientSkills, styleSlots, styleChoices, optionSlots } = derived;
   // Each class's own at its own level: a rogue taken second brings two.
   const expertiseSlots = klass ? (derived.expertiseSlots ?? expertiseSlotsFor(klass.id, effectiveLevel)) : 0;
@@ -56,22 +58,22 @@ export function ClassChoices({
       {klass && expertiseSlots > 0 ? (
         <StepPanel
           anchor="expertise"
-          title={`Expertise (pick ${expertiseSlots})`}
+          title={t("builder.cc.exp.title", { n: expertiseSlots })}
           help={
             <>
               {expertiseSlots - expertiseChosen.length > 0 ? (
                 <span className="text-amber-300">
-                  {expertiseSlots - expertiseChosen.length} still to choose.{" "}
+                  {t("builder.cc.left", { n: expertiseSlots - expertiseChosen.length })}
                 </span>
               ) : null}
-              <GameTerm id="expertise">Expertise</GameTerm> doubles your{" "}
-              <GameTerm id="proficiency_bonus">proficiency bonus</GameTerm> on the chosen skills.
+              <GameTerm id="expertise">{t("builder.cc.exp.term")}</GameTerm>{t("builder.cc.exp.mid")}{" "}
+              <GameTerm id="proficiency_bonus">{t("builder.cc.exp.term2")}</GameTerm>{t("builder.cc.exp.post")}
             </>
           }
         >
           <div className="flex flex-wrap gap-2">
             {proficientSkills.length === 0 ? (
-              <span className="text-xs text-stone-500">Pick your class skills above first.</span>
+              <span className="text-xs text-stone-500">{t("builder.cc.exp.first")}</span>
             ) : null}
             {expertiseOptions.map((skillId) => {
               const skill = SRD_SKILLS.find((entry) => entry.id === skillId);
@@ -79,9 +81,9 @@ export function ClassChoices({
               return (
                 <PickPill
                   key={skillId}
-                  label={skill?.name ?? (skillId === THIEVES_TOOLS ? "Thieves' tools" : skillId)}
+                  label={skill?.name ?? (skillId === THIEVES_TOOLS ? t("builder.cc.thieves") : skillId)}
                   selected={selected}
-                  info={{ text: skill ? describeSkill(skillId) : "Your proficiency bonus is doubled for ability checks you make with thieves' tools." }}
+                  info={{ text: skill ? describeSkill(skillId) : t("builder.cc.thieves.info") }}
                   onClick={() =>
                     state.setExpertisePicks((current) => {
                       // Picks whose skill has since been dropped are swept
@@ -106,12 +108,11 @@ export function ClassChoices({
       {styleSlots > 0 ? (
         <StepPanel
           anchor="styles"
-          title={`Fighting style (pick ${styleSlots})`}
+          title={t("builder.cc.style.title", { n: styleSlots })}
           help={
             styleSlots - state.stylePicks.length > 0 ? (
               <span className="text-amber-300">
-                {styleSlots - state.stylePicks.length} still to choose. A fighting style is a
-                permanent edge with one kind of weapon or armour; read each card before picking.
+                {t("builder.cc.style.help", { n: styleSlots - state.stylePicks.length })}
               </span>
             ) : undefined
           }
@@ -148,14 +149,13 @@ export function ClassChoices({
         <StepPanel
           key={slot.kind}
           anchor="options"
-          title={`${slot.label} (pick ${slot.total})`}
+          title={t("builder.cc.opt.title", { label: slot.label, n: slot.total })}
           help={
             <>
               {slot.remaining > 0 ? (
                 <span className="text-amber-300">{remainingWords(slot)}. </span>
               ) : null}
-              These are real abilities your character gets. Tap the info button on any one to
-              read what it does.
+              {t("builder.cc.opt.help")}
             </>
           }
         >
@@ -174,13 +174,13 @@ export function ClassChoices({
                   >
                     <span className="block text-xs">{option.n}</span>
                     <span className="block text-sm text-stone-500">
-                      {option.req ? `Requires ${option.req}. ` : ""}
+                      {option.req ? t("builder.cc.opt.req", { req: option.req }) : ""}
                       {option.d}
                     </span>
                   </button>
                   <InfoButton
                     label={option.n}
-                    meta={option.req ? `Requires ${option.req}` : undefined}
+                    meta={option.req ? t("builder.cc.opt.req.meta", { req: option.req }) : undefined}
                     text={option.d}
                   />
                 </div>
@@ -197,11 +197,11 @@ export function ClassChoices({
         <StepPanel
           key={`${slot.classId}|${slot.label}`}
           anchor="options"
-          title={`${slot.label} (pick 1)`}
+          title={t("builder.cc.sub.title", { label: slot.label })}
           help={
             <>
-              {slot.chosen ? null : <span className="text-amber-300">1 still to choose. </span>}
-              {slot.subclass} asks for this. Each option gives your character what its card says.
+              {slot.chosen ? null : <span className="text-amber-300">{t("builder.cc.sub.left")}</span>}
+              {t("builder.cc.sub.help", { sub: slot.subclass })}
             </>
           }
         >
@@ -272,6 +272,7 @@ export function ToolGrantPanels({
   className?: string;
   backgroundName?: string;
 }) {
+  const { t, tp } = useI18n();
   const { toolGrants } = derived;
   const fromClass = splitToolGrants(classTools).choices.length;
   return (
@@ -283,17 +284,17 @@ export function ToolGrantPanels({
         // (derived.toolSources, backlog F9).
         const source =
           derived.toolSources?.[index] ??
-          (index < fromClass ? (className ? `your ${className} class` : "") : backgroundName ? `your ${backgroundName} background` : "");
+          (index < fromClass ? (className ? t("builder.cc.src.class", { name: className }) : "") : backgroundName ? t("builder.cc.src.bg", { name: backgroundName }) : "");
         return (
           <StepPanel
             key={`${choice.label}-${index}`}
             anchor="tools"
-            title={`Tool proficiency: ${choice.count} ${choice.label}${choice.count === 1 ? "" : "s"}`}
+            title={tp("builder.cc.tool.title", choice.count, { count: choice.count, label: choice.label })}
             help={
               left > 0 || source ? (
                 <>
-                  {left > 0 ? <span className="text-amber-300">{left} still to choose. </span> : null}
-                  {source ? `From ${source}.` : null}
+                  {left > 0 ? <span className="text-amber-300">{t("builder.cc.left", { n: left })}</span> : null}
+                  {source ? t("builder.cc.src.from", { source }) : null}
                 </>
               ) : undefined
             }
