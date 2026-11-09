@@ -1,6 +1,7 @@
 "use client";
 
 import { Select } from "@/components/ui/Select";
+import { useI18n } from "@/lib/i18n/provider";
 import { STANDARD_LANGUAGES } from "@/lib/content/mechanics";
 import { describeSkill } from "@/lib/help";
 import { SRD_SKILLS } from "@/lib/srd";
@@ -71,6 +72,7 @@ export default function FeatChoicesFields({
   // the same, but is applied whole: it has no "rest" the DM runs.
   source?: "feat" | "subclass";
 }) {
+  const { t } = useI18n();
   const mine = {
     languages: picks?.languages ?? [],
     skills: picks?.skills ?? [],
@@ -131,24 +133,24 @@ export default function FeatChoicesFields({
   const increase = desc !== undefined ? featAbilityIncrease(feat, desc) : null;
   const engineTag = featEngineTag(feat);
   const applied = [
-    ...(increase ? [increase.from.length === 6 ? "+1 to an ability of your choice" : `+1 ${increase.from.map((ability) => ABILITY_LABELS[ability]).join(" or ")}`] : []),
-    ...(spec.languages + spec.fixedLanguages.length ? ["languages"] : []),
-    ...(spec.skills + spec.fixedSkills.length ? ["skills"] : []),
-    ...(spec.expertise ? ["expertise"] : []),
-    ...(spec.armor.length + spec.armorFrom.length ? ["armor training"] : []),
-    ...(spec.weapons + spec.fixedWeapons.length + spec.weaponsFrom.length ? ["weapon training"] : []),
-    ...(spec.tools + spec.fixedTools.length ? ["tool training"] : []),
-    ...(spec.any ? [`${spec.any} picks in any combination`] : []),
-    ...(teaches || taught.fixedSpells.length || taught.fixedCantrips.length ? ["spells"] : []),
-    ...(spec.damageTypes.length ? ["the damage type"] : []),
-    ...(engineTag ? [`its combat rules ${engineTag}`] : []),
+    ...(increase ? [increase.from.length === 6 ? t("builder.feat.applied.ability.choice") : t("builder.feat.applied.ability.specific", { abilities: increase.from.map((ability) => t(`builder.race.ability.${ability}`)).join(t("builder.feat.choice.spellSlot.schoolJoin")) })] : []),
+    ...(spec.languages + spec.fixedLanguages.length ? [t("builder.feat.applied.languages")] : []),
+    ...(spec.skills + spec.fixedSkills.length ? [t("builder.feat.applied.skills")] : []),
+    ...(spec.expertise ? [t("builder.feat.applied.expertise")] : []),
+    ...(spec.armor.length + spec.armorFrom.length ? [t("builder.feat.applied.armor")] : []),
+    ...(spec.weapons + spec.fixedWeapons.length + spec.weaponsFrom.length ? [t("builder.feat.applied.weapons")] : []),
+    ...(spec.tools + spec.fixedTools.length ? [t("builder.feat.applied.tools")] : []),
+    ...(spec.any ? [t("builder.feat.applied.any", { count: spec.any })] : []),
+    ...(teaches || taught.fixedSpells.length || taught.fixedCantrips.length ? [t("builder.feat.applied.spells")] : []),
+    ...(spec.damageTypes.length ? [t("builder.feat.applied.damageType")] : []),
+    ...(engineTag ? [t("builder.feat.applied.combat", { tag: engineTag })] : []),
   ];
   const coverage =
     source === "subclass"
-      ? "Your subclass grants this training; it goes on the sheet with the character."
+      ? t("builder.feat.coverage.subclass")
       : applied.length
-        ? `The table applies ${applied.join(", ")}; the GM runs the rest from the feat's text.`
-        : "Nothing of this feat is applied by the table itself; the GM runs it from its text.";
+        ? t("builder.feat.coverage.applied", { applied: applied.join(", ") })
+        : t("builder.feat.coverage.none");
   if (!hasPicks && !teaches && !fixed.length) {
     return (
       <p className="mt-1 text-sm text-stone-500" data-feat-coverage={feat}>
