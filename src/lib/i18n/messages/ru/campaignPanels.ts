@@ -57,6 +57,8 @@ export const ruCampaignPanels: Partial<Record<keyof typeof enCampaignPanels, str
   "campaign.fact.action.edit": "Изменить",
   "campaign.fact.action.retire": "Убрать из актуальных: ведущий больше не считает это правдой",
   "campaign.fact.label": "Факт",
+  "campaign.fact.category.label": "Категория",
+  "campaign.fact.subject.label": "Тема",
   "campaign.fact.section.pin": "Закрепить факт",
   "campaign.fact.section.pinned": "Закреплённые",
   "campaign.fact.known.storyteller": "Секрет рассказчика",
