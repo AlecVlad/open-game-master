@@ -115,7 +115,7 @@ export const enBuilderExtras = {
   "builder.extra.ability.summary.method.pointbuy": "Twenty-seven points, spent your way.",
   "builder.extra.ability.summary.method.standard": "The same six numbers every hero starts from, placed your way.",
   "builder.extra.ability.summary.lead": "{lead} Your highest is {ability} at {score}.{tail}",
-  "builder.extra.ability.summary.tail.withWho": " As {article} {who}, that is the shape of the character you just made.",
+  "builder.extra.ability.summary.tail.withWho": " You made a {who}.",
   "builder.extra.ability.summary.tail.withoutWho": " That is the shape of the character you just made.",
   "builder.extra.ability.summary.title": "Your scores",
   "builder.extra.ability.summary.none": "none",
