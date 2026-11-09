@@ -35,6 +35,7 @@ export const enCampaignSession = {
   "campaign.roll.natural.twenty": "Natural 20!",
   "campaign.roll.natural.one": "Natural 1",
   "campaign.roll.expression.aria": "Rolls {expression}",
+  "campaign.roll.dc": "DC",
 
   "campaign.tableWait.title.waiting": "The GM is waiting on",
   "campaign.tableWait.title.answered": "Everyone has answered",
