@@ -1,6 +1,8 @@
 "use client";
 
 import { InfoButton } from "@/components/ui/InfoDialog";
+import { useI18n } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages/index";
 import { NumberStepper } from "@/components/ui/NumberStepper";
 import { Select } from "@/components/ui/Select";
 import { cn } from "@/lib/cn";
@@ -42,18 +44,20 @@ const LENGTH_INFO =
 // (maxPlayers is pinned to 1 in the payload, from the solo entry point, never
 // from the count chosen here).
 export function PartyBasics({ draft, patch, gates }: StepProps) {
+  const { t } = useI18n();
+  const key = (value: string) => value as MessageKey;
   const { solo } = gates;
   return (
     <div className={cn("grid gap-3", solo ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-3")}>
       {!solo ? (
         <div className="block">
-          <FieldLabel>Players</FieldLabel>
-          <NumberStepper min={1} max={8} value={draft.maxPlayers} onChange={(maxPlayers) => patch({ maxPlayers })} label="Players" />
+          <FieldLabel>{t("createCampaign.party.players")}</FieldLabel>
+          <NumberStepper min={1} max={8} value={draft.maxPlayers} onChange={(maxPlayers) => patch({ maxPlayers })} label={t("createCampaign.party.players")} />
         </div>
       ) : null}
       <div className="block">
-        <FieldLabel>Start level</FieldLabel>
-        <NumberStepper min={1} max={20} value={draft.startingLevel} onChange={(startingLevel) => patch({ startingLevel })} label="Start level" />
+        <FieldLabel>{t("createCampaign.party.startLevel")}</FieldLabel>
+        <NumberStepper min={1} max={20} value={draft.startingLevel} onChange={(startingLevel) => patch({ startingLevel })} label={t("createCampaign.party.startLevel")} />
       </div>
       <label className={cn("block", !solo && "col-span-2 sm:col-span-1")}>
         <FieldLabel>
@@ -79,35 +83,36 @@ export function PartyBasics({ draft, patch, gates }: StepProps) {
 // How heroes are built here. Asked at creation because the first characters
 // are built before anyone opens the lobby's settings.
 export function CharacterRulesFields({ draft, patch, gates }: StepProps) {
+  const { t } = useI18n();
   // Named in the "follow the server" choice, so it says what it means.
   const serverRerollBelow = useServerRerollBelow();
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <label className="block">
-          <FieldLabel>Hit points per level</FieldLabel>
+          <FieldLabel>{t("createCampaign.party.hpPerLevel")}</FieldLabel>
           <Select<HpMethodSetting>
             value={draft.hpMethod}
             onChange={(hpMethod) => patch({ hpMethod })}
-            label="Hit points per level"
+            label={t("createCampaign.party.hpPerLevel")}
             className="w-full"
             options={HP_METHODS.map((value) => ({ value, label: HP_METHOD_LABELS[value] }))}
           />
           <p className="mt-1 text-xs text-stone-500">1st level is always the hit die&apos;s highest face plus Constitution.</p>
         </label>
         <label className="block">
-          <FieldLabel>Starting wealth</FieldLabel>
+          <FieldLabel>{t("createCampaign.party.wealth")}</FieldLabel>
           <Select<StartingWealthSetting>
             value={draft.startingWealth}
             onChange={(startingWealth) => patch({ startingWealth })}
-            label="Starting wealth"
+            label={t("createCampaign.party.wealth")}
             className="w-full"
             options={STARTING_WEALTH.map((value) => ({ value, label: STARTING_WEALTH_LABELS[value] }))}
           />
           <p className="mt-1 text-xs text-stone-500">What a new hero starts with; rolled gold is thrown by the server.</p>
         </label>
         <label className="block sm:col-span-2">
-          <FieldLabel>Rolled stats</FieldLabel>
+          <FieldLabel>{t("createCampaign.party.rolledStats")}</FieldLabel>
           <Select<"server" | RerollChoice>
             value={draft.abilityRerollBelow === null ? "server" : rerollChoiceOf(draft.abilityRerollBelow)}
             onChange={(choice) =>
@@ -116,7 +121,7 @@ export function CharacterRulesFields({ draft, patch, gates }: StepProps) {
                   choice === "server" ? null : rerollBelowFor(choice, draft.abilityRerollBelow ?? REROLL_LOW_DEFAULT),
               })
             }
-            label="Rolled stats"
+            label={t("createCampaign.party.rolledStats")}
             className="w-full"
             options={[
               { value: "server", label: `Follow the server's reroll rule${serverRerollBelow === null ? "" : ` (${describeReroll(serverRerollBelow).toLowerCase()})`}` },
@@ -138,20 +143,21 @@ export function CharacterRulesFields({ draft, patch, gates }: StepProps) {
 }
 
 export function DicePolicyField({ draft, patch, gates }: StepProps) {
+  const { t } = useI18n();
   return (
     <div>
-      <FieldLabel className="mb-1.5">Dice</FieldLabel>
+      <FieldLabel className="mb-1.5">{t("createCampaign.party.dice")}</FieldLabel>
       <div className="flex gap-2">
         <ToggleCard
           active={draft.dicePolicy === "digital_only"}
           onClick={() => patch({ dicePolicy: "digital_only" })}
-          label="Digital only"
-          hint="The server rolls everything"
+          label={t("createCampaign.party.dice.digital")}
+          hint={t("createCampaign.party.dice.digitalHint")}
         />
         <ToggleCard
           active={draft.dicePolicy === "real_allowed"}
           onClick={() => patch({ dicePolicy: "real_allowed" })}
-          label="Real dice allowed"
+          label={t("createCampaign.party.dice.real")}
           hint={gates.solo ? "Roll at your desk and enter the numbers" : "Players may opt in to rolling at the table"}
         />
       </div>
@@ -161,6 +167,7 @@ export function DicePolicyField({ draft, patch, gates }: StepProps) {
 
 // Only an AI narrator plans a story arc, so only then is its length asked.
 export function CampaignLengthField({ draft, patch, gates }: StepProps) {
+  const { t } = useI18n();
   if (!gates.aiNarrates) {
     return null;
   }
@@ -169,7 +176,7 @@ export function CampaignLengthField({ draft, patch, gates }: StepProps) {
       <FieldLabel>
         <span className="flex items-center gap-1">
           Campaign length
-          <InfoButton label="Campaign length" text={LENGTH_INFO} />
+          <InfoButton label={t("createCampaign.party.length")} text={LENGTH_INFO} />
         </span>
       </FieldLabel>
       <Select<CampaignLengthSetting>
