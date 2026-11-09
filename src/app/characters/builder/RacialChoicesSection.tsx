@@ -259,7 +259,7 @@ export function RacialChoicesSection({
               { value: "", label: t("builder.race.draconic.placeholder") },
               ...DRACONIC_ANCESTRIES.map((entry) => ({
                 value: entry.id,
-                label: `${entry.dragon} (${entry.damageType}, ${entry.area}, ${entry.save.toUpperCase()} save)`,
+                label: `${entry.dragon} (${entry.damageType}, ${entry.area}, ${abilityName(entry.save as Ability)} saving throw)`,
               })),
             ]}
           />
