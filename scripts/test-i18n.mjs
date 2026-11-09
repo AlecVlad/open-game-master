@@ -115,7 +115,7 @@ assert.ok("createCampaign.party.stats.serverDetail" in DICTIONARIES.ru, "Russian
 
 const voiceChatMessages = [
   "title", "toggle", "toggleHint", "turnFloor", "turn.off", "turn.soft", "turn.strict",
-  "proximity", "proximityHint", "hearingRange", "whisperShout", "whisperShoutHint",
+  "proximity", "proximityHint", "hearingRange", "hearingRangeValue", "whisperShout", "whisperShoutHint",
   "wallsMuffle", "wallsMuffleHint", "downedDeaf", "downedDeafHint", "serverHelp",
 ].map((part) => `createCampaign.experience.voiceChat.${part}`);
 for (const key of voiceChatMessages) {
