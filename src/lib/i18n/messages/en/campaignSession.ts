@@ -57,6 +57,8 @@ export const enCampaignSession = {
   "campaign.tableBreak.title.other": "Paused by {name}",
   "campaign.tableBreak.action.resume": "Resume",
   "campaign.tableBreak.status": "Paused for {elapsed}. The story and its narration wait; OOC table talk still works.",
+  "campaign.tableBreak.status.prefix": "Paused for",
+  "campaign.tableBreak.status.suffix": ". The story and its narration wait; OOC table talk still works.",
   "campaign.tableBreak.elapsed.seconds": "{count} s",
   "campaign.tableBreak.elapsed.minutes": "{count} min",
   "campaign.tableBreak.elapsed.hoursMinutes": "{hours} h {minutes} min",
