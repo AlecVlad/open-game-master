@@ -804,6 +804,7 @@ export function SpellsSection({
               question={swapQuestion(
                 swap,
                 swap.kind === "cantrip" ? t("builder.spells.swap.cantrips") : swap.kind === "prepared" ? t("builder.spells.swap.prepared") : listFullText,
+                t,
               )}
               candidates={candidatesFor(swap.kind, swap.name)}
               into={swap.name}
