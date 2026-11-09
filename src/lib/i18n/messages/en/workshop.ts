@@ -411,4 +411,10 @@ export const enWorkshop = {
   "workshop.list.noun.faction.one": "faction",
   "workshop.list.noun.faction.other": "factions",
 
+  "workshop.rulesets.load.label": "Your rulesets",
+  "workshop.rulesets.apply.failed": "The ruleset was not applied. Check the connection and try again.",
+  "workshop.rulesets.applied.one": "Applied {name}: {count} change.",
+  "workshop.rulesets.applied.other": "Applied {name}: {count} changes.",
+  "workshop.rulesets.confirm.cancel": "Keep the ruleset",
+
 } satisfies Record<string, string>;
