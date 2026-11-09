@@ -315,7 +315,7 @@ export function FactsPanel({
         }
         return (
           <div key={category} className="space-y-1.5">
-            <SectionHead title={t(CATEGORY_LABEL_KEY[category]) glyph={CATEGORY_GLYPHS[category]} aside={entries.length} />
+            <SectionHead title={t(CATEGORY_LABEL_KEY[category])} glyph={CATEGORY_GLYPHS[category]} aside={entries.length} />
             <ul className="stagger space-y-1.5">
               {entries.map((fact) => (
                 <FactCard
