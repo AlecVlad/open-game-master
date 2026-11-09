@@ -5,7 +5,7 @@ import { Select, type SelectOption } from "@/components/ui/Select";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui";
 import { NARRATOR_DEFAULTS, TTS_VOICES, voicesFirstIn } from "@/lib/tts-voices";
-import type { TableLanguage } from "@/lib/schemas/game-settings-options";
+import { TABLE_LANGUAGE_NAMES, type TableLanguage } from "@/lib/schemas/game-settings-options";
 import { useI18n } from "@/lib/i18n/provider";
 
 // The narrator voice pickers (campaign settings, the campaign creator, the
@@ -163,13 +163,14 @@ export function VoicePicker({
 // sounds. Nothing on an OpenAI backend, whose voices are not by language.
 export function NarratorLanguageNote({ language }: { language: TableLanguage }) {
   const list = useTtsVoices();
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
+  const languageName = lang === "ru" ? TABLE_LANGUAGE_NAMES[language].native : TABLE_LANGUAGE_NAMES[language].english;
   if (list.provider === "openai" || NARRATOR_DEFAULTS[language]) {
     return null;
   }
   return (
     <p className="text-xs text-stone-500">
-      {t("voicePicker.narratorLanguageNote", { language: language.replace(/_/g, " ") })}
+      {t("voicePicker.narratorLanguageNote", { language: languageName })}
     </p>
   );
 }
