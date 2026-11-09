@@ -546,4 +546,11 @@ export const enWorkshop = {
   "workshop.bestiary.traitsFull": "The block is full at {count} lines.",
   "workshop.bestiary.field.add": "Add",
 
+  "workshop.bestiary.fold.actions": "Actions and specials",
+  "workshop.bestiary.fold.spellcasting": "Spellcasting",
+  "workshop.bestiary.fold.regeneration": "Regeneration",
+  "workshop.bestiary.fold.senses": "Skills, senses and languages",
+  "workshop.bestiary.rating.expected": "{label}",
+  "workshop.bestiary.rating.wants": "CR {cr} expects {expected}",
+
 } satisfies Record<string, string>;
