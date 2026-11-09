@@ -3,6 +3,7 @@
 import { useId } from "react";
 import { useI18n } from "@/lib/i18n/provider";
 import type { MessageKey } from "@/lib/i18n/messages/index";
+import type { Params } from "@/lib/i18n/core";
 import { featAbilityIncrease } from "@/lib/srd/feat-effects";
 import type { FeatChoices, FeatGrantSpec, FeatPicks } from "@/lib/srd/feat-grants";
 import FeatChoicesFields, { type KnownTraining } from "./FeatChoicesFields";
@@ -359,14 +360,16 @@ function scoresEntering(base: AbilityScores, earlier: Array<AsiChoice | null>, d
 }
 
 // ", Charisma 15 to 16 (+3)" for a half-feat, nothing for any other feat.
-function featRaise(current: AbilityScores, choice: AsiChoice, descOf?: (name: string) => string): string {
+function featRaise(current: AbilityScores, choice: AsiChoice, descOf?: (name: string) => string, translate?: (key: MessageKey, params?: Params) => string): string {
   if (choice.mode !== "feat") {
     return "";
   }
   const after = scoresEntering(current, [choice], descOf);
   const raised = ABILITY_KEYS.find((ability) => after[ability] > current[ability]);
   return raised
-    ? `, ${ABILITY_LABELS[raised]} ${current[raised]} to ${after[raised]} (${formatModifier(abilityMod(after[raised]))})`
+    ? translate
+      ? translate("builder.asi.feat.raise", { ability: translate(`builder.extra.ability.${raised}` as MessageKey), from: current[raised], to: after[raised], modifier: formatModifier(abilityMod(after[raised])) })
+      : `, ${ABILITY_LABELS[raised]} ${current[raised]} to ${after[raised]} (${formatModifier(abilityMod(after[raised]))})`
     : "";
 }
 
@@ -376,14 +379,16 @@ function firstOpenAbility(scores: AbilityScores, skip?: Ability, room = 1): Abil
   return fits(room) ?? fits(1) ?? ABILITY_KEYS.find((ability) => ability !== skip) ?? "str";
 }
 
-function summarizeChoice(current: AbilityScores, choice: AsiChoice): string {
+function summarizeChoice(current: AbilityScores, choice: AsiChoice, translate?: (key: MessageKey, params?: Params) => string): string {
   const after = applyAsiChoices(current, [choice]);
   const touched =
     choice.mode === "plus2" ? [choice.ability] : choice.mode === "plus1x2" ? choice.abilities : [];
   return touched
     .map(
       (ability) =>
-        `${ABILITY_LABELS[ability]} ${current[ability]} to ${after[ability]} (${formatModifier(abilityMod(after[ability]))})`,
+        translate
+          ? translate("builder.asi.summary.ability", { ability: translate(`builder.extra.ability.${ability}` as MessageKey), from: current[ability], to: after[ability], modifier: formatModifier(abilityMod(after[ability])) })
+          : `${ABILITY_LABELS[ability]} ${current[ability]} to ${after[ability]} (${formatModifier(abilityMod(after[ability]))})`,
     )
     .join(", ");
 }
