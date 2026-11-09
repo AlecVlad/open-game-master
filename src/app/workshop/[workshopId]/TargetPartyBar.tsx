@@ -88,7 +88,7 @@ export function TargetPartyBar({
             size="sm"
           />
         </span>
-        <span className="text-sm text-stone-400">{tp("workshop.target.count", size)} {t("workshop.shelf.tile.level", { level })}</span>
+        <span className="text-sm text-stone-400">{tp("workshop.target.count", size, { level })}</span>
         <span className="w-20">
           <Select
             value={String(level)}
@@ -112,11 +112,7 @@ export function TargetPartyBar({
         ) : null}
         {aside ? <span className="ml-auto flex items-center">{aside}</span> : null}
       </div>
-      <p className="mt-2 text-xs text-stone-500">
-        One fight is easy up to {budget.easy.toLocaleString()} XP, medium to{" "}
-        {budget.medium.toLocaleString()}, hard to {budget.hard.toLocaleString()}, deadly beyond{" "}
-        {budget.deadly.toLocaleString()}. Adjusted for how many creatures you field.
-      </p>
+      <p className="mt-2 text-xs text-stone-500">{t("workshop.target.budget", { easy: budget.easy.toLocaleString(), medium: budget.medium.toLocaleString(), hard: budget.hard.toLocaleString(), deadly: budget.deadly.toLocaleString() })}</p>
     </div>
   );
 }
