@@ -14,4 +14,5 @@ export const ruCommon: Partial<Record<keyof typeof enCommon, string>> = {
   "appearance.scale": "Масштаб интерфейса",
   "appearance.reset": "Сбросить",
   "common.action.save": "Сохранить",
+  "voicePicker.narratorLanguageNote": "В Kokoro нет голоса для языка {language}, поэтому повествование озвучивается голосом на другом языке.",
 };
