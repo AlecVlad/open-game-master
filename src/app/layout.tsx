@@ -25,24 +25,50 @@ const geistMono = localFont({
 
 const sourceSerif = localFont({
   src: [
-    { path: "./fonts/source-serif-4.woff2", weight: "200 900", style: "normal" },
-    { path: "./fonts/source-serif-4-italic.woff2", weight: "200 900", style: "italic" },
+    {
+      path: "./fonts/source-serif-4.woff2",
+      weight: "200 900",
+      style: "normal",
+      unicodeRange: "U+0000-024F, U+1E00-1EFF",
+    },
+    {
+      path: "./fonts/source-serif-4-italic.woff2",
+      weight: "200 900",
+      style: "italic",
+      unicodeRange: "U+0000-024F, U+1E00-1EFF",
+    },
+    {
+      path: "./fonts/forum-cyrillic.ttf",
+      weight: "400",
+      style: "normal",
+      unicodeRange: "U+0400-052F, U+1C80-1C8A, U+2DE0-2DFF, U+A640-A69F, U+2116",
+    },
+    {
+      path: "./fonts/forum-cyrillic.ttf",
+      weight: "400",
+      style: "italic",
+      unicodeRange: "U+0400-052F, U+1C80-1C8A, U+2DE0-2DFF, U+A640-A69F, U+2116",
+    },
   ],
   variable: "--font-source-serif",
 });
 
 // Engraved-capitals display face for wordmarks, screen titles, and
 // campaign names; body text stays on Geist/Source Serif.
-const forum = localFont({
-  src: "./fonts/forum-cyrillic.ttf",
-  variable: "--font-forum",
-  weight: "400",
-});
-
 const cinzel = localFont({
-  src: "./fonts/cinzel.woff2",
+  src: [
+    {
+      path: "./fonts/cinzel.woff2",
+      weight: "400 900",
+      unicodeRange: "U+0000-024F, U+1E00-1EFF",
+    },
+    {
+      path: "./fonts/forum-cyrillic.ttf",
+      weight: "400",
+      unicodeRange: "U+0400-052F, U+1C80-1C8A, U+2DE0-2DFF, U+A640-A69F, U+2116",
+    },
+  ],
   variable: "--font-cinzel",
-  weight: "400 900",
 });
 
 export const metadata: Metadata = {
@@ -75,7 +101,7 @@ export default async function RootLayout({
   return (
     <html
       lang={lang}
-      className={`${geistSans.variable} ${geistMono.variable} ${sourceSerif.variable} ${cinzel.variable} ${forum.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${sourceSerif.variable} ${cinzel.variable} h-full antialiased`}
       // browser extensions inject attributes into <html> before React loads
       suppressHydrationWarning
     >
