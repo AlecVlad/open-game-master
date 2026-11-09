@@ -131,6 +131,8 @@ export const enBuilderRemaining = {
   "builder.levelProgression.pact": "pact {count} at {level}",
 
   "builder.asi.title.level": "Level {level}: {count} ability score improvements earned",
+  "builder.asi.title.level.one": "Level {level}: {count} ability score improvement earned",
+  "builder.asi.title.level.other": "Level {level}: {count} ability score improvements earned",
   "builder.asi.title": "Ability score improvements",
   "builder.asi.unresolved.one": "{count} to pick",
   "builder.asi.unresolved.other": "{count} to pick",
