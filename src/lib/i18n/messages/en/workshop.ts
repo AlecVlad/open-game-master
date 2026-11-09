@@ -133,8 +133,6 @@ export const enWorkshop = {
   "workshop.target.building": "Building for",
   "workshop.target.partySize": "Party size",
   "workshop.target.partyLevel": "Party level",
-  "workshop.target.count.one": "{count} hero",
-  "workshop.target.count.other": "{count} heroes",
   "workshop.target.save": "Save",
   "workshop.target.saved": "Saved",
   "workshop.target.budget": "One fight is easy up to {easy} XP, medium to {medium}, hard to {hard}, deadly beyond {deadly}. Adjusted for how many creatures you field.",
@@ -166,4 +164,6 @@ export const enWorkshop = {
   "workshop.create.choice.map.label": "Make a map",
   "workshop.create.choice.npc.label": "Create an NPC",
   "workshop.create.choice.outline.label": "Build a world",
+  "workshop.target.count.one": "{count} hero at level {level}",
+  "workshop.target.count.other": "{count} heroes at level {level}",
 } satisfies Record<string, string>;
