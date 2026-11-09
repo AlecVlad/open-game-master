@@ -53,7 +53,7 @@ type Who = "stand-ins" | "characters";
 
 // "Level 4 Variant Human Fighter", in the words the library's cards use: the
 // ids themselves ("variant_human", "srd-2024-goliath") read as code here.
-function describe(character: Character, t: (key: string, params?: Record<string, string | number>) => string): string {
+function describe(character: Character, t: ReturnType<typeof useI18n>["t"]): string {
   return `${t("workshop.party.levelDescription", { level: character.level })} ${[speciesName(character), classWordsAfterLevel(character)].filter(Boolean).join(" ")}`;
 }
 
