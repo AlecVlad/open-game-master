@@ -90,6 +90,8 @@ export const ruBuilderRemaining: Partial<Record<keyof typeof enBuilderRemaining,
   "builder.gear.wealth.rolled": "Сервер выбросил {faces} на {dice}: {gold} зм. ",
   "builder.gear.cannotPay.one": "Вы не можете оплатить один из предметов выше. Продолжение недоступно.",
   "builder.gear.cannotPay.other": "Вы не можете оплатить предметы выше ({count}). Продолжение недоступно.",
+  "builder.gear.cannotPay.few": "Вы не можете оплатить предметы выше ({count}). Продолжение недоступно.",
+  "builder.gear.cannotPay.many": "Вы не можете оплатить предметы выше ({count}). Продолжение недоступно.",
 
   "builder.receipt.source.granted": "Получено во время игры",
   "builder.receipt.source.found": "Найдено во время игры",
