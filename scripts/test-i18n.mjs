@@ -217,6 +217,27 @@ for (const key of safetyToneMessages) {
   assert.ok(key in DICTIONARIES.ru, `Russian safety-tone message missing: ${key}`);
 }
 
+const essentialsMessages = [
+  "more.title", "optional", "group.world", "group.character", "group.prep", "bringPrep",
+].map((part) => `createCampaign.essentials.${part}`);
+for (const key of essentialsMessages) {
+  assert.ok(key in DICTIONARIES.en, `English essentials message missing: ${key}`);
+  assert.ok(key in DICTIONARIES.ru, `Russian essentials message missing: ${key}`);
+}
+
+const worldSetupMessages = [
+  "worldBuilding", "collapsibleSummary", "houseRules.label", "houseRules.placeholder",
+  "houseRules.help", "lore.label", "loreCategory.label", "loreCategory.geography",
+  "loreCategory.factions", "loreCategory.history", "loreCategory.magic",
+  "loreCategory.culture", "loreCategory.religion", "loreCategory.other",
+  "loreTitle.placeholder", "loreTitle.remove", "loreBody.placeholder",
+  "lore.add", "lore.help",
+].map((part) => `worldSetup.${part}`);
+for (const key of worldSetupMessages) {
+  assert.ok(key in DICTIONARIES.en, `English world setup message missing: ${key}`);
+  assert.ok(key in DICTIONARIES.ru, `Russian world setup message missing: ${key}`);
+}
+
 // Report (not fail on) what Russian still lacks, so progress is visible.
 const missing = Object.keys(DICTIONARIES.en).filter((key) => !(key in DICTIONARIES.ru));
 console.log(`i18n: ${Object.keys(DICTIONARIES.en).length} messages, ${missing.length} not yet in Russian`);
