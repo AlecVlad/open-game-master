@@ -367,4 +367,12 @@ export const ruWorkshop: Partial<Record<keyof typeof enWorkshop, string>> & Reco
   "workshop.list.noun.faction.many": "фракций",
   "workshop.list.noun.faction.other": "фракции",
 
+  "workshop.rulesets.load.label": "Ваши наборы правил",
+  "workshop.rulesets.apply.failed": "Не удалось применить набор правил. Проверьте соединение и попробуйте ещё раз.",
+  "workshop.rulesets.applied.one": "Набор «{name}» применён. Изменение: {count}.",
+  "workshop.rulesets.applied.few": "Набор «{name}» применён. Изменения: {count}.",
+  "workshop.rulesets.applied.many": "Набор «{name}» применён. Изменений: {count}.",
+  "workshop.rulesets.applied.other": "Набор «{name}» применён. Изменения: {count}.",
+  "workshop.rulesets.confirm.cancel": "Оставить набор",
+
 };
