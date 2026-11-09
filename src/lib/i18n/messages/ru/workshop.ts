@@ -40,7 +40,7 @@ export const ruWorkshop: Partial<Record<keyof typeof enWorkshop, string>> & Reco
   "workshop.shelf.button.delete": "Удалить мастерскую «{title}»",
   "workshop.shelf.empty.title": "Пока нет мастерских.",
   "workshop.shelf.empty.hint": "Мастерская принадлежит только вам: готовьте игру в удобное время. Её содержимое не попадёт за игровой стол, пока вы не добавите его в кампанию — при создании кампании, из её лобби или настроек.",
-  "workshop.shelf.load.label": "Ваши мастерские"
+  "workshop.shelf.load.label": "Ваши мастерские",
   "workshop.addon.button": "Импортировать через аддон",
   "workshop.addon.title": "Прочитать файл и создать мастерскую с помощью установленного на сервере аддона",
   "workshop.addon.heading": "Импорт через аддон",
