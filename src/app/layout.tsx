@@ -8,17 +8,17 @@ import { getLang } from "@/lib/i18n/server";
 import { I18nProvider } from "@/lib/i18n/provider";
 import "./globals.css";
 
-// The faces ship in the repo (Google Fonts' latin subsets) so a build
-// never fetches from fonts.gstatic.com: a failed download there broke CI
-// builds and made offline builds impossible.
+// The faces ship locally so builds never fetch fonts from a CDN.
+// Geist includes full Cyrillic; Forum supplies Cyrillic glyphs where the
+// original Cinzel and Source Serif 4 Latin subsets have no matching glyph.
 const geistSans = localFont({
-  src: "./fonts/geist.woff2",
+  src: "./fonts/geist-cyrillic.ttf",
   variable: "--font-geist-sans",
   weight: "100 900",
 });
 
 const geistMono = localFont({
-  src: "./fonts/geist-mono.woff2",
+  src: "./fonts/geist-mono-cyrillic.ttf",
   variable: "--font-geist-mono",
   weight: "100 900",
 });
@@ -33,9 +33,15 @@ const sourceSerif = localFont({
 
 // Engraved-capitals display face for wordmarks, screen titles, and
 // campaign names; body text stays on Geist/Source Serif.
+const forum = localFont({
+  src: "./fonts/forum-cyrillic.ttf",
+  variable: "--font-forum",
+  weight: "400",
+});
+
 const cinzel = localFont({
   src: "./fonts/cinzel.woff2",
-  variable: "--font-display",
+  variable: "--font-cinzel",
   weight: "400 900",
 });
 
@@ -69,7 +75,7 @@ export default async function RootLayout({
   return (
     <html
       lang={lang}
-      className={`${geistSans.variable} ${geistMono.variable} ${sourceSerif.variable} ${cinzel.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${sourceSerif.variable} ${cinzel.variable} ${forum.variable} h-full antialiased`}
       // browser extensions inject attributes into <html> before React loads
       suppressHydrationWarning
     >
