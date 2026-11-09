@@ -8,7 +8,6 @@ import { Select } from "@/components/ui/Select";
 import { cn } from "@/lib/cn";
 import {
   REROLL_LOW_DEFAULT,
-  describeReroll,
   rerollBelowFor,
   rerollChoiceOf,
   type RerollChoice,
