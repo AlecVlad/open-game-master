@@ -2,6 +2,7 @@
 
 import { Coffee } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { SessionBanner, bannerButtonClass } from "@/app/campaigns/[campaignId]/SessionBanner";
 import { breakElapsed, type TableBreak } from "@/lib/dm/table-break-logic";
 
@@ -31,6 +32,7 @@ export function TableBreakBanner({
   mayResume: boolean;
   onResume: () => Promise<void>;
 }) {
+  const { t } = useI18n();
   const [now, setNow] = useState(() => Date.now());
   const [busy, setBusy] = useState(false);
   // Under the session header, whatever its height: a fight's initiative
@@ -85,19 +87,18 @@ export function TableBreakBanner({
       <SessionBanner
         glyph="tab-timeline"
         lead={<Coffee aria-hidden="true" className="size-7 shrink-0 text-amber-300" />}
-        title={mine ? "You paused the table" : `Paused by ${tableBreak.name}`}
+        title={mine ? t("campaign.tableBreak.title.mine") : t("campaign.tableBreak.title.other", { name: tableBreak.name })}
         className="table-break-banner pointer-events-auto w-full max-w-xl shadow-elev-2"
         actions={
           mayResume ? (
             <button type="button" disabled={busy} onClick={() => void resume()} className={bannerButtonClass(true)}>
-              Resume
+              {t("campaign.tableBreak.action.resume")}
             </button>
           ) : null
         }
       >
         <span role="status" className="text-sm text-stone-300">
-          Paused for <span className="tabular-nums text-amber-100">{breakElapsed(tableBreak.at, now)}</span>. The story
-          and its narration wait; OOC table talk still works.
+          {t("campaign.tableBreak.status.prefix")} <span className="tabular-nums text-amber-100">{breakElapsed(tableBreak.at, now, t)}</span>{t("campaign.tableBreak.status.suffix")}
         </span>
       </SessionBanner>
     </div>
