@@ -247,16 +247,16 @@ export function RacialChoicesSection({
       {draconic && onAncestryChange ? (
         <label className="block" data-builder-target="ancestry">
           <span className="mb-1 block text-stone-400">
-            Draconic ancestry: your breath weapon&apos;s damage and save, and the damage you resist
+{t("builder.race.draconic.help")}
           </span>
           <Select<string>
             value={ancestry}
             onChange={onAncestryChange}
             className="w-full"
-            label="Draconic ancestry"
-            placeholder="Choose a dragon..."
+            label={t("builder.race.draconic.label")}
+            placeholder={t("builder.race.draconic.placeholder")}
             options={[
-              { value: "", label: "Choose a dragon..." },
+              { value: "", label: t("builder.race.draconic.placeholder") },
               ...DRACONIC_ANCESTRIES.map((entry) => ({
                 value: entry.id,
                 label: `${entry.dragon} (${entry.damageType}, ${entry.area}, ${entry.save.toUpperCase()} save)`,
@@ -269,8 +269,7 @@ export function RacialChoicesSection({
       {repeated.length && onRepeatChange ? (
         <div data-builder-target="repeatSkills">
           <span className="mb-1 flex flex-wrap items-center gap-1 text-stone-400">
-            Your race and background both give {repeated.map(skillName).join(" and ")}; choose
-            {repeated.length === 1 ? " another skill" : ` ${repeated.length} other skills`} in its place
+            {tp("builder.race.repeat.help", repeated.length, { skills: repeated.map(skillName).join(", "), count: repeated.length })}
           </span>
           <div className="grid grid-cols-2 gap-2">
             {repeated.map((_, index) => (
@@ -279,10 +278,10 @@ export function RacialChoicesSection({
                   value={repeatSkills[index] ?? ""}
                   onChange={(next) => onRepeatChange(index, next)}
                   className="min-w-0 grow"
-                  label={`Skill in place of a repeated one ${index + 1}`}
-                  placeholder="Choose a skill..."
+                  label={t("builder.race.repeat.label", { index: index + 1 })}
+                  placeholder={t("builder.race.repeat.placeholder")}
                   options={[
-                    { value: "", label: "Choose a skill..." },
+                    { value: "", label: t("builder.race.repeat.placeholder") },
                     ...ALL_SKILLS.filter(
                       (skill) =>
                         repeatSkills[index] === skill ||
@@ -302,10 +301,10 @@ export function RacialChoicesSection({
       {racialFeats > 0 && onFeatsChange ? (
         <div data-builder-target="racialFeat">
           <span className="mb-1 flex flex-wrap items-center gap-1 text-stone-400">
-            Feat ({racialFeats === 1 ? "one" : racialFeats} of your choice)
+            {tp("builder.race.feat.label", racialFeats, { count: racialFeats })}
           </span>
           <p className="mb-1.5 text-xs text-stone-500">
-            {`A feat is a talent other characters only earn with an ability score improvement; ${race.name} starts with one. `}
+            {t("builder.race.feat.description", { race: race.name })}
             Browse the list (tap ⓘ to read what each does), or search by name if you already have
             one in mind.
           </p>
@@ -328,17 +327,17 @@ export function RacialChoicesSection({
             <>
               <CatalogBrowser
                 kind="feats"
-                buttonLabel="Browse every feat"
+                buttonLabel={t("builder.race.feat.browse")}
                 selectedNames={feats}
                 judge={judge ? (entry) => judgeEntry(judge, entry) : undefined}
                 onPick={(entry) => pickFeat(entry.name)}
                 onUnpick={(featName) => onFeatsChange(feats.filter((entry) => entry !== featName))}
-                sections={[{ key: "feats:all", label: "All feats" }]}
+                sections={[{ key: "feats:all", label: t("builder.race.feat.all") }]}
               />
-              <p className="mt-2 mb-1 text-xs text-stone-500">Or search by name:</p>
+              <p className="mt-2 mb-1 text-xs text-stone-500">{t("builder.race.feat.searchHint")}</p>
               <ContentPicker
                 kind="feats"
-                placeholder="Search feats (e.g. alert, tough)"
+                placeholder={t("builder.race.feat.search")}
                 judge={judge ? (entry) => judgeEntry(judge, entry) : undefined}
                 onPick={(entry) => pickFeat(entry.name)}
               />
@@ -359,13 +358,13 @@ export function RacialChoicesSection({
             : null}
           {featScores.length > 1 && onFeatAbilityChange ? (
             <label className="mt-2 block sm:w-64">
-              <span className="mb-1 block text-xs text-stone-500">{feats[0]} raises by 1</span>
+              <span className="mb-1 block text-xs text-stone-500">{t("builder.race.feat.raises", { feat: feats[0] })}</span>
               <Select<Ability>
                 value={featScores.includes(featAbility as Ability) ? (featAbility as Ability) : featScores[0]}
                 onChange={(ability) => onFeatAbilityChange(ability)}
-                label={`${feats[0]} raises`}
+                label={t("builder.race.feat.raises", { feat: feats[0] })}
                 className="w-full"
-                options={featScores.map((ability) => ({ value: ability, label: ABILITY_NAMES[ability] }))}
+                options={featScores.map((ability) => ({ value: ability, label: abilityName(ability) }))}
               />
             </label>
           ) : null}
@@ -374,14 +373,14 @@ export function RacialChoicesSection({
 
       {race.toolChoice ? (
         <label className="block" data-builder-target="racialTool">
-          <span className="mb-1 block text-stone-400">Tool proficiency</span>
+          <span className="mb-1 block text-stone-400">{t("builder.race.tool.help")}</span>
           <Select<string>
             value={tool}
             onChange={onToolChange}
             className="w-full"
-            label="Tool proficiency"
-            placeholder="Choose a tool..."
-            options={[{ value: "", label: "Choose a tool..." }, ...race.toolChoice.from.map((entry) => ({ value: entry, label: entry }))]}
+            label={t("builder.race.tool.label")}
+            placeholder={t("builder.race.tool.placeholder")}
+            options={[{ value: "", label: t("builder.race.tool.placeholder") }, ...race.toolChoice.from.map((entry) => ({ value: entry, label: entry }))]}
           />
         </label>
       ) : null}
