@@ -11,4 +11,5 @@ export const enCommon = {
   "appearance.theme.light": "Parchment day",
   "appearance.scale": "Interface scale",
   "appearance.reset": "Reset",
+  "common.action.save": "Save",
 } satisfies Record<string, string>;
