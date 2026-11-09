@@ -81,7 +81,7 @@ export function ExperienceStep(props: StepProps & { active: boolean; groups: Gro
         <SheetRows {...rows} keys={["mapsEnabled", "ambienceEnabled", "ambienceAuto", "presentation"]} />
       </section>
 
-      <DetailGroup {...groupProps(groups, "safety")} title={t("createCampaign.experience.safety.title")} glyph="ui-lock" summary={safetySummary(draft)}>
+      <DetailGroup {...groupProps(groups, "safety")} title={t("createCampaign.experience.safety.title")} glyph="ui-lock" summary={safetySummary(draft, t)}>
         <SafetyFields {...props} />
       </DetailGroup>
 
@@ -92,27 +92,27 @@ export function ExperienceStep(props: StepProps & { active: boolean; groups: Gro
       </div>
       <div className="space-y-2">
         {gates.aiNarrates ? (
-          <DetailGroup {...groupProps(groups, "ai")} title={t("createCampaign.experience.ai.title")} glyph="ui-ai" summary={aiSummary(draft)}>
+          <DetailGroup {...groupProps(groups, "ai")} title={t("createCampaign.experience.ai.title")} glyph="ui-ai" summary={aiSummary(draft, t)}>
             <SheetRows {...rows} keys={["aiStorySetup", "narrationGuard", "worldSimulation"]} />
             <AlliesFields {...props} />
           </DetailGroup>
         ) : null}
-        <DetailGroup {...groupProps(groups, "bonds")} title={t("createCampaign.experience.bonds.title")} glyph="tab-bonds" summary={bondsSummary(draft)}>
+        <DetailGroup {...groupProps(groups, "bonds")} title={t("createCampaign.experience.bonds.title")} glyph="tab-bonds" summary={bondsSummary(draft, t)}>
           <SheetRows {...rows} keys={["relationships", "romance"]} />
         </DetailGroup>
         <DetailGroup
           {...groupProps(groups, "players")}
           title={t("createCampaign.experience.players.title")}
           glyph="tab-party"
-          summary={playersSummary(draft, gates)}
+          summary={playersSummary(draft, gates, t)}
         >
           <MultiCharacterField draft={draft} patch={props.patch} />
           <SheetRows {...rows} keys={["midGameJoinOpen", "holdSubmissions", "inventoryApprovals", "vitalsApprovals"]} />
         </DetailGroup>
-        <DetailGroup {...groupProps(groups, "board")} title={t("createCampaign.experience.board.title")} glyph="tab-battle" summary={boardSummary(draft)}>
+        <DetailGroup {...groupProps(groups, "board")} title={t("createCampaign.experience.board.title")} glyph="tab-battle" summary={boardSummary(draft, t)}>
           <SheetRows {...rows} keys={["boardDrawing", "enemyIntent"]} />
         </DetailGroup>
-        <DetailGroup {...groupProps(groups, "variants")} title={t("createCampaign.experience.variants.title")} glyph="system-rules" summary={variantSummary(draft)}>
+        <DetailGroup {...groupProps(groups, "variants")} title={t("createCampaign.experience.variants.title")} glyph="system-rules" summary={variantSummary(draft, t)}>
           <p className="flex items-center gap-1 text-xs text-stone-500">
             {t("createCampaign.experience.variants.info")}
             <InfoButton label={t("createCampaign.experience.variants.infoLabel")} text={variantInfo} />
@@ -122,7 +122,7 @@ export function ExperienceStep(props: StepProps & { active: boolean; groups: Gro
         {/* A solo table has nobody to talk to. Live voice chat is people
             talking to each other, not the narration above. */}
         {!gates.solo ? (
-          <DetailGroup {...groupProps(groups, "voiceChat")} title={t("createCampaign.experience.voiceChat.title")} glyph="ui-voice" summary={voiceChatSummary(draft)}>
+          <DetailGroup {...groupProps(groups, "voiceChat")} title={t("createCampaign.experience.voiceChat.title")} glyph="ui-voice" summary={voiceChatSummary(draft, t)}>
             <VoiceChatFields value={draft.voiceChat} onChange={(voiceChat) => props.patch({ voiceChat })} />
           </DetailGroup>
         ) : null}
