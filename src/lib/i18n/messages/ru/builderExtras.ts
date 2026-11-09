@@ -66,7 +66,6 @@ export const ruBuilderExtras: Partial<Record<keyof typeof enBuilderExtras, strin
   "builder.extra.ability.throw.saved": "из листа персонажа",
   "builder.extra.ability.throw.inHand": "в руке",
   "builder.extra.ability.throw.free": "не распределено",
-  "builder.extra.ability.throw.rolling": "Кости летят…",
   "builder.extra.ability.throw.kept": "Сохранённый бросок{date}.",
   "builder.extra.ability.throw.total": "Итого: {total}",
   "builder.extra.ability.throw.placePrompt": "Теперь выберите характеристику для этого значения.",
