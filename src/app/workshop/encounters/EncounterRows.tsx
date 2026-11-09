@@ -83,7 +83,7 @@ export function DifficultyPill({ readout }: { readout: TemplateReadout }) {
         toneFor(readout.verdict).pill,
       )}
     >
-      {shortVerdict(readout.verdict)}
+      {t(("workshop.encounter.difficulty." + (shortVerdict(readout.verdict).toLowerCase().startsWith("beyond") ? "deadly" : shortVerdict(readout.verdict).toLowerCase())) as MessageKey)}
     </span>
   );
 }
@@ -95,11 +95,11 @@ export function BudgetBar({
   readout: TemplateReadout;
   thresholds: Thresholds | null;
 }) {
+  const { t, tp } = useI18n();
   if (readout.unknownMonster) {
     return (
       <p className="text-[11px] text-red-400">
-        Nothing in this world is called &quot;{readout.unknownMonster}&quot;, so this cannot be
-        costed.
+        {t("workshop.encounter.budget.unknown" as MessageKey, { name: readout.unknownMonster })}
       </p>
     );
   }
@@ -115,7 +115,7 @@ export function BudgetBar({
       <div
         className="relative h-1.5 w-full rounded-full bg-stone-800"
         role="img"
-        aria-label={`${readout.adjustedXp} adjusted XP against a ${readout.ceiling} ceiling`}
+        aria-label={t("workshop.encounter.budget.aria" as MessageKey, { xp: readout.adjustedXp, ceiling: readout.ceiling })}
       >
         <div
           className={cn("bar-ease absolute inset-y-0 left-0 rounded-full", tone.bar)}
@@ -135,12 +135,7 @@ export function BudgetBar({
         ))}
       </div>
       <p className={cn("text-[10px]", readout.tooDeadly ? "text-red-400" : "text-stone-500")}>
-        {readout.count} creature{readout.count === 1 ? "" : "s"}, {readout.adjustedXp} XP against
-        a {readout.ceiling} ceiling
-        {thresholds
-          ? `. Easy ${thresholds.easy}, medium ${thresholds.medium}, hard ${thresholds.hard}, deadly ${thresholds.deadly}.`
-          : "."}
-        {readout.tooDeadly ? " The engine will refuse this as written." : ""}
+        {t("workshop.encounter.budget.line" as MessageKey, { creatures: tp("workshop.encounter.budget.creature", readout.count), xp: readout.adjustedXp, ceiling: readout.ceiling })}{thresholds ? " " + t("workshop.encounter.budget.thresholds" as MessageKey, { easy: thresholds.easy, medium: thresholds.medium, hard: thresholds.hard, deadly: thresholds.deadly }) : "."}{readout.tooDeadly ? " " + t("workshop.encounter.budget.tooDeadly" as MessageKey) : ""}
       </p>
     </div>
   );
@@ -218,7 +213,7 @@ export function EncounterRows({
                     {rosterSummary(encounter.enemies, encounter.readout.names)}
                   </p>
                   {encounter.battlefield ? (
-                    <p className="reveal truncate text-xs text-stone-500">On {encounter.battlefield}</p>
+                    <p className="reveal truncate text-xs text-stone-500">{t("workshop.encounter.map.on" as MessageKey, { name: encounter.battlefield })}</p>
                   ) : null}
                   <p className="mt-0.5 flex items-center gap-1 truncate text-[11px] text-stone-500">
                     <GameIcon icon={{ kind: "glyph", key: "system-maps" }} size="size-4" />
