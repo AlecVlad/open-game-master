@@ -444,4 +444,6 @@ export const enCreateCampaign = {
   "createCampaign.summary.voice.turn.soft": "turns shown",
   "createCampaign.summary.voice.turn.strict": "turns enforced",
   "createCampaign.summary.voice.proximity": "proximity, {feet} ft",
+  "createCampaign.summary.customRules.variantCount": "Variant rules: {count}",
+  "createCampaign.summary.customRules.houseRules": "house rules",
 } satisfies Record<string, string>;
