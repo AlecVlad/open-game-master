@@ -10,9 +10,6 @@ import type { MessageKey } from "@/lib/i18n/messages/index";
 import { offersImages, offersStoryModel, useCapabilities } from "@/lib/use-capabilities";
 import {
   CREATE_CHOICES,
-  ENABLE_DRAFTING,
-  GROUP_LABELS,
-  WAY_LABELS,
   missingModels,
   offeredWays,
   stepUnavailable,
