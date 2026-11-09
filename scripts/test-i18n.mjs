@@ -123,6 +123,20 @@ for (const key of voiceChatMessages) {
   assert.ok(key in DICTIONARIES.ru, `Russian voice-chat message missing: ${key}`);
 }
 
+const narrationMessages = [
+  "serverMissing", "narratorVoice", "pace", "charactersLabel", "casting.infoIntro",
+  "casting.narrator", "casting.characters", "casting.between", "casting.separate",
+  "casting.infoLabel", "casting.narratorReads", "casting.narratorReadsHint",
+  "casting.eachSpeaker", "casting.eachSpeakerHint", "casting.autoHelp", "casting.manualHelp",
+  "casting.changeVoiceLater", "casting.characterVoicesPlace", "offNote", "allies.label",
+  "allies.mode.auto", "allies.mode.full", "allies.mode.guests", "allies.mode.off",
+  "allies.soloHelp", "allies.groupHelp", "allies.partyMembersAtOnce", "allies.guestsAtOnce",
+].map((part) => `createCampaign.experience.narration.${part}`);
+for (const key of narrationMessages) {
+  assert.ok(key in DICTIONARIES.en, `English narration message missing: ${key}`);
+  assert.ok(key in DICTIONARIES.ru, `Russian narration message missing: ${key}`);
+}
+
 // Report (not fail on) what Russian still lacks, so progress is visible.
 const missing = Object.keys(DICTIONARIES.en).filter((key) => !(key in DICTIONARIES.ru));
 console.log(`i18n: ${Object.keys(DICTIONARIES.en).length} messages, ${missing.length} not yet in Russian`);
