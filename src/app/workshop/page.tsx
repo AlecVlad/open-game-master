@@ -27,6 +27,7 @@ import { SHELF_TOUR, SHELF_TOUR_ID } from "@/lib/tours/workshop";
 import { finishTour, useTourFinished } from "@/lib/tours/tour-store";
 import type { WorkshopSummary } from "@/app/workshop/types";
 import { navigateTo } from "@/lib/navigation";
+import { useI18n } from "@/lib/i18n/provider";
 
 // The shelf. A workshop is a place to build maps, NPCs, monsters, story and
 // rules before any table exists, and to import them into a campaign later
@@ -37,6 +38,7 @@ import { navigateTo } from "@/lib/navigation";
 // top of it as their own buttons, since a button cannot live inside a link.
 
 export default function WorkshopListPage() {
+  const { t } = useI18n();
   const [workshops, setWorkshops] = useState<WorkshopSummary[]>([]);
   const [loading, setLoading] = useState(true);
   // A refused or failed read is shown in the server's words with a way to
@@ -70,7 +72,7 @@ export default function WorkshopListPage() {
 
   useEffect(() => {
     let cancelled = false;
-    readLoad<{ workshops?: WorkshopSummary[] }>(fetch("/api/workshops"), "Your workshops").then((outcome) => {
+    readLoad<{ workshops?: WorkshopSummary[] }>(fetch("/api/workshops"), t("workshop.shelf.load.label")).then((outcome) => {
       if (cancelled) {
         return;
       }
@@ -100,12 +102,12 @@ export default function WorkshopListPage() {
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError(data.error || "Could not create that workshop.");
+        setError(data.error || t("workshop.shelf.error.create"));
         return;
       }
       navigateTo(`/workshop/${data.workshop.id}`);
     } catch {
-      setError("Could not reach the server. Nothing was created; try again.");
+      setError(t("workshop.shelf.error.reach"));
     } finally {
       setBusy(false);
     }
@@ -121,7 +123,7 @@ export default function WorkshopListPage() {
       const response = await fetch(`/api/campaigns/${workshop.id}/clone`, { method: "POST" }).catch(() => null);
       if (!response?.ok) {
         const data = (await response?.json().catch(() => null)) as { error?: string } | null;
-        setListError(data?.error ?? `${workshop.title} was not copied. Check the connection and try again.`);
+        setListError(data?.error ?? t("workshop.shelf.error.clone", { title: workshop.title }));
         return;
       }
       const listed = await fetch("/api/workshops").catch(() => null);
@@ -137,7 +139,7 @@ export default function WorkshopListPage() {
   async function remove(workshop: WorkshopSummary) {
     if (
       !await appConfirm(
-        `Delete "${workshop.title}"? Every map, NPC, table and note in it is lost. Anything already imported into a campaign stays there.`,
+        t("workshop.shelf.confirm.delete", { title: workshop.title }),
       )
     ) {
       return;
@@ -146,7 +148,7 @@ export default function WorkshopListPage() {
     const response = await fetch(`/api/workshops/${workshop.id}`, { method: "DELETE" }).catch(() => null);
     if (!response?.ok) {
       const data = (await response?.json().catch(() => null)) as { error?: string } | null;
-      setListError(data?.error ?? `${workshop.title} was not deleted. Check the connection and try again.`);
+      setListError(data?.error ?? t("workshop.shelf.error.delete", { title: workshop.title }));
       return;
     }
     setWorkshops((current) => current.filter((entry) => entry.id !== workshop.id));
@@ -159,16 +161,15 @@ export default function WorkshopListPage() {
         <div className="flex items-center gap-3">
           <GameIcon icon={{ kind: "glyph", key: "system-homebrew" }} size="size-12" />
           <div>
-            <h1 className="gold-title animate-fade-up font-display text-2xl">Workshop</h1>
+            <h1 className="gold-title animate-fade-up font-display text-2xl">{t("workshop.shelf.title")}</h1>
             <p className="text-sm text-stone-500">
-              Build maps, NPCs, monsters, story and rules before the table exists. Import any of
-              it when you start a campaign.
+              {t("workshop.shelf.intro")}
             </p>
           </div>
           <button
             type="button"
-            aria-label="How workshops work"
-            title="Guides and tours"
+            aria-label={t("workshop.shelf.help.aria")}
+            title={t("workshop.shelf.help.title")}
             onClick={() => setHelpOpen(true)}
             data-tour="shelf-help"
             className={cn(ui.iconAction, headIcon, "ml-auto self-start")}
@@ -182,8 +183,8 @@ export default function WorkshopListPage() {
         onOpenChange={setHelpOpen}
         tours={[
           {
-            label: "Tour the shelf",
-            detail: "Starting a workshop, importing a bundle, and what the tiles do.",
+            label: t("workshop.shelf.tour.label"),
+            detail: t("workshop.shelf.tour.detail"),
             onStart: () => setTouring(true),
           },
         ]}
@@ -193,34 +194,33 @@ export default function WorkshopListPage() {
       <section className="mb-6">
         {creating ? (
           <form onSubmit={create} className={`${ui.card} reveal ornate space-y-3 p-4`}>
-            <SectionHead title="New workshop" glyph="system-storyboard" />
+            <SectionHead title={t("workshop.shelf.form.title")} glyph="system-storyboard" />
             <label className="block">
-              <span className="mb-1 block font-display text-[11px] tracking-[0.1em] text-amber-300/85">Name</span>
+              <span className="mb-1 block font-display text-[11px] tracking-[0.1em] text-amber-300/85">{t("workshop.shelf.form.name")}</span>
               <input
                 autoFocus
                 value={title}
                 onChange={(event) => setTitle(event.target.value)}
                 maxLength={80}
-                placeholder="The Saltmarch campaign, Session zero prep..."
+                placeholder={t("workshop.shelf.form.name.placeholder")}
                 className={ui.input}
               />
             </label>
             <div>
-              <span className="mb-1 block font-display text-[11px] tracking-[0.1em] text-amber-300/85">Building for a party of</span>
+              <span className="mb-1 block font-display text-[11px] tracking-[0.1em] text-amber-300/85">{t("workshop.shelf.form.party")}</span>
               <div className="flex flex-wrap items-center gap-2">
-                <NumberStepper label="Party size" min={1} max={8} value={size} onChange={setSize} />
-                <span className="text-sm text-stone-400">heroes at level</span>
-                <NumberStepper label="Party level" min={1} max={20} value={level} onChange={setLevel} />
+                <NumberStepper label={t("workshop.shelf.form.partySize")} min={1} max={8} value={size} onChange={setSize} />
+                <span className="text-sm text-stone-400">{t("workshop.shelf.form.heroes", { count: size })}</span>
+                <NumberStepper label={t("workshop.shelf.form.partyLevel")} min={1} max={20} value={level} onChange={setLevel} />
               </div>
               <span className="mt-1 block text-xs text-stone-500">
-                The encounter calculator and the odds preview budget against this. Change it
-                anytime.
+                {t("workshop.shelf.form.budgetHelp")}
               </span>
             </div>
             {error ? <p className="motion-shake text-sm text-red-400">{error}</p> : null}
             <div className="flex gap-2">
               <button type="submit" disabled={busy || !title.trim()} className={ui.btnPrimary}>
-                {busy ? <Loader2 className="size-4 animate-spin" /> : null} Create
+                {busy ? <Loader2 className="size-4 animate-spin" /> : null} {t("workshop.shelf.button.create")}
               </button>
               <button
                 type="button"
@@ -242,7 +242,7 @@ export default function WorkshopListPage() {
               data-tour="shelf-new"
               className={ui.btnPrimary}
             >
-              <Plus className="size-4" /> New workshop
+              <Plus className="size-4" /> {t("workshop.shelf.button.new")}
             </button>
             <div data-tour="shelf-import">
               <ImportBundleButton />
@@ -270,9 +270,9 @@ export default function WorkshopListPage() {
               label={workshop.title}
               // The tile's link and its two buttons again; both stay on the tile.
               items={[
-                { id: "open", label: "Open", glyph: "system-storyboard", onSelect: () => navigateTo(`/workshop/${workshop.id}`) },
-                { id: "duplicate", label: "Duplicate", glyph: "ui-duplicate", disabled: cloningId === workshop.id, onSelect: () => void clone(workshop) },
-                { id: "delete", label: "Delete", glyph: "ui-delete", tone: "danger", separated: true, onSelect: () => void remove(workshop) },
+                { id: "open", label: t("workshop.shelf.menu.open"), glyph: "system-storyboard", onSelect: () => navigateTo(`/workshop/${workshop.id}`) },
+                { id: "duplicate", label: t("workshop.shelf.menu.duplicate"), glyph: "ui-duplicate", disabled: cloningId === workshop.id, onSelect: () => void clone(workshop) },
+                { id: "delete", label: t("workshop.shelf.menu.delete"), glyph: "ui-delete", tone: "danger", separated: true, onSelect: () => void remove(workshop) },
               ]}
             >
               <Link
@@ -294,7 +294,7 @@ export default function WorkshopListPage() {
                   {workshop.title}
                 </span>
                 <span className="text-xs text-stone-500">
-                  Party of {workshop.gameSettings.targetParty.size} at level{" "}
+                  {t("workshop.shelf.tile.party", { count: workshop.gameSettings.targetParty.size })} {t("workshop.shelf.tile.level", { level: workshop.gameSettings.targetParty.level })}{" "}
                   {workshop.gameSettings.targetParty.level}
                 </span>
               </Link>
@@ -303,8 +303,8 @@ export default function WorkshopListPage() {
                   type="button"
                   disabled={cloningId === workshop.id}
                   onClick={() => void clone(workshop)}
-                  aria-label={`Duplicate ${workshop.title}`}
-                  title="Duplicate this workshop and everything in it"
+                  aria-label={t("workshop.shelf.button.duplicate", { title: workshop.title })}
+                  title={t("workshop.shelf.button.duplicate.title")}
                   className={ui.iconAction}
                 >
                   {cloningId === workshop.id ? (
@@ -316,7 +316,7 @@ export default function WorkshopListPage() {
                 <button
                   type="button"
                   onClick={() => void remove(workshop)}
-                  aria-label={`Delete ${workshop.title}`}
+                  aria-label={t("workshop.shelf.button.delete", { title: workshop.title })}
                   className={ui.iconAction}
                 >
                   <Trash2 className="size-4" />
@@ -335,8 +335,8 @@ export default function WorkshopListPage() {
           ) : loaded ? (
             <EmptyState
               art="map"
-              title="No workshops yet."
-              hint="A workshop is yours alone: prep a game on your own time. Nothing in it reaches a table until a campaign brings it in, when it is created, from its lobby or from its Settings."
+              title={t("workshop.shelf.empty.title")}
+              hint={t("workshop.shelf.empty.hint")}
             />
           ) : null}
         </div>
