@@ -488,4 +488,12 @@ export const enCreateCampaign = {
   "createCampaign.review.followUp.openAdventure": "Open the adventure as it is",
   "createCampaign.review.followUp.openCampaign": "Open the campaign as it is",
   "createCampaign.review.storyClash": "This Storyboard writes the campaign's story arc, and AI Story Setup is on. When the adventure begins, Story Setup writes its own premise, opening scene and secret outline. It is given your arc to build from, but its opening can still differ from the one you prepared. Turn it off to begin from your imported story; the AI still narrates.",
+  "createCampaign.review.dmMode.ai": "AI Game Master",
+  "createCampaign.review.dmMode.steered": "AI narrates, I steer",
+  "createCampaign.review.dmMode.human": "I run the game",
+  "createCampaign.review.dmMode.assisted": "I run the game, with AI help",
+  "createCampaign.review.prep.from": "From {title}",
+  "createCampaign.review.prep.none": "None brought in",
+  "createCampaign.review.prep.workshop": "a workshop",
+  "createCampaign.review.tableFeatures": "{count} on",
 } satisfies Record<string, string>;
