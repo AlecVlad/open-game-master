@@ -152,6 +152,18 @@ await test("creator summaries use Russian interface messages when a translator i
     summaries.voiceChatSummary({ ...draft.voiceChat, enabled: false }, translateRu),
     "Выключено",
   );
+  assert.equal(
+    summaries.customRules({
+      ...draft,
+      houseRules: "x",
+      variantRules: { ...draft.variantRules, flanking: true },
+    }, translateRu),
+    "Дополнительных правил: 1 · Домашние правила",
+  );
+  assert.equal(
+    summaries.worldSummary(draft, allGates, null, translateRu),
+    "Без готового мира · Английский (English) · Обычная (4–5 актов)",
+  );
 });
 
 finish();
