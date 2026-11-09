@@ -2,6 +2,7 @@
 
 import { Minus, Plus, X } from "lucide-react";
 import { useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { InfoButton } from "@/components/ui/InfoDialog";
 import { contentSlug } from "@/lib/help";
 import { formatPrice } from "@/lib/srd/currency";
@@ -12,19 +13,20 @@ export type ReceiptView = Receipt & { setQty: (name: string, qty: number) => voi
 const signed = (value: number) => (value >= 0 ? `+${value}` : `${value}`);
 
 // Free, bought, or both, in words a player reads at a glance.
-function sourceLabel(row: ReceiptRow): string {
+function sourceLabel(row: ReceiptRow, t: (key: string, params?: Record<string, unknown>) => string): string {
   if (row.refused) {
-    return row.refused === "homebrew" ? "Granted in play" : row.refused === "magic" ? "Found in play" : "No listed price";
+    return row.refused === "homebrew" ? t("builder.receipt.source.granted") : row.refused === "magic" ? t("builder.receipt.source.found") : t("builder.receipt.source.noPrice");
   }
   if (!row.bought) {
-    return "Free from the kit";
+    return t("builder.receipt.source.freeKit");
   }
-  return row.free ? `${row.free} free, ${row.bought} paid` : "Paid";
+  return row.free ? t("builder.receipt.source.freePaid", { free: row.free, paid: row.bought }) : t("builder.receipt.source.paid");
 }
 
 // The typed count. It commits on Enter or when focus leaves, so a 12 typed
 // on the way through a 1 does not settle the kit's set first.
 function QtyField({ row, onQty }: { row: ReceiptRow; onQty: (qty: number) => void }) {
+  const { t } = useI18n();
   const [draft, setDraft] = useState<string | null>(null);
   const commit = () => {
     if (draft !== null) {
@@ -40,7 +42,7 @@ function QtyField({ row, onQty }: { row: ReceiptRow; onQty: (qty: number) => voi
       min={0}
       max={MAX_QTY}
       value={draft ?? String(row.qty)}
-      aria-label={`How many ${row.name}`}
+      aria-label={t("builder.receipt.quantity.aria", { name: row.name })}
       onChange={(event) => setDraft(event.target.value)}
       onBlur={commit}
       onKeyDown={(event) => {
@@ -65,19 +67,20 @@ const stepClass =
 // each, what the kit gave free and what was paid, the price, and the coin
 // left at the foot. Weapons carry their to-hit and damage under the name.
 export default function GearReceipt({ receipt }: { receipt: ReceiptView }) {
+  const { t } = useI18n();
   if (!receipt.rows.length) {
-    return <p className="mt-2 text-xs text-stone-500">Nothing in the pack yet.</p>;
+    return <p className="mt-2 text-xs text-stone-500">{t("builder.receipt.empty")}</p>;
   }
   return (
     <div className="mt-2 rounded-lg border border-stone-800">
       <table className="w-full table-fixed text-left text-xs">
-        <caption className="sr-only">Your gear: quantity, whether it is free or paid, price, and the coin left</caption>
+        <caption className="sr-only">{t("builder.receipt.caption")}</caption>
         <thead className="border-b border-stone-800 text-[0.875rem] text-stone-500">
           <tr>
-            <th scope="col" className="px-2 py-1.5 font-normal">Item</th>
-            <th scope="col" className="w-[8.5rem] px-1 py-1.5 font-normal">Quantity</th>
-            <th scope="col" className="hidden w-28 px-2 py-1.5 font-normal sm:table-cell">Free or paid</th>
-            <th scope="col" className="w-20 px-2 py-1.5 text-right font-normal">Price</th>
+            <th scope="col" className="px-2 py-1.5 font-normal">{t("builder.receipt.item")}</th>
+            <th scope="col" className="w-[8.5rem] px-1 py-1.5 font-normal">{t("builder.receipt.quantity")}</th>
+            <th scope="col" className="hidden w-28 px-2 py-1.5 font-normal sm:table-cell">{t("builder.receipt.freePaid")}</th>
+            <th scope="col" className="w-20 px-2 py-1.5 text-right font-normal">{t("builder.receipt.price")}</th>
           </tr>
         </thead>
         <tbody>
