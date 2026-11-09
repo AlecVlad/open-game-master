@@ -65,4 +65,6 @@ export const ruCommon: Partial<Record<keyof typeof enCommon, string>> = {
   "worldSetup.loreBody.placeholder": "Что об этом известно...",
   "worldSetup.lore.add": "Добавить запись лора",
   "worldSetup.lore.help": "Места, фракции и события истории, которые ведущий считает каноном. Дополнять их можно в любое время из лобби и на вкладке «Факты».",
+  "storySetupNotice.turnOff": "Отключить подготовку сюжета ИИ",
+  "storySetupNotice.keep": "Оставить включённой",
 };
