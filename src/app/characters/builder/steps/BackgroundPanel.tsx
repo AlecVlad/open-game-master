@@ -11,6 +11,7 @@ import { backgroundInfoText } from "../usePickerGroups";
 import type { BackgroundOption } from "../useBuilderOptions";
 import type { BuilderState } from "../useBuilderState";
 import { Field, StepPanel, inputClass } from "./shared";
+import { useI18n } from "@/lib/i18n/provider";
 
 // The background, asked beside the ancestry (backlog F4): where the hero
 // comes from and what they did before adventuring are one step's question.
@@ -38,9 +39,10 @@ export function BackgroundPanel({
   // Why the list may be short (TableScopeNote).
   note?: ReactNode;
 }) {
+  const { t, tp } = useI18n();
   return (
-    <StepPanel title="What did they do before adventuring?" help="Their background: the skills and kit their past gave them.">
-      <Field label="Background" anchor="background">
+    <StepPanel title={t("builder.bg.title")} help={t("builder.bg.help")}>
+      <Field label={t("builder.bg.label")} anchor="background">
         <OptionPicker
           value={background?.id ?? ""}
           groups={backgroundGroups}
@@ -52,7 +54,7 @@ export function BackgroundPanel({
           // The playstyle's backgrounds, one tap each; the list above keeps
           // every other.
           <span key={suggestedKey} className="reveal mt-1.5 flex flex-wrap items-center gap-1 text-xs text-stone-500" data-background-hints>
-            Suits that job:
+            {t("builder.bg.suits")}
             {suggested.map((entry) => (
               <button
                 key={entry.id}
@@ -69,7 +71,7 @@ export function BackgroundPanel({
         {background ? (
           <span className="mt-1 flex items-start gap-1 text-xs text-stone-500">
             <span className="grow">
-              {background.skills.length ? "Grants " : null}
+              {background.skills.length ? t("builder.bg.grants") : null}
               {background.skills.length
                 ? background.skills.map((skillId, index) => {
                     const name = SRD_SKILLS.find((skill) => skill.id === skillId)?.name ?? skillId;
@@ -84,11 +86,11 @@ export function BackgroundPanel({
                       </span>
                     );
                   })
-                : "What your character did before adventuring."}
+                : t("builder.bg.default")}
               {background.feature ? (
                 <span className="whitespace-nowrap">
                   {background.skills.length ? " · " : " "}
-                  Feature: {background.feature}
+                  {t("builder.bg.feature", { name: background.feature })}
                   <InfoButton
                     label={background.feature}
                     text={background.featureDesc || undefined}
@@ -108,8 +110,7 @@ export function BackgroundPanel({
           // What the background adds to the language list on this same
           // step, said here so the extra slots are no surprise (issue #117).
           <span className="mt-1 block text-xs text-stone-500">
-            This background adds {background.languages === 1 ? "one more language" : `${background.languages} more languages`} to
-            your bonus languages, picked below{raceChosen ? "" : " once a lineage is chosen"}.
+            {tp("builder.bg.langs", background.languages, { count: background.languages, when: raceChosen ? "" : t("builder.bg.langs.when") })}
           </span>
         ) : null}
         {background?.skillChoice ? (
@@ -136,13 +137,13 @@ function BackgroundSkillChoice({
   background: BackgroundOption;
   choice: NonNullable<BackgroundOption["skillChoice"]>;
 }) {
+  const { t, tp } = useI18n();
   const picks = state.backgroundSkills;
   const taken = new Set([...background.skills, ...state.chosenSkills, ...state.racialSkills]);
   return (
     <div className="mt-2" data-builder-target="backgroundSkills">
       <span className="mb-1 flex flex-wrap items-center gap-1 text-xs text-stone-400">
-        <GameTerm id="skill">Skill</GameTerm> {choice.count === 1 ? "proficiency" : "proficiencies"} (
-        {choice.count} of your choice)
+        <GameTerm id="skill">{t("builder.bg.skill")}</GameTerm>{tp("builder.bg.skill.head", choice.count, { count: choice.count })}
       </span>
       <div className="grid grid-cols-1 gap-2">
         {Array.from({ length: choice.count }, (_, index) => (
@@ -157,10 +158,10 @@ function BackgroundSkillChoice({
                 })
               }
               className="min-w-0 grow"
-              label={`Background skill ${index + 1}`}
-              placeholder="Choose a skill..."
+              label={t("builder.bg.aria", { n: index + 1 })}
+              placeholder={t("builder.bg.pick")}
               options={[
-                { value: "", label: "Choose a skill..." },
+                { value: "", label: t("builder.bg.pick") },
                 ...choice.from
                   .filter((skill) => picks[index] === skill || (!picks.includes(skill) && !taken.has(skill)))
                   .map((skill) => ({ value: skill, label: skillName(skill) })),

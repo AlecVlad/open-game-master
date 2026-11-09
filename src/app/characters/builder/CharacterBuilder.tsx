@@ -636,7 +636,7 @@ function CharacterBuilderForm({
     klass: derived.multiclass ? classSplitWords(derived.classList, (id) => classes.find((entry) => entry.id === id)?.name ?? id) : klass?.name,
     subclass: state.subclass || undefined,
     level: derived.effectiveLevel,
-    gender: state.gender || undefined,
+    gender: state.gender ? t(`builder.gender.${state.gender}` as MessageKey) : undefined,
     abilities: derived.shownAbilities,
     casts,
     cantrips: state.cantrips,

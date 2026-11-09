@@ -15,6 +15,7 @@ import { rollHeroName } from "../heroNames";
 import type { BuilderState } from "../useBuilderState";
 import { Field, StepPanel, inputClass } from "./shared";
 import { useI18n } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages";
 
 // The sheet schema's own limits on a backstory and on the hopes for the story
 // (src/lib/schemas/sheet.ts HOPES_MAX, checked equal by
@@ -113,7 +114,7 @@ export function IdentityStep({
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Field label={t("builder.id.gender")}>
             <span className="flex flex-wrap items-center gap-2">
-              <span className="text-sm text-stone-300">{state.gender || t("builder.id.gender.none")}</span>
+              <span className="text-sm text-stone-300">{state.gender ? t(`builder.gender.${state.gender}` as MessageKey) : t("builder.id.gender.none")}</span>
               {onEditGender ? (
                 <button type="button" onClick={onEditGender} className={cn(ui.btnSmall, "min-h-10")}>
                   {t("builder.id.gender.change")}
