@@ -63,4 +63,6 @@ export const enCommon = {
   "worldSetup.loreBody.placeholder": "What is established about it...",
   "worldSetup.lore.add": "Add lore entry",
   "worldSetup.lore.help": "Places, factions, and history the GM treats as canon. Grows anytime from the lobby and the Facts tab.",
+  "storySetupNotice.turnOff": "Turn off AI Story Setup",
+  "storySetupNotice.keep": "Keep it on",
 } satisfies Record<string, string>;
