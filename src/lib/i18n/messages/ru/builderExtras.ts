@@ -119,7 +119,7 @@ export const ruBuilderExtras: Partial<Record<keyof typeof enBuilderExtras, strin
   "builder.extra.ability.summary.method.pointbuy": "Двадцать семь очков, распределённых по вашему выбору.",
   "builder.extra.ability.summary.method.standard": "Один и тот же набор из шести значений для каждого героя, распределённый по вашему выбору.",
   "builder.extra.ability.summary.lead": "{lead} Самая высокая характеристика — {ability}: {score}.{tail}",
-  "builder.extra.ability.summary.tail.withWho": " Вы создали персонажа: {article} {who}.",
+  "builder.extra.ability.summary.tail.withWho": " Вы создали персонажа: {who}.",
   "builder.extra.ability.summary.tail.withoutWho": " Так выглядит созданный вами персонаж.",
   "builder.extra.ability.summary.title": "Ваши характеристики",
   "builder.extra.ability.summary.none": "нет",
