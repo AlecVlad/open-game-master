@@ -2,6 +2,7 @@
 
 import type { ReactNode, Ref } from "react";
 import { useI18n } from "@/lib/i18n/provider";
+import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/cn";
 import type { Genre } from "@/lib/schemas/game-settings";
 import type { FranchiseGroup, WorldPackSummary } from "@/lib/worlds/types";
@@ -41,6 +42,7 @@ export function EssentialsStep(
   },
 ) {
   const { t } = useI18n();
+  const { t } = useI18n();
   const { draft, patch, gates, active, groups, selectedPack } = props;
   return (
     <div className={cn("space-y-4 text-sm", active && "cc-live")}>
@@ -51,14 +53,14 @@ export function EssentialsStep(
       <WorldFields draft={draft} patch={patch} gates={gates} active={active} onPickGenre={props.onPickGenre} />
 
       <div className="cc-group-head pt-1">
-        <span className="cc-eyebrow">More about this campaign</span>
+        <span className="cc-eyebrow">{t("createCampaign.essentials.more.title")}</span>
         <span className="cc-group-rule" aria-hidden="true" />
-        <span className="cc-note">optional</span>
+        <span className="cc-note">{t("createCampaign.essentials.optional")}</span>
       </div>
       <div className="space-y-2">
         <DetailGroup
           {...groupProps(groups, "world")}
-          title="World and story"
+          title={t("createCampaign.essentials.group.world")}
           glyph="system-world"
           summary={worldSummary(draft, gates, selectedPack?.name ?? null, t)}
         >
@@ -76,7 +78,7 @@ export function EssentialsStep(
 
         <DetailGroup
           {...groupProps(groups, "character")}
-          title="Character creation"
+          title={t("createCampaign.essentials.group.character")}
           glyph="tab-characters"
           summary={characterSummary(draft, t)}
         >
@@ -86,7 +88,7 @@ export function EssentialsStep(
 
         <DetailGroup
           {...groupProps(groups, "prep")}
-          title="House rules, lore and prep"
+          title={t("createCampaign.essentials.group.prep")}
           glyph="system-lore"
           summary={prepSummary(draft, props.prepSource, t)}
         >
@@ -98,7 +100,7 @@ export function EssentialsStep(
             setLoreDrafts={(loreDrafts) => patch({ loreDrafts })}
           />
           <div className="rounded-lg border border-stone-800 bg-stone-950/40 p-3">
-            <span className="mb-1.5 block text-stone-400">Bring in prep</span>
+            <span className="mb-1.5 block text-stone-400">{t("createCampaign.essentials.bringPrep")}</span>
             <ContentImportPicker
               selection={draft.contentImport}
               onChange={(contentImport) => patch({ contentImport })}
