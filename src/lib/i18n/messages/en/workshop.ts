@@ -528,4 +528,22 @@ export const enWorkshop = {
   "workshop.party.draft.title": "Draft pregens with the AI GM",
   "workshop.party.draft.check": "Asking whether the AI GM can draft...",
 
+  "workshop.bestiary.extraDamage.hint": "A breath weapon or a round of spellcasting, averaged. The rating cannot see it otherwise.",
+  "workshop.bestiary.save": "Save the block",
+  "workshop.bestiary.save.hint": "Saving recalculates the rating from what is on screen.",
+  "workshop.bestiary.menu.open": "Open",
+  "workshop.bestiary.menu.duplicate": "Duplicate",
+  "workshop.bestiary.menu.delete": "Delete",
+  "workshop.bestiary.empty.hint": "Start from a challenge rating or a rulebook monster. Then add it to a fight in Encounters, or give it a World entry to tie it to your setting; a campaign that brings that prep in gets its own copy.",
+  "workshop.bestiary.field.ac": "AC",
+  "workshop.bestiary.field.dexSave": "DEX",
+  "workshop.bestiary.startBaseline": "Start from the baseline",
+  "workshop.bestiary.alignment.unstated": "Unstated",
+  "workshop.bestiary.savesFromScores": "Saves from scores",
+  "workshop.bestiary.unset": "Unset, so it reads as {value}.",
+  "workshop.bestiary.passiveRule": "A hiding character has to beat the passive Perception; the printed number wins, then the skill, then Wisdom.",
+  "workshop.bestiary.spellListHint": "The GM running it sees the list. Put a round of casting into extra damage so the rating counts it.",
+  "workshop.bestiary.traitsFull": "The block is full at {count} lines.",
+  "workshop.bestiary.field.add": "Add",
+
 } satisfies Record<string, string>;
