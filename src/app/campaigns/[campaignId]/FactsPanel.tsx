@@ -147,7 +147,7 @@ function FactCard({
                 >
                   {busy ? null : fact.pinned ? <PinOff className="size-3.5" /> : <Pin className="size-3.5" />}
                 </KitButton>
-                <RowMenu items={items} label={fact.subject || CATEGORY_LABELS[fact.category]} />
+                <RowMenu items={items} label={fact.subject || t(CATEGORY_LABEL_KEY[fact.category])} />
               </span>
             ) : null}
           </div>
@@ -223,14 +223,14 @@ function FactComposer({
         aria-label={t("campaign.fact.subject.label")}
         className={cn(panelField, "mb-1.5")}
       />
-      <DictateField label="Fact" onTranscript={(text) => setFact((current) => appendDictation(current, text, 300))}>
+      <DictateField label={t("campaign.fact.label")} onTranscript={(text) => setFact((current) => appendDictation(current, text, 300))}>
         <textarea
           value={fact}
           onChange={(event) => setFact(event.target.value)}
           rows={2}
           maxLength={300}
           placeholder={t("campaign.fact.placeholder.text")}
-          aria-label="Fact"
+          aria-label={t("campaign.fact.label")}
           className={cn(panelField, "leading-5")}
         />
       </DictateField>
@@ -315,7 +315,7 @@ export function FactsPanel({
         }
         return (
           <div key={category} className="space-y-1.5">
-            <SectionHead title={CATEGORY_LABELS[category]} glyph={CATEGORY_GLYPHS[category]} aside={entries.length} />
+            <SectionHead title={t(CATEGORY_LABEL_KEY[category]) glyph={CATEGORY_GLYPHS[category]} aside={entries.length} />
             <ul className="stagger space-y-1.5">
               {entries.map((fact) => (
                 <FactCard
