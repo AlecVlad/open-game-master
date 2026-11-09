@@ -3,6 +3,7 @@
 import type { CSSProperties } from "react";
 import { CountPop } from "@/components/ui/Reveal";
 import { useI18n } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages/index";
 import { Ribbon } from "@/components/ui/Ribbon";
 import { cn } from "@/lib/cn";
 import { abilityMod, formatModifier } from "@/lib/srd";
@@ -31,7 +32,7 @@ export function AbilitySummary({
   const { t } = useI18n();
   const anyAdded = rows.some((row) => row.added !== 0);
   const head = anyAdded
-    ? ["builder.extra.ability.summary.head.ability", "builder.extra.ability.summary.head.base", "builder.extra.ability.summary.head.racial", "builder.extra.ability.summary.head.added", "builder.extra.ability.summary.head.final", "builder.extra.ability.summary.head.mod"].map((key) => t(key as never))
+    ? ["builder.extra.ability.summary.head.ability", "builder.extra.ability.summary.head.base", "builder.extra.ability.summary.head.racial", "builder.extra.ability.summary.head.added", "builder.extra.ability.summary.head.final", "builder.extra.ability.summary.head.mod"].map((key) => t(key as MessageKey))
     : ["builder.extra.ability.summary.head.ability", "builder.extra.ability.summary.head.base", "builder.extra.ability.summary.head.racial", "builder.extra.ability.summary.head.final", "builder.extra.ability.summary.head.mod"].map((key) => t(key as never));
   let best: { label: string; final: number } | null = null;
   for (const row of rows) {
