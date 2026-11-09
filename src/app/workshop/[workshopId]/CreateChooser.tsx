@@ -72,7 +72,7 @@ export function CreateChooser({
       {choice ? (
         <div className="flex flex-col gap-3" data-testid="create-steps">
           <button type="button" onClick={() => setPicked(null)} className={cn(ui.btnSmall, "w-fit border-transparent bg-transparent px-1 text-stone-400 shadow-none")}>
-            <ArrowLeft className="size-4" /> Everything you can make
+            <ArrowLeft className="size-4" /> {t("workshop.create.back")}
           </button>
           <p className="text-sm text-stone-300">{t(choiceKey(choice.id, "blurb"))}</p>
           <p className="text-xs text-stone-500">
