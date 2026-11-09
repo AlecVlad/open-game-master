@@ -498,4 +498,5 @@ export const ruCreateCampaign: Partial<Record<keyof typeof enCreateCampaign, str
   "createCampaign.review.prep.none": "Не добавлено",
   "createCampaign.review.prep.workshop": "мастерской",
   "createCampaign.review.tableFeatures": "Включено: {count}",
+  "createCampaign.review.rulesBook": "Правила по книге",
 };
