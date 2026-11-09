@@ -203,6 +203,20 @@ const summaryMessages = Object.keys(DICTIONARIES.en).filter((key) => key.startsW
 const untranslatedSummaryMessages = summaryMessages.filter((key) => !(key in DICTIONARIES.ru));
 assert.deepEqual(untranslatedSummaryMessages, [], "campaign summary messages must be translated into Russian");
 
+const safetyToneMessages = [
+  "safety.label", "safety.xCardOn", "safety.xCardOff",
+  "safety.boundary.family", "safety.boundary.standard", "safety.boundary.mature",
+  "safety.lines.label", "safety.lines.hint", "safety.veils.label", "safety.veils.hint",
+  "safety.romanceNote", "strictness.label", "strictness.lenient", "strictness.standard", "strictness.harsh",
+  "tone.label", "tone.upToThree", "tone.choosePersonality", "tone.personalitiesInfoLabel",
+  "tone.personalitiesInfoIntro", "tone.voicePart", "personalityNote.active", "personalityNote.inactive",
+  "tone.grim", "tone.hopeful", "tone.whimsical", "tone.epic", "tone.intimate", "tone.pulpy", "tone.eerie", "tone.political",
+].map((part) => `safetyTone.${part}`);
+for (const key of safetyToneMessages) {
+  assert.ok(key in DICTIONARIES.en, `English safety-tone message missing: ${key}`);
+  assert.ok(key in DICTIONARIES.ru, `Russian safety-tone message missing: ${key}`);
+}
+
 // Report (not fail on) what Russian still lacks, so progress is visible.
 const missing = Object.keys(DICTIONARIES.en).filter((key) => !(key in DICTIONARIES.ru));
 console.log(`i18n: ${Object.keys(DICTIONARIES.en).length} messages, ${missing.length} not yet in Russian`);
