@@ -17,7 +17,7 @@ export const ruCampaignSession: Partial<Record<keyof typeof enCampaignSession, s
   "campaign.afterRoll.kind.attack": "Бросок атаки",
   "campaign.afterRoll.kind.damage": "Урон",
   "campaign.afterRoll.kind.initiative": "Инициатива",
-  "campaign.afterRoll.difficulty": "Сложность: {dc}",
+  "campaign.afterRoll.difficulty": "Класс сложности: {dc}",
   "campaign.afterRoll.chooseDie": "Выберите, какой кубик учитывать.",
   "campaign.afterRoll.changeBeforeResult": "Пока ведущий не объявил результат, вы ещё можете изменить бросок.",
   "campaign.afterRoll.waiting.player": "Игрок выбросил {total} и решает, что делать с результатом.",
