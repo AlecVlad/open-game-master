@@ -179,6 +179,7 @@ export const ruCreateCampaign: Partial<Record<keyof typeof enCreateCampaign, str
   "createCampaign.party.wealth.help": "Начальное имущество героя. Стартовое золото определяется броском сервера.",
   "createCampaign.party.rolledStats": "Броски характеристик",
   "createCampaign.party.stats.server": "Использовать правило сервера{detail}",
+  "createCampaign.party.stats.serverDetail": " (переброс при сумме меньше {score})",
   "createCampaign.party.stats.keep": "Оставлять первый бросок",
   "createCampaign.party.stats.low": "Перебрасывать результат меньше {score}",
   "createCampaign.party.stats.free": "Перебрасывать сколько угодно раз",
