@@ -490,4 +490,12 @@ export const ruCreateCampaign: Partial<Record<keyof typeof enCreateCampaign, str
   "createCampaign.review.followUp.openAdventure": "Открыть приключение как есть",
   "createCampaign.review.followUp.openCampaign": "Открыть кампанию как есть",
   "createCampaign.review.storyClash": "Этот сториборд задаёт сюжетную арку кампании, а подготовка сюжета ИИ включена. Когда приключение начнётся, ИИ создаст собственную завязку, начальную сцену и скрытый план истории. Он будет опираться на вашу арку, но начало всё равно может отличаться от подготовленного вами. Отключите подготовку сюжета, чтобы начать с импортированной истории; ИИ продолжит вести повествование.",
+  "createCampaign.review.dmMode.ai": "ИИ-ведущий",
+  "createCampaign.review.dmMode.steered": "ИИ ведёт игру, я направляю его",
+  "createCampaign.review.dmMode.human": "Я веду игру",
+  "createCampaign.review.dmMode.assisted": "Я веду игру с помощью ИИ",
+  "createCampaign.review.prep.from": "Из источника: {title}",
+  "createCampaign.review.prep.none": "Не добавлено",
+  "createCampaign.review.prep.workshop": "мастерской",
+  "createCampaign.review.tableFeatures": "Включено: {count}",
 };
