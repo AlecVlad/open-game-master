@@ -1,0 +1,38 @@
+// Русские сообщения для списка мастерских.
+import type { enWorkshop } from "../en/workshop.ts";
+
+export const ruWorkshop: Partial<Record<keyof typeof enWorkshop, string>> & Record<string, string> = {
+  "workshop.shelf.title": "Мастерская",
+  "workshop.shelf.intro": "Готовьте карты, NPC, монстров, сюжет и правила ещё до начала игры. Всё это можно будет перенести в кампанию.",
+  "workshop.shelf.help.aria": "Как работают мастерские",
+  "workshop.shelf.help.title": "Справка и обучение",
+  "workshop.shelf.tour.label": "Обзор мастерской",
+  "workshop.shelf.tour.detail": "Создание мастерской, импорт набора и назначение карточек.",
+  "workshop.shelf.form.title": "Новая мастерская",
+  "workshop.shelf.form.name": "Название",
+  "workshop.shelf.form.name.placeholder": "Кампания Солёных топей, подготовка нулевой сессии...",
+  "workshop.shelf.form.party": "Подготовка для группы из",
+  "workshop.shelf.form.partySize": "Размер группы",
+  "workshop.shelf.form.partyLevel": "Уровень группы",
+  "workshop.shelf.form.heroes": "{count} персонажей на уровне",
+  "workshop.shelf.form.budgetHelp": "Калькулятор встреч и предварительная оценка шансов используют параметры этой группы. Их можно изменить в любой момент.",
+  "workshop.shelf.error.create": "Не удалось создать мастерскую.",
+  "workshop.shelf.error.reach": "Не удалось связаться с сервером. Ничего не создано. Попробуйте ещё раз.",
+  "workshop.shelf.error.clone": "Не удалось скопировать мастерскую «{title}». Проверьте соединение и попробуйте ещё раз.",
+  "workshop.shelf.error.delete": "Не удалось удалить мастерскую «{title}». Проверьте соединение и попробуйте ещё раз.",
+  "workshop.shelf.confirm.delete": "Удалить мастерскую «{title}»? Все карты, NPC, таблицы и заметки в ней будут потеряны. Материалы, уже добавленные в кампании, останутся там.",
+  "workshop.shelf.button.create": "Создать",
+  "workshop.shelf.button.cancel": "Отмена",
+  "workshop.shelf.button.new": "Новая мастерская",
+  "workshop.shelf.menu.open": "Открыть",
+  "workshop.shelf.menu.duplicate": "Создать копию",
+  "workshop.shelf.menu.delete": "Удалить",
+  "workshop.shelf.tile.party": "{count} игровых персонажей",
+  "workshop.shelf.tile.level": "уровень: {level}",
+  "workshop.shelf.button.duplicate": "Создать копию мастерской «{title}»",
+  "workshop.shelf.button.duplicate.title": "Создать копию этой мастерской со всем её содержимым",
+  "workshop.shelf.button.delete": "Удалить мастерскую «{title}»",
+  "workshop.shelf.empty.title": "Пока нет мастерских.",
+  "workshop.shelf.empty.hint": "Мастерская принадлежит только вам: готовьте игру в удобное время. Её содержимое не попадёт за игровой стол, пока вы не добавите его в кампанию — при создании кампании, из её лобби или настроек.",
+  "workshop.shelf.load.label": "Ваши мастерские"
+};
