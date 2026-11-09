@@ -16,6 +16,8 @@ import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { useTourPrepare } from "@/lib/tours/prepare";
 import { ListTally, sortRows, type RowSort } from "@/app/workshop/ListHead";
 import { GameIcon } from "@/components/ui/GameIcon";
+import { useI18n } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages/index";
 import { HomebrewEditor } from "@/app/workshop/homebrew/HomebrewEditor";
 import { HomebrewPlate } from "@/app/workshop/homebrew/HomebrewIcon";
 import { blankDraft, copyName, draftFromCatalog, type HomebrewDraft } from "@/app/workshop/homebrew/draft";
@@ -66,6 +68,9 @@ export function HomebrewPanel({
   openOnArrival?: string | null;
   onWorldEntry?: (ref: string) => void;
 }) {
+  const { t, tp } = useI18n();
+  const kindLabel = (value: EditorKind) => t(`workshop.homebrew.kind.${value}` as MessageKey);
+  const kindSingular = (value: EditorKind) => t(`workshop.homebrew.singular.${value}` as MessageKey);
   const [entries, setEntries] = useState<HomebrewEntryView[]>([]);
   const [kind, setKind] = useState<EditorKind>("item");
   const [query, setQuery] = useState("");
@@ -101,7 +106,7 @@ export function HomebrewPanel({
 
   const load = useCallback(
     () =>
-      readLoad<{ entries?: HomebrewEntryView[] }>(fetch("/api/homebrew"), "Your homebrew").then((outcome) => {
+      readLoad<{ entries?: HomebrewEntryView[] }>(fetch("/api/homebrew"), t("workshop.homebrew.loading")).then((outcome) => {
         settle(outcome);
         if (outcome.payload?.entries) {
           setEntries(outcome.payload.entries.filter((entry) => entry.kind !== "monster"));
