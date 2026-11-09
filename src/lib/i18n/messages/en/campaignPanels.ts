@@ -55,6 +55,8 @@ export const enCampaignPanels = {
   "campaign.fact.action.edit": "Edit",
   "campaign.fact.action.retire": "Retire: the GM stops treating this as true",
   "campaign.fact.label": "Fact",
+  "campaign.fact.category.label": "Category",
+  "campaign.fact.subject.label": "Subject",
   "campaign.fact.section.pin": "Pin a fact",
   "campaign.fact.section.pinned": "Pinned",
   "campaign.fact.known.storyteller": "Storyteller secret",
