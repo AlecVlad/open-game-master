@@ -262,5 +262,6 @@ export const enCreateCampaign = {
   "createCampaign.experience.voiceChat.wallsMuffleHint": "A wall muffles a voice instead of cutting it",
   "createCampaign.experience.voiceChat.downedDeaf": "Downed go deaf",
   "createCampaign.experience.voiceChat.downedDeafHint": "At 0 hit points a character stops hearing the table",
-  "createCampaign.experience.voiceChat.serverHelp": "The server has its own switch for live audio too; if the owner keeps it off, these settings wait until it is on. Transcription is turned on from the lobby's Game settings, where everyone at the table is told it is on.",
+  "createCampaign.experience.voiceChat.serverHelp": "The server has its own switch for live audio too; if the owner keeps it off, these settings wait until it is on. Transcription is turned on from the lobby's Game settings, where everyone at the table is told it is on.",  "createCampaign.experience.voiceChat.hearingRangeValue": "{feet} ft",
+
 } satisfies Record<string, string>;
