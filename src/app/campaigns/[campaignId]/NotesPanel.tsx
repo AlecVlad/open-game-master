@@ -274,11 +274,11 @@ export function NoteComposer({
           value={title}
           onChange={(event) => setTitle(event.target.value)}
           maxLength={120}
-          placeholder="Title (optional)"
+          placeholder={t("campaign.notes.title.optional")}
           className="mb-1.5 w-full rounded border border-stone-700 bg-stone-900 px-2 py-1 text-xs outline-none focus:border-amber-600"
         />
       ) : null}
-      <DictateField label="Note" onTranscript={(text) => setBody((current) => appendDictation(current, text, 2000))}>
+      <DictateField label={t("campaign.notes.label")} onTranscript={(text) => setBody((current) => appendDictation(current, text, 2000))}>
         <textarea
           value={body}
           onChange={(event) => setBody(event.target.value)}
@@ -473,7 +473,7 @@ export function NotesPanel({
                 canDelete
                 canPin={false}
                 canApprove={false}
-                deleteLabel="Delete note"
+                deleteLabel={t("campaign.notes.action.delete")}
                 refreshNotes={refreshNotes}
               />
             ))}
