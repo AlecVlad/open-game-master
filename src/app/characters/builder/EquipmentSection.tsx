@@ -114,6 +114,16 @@ export default function EquipmentSection({
   // Only what the kit does not already carry: most class kits come with a
   // pack, and a second backpack on top was what blocked the step (issue #111).
   const starterMissing = STARTER_PACK.filter((entry) => !have.has(textKey(entry.name)));
+  const gearShelf = GEAR_SHELF.map((section) => ({
+    ...section,
+    label: t(
+      section.key === "items:weapon"
+        ? "builder.gear.shelf.weapons"
+        : section.key === "items:armor"
+          ? "builder.gear.shelf.armor"
+          : "builder.gear.shelf.gear",
+    ),
+  }));
 
   return (
     <section className="panel rounded-xl p-4">
@@ -200,7 +210,7 @@ export default function EquipmentSection({
               }
             : undefined
         }
-        sections={GEAR_SHELF}
+        sections={gearShelf}
         metaOf={(entry) => entry.rarity || entry.cost || ""}
       />
       {purse.receipt ? (
