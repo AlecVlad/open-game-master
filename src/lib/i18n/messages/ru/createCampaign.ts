@@ -448,4 +448,10 @@ export const ruCreateCampaign: Partial<Record<keyof typeof enCreateCampaign, str
   "createCampaign.summary.voice.proximity": "дальность: {feet} фут.",
   "createCampaign.summary.customRules.variantCount": "Дополнительных правил: {count}",
   "createCampaign.summary.customRules.houseRules": "Домашние правила",
+  "createCampaign.essentials.more.title": "Дополнительные настройки кампании",
+  "createCampaign.essentials.optional": "необязательно",
+  "createCampaign.essentials.group.world": "Мир и сюжет",
+  "createCampaign.essentials.group.character": "Создание персонажей",
+  "createCampaign.essentials.group.prep": "Домашние правила и материалы",
+  "createCampaign.essentials.bringPrep": "Добавить материалы",
 };
