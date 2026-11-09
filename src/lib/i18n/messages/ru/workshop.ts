@@ -486,4 +486,22 @@ export const ruWorkshop: Partial<Record<keyof typeof enWorkshop, string>> & Reco
   "workshop.party.draft.title": "Создать готовых персонажей с помощью ИИ-мастера",
   "workshop.party.draft.check": "Проверяем, может ли ИИ-мастер создавать персонажей...",
 
+  "workshop.bestiary.extraDamage.hint": "Например, урон от дыхания или одного раунда заклинаний в среднем за раунд. Иначе этот урон не учитывается при расчёте опасности.",
+  "workshop.bestiary.save": "Сохранить блок характеристик",
+  "workshop.bestiary.save.hint": "При сохранении показатель опасности будет пересчитан по текущим значениям.",
+  "workshop.bestiary.menu.open": "Открыть",
+  "workshop.bestiary.menu.duplicate": "Создать копию",
+  "workshop.bestiary.menu.delete": "Удалить",
+  "workshop.bestiary.empty.hint": "Начните с показателя опасности или существа из книги правил. Затем добавьте его в сражение или создайте запись мира, чтобы связать монстра с вашим сеттингом. Если кампания импортирует эти материалы, она получит собственную копию.",
+  "workshop.bestiary.field.ac": "КД",
+  "workshop.bestiary.field.dexSave": "ЛОВ",
+  "workshop.bestiary.startBaseline": "Создать с базовыми параметрами",
+  "workshop.bestiary.alignment.unstated": "Не указано",
+  "workshop.bestiary.savesFromScores": "Рассчитать спасброски по характеристикам",
+  "workshop.bestiary.unset": "Не задано; используется значение {value}.",
+  "workshop.bestiary.passiveRule": "Скрывающийся персонаж должен превысить пассивную внимательность. При расчёте сначала учитывается заданное значение, затем бонус навыка и только потом МДР.",
+  "workshop.bestiary.spellListHint": "Список виден мастеру, который управляет монстром. Добавьте средний урон от одного раунда заклинаний в поле дополнительного урона, чтобы учесть его при расчёте опасности.",
+  "workshop.bestiary.traitsFull": "Блок заполнен: максимум {count} строк.",
+  "workshop.bestiary.field.add": "Добавить",
+
 };
