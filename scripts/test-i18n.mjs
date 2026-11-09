@@ -63,6 +63,11 @@ for (const lang of LANGS) {
   }
 }
 
+// The campaign world-identity screens are considered one complete translation unit.
+const identityMessages = Object.keys(DICTIONARIES.en).filter((key) => key.startsWith("createCampaign.identity."));
+const untranslatedIdentityMessages = identityMessages.filter((key) => !(key in DICTIONARIES.ru));
+assert.deepEqual(untranslatedIdentityMessages, [], "campaign identity messages must be translated into Russian");
+
 // Report (not fail on) what Russian still lacks, so progress is visible.
 const missing = Object.keys(DICTIONARIES.en).filter((key) => !(key in DICTIONARIES.ru));
 console.log(`i18n: ${Object.keys(DICTIONARIES.en).length} messages, ${missing.length} not yet in Russian`);
