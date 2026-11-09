@@ -140,6 +140,35 @@ for (const key of narrationMessages) {
 assert.ok("voicePicker.narratorLanguageNote" in DICTIONARIES.en, "English narrator language note missing");
 assert.ok("voicePicker.narratorLanguageNote" in DICTIONARIES.ru, "Russian narrator language note missing");
 
+const sheetRowMessages = [
+  "aiStorySetup.label", "aiStorySetup.hint",
+  "narrationGuard.label", "narrationGuard.hint",
+  "worldSimulation.label", "worldSimulation.hint",
+  "ttsEnabled.label", "ttsEnabled.hint", "ttsEnabled.noService",
+  "mapsEnabled.label", "mapsEnabled.hint", "mapsEnabled.noPainter",
+  "ambienceEnabled.label", "ambienceEnabled.hint",
+  "ambienceAuto.label", "ambienceAuto.hint",
+  "presentation.label", "presentation.hint",
+  "relationships.label", "relationships.hint",
+  "romance.label", "romance.hint",
+  "multiCharacter.off", "multiCharacter.oneActive", "multiCharacter.allActive", "multiCharacter.hint",
+  "midGameJoinOpen.label", "midGameJoinOpen.hint",
+  "holdSubmissions.label", "holdSubmissions.hint",
+  "multiclassingEnabled.label", "multiclassingEnabled.hint",
+  "inventoryApprovals.label", "inventoryApprovals.hint",
+  "vitalsApprovals.label", "vitalsApprovals.hint",
+  "boardDrawing.label", "boardDrawing.hint",
+  "enemyIntent.label", "enemyIntent.hint",
+  "info.livingWorld.label", "info.livingWorld.text",
+  "info.bonds.label", "info.bonds.text",
+  "info.romance.label", "info.romance.text",
+  "info.narrationGuard.label", "info.narrationGuard.text",
+].map((part) => `createCampaign.experience.sheet.${part}`);
+for (const key of sheetRowMessages) {
+  assert.ok(key in DICTIONARIES.en, `English sheet-row message missing: ${key}`);
+  assert.ok(key in DICTIONARIES.ru, `Russian sheet-row message missing: ${key}`);
+}
+
 // Report (not fail on) what Russian still lacks, so progress is visible.
 const missing = Object.keys(DICTIONARIES.en).filter((key) => !(key in DICTIONARIES.ru));
 console.log(`i18n: ${Object.keys(DICTIONARIES.en).length} messages, ${missing.length} not yet in Russian`);
