@@ -1,3 +1,6 @@
+import type { Params } from "@/lib/i18n/core";
+import type { MessageKey } from "@/lib/i18n/messages/index";
+
 // A table break: someone at the table needs a few minutes (a coffee, the
 // door, a child) and the game should wait for them. Unlike the X-card it is
 // not anonymous and not a safety tool: the table is told who paused, play
@@ -34,16 +37,22 @@ export function breakRefusal(tableBreak: Pick<TableBreak, "name">): string {
 }
 
 // "4 min", "1 h 05 min": how long the table has been waiting, for the banner.
-export function breakElapsed(fromMs: number, nowMs: number): string {
+type TableBreakTranslator = (key: MessageKey, params?: Params) => string;
+
+export function breakElapsed(fromMs: number, nowMs: number, translate?: TableBreakTranslator): string {
   const seconds = Math.max(0, Math.floor((nowMs - fromMs) / 1000));
   if (seconds < 60) {
-    return `${seconds} s`;
+    return translate ? translate("campaign.tableBreak.elapsed.seconds", { count: seconds }) : `${seconds} s`;
   }
   const minutes = Math.floor(seconds / 60);
   if (minutes < 60) {
-    return `${minutes} min`;
+    return translate ? translate("campaign.tableBreak.elapsed.minutes", { count: minutes }) : `${minutes} min`;
   }
-  return `${Math.floor(minutes / 60)} h ${String(minutes % 60).padStart(2, "0")} min`;
+  const hours = Math.floor(minutes / 60);
+  const rest = String(minutes % 60).padStart(2, "0");
+  return translate
+    ? translate("campaign.tableBreak.elapsed.hoursMinutes", { hours, minutes: rest })
+    : `${hours} h ${rest} min`;
 }
 
 // The queue's reason for a break. Here, where nothing reads the database, so
