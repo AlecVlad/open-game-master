@@ -561,7 +561,7 @@ export default function AbilityEditor({
                     tone: "",
                     body: (
                       <>
-                        {t("builder.extra.ability.final", { score: <CountPop value={finalScore}>{finalScore}</CountPop>, modifier: formatModifier(abilityMod(finalScore)) })}
+                        {t("builder.extra.ability.finalLabel")} <CountPop value={finalScore}>{finalScore}</CountPop> ({formatModifier(abilityMod(finalScore))})
                       </>
                     ),
                   },
