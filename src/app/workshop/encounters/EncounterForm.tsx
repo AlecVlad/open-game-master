@@ -91,7 +91,7 @@ export function EncounterForm({
       />
       <Field label={t("workshop.encounter.ground")}>
         <Select
-          label="Kind of ground"
+          label={t("workshop.encounter.ground")}
           value={value.scene}
           onChange={(scene) => set({ scene })}
           options={[{ value: "", label: t("workshop.encounter.scene.none") }, ...sceneOptions()]}
@@ -100,7 +100,7 @@ export function EncounterForm({
       <div data-tour="encounters-map">
         <Field label={t("workshop.encounter.map")}>
           <Select
-            label="On which map"
+            label={t("workshop.encounter.map")}
             value={value.mapId}
             onChange={(mapId) => set({ mapId })}
             options={[
