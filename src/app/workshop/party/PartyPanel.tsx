@@ -17,6 +17,7 @@ import { readLoad, readWrite, useLoadStatus } from "@/lib/load-state";
 import { DraftPregensCard } from "@/app/workshop/party/DraftPregens";
 import type { TargetParty } from "@/lib/workshop/kind";
 import { classDisplayName, speciesName } from "@/lib/characters/class-words";
+import { useI18n } from "@/lib/i18n/provider";
 
 // The Party system (docs/workshop-parity-audit.md phase 15): the party a
 // workshop is built for, already declared in the pinned bar above, and the
@@ -72,6 +73,8 @@ export function PartyPanel({
   targetParty: TargetParty;
   onChanged: () => void;
 }) {
+  const { t } = useI18n();
+  const describe = (character: Pick<Pregen, "level" | "race" | "class" | "subclass">) => describePregen(character).replace("Level " + character.level, t("workshop.party.levelDescription", { level: character.level }));
   const [pregens, setPregens] = useState<Pregen[] | null>(null);
   const [library, setLibrary] = useState<LibraryEntry[]>([]);
   const [picked, setPicked] = useState("");
@@ -86,8 +89,8 @@ export function PartyPanel({
   useEffect(() => {
     let cancelled = false;
     Promise.all([
-      readLoad<{ pregens?: Pregen[] }>(fetch(`/api/workshops/${workshopId}/pregens`), "The roster"),
-      readLoad<{ characters?: LibraryEntry[] }>(fetch("/api/characters"), "Your characters"),
+      readLoad<{ pregens?: Pregen[] }>(fetch(`/api/workshops/${workshopId}/pregens`), t("workshop.party.roster.title")),
+      readLoad<{ characters?: LibraryEntry[] }>(fetch("/api/characters"), t("workshop.party.library.title")),
     ]).then(([roster, shelf]) => {
       if (cancelled) {
         return;
@@ -103,7 +106,7 @@ export function PartyPanel({
     return () => {
       cancelled = true;
     };
-  }, [workshopId, version, settle]);
+  }, [workshopId, version, settle, t]);
 
   // POST files a character, DELETE takes it off, PATCH ticks or unticks
   // "Offer to players" (src/lib/db/pregen-offers.ts). All three are safe to
@@ -119,7 +122,7 @@ export function PartyPanel({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(method === "PATCH" ? { characterId, offered } : { characterId }),
         }),
-        "That did not work.",
+        t("workshop.party.requestFailed"),
       );
       if (sent.error !== null) {
         setError(sent.error);
@@ -141,11 +144,9 @@ export function PartyPanel({
 
   return (
     <section className="space-y-4">
-      <SectionHead title="The party this is built for" glyph="system-party" level="h3" className="mb-0" />
+      <SectionHead title={t("workshop.party.title")} glyph="system-party" level="h3" className="mb-0" />
       <p className="text-sm text-stone-400">
-        Built for {targetParty.size} at level {targetParty.level}; every encounter and odds preview
-        budgets against that. The characters below are pregens: sheets ready for anyone who sits
-        down without one. They ride along in the bundle.
+        {t("workshop.party.intro", { size: targetParty.size, level: targetParty.level })}
       </p>
       <p className="text-xs text-stone-400">
         Tick Offer to players and anyone joining a table that starts from this workshop can take
@@ -158,7 +159,7 @@ export function PartyPanel({
         <LoadFailed error={loadError} onRetry={() => setVersion((current) => current + 1)} />
       ) : pregens === null ? (
         <div aria-busy="true">
-          <p className="mb-1.5 text-xs text-stone-500">Reading the roster...</p>
+          <p className="mb-1.5 text-xs text-stone-500">{t("workshop.party.loading.label")}</p>
           <div className="grid gap-2 sm:grid-cols-2">
             <div className="skeleton-block h-20 rounded-xl" />
             <div className="skeleton-block hidden h-20 rounded-xl sm:block" />
@@ -166,7 +167,7 @@ export function PartyPanel({
         </div>
       ) : (
         <>
-        <ListHead head={head} noun={["pregen", "pregens"]} placeholder="Find a pregen" />
+        <ListHead head={head} noun={["pregen", "pregens"]} placeholder={t("workshop.party.find")} />
         <ul className="stagger-up grid gap-2 sm:grid-cols-2" data-tour="party-roster">
           {head.shown.map((character) => {
             const offLevel = character.level !== targetParty.level;
@@ -185,19 +186,19 @@ export function PartyPanel({
                   >
                     {character.name}
                   </Link>
-                  <span className="block text-sm text-stone-400">{describePregen(character)}</span>
+                  <span className="block text-sm text-stone-400">{describe(character)}</span>
                   <span className="mt-1 flex flex-wrap gap-1">
                     {character.role === "companion" ? (
-                      <span className={cn(chip, "border-stone-700 text-stone-400")}>Companion</span>
+                      <span className={cn(chip, "border-stone-700 text-stone-400")}>{t("workshop.party.companion")}</span>
                     ) : null}
                     {character.drafted ? (
                       <span className={cn(chip, "border-sky-800 text-sky-200/90")} data-pregen-drafted={character.id}>
-                        Drafted by the AI GM
+                        {t("workshop.party.drafted")}
                       </span>
                     ) : null}
                     {offLevel ? (
                       <span className={cn(chip, "border-amber-800 text-amber-300/90")}>
-                        Level {character.level}, the party is built for {targetParty.level}
+                        {t("workshop.party.levelMismatch.full", { level: character.level, partyLevel: targetParty.level })}
                       </span>
                     ) : null}
                   </span>
@@ -221,8 +222,8 @@ export function PartyPanel({
                   type="button"
                   disabled={busy}
                   onClick={() => void change("DELETE", character.id)}
-                  title="Take it off the roster. It stays in your library."
-                  aria-label={`Take ${character.name} off the roster`}
+                  title={t("workshop.party.remove.title")}
+                  aria-label={t("workshop.party.remove.aria", { name: character.name })}
                   className={cn(ui.iconAction, rowIcon, "hover:text-red-300 disabled:opacity-50")}
                 >
                   <X className="size-3.5" />
@@ -231,7 +232,7 @@ export function PartyPanel({
             );
           })}
           {pregens.length === 0 ? (
-            <li className="sm:col-span-2"><EmptyState art="board" title="No pregens yet. Let the AI GM draft some, pick one from your library below, or build one and come back." /></li>
+            <li className="sm:col-span-2"><EmptyState art="board" title={t("workshop.party.empty.title")} /></li>
           ) : null}
         </ul>
         </>
@@ -248,18 +249,18 @@ export function PartyPanel({
       />
 
       <div className={cn(ui.card, "space-y-2 p-3")} data-tour="party-add">
-        <SectionHead title="Add to the roster" glyph="tab-characters" className="mb-0" />
+        <SectionHead title={t("workshop.party.add.title")} glyph="tab-characters" className="mb-0" />
         <div className="flex flex-wrap items-center gap-2">
           <span className="w-full min-w-48 sm:w-80">
           <Select
             value={picked}
             onChange={setPicked}
-            label="A character from your library"
-            placeholder="From your library..."
+            label={t("workshop.party.characterLibrary")}
+            placeholder={t("workshop.party.fromLibrary")}
             options={available.map((character) => ({
               value: character.id,
               label: character.name,
-              hint: `${describePregen(character)}${character.workshopId && character.workshopId !== workshopId ? " (in another workshop)" : ""}`,
+              hint: `${describe(character)}${character.workshopId && character.workshopId !== workshopId ? " " + t("workshop.party.otherWorkshop") : ""}`,
               icon: character.class ? faceOf(character) : { kind: "glyph" as const, key: "system-party" },
             }))}
           />
@@ -279,7 +280,7 @@ export function PartyPanel({
           </Link>
         </div>
         {available.length === 0 && library.length > 0 ? (
-          <p className="reveal text-xs text-stone-500">Every character in your library is already on the roster.</p>
+          <p className="reveal text-xs text-stone-500">{t("workshop.party.already")}</p>
         ) : null}
         {error ? <PanelError>{error}</PanelError> : null}
       </div>
