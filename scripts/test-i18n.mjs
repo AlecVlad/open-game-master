@@ -169,6 +169,19 @@ for (const key of sheetRowMessages) {
   assert.ok(key in DICTIONARIES.ru, `Russian sheet-row message missing: ${key}`);
 }
 
+const experienceShellMessages = [
+  "intro", "counter", "narration.title", "narration.note", "atmosphere.title",
+  "safety.title", "more.title", "optional", "ai.title", "bonds.title", "players.title",
+  "board.title", "variants.title", "variants.info", "variants.infoLabel",
+  "multiCharacter.label", "multiCharacter.oneEach", "multiCharacter.severalOne",
+  "multiCharacter.severalAll", "multiCharacter.hint.off", "multiCharacter.hint.oneActive",
+  "multiCharacter.hint.allActive",
+].map((part) => `createCampaign.experience.${part}`);
+for (const key of experienceShellMessages) {
+  assert.ok(key in DICTIONARIES.en, `English experience-step message missing: ${key}`);
+  assert.ok(key in DICTIONARIES.ru, `Russian experience-step message missing: ${key}`);
+}
+
 // Report (not fail on) what Russian still lacks, so progress is visible.
 const missing = Object.keys(DICTIONARIES.en).filter((key) => !(key in DICTIONARIES.ru));
 console.log(`i18n: ${Object.keys(DICTIONARIES.en).length} messages, ${missing.length} not yet in Russian`);
