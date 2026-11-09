@@ -177,6 +177,7 @@ export const enCreateCampaign = {
   "createCampaign.party.wealth.help": "What a new hero starts with; rolled gold is thrown by the server.",
   "createCampaign.party.rolledStats": "Rolled stats",
   "createCampaign.party.stats.server": "Follow the server's reroll rule{detail}",
+  "createCampaign.party.stats.serverDetail": " (rerolls totals under {score})",
   "createCampaign.party.stats.keep": "The first roll stands",
   "createCampaign.party.stats.low": "Reroll a roll totalling under {score}",
   "createCampaign.party.stats.free": "Reroll as often as you like",
