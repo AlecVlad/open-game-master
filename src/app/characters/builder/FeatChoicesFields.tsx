@@ -183,7 +183,19 @@ export default function FeatChoicesFields({
   const spellSlots = (kind: "cantrips" | "spells", count: number, level: number) =>
     Array.from({ length: count }, (_, index) => {
       const chosen = spellPicks[kind][index] ?? "";
-      const label = `${feat} ${kind === "cantrips" ? (taught.attackCantrip ? "attack cantrip" : "cantrip") : `${level === 1 ? "1st" : `${level}th`}-level ${taught.schools.length ? `${taught.schools.join(" or ")} ` : ""}${taught.ritualBook ? "ritual " : ""}spell`} ${index + 1}`;
+      const label = kind === "cantrips"
+        ? t("builder.feat.choice.spellSlot.cantrip", {
+            feat,
+            kind: t(taught.attackCantrip ? "builder.feat.choice.spellSlot.attackCantrip" : "builder.feat.choice.spellSlot.cantripWord"),
+            index: index + 1,
+          })
+        : t("builder.feat.choice.spellSlot.spell", {
+            feat,
+            level: t(level === 1 ? "builder.feat.choice.spellSlot.ordinal.one" : "builder.feat.choice.spellSlot.ordinal.other", { level }),
+            schools: taught.schools.length ? taught.schools.join(t("builder.feat.choice.spellSlot.schoolJoin")) + " " : "",
+            ritual: taught.ritualBook ? t("builder.feat.choice.spellSlot.ritual") : "",
+            index: index + 1,
+          });
       return (
         <div key={`${kind}-${index}`} data-feat-spell={`${feat}:${kind}:${index + 1}`}>
           <span className="mb-1 block text-sm text-stone-400">{label}</span>
