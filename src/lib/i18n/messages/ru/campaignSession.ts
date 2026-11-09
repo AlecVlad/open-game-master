@@ -61,6 +61,8 @@ export const ruCampaignSession: Partial<Record<keyof typeof enCampaignSession, s
   "campaign.tableBreak.title.other": "Пауза: {name}",
   "campaign.tableBreak.action.resume": "Продолжить игру",
   "campaign.tableBreak.status": "Пауза длится {elapsed}. Сюжет и озвучка ждут; общение вне игры (OOC) продолжается.",
+  "campaign.tableBreak.status.prefix": "Пауза длится",
+  "campaign.tableBreak.status.suffix": ". Сюжет и озвучка ждут; общение вне игры (OOC) продолжается."
   "campaign.tableBreak.elapsed.seconds": "{count} с",
   "campaign.tableBreak.elapsed.minutes": "{count} мин",
   "campaign.tableBreak.elapsed.hoursMinutes": "{hours} ч {minutes} мин",
