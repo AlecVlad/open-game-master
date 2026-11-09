@@ -541,14 +541,11 @@ export function HomebrewPanel({
 type Carried = { characters: number; entries: number; prep: number };
 
 // What a rename was carried to, in one line, or nothing when it moved none.
-function carriedNotice(carried: Carried | undefined): string {
-  if (!carried || !(carried.characters || carried.entries || carried.prep)) {
-    return "";
-  }
-  const parts = [
-    carried.characters ? `${carried.characters} character${carried.characters === 1 ? "" : "s"}` : "",
-    carried.entries ? `${carried.entries} other entr${carried.entries === 1 ? "y" : "ies"} of yours` : "",
-    carried.prep ? `${carried.prep} NPC${carried.prep === 1 ? "" : "s"}, fight${carried.prep === 1 ? "" : "s"}, table${carried.prep === 1 ? "" : "s"} or shop${carried.prep === 1 ? "" : "s"}` : "",
-  ].filter(Boolean);
-  return `Renamed everywhere it was used: ${parts.join(", ")} now name it by its new name.`;
+function carriedNotice(carried: Carried | undefined, t: ReturnType<typeof useI18n>["t"]): string {
+  if (!carried || !(carried.characters || carried.entries || carried.prep)) return "";
+  return t("workshop.homebrew.carried", {
+    characters: carried.characters ?? 0,
+    entries: carried.entries ?? 0,
+    prep: carried.prep ?? 0,
+  });
 }
