@@ -122,7 +122,7 @@ export function NarrationFailureBanner({
             {busy ? t("campaign.narrationFailure.action.trying") : t("campaign.narrationFailure.action.retry")}
           </button>
           <button type="button" className={bannerButtonClass()} onClick={() => setDismissed(failedId)}>
-            Dismiss
+            {t("campaign.narrationFailure.action.dismiss")}
           </button>
         </>
       }
