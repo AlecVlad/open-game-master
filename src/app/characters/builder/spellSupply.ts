@@ -146,7 +146,9 @@ export function spellShortageLines(input: {
       const haveText = have === 0
         ? translate("builder.spells.shortage.have.none")
         : translate(have === 1 ? "builder.spells.shortage.have.one" : "builder.spells.shortage.have.many", { count: have });
-      const spellText = translate(have === 1 ? "builder.spells.shortage.spell.one" : "builder.spells.shortage.spell.other");
+      const kind = one === "cantrip" ? "cantrip" : "spell";
+      const plural = have === 0 ? "zero" : new Intl.PluralRules("ru").select(have);
+      const spellText = translate(`builder.spells.shortage.kind.${kind}.${plural}` as MessageKey);
       const take = have === 0
         ? ""
         : translate(have === 1 ? "builder.spells.shortage.take.one" : "builder.spells.shortage.take.many", { count: have });
