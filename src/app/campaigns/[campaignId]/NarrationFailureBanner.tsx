@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { SessionBanner, bannerButtonClass } from "@/app/campaigns/[campaignId]/SessionBanner";
 import { appNotice } from "@/components/ui/ConfirmDialog";
 import type { NarrationAudio } from "@/app/campaigns/[campaignId]/useNarrationAudio";
@@ -20,6 +21,7 @@ export function useNarrationStatus(
   narration: Pick<NarrationAudio, "muted" | "playbackFailure">,
   status: Record<string, NarrationStatus>,
 ): Record<string, NarrationStatus> | undefined {
+  const { t } = useI18n();
   const { muted, playbackFailure } = narration;
   return useMemo(() => {
     if (muted) {
@@ -28,10 +30,10 @@ export function useNarrationStatus(
     return playbackFailure
       ? {
           ...status,
-          [playbackFailure]: { state: "failed" as const, reason: "The audio was made, but this device could not play it." },
+          [playbackFailure]: { state: "failed" as const, reason: t("campaign.narrationFailure.audioUnavailable") },
         }
       : status;
-  }, [muted, playbackFailure, status]);
+  }, [muted, playbackFailure, status, t]);
 }
 
 // Plays the stored narration, rendering it first when this passage has never
@@ -41,6 +43,7 @@ export function useNarrationReplay(
   narration: Pick<NarrationAudio, "unlock" | "play">,
   known: Record<string, string>,
 ) {
+  const { t } = useI18n();
   const { unlock, play } = narration;
   return useCallback(
     async (messageId: string): Promise<string | null> => {
@@ -58,13 +61,13 @@ export function useNarrationReplay(
       const response = await fetch(`/api/campaigns/${campaignId}/messages/${messageId}/narrate`, { method: "POST" });
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        return data.error || "Could not read that passage aloud.";
+        return data.error || t("campaign.narrationFailure.error.render");
       }
       const data = await response.json();
       play(messageId, data.url);
       return null;
     },
-    [campaignId, unlock, play, known],
+    [campaignId, unlock, play, known, t],
   );
 }
 
@@ -78,6 +81,7 @@ export function NarrationFailureBanner({
   status: Record<string, NarrationStatus> | undefined;
   onRetry: (messageId: string) => Promise<string | null>;
 }) {
+  const { t } = useI18n();
   const [dismissed, setDismissed] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const failedId = useMemo(() => {
@@ -98,7 +102,7 @@ export function NarrationFailureBanner({
     <SessionBanner
       glyph="cue-horn"
       tone="quiet"
-      title="Not read aloud"
+      title={t("campaign.narrationFailure.title")}
       actions={
         <>
           <button
@@ -115,16 +119,16 @@ export function NarrationFailureBanner({
               }
             }}
           >
-            {busy ? "Trying…" : "Try again"}
+            {busy ? t("campaign.narrationFailure.action.trying") : t("campaign.narrationFailure.action.retry")}
           </button>
           <button type="button" className={bannerButtonClass()} onClick={() => setDismissed(failedId)}>
-            Dismiss
+            {t("campaign.narrationFailure.action.dismiss")}
           </button>
         </>
       }
     >
       <span role="status" className="block">
-        {status[failedId].reason || "The speech server did not return any audio."}
+        {status[failedId].reason || t("campaign.narrationFailure.serverSilent")}
       </span>
     </SessionBanner>
   );

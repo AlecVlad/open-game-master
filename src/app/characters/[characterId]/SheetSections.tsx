@@ -19,6 +19,8 @@ import type { CreateSheetInput } from "@/lib/schemas/sheet";
 import { computeSheetDerived, formatModifier, speedFor, type DerivedPart } from "@/lib/srd";
 import { formatPrice, purseCopper } from "@/lib/srd/currency";
 import { ui } from "@/lib/ui";
+import { useI18n } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages";
 
 export type CharacterEvent = {
   id: string;
@@ -28,13 +30,13 @@ export type CharacterEvent = {
   createdAt: string;
 };
 
-const KIND_LABELS: Record<string, string> = {
-  achievement: "Achievement",
-  item: "Treasure",
-  relationship: "Bond",
-  death: "Death",
-  level_up: "Level up",
-  story: "Story",
+const KIND_LABELS: Record<string, MessageKey> = {
+  achievement: "charSheet.kind.achievement",
+  item: "charSheet.kind.item",
+  relationship: "charSheet.kind.relationship",
+  death: "charSheet.kind.death",
+  level_up: "charSheet.kind.level_up",
+  story: "charSheet.kind.story",
 };
 
 // A titled block of the read-only sheet: Ribbon rule, then whatever the
@@ -61,6 +63,7 @@ function SheetPanel({
 // spells, equipment, features, feats, backstory. Read-only; editing happens
 // through the builder in a campaign lobby.
 export function SheetSections({ sheet, level = 1 }: { sheet: CreateSheetInput; level?: number }) {
+  const { t } = useI18n();
   // The same working the session sheet shows, from the same function, so a
   // library character reads its saves and skills before it ever sits down.
   const derived = computeSheetDerived({
@@ -76,7 +79,7 @@ export function SheetSections({ sheet, level = 1 }: { sheet: CreateSheetInput; l
   const explain = (parts: DerivedPart[]) => parts.map((part) => `${formatModifier(part.value)} ${part.label}`).join(", ");
   return (
     <div className="space-y-4">
-      <SheetPanel title="Abilities" className="ornate">
+      <SheetPanel title={t("charSheet.abilities")} className="ornate">
         <AbilityTiles
           abilities={sheet.abilities}
           mods={derived.abilityMods}
@@ -87,39 +90,39 @@ export function SheetSections({ sheet, level = 1 }: { sheet: CreateSheetInput; l
         <div className="mt-3">
           <VitalTiles
             vitals={[
-              { glyph: "rest-hp", label: <GameTerm id="hit_points">Hit points</GameTerm>, value: sheet.maxHp },
-              { glyph: "rest-ac", label: <GameTerm id="armor_class">Armor class</GameTerm>, value: sheet.ac },
+              { glyph: "rest-hp", label: <GameTerm id="hit_points">{t("charSheet.hp")}</GameTerm>, value: sheet.maxHp },
+              { glyph: "rest-ac", label: <GameTerm id="armor_class">{t("charSheet.ac")}</GameTerm>, value: sheet.ac },
               // The speed the engine moves them at: armor and features
               // (speedFor), not the raw base on the sheet.
               {
                 glyph: "rest-speed",
-                label: "Speed",
-                value: `${speedFor(sheet)} ft`,
-                title: speedFor(sheet) === sheet.speed ? "Their walking speed." : `Base ${sheet.speed} ft, changed by what they wear and their features.`,
+                label: t("charSheet.speed"),
+                value: t("charSheet.ft", { n: speedFor(sheet) }),
+                title: speedFor(sheet) === sheet.speed ? t("charSheet.speed.walk") : t("charSheet.speed.base", { base: sheet.speed }),
               },
-              { glyph: "coin-gp", label: "Coin", value: formatPrice(purseCopper(sheet)) },
+              { glyph: "coin-gp", label: t("charSheet.coin"), value: formatPrice(purseCopper(sheet)) },
               {
                 glyph: "rest-initiative",
-                label: <GameTerm id="initiative">Initiative</GameTerm>,
+                label: <GameTerm id="initiative">{t("charSheet.init")}</GameTerm>,
                 value: formatModifier(derived.initiative),
                 title: explain(derived.parts.initiative),
               },
               {
                 glyph: "sense-passive-perception",
-                label: <GameTerm id="passive_perception">Passive perception</GameTerm>,
+                label: <GameTerm id="passive_perception">{t("charSheet.pp")}</GameTerm>,
                 value: derived.passivePerception,
                 title: explain(derived.parts.passivePerception),
               },
-              { glyph: "rest-proficiency", label: "Proficiency", value: formatModifier(derived.proficiencyBonus) },
+              { glyph: "rest-proficiency", label: t("charSheet.prof"), value: formatModifier(derived.proficiencyBonus) },
               ...(derived.spellSaveDc
-                ? [{ glyph: "rest-spell-slot", label: "Spell save DC", value: derived.spellSaveDc, title: explain(derived.parts.spellSaveDc) }]
+                ? [{ glyph: "rest-spell-slot", label: t("charSheet.dc"), value: derived.spellSaveDc, title: explain(derived.parts.spellSaveDc) }]
                 : []),
             ]}
           />
         </div>
       </SheetPanel>
 
-      <SheetPanel title={<GameTerm id="skill">Skills</GameTerm>}>
+      <SheetPanel title={<GameTerm id="skill">{t("charSheet.skills")}</GameTerm>}>
         <SkillRows
           skills={derived.skills}
           proficient={sheet.proficiencies.skills}
@@ -127,36 +130,36 @@ export function SheetSections({ sheet, level = 1 }: { sheet: CreateSheetInput; l
         />
       </SheetPanel>
 
-      <SheetPanel title="Languages and training">
+      <SheetPanel title={t("charSheet.training")}>
         <TrainingLines proficiencies={sheet.proficiencies} />
       </SheetPanel>
 
       {sheet.spellcasting || speciesSpellsShown({ ...sheet, level }).length ? (
-        <SheetPanel title="Spells">
+        <SheetPanel title={t("charSheet.spells")}>
           <SheetSpells sheet={{ ...sheet, level }} />
         </SheetPanel>
       ) : null}
 
       {sheet.equipment.length ? (
-        <SheetPanel title="Equipment">
+        <SheetPanel title={t("charSheet.equip")}>
           <EquipmentChips equipment={sheet.equipment} />
         </SheetPanel>
       ) : null}
 
       {sheet.features?.length ? (
-        <SheetPanel title="Features and traits">
+        <SheetPanel title={t("charSheet.features")}>
           <FeatureChips features={sheet.features} classId={sheet.class} subclass={sheet.subclass} />
         </SheetPanel>
       ) : null}
 
       {sheet.feats.length ? (
-        <SheetPanel title="Feats">
+        <SheetPanel title={t("charSheet.feats")}>
           <FeatChips feats={sheet.feats} classId={sheet.class} subclass={sheet.subclass} />
         </SheetPanel>
       ) : null}
 
       {sheet.backstory ? (
-        <SheetPanel title="Backstory">
+        <SheetPanel title={t("charSheet.backstory")}>
           <p className="whitespace-pre-wrap font-serif text-sm leading-relaxed text-stone-300">
             {sheet.backstory}
           </p>
@@ -166,7 +169,7 @@ export function SheetSections({ sheet, level = 1 }: { sheet: CreateSheetInput; l
       {/* What each new table starts from; a table's own copy is changed on
           the sheet in play and stays at that table. */}
       {sheet.hopes ? (
-        <SheetPanel title="Hopes for the story">
+        <SheetPanel title={t("charSheet.hopes")}>
           <p className="whitespace-pre-wrap font-serif text-sm leading-relaxed text-stone-300">{sheet.hopes}</p>
         </SheetPanel>
       ) : null}
@@ -177,16 +180,17 @@ export function SheetSections({ sheet, level = 1 }: { sheet: CreateSheetInput; l
 // Milestones the campaigns recorded for this character, newest first as the
 // API returns them, drawn as a timeline down a gold hairline.
 export function StorySoFar({ events }: { events: CharacterEvent[] }) {
+  const { t } = useI18n();
   return (
     <SheetPanel
       title={
         <span className="inline-flex items-center gap-1.5">
-          <BookOpen className="size-3" aria-hidden="true" /> Story so far
+          <BookOpen className="size-3" aria-hidden="true" /> {t("charSheet.story")}
         </span>
       }
     >
       {events.length === 0 ? (
-        <EmptyState size="md" art="scrolls" title="Nothing recorded yet. Milestones from campaigns land here: victories, treasures, bonds, and worse." />
+        <EmptyState size="md" art="scrolls" title={t("charSheet.empty")} />
       ) : (
         <ol className="stagger relative ml-2 space-y-3 border-l border-amber-400/20 pl-5">
           {events.map((event) => (
@@ -197,7 +201,7 @@ export function StorySoFar({ events }: { events: CharacterEvent[] }) {
               />
               <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
                 <span className="eyebrow rounded-sm border border-amber-400/30 bg-amber-400/10 px-1.5 py-0.5 text-[9px] leading-none text-amber-300">
-                  {KIND_LABELS[event.kind] ?? event.kind}
+                  {KIND_LABELS[event.kind] ? t(KIND_LABELS[event.kind]) : event.kind}
                 </span>
                 <span className="text-xs text-stone-500">
                   {new Date(event.createdAt).toLocaleDateString()}

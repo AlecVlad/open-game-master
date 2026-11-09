@@ -2,6 +2,7 @@
 
 import { Search, Star } from "lucide-react";
 import { useEffect, useId, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { GameIcon } from "@/components/ui/GameIcon";
 import { Select } from "@/components/ui/Select";
 import { Switch } from "@/components/ui/Switch";
@@ -84,7 +85,7 @@ export function OptionCardGrid({
   onChoose: (id: string) => void;
   onDetails: (id: string) => void;
   // "lineage" or "class", for the search box and the empty line.
-  noun: string;
+  noun: "lineage" | "class";
   compact?: boolean;
   // The filters offered above the grid; none, no bar.
   facets?: CardFacet[];
@@ -92,6 +93,7 @@ export function OptionCardGrid({
   // them, which today is the class cards' hit die.
   numbersSwitch?: boolean;
 }) {
+  const { t } = useI18n();
   const gridId = useId();
   const searchRef = useRef<HTMLInputElement>(null);
   const numbers = useShowNumbers();
@@ -190,25 +192,25 @@ export function OptionCardGrid({
               onChoose(lone.id);
             }
           }}
-          placeholder={`Search ${total} ${noun === "class" ? "classes" : `${noun}s`}`}
-          aria-label={`Search ${noun === "class" ? "classes" : `${noun}s`}`}
+          placeholder={t(noun === "class" ? "builder.extra.grid.search.class" : "builder.extra.grid.search.lineage", { count: total })}
+          aria-label={t(noun === "class" ? "builder.extra.grid.search.class" : "builder.extra.grid.search.lineage", { count: total })}
           aria-describedby={`${gridId}-search-hint`}
           enterKeyHint={lone ? "done" : "search"}
           className={cn(ui.input, "pl-8")}
         />
         <span id={`${gridId}-search-hint`} className="sr-only" aria-live="polite">
           {lone
-            ? `One match, ${lone.name}. Press Enter to choose it.`
+            ? t("builder.extra.grid.oneMatch", { name: lone.name })
             : query.trim()
-              ? `${shownCount} ${noun === "class" ? (shownCount === 1 ? "class" : "classes") : `${noun}${shownCount === 1 ? "" : "s"}`} match.`
-              : "Searches names, roles and the other words on each card. Tab on to the cards and move between them with the arrow keys."}
+              ? t(noun === "class" ? (shownCount === 1 ? "builder.extra.grid.match.one.class" : "builder.extra.grid.match.other.class") : (shownCount === 1 ? "builder.extra.grid.match.one.lineage" : "builder.extra.grid.match.other.lineage"), { count: shownCount })
+              : t("builder.extra.grid.searchHint")}
         </span>
       </label>
 
       {facets.length ? (
         // A suggestion of the filters a player reaches for; each step
         // decides which it offers.
-        <div className="mb-3 flex flex-wrap items-center gap-2" role="group" aria-label={`Filter ${noun === "class" ? "classes" : `${noun}s`}`}>
+        <div className="mb-3 flex flex-wrap items-center gap-2" role="group" aria-label={t(noun === "class" ? "builder.extra.grid.filter.class" : "builder.extra.grid.filter.lineage")}>
           {facets.map((facet) => (
             // Two to a line on a phone, side by side on a wider screen: the
             // select fills whatever box holds it.
@@ -218,17 +220,17 @@ export function OptionCardGrid({
               label={facet.label}
               value={picks[facet.key] ?? ANY}
               onChange={(next) => setPicks((current) => ({ ...current, [facet.key]: next }))}
-              options={[{ value: ANY, label: `${facet.label}: any` }, ...facet.options.map((option) => ({ value: option.value, label: `${facet.label}: ${option.label}` }))]}
+              options={[{ value: ANY, label: t("builder.extra.grid.facet.any", { label: facet.label }) }, ...facet.options.map((option) => ({ value: option.value, label: `${facet.label}: ${option.label}` }))]}
             />
             </div>
           ))}
           {filtering ? (
             <>
               <span className="text-xs text-stone-400" aria-live="polite">
-                {shownCount} of {total}
+                {t("builder.extra.grid.countOf", { shown: shownCount, total })}
               </span>
               <button type="button" onClick={() => setPicks({})} className={ui.btnSmall}>
-                Clear filters
+                {t("builder.extra.grid.clearFilters")}
               </button>
             </>
           ) : null}
@@ -241,17 +243,17 @@ export function OptionCardGrid({
           (numbersPref.ts). */}
       {numbersSwitch ? (
         <label className="mb-3 flex min-h-10 w-fit cursor-pointer items-center gap-3 text-stone-300">
-          <Switch label="Show rules and numbers" on={numbers} onChange={writeNumbers} />
+          <Switch label={t("builder.extra.grid.showNumbers")} on={numbers} onChange={writeNumbers} />
           <span>
-            Show rules and numbers
-            <span className="block text-stone-400">Adds the hit die after HP, as in &ldquo;High HP, d10&rdquo;.</span>
+            {t("builder.extra.grid.showNumbers")}
+            <span className="block text-stone-400">{t("builder.extra.grid.numbersHint")}</span>
           </span>
         </label>
       ) : null}
 
       {shown.length ? null : (
         <p className="py-6 text-center text-xs text-stone-500">
-          No {noun} matches that. Clear the {filtering ? "filters" : "search"} to see all {total}.
+{t(noun === "class" ? "builder.extra.grid.noMatches.class" : "builder.extra.grid.noMatches.lineage", { filter: filtering ? t("builder.extra.grid.filter") : t("builder.extra.grid.search"), total })}
         </p>
       )}
 
@@ -293,7 +295,7 @@ export function OptionCardGrid({
                       aria-pressed={chosen}
                       tabIndex={roving.tabIndex(option.id)}
                       data-roving-item={option.id}
-                      aria-label={`${option.name}${group.recommended ? ", fits this setting" : ""}`}
+                      aria-label={`${option.name}${group.recommended ? t("builder.extra.grid.cardFits") : ""}`}
                       aria-describedby={
                         [option.tagline ? `${descId}-tag` : "", option.chips.length ? `${descId}-chips` : ""]
                           .filter(Boolean)
@@ -322,7 +324,7 @@ export function OptionCardGrid({
                             </span>
                           ))}
                         </span>
-                        <span className="creator-cta">{chosen ? "Chosen" : "Choose"}</span>
+                        <span className="creator-cta">{chosen ? t("builder.extra.grid.chosen") : t("builder.extra.grid.choose")}</span>
                       </span>
                     </button>
                     {group.recommended ? (
@@ -330,7 +332,7 @@ export function OptionCardGrid({
                       // said on the card itself where it applies.
                       <span className="creator-recommended">
                         <Star className="size-2.5 fill-current" aria-hidden="true" />
-                        Fits setting
+                        {t("builder.extra.grid.fitsSetting")}
                       </span>
                     ) : null}
                     <button
@@ -338,13 +340,13 @@ export function OptionCardGrid({
                       onClick={() => onDetails(option.id)}
                       // "About", since "Character details" is the panel
                       // beside the steps; the face stays a bare "?".
-                      aria-label={`About ${option.name}`}
+                      aria-label={t("builder.extra.grid.about", { name: option.name })}
                       tabIndex={roving.tabIndex(option.id)}
                       className="creator-help"
                     >
                       <span>?</span>
                     </button>
-                    {chosen ? <span className="creator-selected">✓ Selected</span> : null}
+                    {chosen ? <span className="creator-selected">✓ {t("builder.extra.grid.selected")}</span> : null}
                   </div>
                 );
               })}
@@ -355,7 +357,7 @@ export function OptionCardGrid({
       {folds && !searching ? (
         <div className="mt-2 flex justify-center">
           <button type="button" onClick={() => setExpanded((current) => !current)} className={ui.btnSmall} aria-expanded={expanded}>
-            {expanded ? "Show fewer" : `Show all ${total} (${hidden} more)`}
+            {expanded ? t("builder.extra.grid.showFewer") : t("builder.extra.grid.showAll", { total, hidden })}
           </button>
         </div>
       ) : null}

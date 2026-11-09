@@ -28,6 +28,8 @@ import { fillClassSkills, type PlaystyleId } from "../playstyles";
 import FeatChoicesFields, { knownTraining } from "../FeatChoicesFields";
 import { Field, PickForMe, PickPill, StepPanel, inputClass } from "./shared";
 import { featChoice } from "@/lib/schemas/sheet";
+import { useI18n } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages";
 
 // Step 1 (backlog F4: how you want to play comes first): the setting's
 // notices, then the class (the playstyle question and "Help me build" over
@@ -102,6 +104,7 @@ export function CallingStep({
   // multiclassing setting, always true in the library.
   multiclassAllowed?: boolean;
 }) {
+  const { t } = useI18n();
   const { subclass } = state;
   const { effectiveLevel } = derived;
   // The first class's own levels and features: a class taken after it
@@ -182,30 +185,30 @@ export function CallingStep({
     return [
       {
         key: "role",
-        label: "Role",
+        label: t("builder.call.facet.role"),
         options: CLASS_ROLES.filter((role) => ids.some((id) => readings.get(id)?.roles.includes(role))).map((role) => ({ value: role, label: role })),
         test: (id, role) => Boolean(readings.get(id)?.roles.includes(role as ClassRole)),
       },
       {
         key: "magic",
-        label: "Magic",
-        options: ["None", "Half caster", "Full caster"].filter((kind) => ids.some((id) => magicOf(id) === kind)).map((kind) => ({ value: kind, label: kind })),
+        label: t("builder.call.facet.magic"),
+        options: ["None", "Half caster", "Full caster"].filter((kind) => ids.some((id) => magicOf(id) === kind)).map((kind) => ({ value: kind, label: t(`builder.call.magic.${kind}` as MessageKey) })),
         test: (id, kind) => magicOf(id) === kind,
       },
       {
         key: "plays",
-        label: "Plays like",
+        label: t("builder.call.facet.plays"),
         options: ["Fighter", "Wizard", "Cleric", "Rogue"].map((core) => ({ value: core, label: core })),
         test: (id, core) => Boolean(readings.get(id)?.playsLike.includes(core)),
       },
       {
         key: "book",
-        label: "Book",
-        options: present(ids.map(bookOf)),
+        label: t("builder.call.facet.book"),
+        options: present(ids.map(bookOf)).map((option) => ({ ...option, label: option.value === "Core rules" ? t("builder.call.core") : option.label })),
         test: (id, book) => bookOf(id) === book,
       },
     ];
-  }, [classes, readings]);
+  }, [classes, readings, t]);
   const details = detailsFor
     ? classGroups.flatMap((group) => group.options).find((option) => option.id === detailsFor)
     : undefined;
@@ -213,7 +216,7 @@ export function CallingStep({
   return (
     <div className="space-y-4">
       {notices}
-      <StepPanel title="Choose a class" ornate anchor="class">
+      <StepPanel title={t("builder.call.choose")} ornate anchor="class">
         {/* A plain-language way in, above the full catalog it points into.
             "Easy to learn" there and the setting's star in the grid mean
             different things: one is about play, the other about the world. */}
@@ -233,20 +236,20 @@ export function CallingStep({
           onHelpMeBuild={playstyle?.onHelpMeBuild}
         />
         {genderField}
-        <Field label="Class" className="mt-4">
+        <Field label={t("builder.call.class")} className="mt-4">
           {klass ? (
             <span className="mb-3 flex flex-wrap items-center gap-x-1 text-xs text-stone-500">
               <span className="text-amber-200">{klass.name}:</span>{" "}
               {/* In words first (backlog F11); the die joins them with "Show rules and numbers" on. */}
               <GameTerm id="hit_dice">{hitDieChip(klass.hitDie, numbers)}</GameTerm> ·{" "}
-              <GameTerm id="saving_throw">saves</GameTerm>{" "}
+              <GameTerm id="saving_throw">{t("builder.call.saves")}</GameTerm>{" "}
               {klass.saves.map(abilityName).join(", ")}
               {klass.spellAbility ? (
                 <>
                   {" · "}
                   <GameTerm id={klass.spellAbility}>{abilityName(klass.spellAbility)}</GameTerm>{" "}
-                  caster
-                  {klass.castingLabel ? ` (spells flavored as ${klass.castingLabel})` : ""}
+                  {t("builder.call.caster")}
+                  {klass.castingLabel ? ` ${t("builder.call.flavored", { x: klass.castingLabel })}` : ""}
                 </>
               ) : null}
               <InfoButton
@@ -282,7 +285,7 @@ export function CallingStep({
                     meta: details.meta,
                     saves: classes.find((candidate) => candidate.id === details.id)?.saves,
                     reading: readings.get(details.id),
-                  }).join(" · ")
+                  }, t).join(" · ")
                 : undefined
             }
             text={details?.infoText}
@@ -291,11 +294,11 @@ export function CallingStep({
         </Field>
         {levelField}
         {offersSubclass ? (
-          <Field label="Subclass" className="mt-3" anchor="subclass">
+          <Field label={t("builder.call.subclass")} className="mt-3" anchor="subclass">
             <OptionPicker
               value={subclass}
               groups={subclassGroups}
-              placeholder="None yet"
+              placeholder={t("builder.call.none")}
               className={inputClass}
               onChange={state.changeSubclass}
             />
@@ -304,7 +307,7 @@ export function CallingStep({
                 <>
                   <span className="grow">
                     {firstSentence(chosenArchetype?.desc || subclassBlurb(klass?.id ?? "", subclass)) ??
-                      "A specialization within your class."}
+                      t("builder.call.spec")}
                   </span>
                   <InfoButton
                     label={subclass}
@@ -317,12 +320,10 @@ export function CallingStep({
               ) : (
                 <>
                   <span className="grow">
-                    <span className="text-amber-300">Still to choose. </span>
-                    Your <GameTerm id="subclass">subclass</GameTerm> is the biggest choice about how
-                    this character plays. Tap the info icon next to any option to read what it does
-                    before choosing.
+                    <span className="text-amber-300">{t("builder.call.still")}</span>
+                    {t("builder.call.sub.pre")}<GameTerm id="subclass">{t("builder.call.sub.term")}</GameTerm>{t("builder.call.sub.post")}
                   </span>
-                  {onPickForMe ? <PickForMe what="a subclass" onPick={() => onPickForMe("subclass")} /> : null}
+                  {onPickForMe ? <PickForMe what={t("builder.call.sub.what")} onPick={() => onPickForMe("subclass")} /> : null}
                 </>
               )}
             </span>
@@ -345,12 +346,14 @@ export function CallingStep({
         ) : subclassLockedAt !== null && klass ? (
           // Below the class's subclass level the menu stays shut and says
           // when the choice comes, instead of listing picks that vanished.
-          <Field label="Subclass" className="mt-3">
+          <Field label={t("builder.call.subclass")} className="mt-3">
             <p className="rounded-lg border border-dashed border-stone-700/70 bg-stone-950/40 px-3 py-2 text-xs text-stone-400">
-              A {klass.name.toLowerCase()} chooses a <GameTerm id="subclass">subclass</GameTerm> at level{" "}
-              {subclassLockedAt}; there is nothing to pick at {derived.multiclass ? `${klass.name.toLowerCase()} level` : "level"}{" "}
-              {primaryLevel}. The choice comes with that level-up, and subclasses made in the Workshop wait for that
-              level too.
+              {t("builder.call.lock.pre", { klass: klass.name.toLowerCase() })}<GameTerm id="subclass">{t("builder.call.sub.term")}</GameTerm>
+              {t("builder.call.lock.post", {
+                n: subclassLockedAt,
+                at: derived.multiclass ? t("builder.call.at.klass", { klass: klass.name.toLowerCase() }) : t("builder.call.at.plain"),
+                m: primaryLevel,
+              })}
             </p>
             {subclassNote}
           </Field>
@@ -373,10 +376,10 @@ export function CallingStep({
         <StepPanel
           title={
             derived.multiclass
-              ? `What your ${klass?.name.toLowerCase() ?? "class"} gains by its level ${primaryLevel}`
-              : `What you gain at level ${effectiveLevel}`
+              ? t("builder.call.gain.multi", { klass: klass?.name.toLowerCase() ?? t("builder.call.noun.class"), n: primaryLevel })
+              : t("builder.call.gain", { n: effectiveLevel })
           }
-          help="Tap any name to read what it does. Racial traits and background perks are added on top when the character is saved."
+          help={t("builder.call.gain.help")}
         >
           <div className="flex flex-wrap gap-x-3 gap-y-1">
             {grantedFeatures.map((feature) => (
@@ -387,7 +390,7 @@ export function CallingStep({
                 {displayName(pack, "features", feature.name)}
                 <InfoButton
                   label={feature.name}
-                  meta={feature.level ? `Level ${feature.level}` : undefined}
+                  meta={feature.level ? t("builder.call.level", { n: feature.level }) : undefined}
                   text={klass ? describeFeature(klass.id, subclass, feature.name) : null}
                 />
               </span>
@@ -399,12 +402,12 @@ export function CallingStep({
       {klass ? (
         <StepPanel
           anchor="classSkills"
-          title={`Class skills (pick ${klass.skillChoices.count})`}
+          title={t("builder.call.skills", { n: klass.skillChoices.count })}
           help={
             <>
               {klass.skillChoices.count - state.chosenSkills.length > 0 ? (
                 <span className="text-amber-300">
-                  {klass.skillChoices.count - state.chosenSkills.length} still to choose.{" "}
+                  {t("builder.call.left", { n: klass.skillChoices.count - state.chosenSkills.length })}
                   <button
                     type="button"
                     onClick={() => {
@@ -421,20 +424,19 @@ export function CallingStep({
                     className="underline-offset-2 hover:underline"
                     data-suggest-skills
                   >
-                    Suggest the rest
+                    {t("builder.call.suggest")}
                   </button>{" "}
                 </span>
               ) : suggested?.length && suggested.every((id) => state.chosenSkills.includes(id)) ? (
                 <span key={suggested.join()} className="reveal block text-amber-200/90">
-                  Suggested for a {klass.name.toLowerCase()}:{" "}
-                  {suggested.map((id) => SRD_SKILLS.find((entry) => entry.id === id)?.name ?? id).join(", ")}. Tap any to
-                  change it.{" "}
+                  {t("builder.call.suggested", {
+                    klass: klass.name.toLowerCase(),
+                    names: suggested.map((id) => SRD_SKILLS.find((entry) => entry.id === id)?.name ?? id).join(", "),
+                  })}{" "}
                 </span>
               ) : null}
-              A <GameTerm id="skill">skill</GameTerm> you are proficient in adds your{" "}
-              <GameTerm id="proficiency_bonus">proficiency bonus</GameTerm> to rolls that use
-              it. Tap any ⓘ to see which ability a skill leans on. A greyed skill is already yours
-              from your race or background, so a class pick on it would be wasted.
+              {t("builder.call.skill.pre")}<GameTerm id="skill">{t("builder.call.skill.term")}</GameTerm>{t("builder.call.skill.mid")}
+              <GameTerm id="proficiency_bonus">{t("builder.call.skill.term2")}</GameTerm>{t("builder.call.skill.post")}
             </>
           }
         >
@@ -446,7 +448,12 @@ export function CallingStep({
               const grantedBy = source === "race" ? race?.name : source === "background" ? background?.name : "";
               const trait = source === "race" && race ? grantingTrait(race.id, name) : null;
               const info = source
-                ? `${name} is already yours: your ${source}${grantedBy ? ` (${grantedBy})` : ""} grants it${trait ? ` through ${trait}` : ""}, so it is not offered as a class pick here.\n\n${describeSkill(skillId) ?? ""}`.trim()
+                ? `${t("builder.call.src.info", {
+                    name,
+                    source: t(`builder.call.src.${source}` as MessageKey),
+                    by: grantedBy ? ` (${grantedBy})` : "",
+                    through: trait ? t("builder.call.src.through", { trait }) : "",
+                  })}\n\n${describeSkill(skillId) ?? ""}`.trim()
                 : describeSkill(skillId);
               return (
                 <PickPill
@@ -458,7 +465,7 @@ export function CallingStep({
                   info={{ text: info }}
                 >
                   {name}
-                  {source ? ` (${source})` : ""}
+                  {source ? ` (${t(`builder.call.src.${source}` as MessageKey)})` : ""}
                 </PickPill>
               );
             })}
@@ -481,25 +488,30 @@ function genreWords(genre: string): string {
 // book, its saves, its job in a fight and which of the core four it plays
 // like. The card's details dialog and the build math panel's picks both
 // read it.
-export function classDetailsMeta({
-  id,
-  meta,
-  saves,
-  reading,
-}: {
-  id: string;
-  meta?: string;
-  saves?: string[];
-  reading?: ReturnType<typeof classRoles>;
-}): string[] {
+export function classDetailsMeta(
+  {
+    id,
+    meta,
+    saves,
+    reading,
+  }: {
+    id: string;
+    meta?: string;
+    saves?: string[];
+    reading?: ReturnType<typeof classRoles>;
+  },
+  say?: ReturnType<typeof useI18n>["t"],
+): string[] {
+  const s = (key: MessageKey, english: string, params?: Record<string, string | number>) => (say ? say(key, params) : english);
   return [
     meta,
-    saves?.length ? `Saves ${saves.map(abilityName).join(", ")}` : "",
-    reading ? `Role: ${reading.roles.join(" / ")}` : "",
+    saves?.length ? s("builder.call.meta.saves", `Saves ${saves.map(abilityName).join(", ")}`, { list: saves.map(abilityName).join(", ") }) : "",
+    reading ? s("builder.call.meta.role", `Role: ${reading.roles.join(" / ")}`, { roles: reading.roles.join(" / ") }) : "",
     reading
       ? reading.playsLike.toLowerCase() === id.toLowerCase()
-        ? "One of the core four"
-        : `Plays like ${reading.playsLike}${reading.suggested ? " (suggested)" : ""}`
+        ? s("builder.call.meta.core", "One of the core four")
+        : s("builder.call.meta.plays", `Plays like ${reading.playsLike}`, { x: reading.playsLike }) +
+          (reading.suggested ? s("builder.call.meta.suggested", " (suggested)") : "")
       : "",
   ].filter((part): part is string => Boolean(part));
 }

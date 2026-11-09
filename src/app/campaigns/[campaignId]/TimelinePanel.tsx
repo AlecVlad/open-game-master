@@ -3,6 +3,7 @@
 import { readLoad, useLoadStatus } from "@/lib/load-state";
 import { EmptyState } from "@/components/EmptyState";
 import { useEffect, useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { GameIcon } from "@/components/ui/GameIcon";
 import { SectionHead } from "@/components/ui/SectionHead";
 import { cn } from "@/lib/cn";
@@ -14,15 +15,17 @@ import type { TimelineKind, TimelineRow } from "@/lib/dm/timeline-logic";
 // party marker at now. A list below lg; two columns about a gold rule
 // above it. Filters by kind; read-only.
 
-const KIND_LABEL: Record<TimelineKind, string> = {
-  chapter: "Chapters",
-  act: "Acts",
-  fact: "Facts",
-  session: "Sessions",
-  arc: "World arcs",
-  event: "Calendar",
-  now: "Now",
-};
+const KIND_LABEL_KEY = {
+  chapter: "campaign.timeline.kind.chapter",
+  act: "campaign.timeline.kind.act",
+  fact: "campaign.timeline.kind.fact",
+  session: "campaign.timeline.kind.session",
+  arc: "campaign.timeline.kind.arc",
+  event: "campaign.timeline.kind.event",
+  now: "campaign.timeline.kind.now",
+} as const satisfies Record<TimelineKind, string>;
+
+const TIMELINE_KINDS = Object.keys(KIND_LABEL_KEY) as TimelineKind[];
 
 const KIND_GLYPH: Record<TimelineKind, string> = {
   chapter: "tab-story",
@@ -48,6 +51,7 @@ const KIND_TONE: Record<TimelineKind, string> = {
 // and the calendar (calendar_updated bumps the quests version). Keyed on the
 // chapter count alone, an open timeline missed everything else.
 export function TimelinePanel({ campaignId, refreshKey }: { campaignId: string; refreshKey: number | string }) {
+  const { t } = useI18n();
   const [rows, setRows] = useState<TimelineRow[] | null>(null);
   // A refused or failed read is shown in the server's words with a way to
   // ask again, never as "nothing here yet" (issue 140).
@@ -78,15 +82,15 @@ export function TimelinePanel({ campaignId, refreshKey }: { campaignId: string; 
   }
 
   if (rows === null) {
-    return <PanelLoading label="Laying out the years..." />;
+    return <PanelLoading label={t("campaign.timeline.loading")} />;
   }
-  const kinds = (Object.keys(KIND_LABEL) as TimelineKind[]).filter((kind) => kind !== "now" && rows.some((row) => row.kind === kind));
+  const kinds = TIMELINE_KINDS.filter((kind) => kind !== "now" && rows.some((row) => row.kind === kind));
   const shown = rows.filter((row) => !hidden.has(row.kind));
   return (
     <div className="space-y-3">
-      <SectionHead title="Timeline" glyph="tab-timeline" aside={shown.length > 1 ? shown.length - 1 : null} />
+      <SectionHead title={t("campaign.timeline.title")} glyph="tab-timeline" aside={shown.length > 1 ? shown.length - 1 : null} />
       {kinds.length ? (
-        <div role="group" aria-label="Show on the line" className="reveal flex flex-wrap items-center gap-1">
+        <div role="group" aria-label={t("campaign.timeline.filter.aria")} className="reveal flex flex-wrap items-center gap-1">
           {kinds.map((kind) => {
             const on = !hidden.has(kind);
             return (
@@ -109,7 +113,7 @@ export function TimelinePanel({ campaignId, refreshKey }: { campaignId: string; 
                 className="pk-pill pk-tap motion-press"
               >
                 <GameIcon icon={{ kind: "glyph", key: KIND_GLYPH[kind] }} size="size-4" />
-                {KIND_LABEL[kind]}
+                {t(KIND_LABEL_KEY[kind])}
               </button>
             );
           })}
@@ -125,7 +129,7 @@ export function TimelinePanel({ campaignId, refreshKey }: { campaignId: string; 
           <EmptyState
             size="sm"
             art="scrolls"
-            title="Nothing has happened yet. The first closed chapter starts the line."
+            title={t("campaign.timeline.empty")}
           />
         ) : null)
       ) : null}
@@ -145,7 +149,7 @@ export function TimelinePanel({ campaignId, refreshKey }: { campaignId: string; 
                   <GameIcon icon={{ kind: "glyph", key: KIND_GLYPH[row.kind] }} size="size-5" className="shrink-0" />
                   <span className="min-w-0 flex-1 truncate">{row.title}</span>
                   {row.when ? <span className="text-[11px] font-normal text-stone-500">{row.when}</span> : null}
-                  {row.secret ? <span className="text-[11px] font-normal text-violet-300">GM</span> : null}
+                  {row.secret ? <span className="text-[11px] font-normal text-violet-300">{t("campaign.timeline.secret")}</span> : null}
                 </p>
                 {row.detail ? <p className="reveal mt-0.5 text-xs leading-5 text-stone-400">{row.detail}</p> : null}
               </article>

@@ -14,7 +14,9 @@ import { AssistantLink } from "@/components/AssistantLink";
 import { PlayerReceiverSetup, type ReceiverInfo } from "@/app/settings/PlayerReceiverSetup";
 import { PlayerPollLinkSetup } from "@/app/settings/PlayerPollLinkSetup";
 import { hostOffers, useCapabilities } from "@/lib/use-capabilities";
-import { stopWordsForPlayer, type StopReason } from "@/lib/agents/webhook-seat-logic";
+import { type StopReason } from "@/lib/agents/webhook-seat-logic";
+import { useI18n } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages";
 
 type Grant = {
   id: string;
@@ -33,12 +35,24 @@ type Campaign = { id: string; title: string };
 type AgentLink = { id: string; grantId: string; campaignId: string; delivery: "poll" | "push"; characterName: string; pending: number; failed: number };
 type StoppedLink = { grantId: string; campaignId: string; delivery: "poll" | "push"; reason: StopReason; stoppedAt: string; characterName: string };
 
-function linkLine(link: AgentLink): string {
-  const what = link.delivery === "poll" ? "Poll link" : "Receiver";
+type T = (key: MessageKey, params?: Record<string, string | number>) => string;
+type TP = (key: string, count: number, params?: Record<string, string | number>) => string;
+
+function linkLine(link: AgentLink, t: T, tp: TP): string {
+  const what = link.delivery === "poll" ? t("settings.agents.poll") : t("settings.agents.recv");
   const trouble = link.failed > 0
-    ? ` · ${link.failed} wake-up${link.failed === 1 ? "" : "s"} could not be delivered`
-    : link.pending > 0 ? ` · ${link.pending} waiting to be delivered` : "";
-  return `${what}: wakes the agent for ${link.characterName}${trouble}`;
+    ? ` · ${tp("settings.agents.trouble.failed", link.failed, { count: link.failed })}`
+    : link.pending > 0 ? ` · ${link.pending} ${t("settings.agents.trouble.waiting")}` : "";
+  return t("settings.agents.line", { what, name: link.characterName, trouble });
+}
+
+function stopLine(stop: StoppedLink, date: string, t: T): string {
+  const why = stop.reason === "left_campaign" ? t("settings.agents.stop.why.left")
+    : stop.reason === "expired" ? t("settings.agents.stop.why.expired")
+    : t("settings.agents.stop.why.replaced", { name: stop.characterName });
+  const next = stop.reason === "expired" ? t("settings.agents.stop.next.expired")
+    : stop.delivery === "poll" ? t("settings.agents.stop.next.poll") : t("settings.agents.stop.next.push");
+  return t(stop.delivery === "poll" ? "settings.agents.stop.poll" : "settings.agents.stop.push", { date, why, next });
 }
 
 export const AGENT_SCOPE_CHOICES: Array<{ id: string; label: string; hint: string }> = [
@@ -49,8 +63,8 @@ export const AGENT_SCOPE_CHOICES: Array<{ id: string; label: string; hint: strin
   { id: "dm", label: "Game Master", hint: "Run the rules engine and narrate, only where you hold the GM seat." },
 ];
 
-function when(iso: string | null): string {
-  if (!iso) return "never";
+function when(iso: string | null, t: T): string {
+  if (!iso) return t("settings.agents.never");
   return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
 }
 
@@ -58,6 +72,7 @@ function when(iso: string | null): string {
 // or other MCP client acting as you on this server, with exactly what your
 // account can do in the browser and nothing more. The token is shown once.
 export function ConnectedAgentsSection() {
+  const { t, tp } = useI18n();
   const [grants, setGrants] = useState<Grant[] | null>(null);
   // A refused or failed read is shown in the server's words with a way to
   // ask again, never as "nothing here yet" (issue 140).
@@ -113,7 +128,7 @@ export function ConnectedAgentsSection() {
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError(data.error ?? "Could not connect an agent.");
+        setError(data.error ?? t("settings.agents.err.connect"));
         return;
       }
       setGrants((current) => [data.grant, ...(current ?? [])]);
@@ -139,19 +154,18 @@ export function ConnectedAgentsSection() {
     }
   }
 
-  const campaignTitle = (id: string | null) => campaigns.find((campaign) => campaign.id === id)?.title ?? "one campaign";
+  const campaignTitle = (id: string | null) => campaigns.find((campaign) => campaign.id === id)?.title ?? t("settings.agents.oneCampaign");
 
   return (
     <PageSection
-      heading="Connected agents"
+      heading={t("settings.agents.heading")}
       glyph="system-share"
-      intro={`Let your own Claude Code, Codex or other MCP client act as you here: read your campaigns, play your character, or run a table where you are the Game Master.${assistantUrl ? " ChatGPT, Claude, Grok and Meta Muse can too, through the link shown when you connect." : ""} It gets exactly the access your account has, only the parts you tick, and never your password or the server's settings.`}
+      intro={`${t("settings.agents.intro")}${assistantUrl ? t("settings.agents.intro.assistant") : ""}${t("settings.agents.intro.tail")}`}
     >
       {fresh ? (
         <div className="hx-token mb-4 space-y-2 rounded-xl border border-amber-600/40 bg-amber-950/20 p-3">
           <p className="text-sm text-amber-100">
-            <strong>{fresh.name}</strong> is ready. This is the only time its token is shown; copy the line for
-            your agent now.
+            <strong>{fresh.name}</strong>{t("settings.agents.fresh.ready")}
           </p>
           <AssistantLink base={assistantUrl} token={fresh.token} />
           <AgentConnectLines grantId={fresh.id} token={fresh.token} mcpUrl={mcpUrl} />
@@ -160,13 +174,13 @@ export function ConnectedAgentsSection() {
             <PlayerPollLinkSetup key={fresh.id} grantId={fresh.id} characterName={fresh.receiver.character.name} />
           ) : null}
           <button type="button" className={ui.btnSmall} onClick={() => setFresh(null)}>
-            I have copied it
+            {t("settings.agents.fresh.done")}
           </button>
         </div>
       ) : null}
 
       {grants === null ? (
-        <div className="skeleton-block h-12 rounded-xl" aria-label="Loading connected agents" />
+        <div className="skeleton-block h-12 rounded-xl" aria-label={t("settings.agents.loading")} />
       ) : grants.length === 0 && !creating ? (
         (loadError ? (
           <LoadFailed
@@ -177,7 +191,7 @@ export function ConnectedAgentsSection() {
           <EmptyState
             size="sm"
             art="board"
-            title="No agents connected."
+            title={t("settings.agents.empty")}
           />
         ) : null)
       ) : (
@@ -190,39 +204,42 @@ export function ConnectedAgentsSection() {
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-sm text-stone-200">{grant.name}</span>
                 <span className="block truncate text-[11px] text-stone-500">
-                  {grant.scopes.join(", ")}
-                  {grant.campaignId ? ` · ${campaignTitle(grant.campaignId)}` : ""} · last used {when(grant.lastUsedAt)} ·
-                  expires {when(grant.expiresAt)}
+                  {t("settings.agents.details", {
+                    scopes: grant.scopes.join(", "),
+                    campaign: grant.campaignId ? ` · ${campaignTitle(grant.campaignId)}` : "",
+                    used: when(grant.lastUsedAt, t),
+                    expires: when(grant.expiresAt, t),
+                  })}
                 </span>
                 {showsLinks
                   ? links.filter((link) => link.grantId === grant.id).map((link) => (
                     <span key={link.id} className="block text-xs text-stone-400">
-                      {linkLine(link)}
+                      {linkLine(link, t, tp)}
                     </span>
                   ))
                   : null}
                 {showsLinks
                   ? stoppedLinks.filter((stop) => stop.grantId === grant.id).slice(0, 1).map((stop) => (
                     <span key={`${stop.grantId}-${stop.stoppedAt}`} role="status" className="block text-xs text-amber-200">
-                      {stopWordsForPlayer(stop.reason, stop.delivery, { character: stop.characterName, date: when(stop.stoppedAt) })}
+                      {stopLine(stop, when(stop.stoppedAt, t), t)}
                     </span>
                   ))
                   : null}
               </span>
               {pollLinks && grant.campaignId && grant.scopes.includes("read") && grant.scopes.includes("play") ? (
                 <button type="button" className={ui.btnSmall} onClick={() => setPollFor(pollFor === grant.id ? null : grant.id)}>
-                  <Link2 className="size-3.5" /> Poll link
+                  <Link2 className="size-3.5" /> {t("settings.agents.poll")}
                 </button>
               ) : null}
               <button type="button" className={ui.btnSmall} onClick={() => revoke(grant.id)}>
-                <Trash2 className="size-3.5" /> Revoke
+                <Trash2 className="size-3.5" /> {t("settings.agents.revoke")}
               </button>
               {pollFor === grant.id ? (
                 <div className="basis-full pt-2">
                   <PlayerPollLinkSetup
                     key={grant.id}
                     grantId={grant.id}
-                    characterName={links.find((link) => link.grantId === grant.id)?.characterName ?? "your character"}
+                    characterName={links.find((link) => link.grantId === grant.id)?.characterName ?? t("settings.agents.yourChar")}
                   />
                 </div>
               ) : null}
@@ -235,43 +252,43 @@ export function ConnectedAgentsSection() {
         <div className="reveal-height mt-3">
           <div className="space-y-3 rounded-xl border border-stone-800 p-3">
             <label className="block">
-              <span className="mb-1 block text-xs font-medium text-stone-400">Name</span>
+              <span className="mb-1 block text-xs font-medium text-stone-400">{t("settings.agents.name")}</span>
               <input
                 className={ui.input}
                 value={name}
                 maxLength={60}
                 onChange={(event) => setName(event.target.value)}
-                placeholder="Claude Code on my laptop"
+                placeholder={t("settings.agents.name.ph")}
               />
             </label>
             <div className="space-y-2">
-              <span className="block text-xs font-medium text-stone-400">What it may do</span>
+              <span className="block text-xs font-medium text-stone-400">{t("settings.agents.may")}</span>
               {AGENT_SCOPE_CHOICES.map((scope) => {
                 const on = scopes.includes(scope.id);
                 return (
                   <label key={scope.id} className="flex items-start gap-3 text-sm text-stone-300">
                     <Switch
-                      label={scope.label}
+                      label={t(`settings.agents.scope.${scope.id}.label` as MessageKey)}
                       on={on}
                       onChange={(next) =>
                         setScopes((current) => (next ? [...current, scope.id] : current.filter((entry) => entry !== scope.id)))
                       }
                     />
                     <span>
-                      {scope.label}
-                      <span className="block text-xs text-stone-500">{scope.hint}</span>
+                      {t(`settings.agents.scope.${scope.id}.label` as MessageKey)}
+                      <span className="block text-xs text-stone-500">{t(`settings.agents.scope.${scope.id}.hint` as MessageKey)}</span>
                     </span>
                   </label>
                 );
               })}
             </div>
-            <div role="group" aria-label="Limit to one campaign">
-              <span className="mb-1 block text-xs font-medium text-stone-400">Limit to one campaign</span>
+            <div role="group" aria-label={t("settings.agents.limit")}>
+              <span className="mb-1 block text-xs font-medium text-stone-400">{t("settings.agents.limit")}</span>
               <Select
                 value={campaignId}
                 onChange={setCampaignId}
-                label="Limit to one campaign"
-                options={[{ value: "", label: "Any campaign I belong to" }, ...campaigns.map((campaign) => ({ value: campaign.id, label: campaign.title }))]}
+                label={t("settings.agents.limit")}
+                options={[{ value: "", label: t("settings.agents.anyCampaign") }, ...campaigns.map((campaign) => ({ value: campaign.id, label: campaign.title }))]}
               />
             </div>
             {error ? (
@@ -287,17 +304,17 @@ export function ConnectedAgentsSection() {
                 disabled={busy || !name.trim() || scopes.length === 0}
                 aria-busy={busy}
               >
-                {busy ? <Loader2 className="size-4 animate-spin" /> : <Plug className="size-4" />} Connect
+                {busy ? <Loader2 className="size-4 animate-spin" /> : <Plug className="size-4" />} {t("settings.agents.connect")}
               </button>
               <button type="button" className={ui.btnSecondary} onClick={() => setCreating(false)}>
-                Cancel
+                {t("settings.agents.cancel")}
               </button>
             </div>
           </div>
         </div>
       ) : (
         <button type="button" className={`${ui.btnSmall} mt-3`} onClick={() => setCreating(true)}>
-          <Plug className="size-3.5" /> Connect an agent
+          <Plug className="size-3.5" /> {t("settings.agents.connectAgent")}
         </button>
       )}
     </PageSection>

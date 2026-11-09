@@ -7,6 +7,7 @@
 // Pure (type imports only), so client components and test scripts import it.
 
 import type { StoredRoll } from "@/lib/db/rolls";
+import type { MessageKey } from "@/lib/i18n/messages/index";
 
 type Worded = Pick<StoredRoll, "kind" | "detail" | "attacker">;
 
@@ -38,10 +39,29 @@ export const ROLL_KIND_LABELS: Record<string, string> = {
 };
 
 // The chronicle card's line: "Goblin · Attack roll (Club vs Aria)".
-export function rollCardLabel(roll: Worded, sheetName: string | undefined): string {
+const ROLL_KIND_MESSAGE_KEYS: Record<string, MessageKey> = {
+  skill_check: "campaign.afterRoll.kind.skillCheck",
+  saving_throw: "campaign.afterRoll.kind.savingThrow",
+  ability_check: "campaign.afterRoll.kind.abilityCheck",
+  attack: "campaign.afterRoll.kind.attack",
+  damage: "campaign.afterRoll.kind.damage",
+  initiative: "campaign.afterRoll.kind.initiative",
+  custom: "campaign.afterRoll.kind.roll",
+};
+
+type RollTranslator = (key: MessageKey) => string;
+
+export function rollCardLabel(
+  roll: Worded,
+  sheetName: string | undefined,
+  translate?: RollTranslator,
+): string {
   const who = rollerName(roll, sheetName);
   const detail = roll.detail ? roll.detail.replaceAll("_", " ") : "";
-  return `${who ? `${who} · ` : ""}${ROLL_KIND_LABELS[roll.kind] ?? "Roll"}${detail ? ` (${detail})` : ""}`;
+  const kind = translate
+    ? translate(ROLL_KIND_MESSAGE_KEYS[roll.kind] ?? "campaign.afterRoll.kind.roll")
+    : ROLL_KIND_LABELS[roll.kind] ?? "Roll";
+  return `${who ? `${who} · ` : ""}${kind}${detail ? ` (${detail})` : ""}`;
 }
 
 // Cinematic mode's roll pill, up to the dice: "Goblin · Club vs Aria".

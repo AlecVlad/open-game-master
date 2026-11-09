@@ -9,23 +9,24 @@ import { ChangePasswordForm } from "@/app/ChangePasswordForm";
 import { GameIcon } from "@/components/ui/GameIcon";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { currentPathname, currentQuery, navigateTo, replaceAddress } from "@/lib/navigation";
+import { useI18n } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages/index";
 
 type AuthMode = "login" | "register";
 
-const OAUTH_ERRORS: Record<string, string> = {
-  discord: "Discord sign-in failed. Try again.",
-  signups_disabled: "Signups are disabled on this server.",
-  invite_required: "This server needs an invite code to create an account.",
-  invite_invalid: "That invite code is not valid (or has been used up).",
-  setup_required:
-    "This server has no accounts yet. Create the admin account with a password and the setup code from the server log, then link Discord in settings.",
+const OAUTH_ERRORS: Record<string, MessageKey> = {
+  discord: "auth.oauth.discord",
+  signups_disabled: "auth.oauth.signups_disabled",
+  invite_required: "auth.oauth.invite_required",
+  invite_invalid: "auth.oauth.invite_invalid",
+  setup_required: "auth.oauth.setup_required",
 };
 
 type SignupMode = "open" | "invite" | "closed";
 
-const MODE_OPTIONS: Array<{ value: AuthMode; label: string }> = [
-  { value: "login", label: "Log in" },
-  { value: "register", label: "Create account" },
+const MODE_OPTIONS: Array<{ value: AuthMode; label: MessageKey }> = [
+  { value: "login", label: "auth.mode.login" },
+  { value: "register", label: "auth.mode.register" },
 ];
 
 // The fields sit a touch taller than the app's default input, each led by a
@@ -107,6 +108,7 @@ export default function AuthForm({
   // on the Discord link so the OAuth round trip returns to the join page.
   joinCode?: string;
 }) {
+  const { t } = useI18n();
   const [mode, setMode] = useState<AuthMode>("login");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -123,7 +125,7 @@ export default function AuthForm({
   const [error, setError] = useState(() => {
     if (typeof window === "undefined") return "";
     const oauthError = currentQuery().get("error");
-    return (oauthError && OAUTH_ERRORS[oauthError]) || "";
+    return oauthError && OAUTH_ERRORS[oauthError] ? t(OAUTH_ERRORS[oauthError]) : "";
   });
   const [busy, setBusy] = useState(false);
   const [discordEnabled, setDiscordEnabled] = useState(false);
@@ -223,8 +225,8 @@ export default function AuthForm({
       if (!response.ok) {
         setError(
           seatJoin && response.status === 409
-            ? "That name is already taken at this table. Pick another, or ask the host to remove the old seat."
-            : data.error || "Something went wrong.",
+            ? t("auth.err.taken")
+            : data.error || t("auth.err.generic"),
         );
         return;
       }
@@ -242,7 +244,7 @@ export default function AuthForm({
       }
       onAuthed(data.user);
     } catch {
-      setError("Could not reach the server.");
+      setError(t("auth.err.network"));
     } finally {
       setBusy(false);
     }
@@ -252,12 +254,12 @@ export default function AuthForm({
     return (
       <>
         <p className="live-in mb-3 text-sm text-stone-400">
-          An admin reset your password. Pick a new one to continue.
+          {t("auth.reset.body")}
         </p>
         <ChangePasswordForm
           currentPassword={pendingReset.tempPassword}
           lockCurrent
-          submitLabel="Set new password"
+          submitLabel={t("auth.reset.submit")}
           onChanged={() => onAuthed({ ...pendingReset.user, mustChangePassword: false })}
         />
       </>
@@ -271,8 +273,7 @@ export default function AuthForm({
   if (deviceWorld && needsSetup && !seatJoin) {
     return (
       <p className="reveal text-sm text-stone-400" role="status">
-        This world runs inside the Open Game Master app on this device, and the app makes its
-        first account itself. Open the app and choose Enter my world; there is no code to type.
+        {t("auth.device.note")}
       </p>
     );
   }
@@ -281,28 +282,27 @@ export default function AuthForm({
   // shown with a dead option; a device world's join page has no modes at all.
   const canRegister = signupMode !== "closed" && !seatJoin;
   // On a join page both modes end at the same seat, so the button says so.
-  const submitLabel = joinCode ? "Join the table" : mode === "login" ? "Log in" : "Create account";
+  const submitLabel = joinCode ? t("auth.submit.join") : mode === "login" ? t("auth.mode.login") : t("auth.mode.register");
 
   return (
     <>
       {seatJoin ? (
         <p className="reveal mb-4 text-sm text-stone-400">
-          This world runs on its host&apos;s device. Give the table a name and you are in; there is
-          no password to remember.
+          {t("auth.seat.note")}
         </p>
       ) : null}
       {canRegister ? (
         <SegmentedControl
-          options={MODE_OPTIONS}
+          options={MODE_OPTIONS.map((option) => ({ ...option, label: t(option.label) }))}
           value={mode}
           onChange={switchMode}
-          label="Log in or create an account"
+          label={t("auth.mode.aria")}
           className="mb-5 w-full"
         />
       ) : null}
 
       <form onSubmit={submit} className="space-y-3.5">
-        <FieldLabel glyph="tab-characters" text="Username">
+        <FieldLabel glyph="tab-characters" text={t("auth.username")}>
           <input
             value={username}
             onChange={(event) => setUsername(event.target.value)}
@@ -310,12 +310,12 @@ export default function AuthForm({
             required
             minLength={3}
             maxLength={24}
-            placeholder={seatJoin ? "Your name at this table" : mode === "register" ? "Choose a name" : undefined}
+            placeholder={seatJoin ? t("auth.username.seat") : mode === "register" ? t("auth.username.choose") : undefined}
             className={FIELD}
           />
         </FieldLabel>
         {seatJoin ? null : (
-          <FieldLabel glyph="tab-admin" text="Password">
+          <FieldLabel glyph="tab-admin" text={t("auth.password")}>
             <input
               type="password"
               value={password}
@@ -330,7 +330,7 @@ export default function AuthForm({
         )}
         {effectiveMode === "register" && needsSetup && !seatJoin ? (
           <div className="reveal">
-            <FieldLabel glyph="tab-admin" text="Setup code">
+            <FieldLabel glyph="tab-admin" text={t("auth.setup.label")}>
               <input
                 value={setupCode}
                 onChange={(event) => setSetupCode(event.target.value)}
@@ -344,22 +344,20 @@ export default function AuthForm({
             </FieldLabel>
             <span id="setup-code-hint" className="mt-1.5 block text-xs text-stone-500">
               {urlSetupCode ? (
-                "This server has no accounts yet. The first one becomes its admin; the setup code came with the link from the server log."
+                t("auth.setup.fromLink")
               ) : setupInDocker ? (
                 <>
-                  This server has no accounts yet. The first one becomes its admin and needs the one-time setup code
-                  from the server log: run <code className="font-mono text-stone-400">docker compose logs</code> in
-                  the server&apos;s folder and open the link it prints.
+                  {t("auth.setup.docker1")}<code className="font-mono text-stone-400">docker compose logs</code>{t("auth.setup.docker2")}
                 </>
               ) : (
-                "This server has no accounts yet. The first one becomes its admin and needs the one-time setup code printed in the server log, or open the link printed beside it."
+                t("auth.setup.log")
               )}
             </span>
           </div>
         ) : null}
         {effectiveMode === "register" && signupMode === "invite" && !seatJoin && !needsSetup ? (
           <div className="reveal">
-          <FieldLabel glyph="tab-handout" text="Invite code">
+          <FieldLabel glyph="tab-handout" text={t("auth.invite.label")}>
             <input
               value={inviteCode}
               onChange={(event) => setInviteCode(event.target.value)}
@@ -373,8 +371,8 @@ export default function AuthForm({
           </FieldLabel>
             <span id="invite-code-hint" className="mt-1.5 block text-xs text-stone-500">
               {urlInvite
-                ? "This code came with your invite link."
-                : "This server is invite-only. Ask whoever runs it for a code."}
+                ? t("auth.invite.fromLink")
+                : t("auth.invite.only")}
             </span>
           </div>
         ) : null}
@@ -394,15 +392,15 @@ export default function AuthForm({
         </button>
         {effectiveMode === "register" ? (
           <p className="reveal text-center text-xs leading-5 text-stone-500">
-            Creating an account means you accept this server&apos;s{" "}
+            {t("auth.terms1")}
             <a href="/terms" className="text-stone-400 underline hover:text-amber-200">
-              terms of service
-            </a>{" "}
-            and{" "}
-            <a href="/privacy" className="text-stone-400 underline hover:text-amber-200">
-              privacy policy
+              {t("auth.terms.link")}
             </a>
-            .
+            {t("auth.terms2")}
+            <a href="/privacy" className="text-stone-400 underline hover:text-amber-200">
+              {t("auth.privacy.link")}
+            </a>
+            {t("auth.terms3")}
           </p>
         ) : null}
       </form>
@@ -411,7 +409,7 @@ export default function AuthForm({
         <>
           <div className="auth-or" aria-hidden="true">
             <span />
-            <span className="auth-or-word">or</span>
+            <span className="auth-or-word">{t("auth.or")}</span>
             <span />
           </div>
           <a
@@ -423,25 +421,25 @@ export default function AuthForm({
             className={DISCORD_BTN}
           >
             <DiscordMark />
-            {joinCode ? "Continue with Discord" : "Sign in with Discord"}
+            {joinCode ? t("auth.discord.join") : t("auth.discord.signin")}
           </a>
         </>
       ) : null}
 
       {canRegister ? (
         <p className="reveal mt-5 text-center text-[13px] text-stone-400">
-          {mode === "login" ? "New here? " : "Have an account? "}
+          {mode === "login" ? t("auth.switch.newHere") : t("auth.switch.have")}
           <button
             type="button"
             onClick={() => switchMode(mode === "login" ? "register" : "login")}
             className="-my-2 inline-flex min-h-10 items-center text-amber-200 underline-offset-2 hover:text-amber-100 hover:underline"
           >
-            {mode === "login" ? "Create an account" : "Log in"}
+            {mode === "login" ? t("auth.switch.create") : t("auth.switch.login")}
           </button>
         </p>
       ) : mode === "login" ? (
         <p className="reveal mt-5 text-center text-xs text-stone-500">
-          This server is not accepting new accounts.
+          {t("auth.closed")}
         </p>
       ) : null}
     </>

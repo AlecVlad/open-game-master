@@ -1,6 +1,7 @@
 "use client";
 
 import { useId } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import type { AnyListGroup } from "@/lib/srd/any-list-picks-logic";
 import { SpellBook, type SpellTile } from "./SpellBook";
 
@@ -30,6 +31,7 @@ export function AnyListSpellGroup({
   notice?: string;
   loading: boolean;
 }) {
+  const { t } = useI18n();
   const headingId = useId();
   return (
     <section
@@ -44,11 +46,11 @@ export function AnyListSpellGroup({
       <SpellBook
         tiles={tiles}
         maxLevel={group.spells ? maxLevel : 0}
-        counters={[{ label: "From any class", value: picked, max: group.slots }]}
+        counters={[{ label: t("builder.spells.anyClass"), value: picked, max: group.slots }]}
         onTile={onTile}
         notice={notice || undefined}
-        searchLabel={`Find a spell for ${group.feature}`}
-        emptyText={loading ? "Loading every class's spells..." : "No spell left to choose here."}
+        searchLabel={t("builder.spells.anySearch", { feature: group.feature })}
+        emptyText={loading ? t("builder.spells.anyLoading") : t("builder.spells.anyEmpty")}
       />
     </section>
   );

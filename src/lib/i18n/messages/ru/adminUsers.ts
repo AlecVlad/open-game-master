@@ -1,0 +1,35 @@
+// Русский: вкладка «Пользователи» админ-панели.
+// Ключи те же, что в en/adminUsers.ts; формы .few и .many нужны только русскому.
+import type { enAdminUsers } from "../en/adminUsers.ts";
+
+export const ruAdminUsers: Partial<Record<keyof typeof enAdminUsers, string>> & Record<string, string> = {
+  "admin.users.err.generic": "Не получилось.",
+  "admin.users.delete.confirm": "Учётная запись, принадлежащие пользователю кампании, персонажи, картинки и личные чаты будут стёрты прямо сейчас, без отсрочки. Сообщения, которые он написал в чужих кампаниях, останутся в их стенограммах без его имени.",
+  "admin.users.delete.title": "Удалить {name}?",
+  "admin.users.delete.action": "Удалить навсегда",
+  "admin.users.menu.removeAdmin": "Снять права администратора",
+  "admin.users.menu.makeAdmin": "Сделать администратором",
+  "admin.users.menu.reset": "Сбросить пароль",
+  "admin.users.menu.keep": "Отменить запланированное удаление",
+  "admin.users.menu.eraseNow": "Стереть сейчас, не дожидаясь",
+  "admin.users.menu.delete": "Удалить пользователя",
+  "admin.users.temp.title": "Временный пароль",
+  "admin.users.temp.before": "Временный пароль для",
+  "admin.users.temp.after": ". Он показывается только один раз; при следующем входе пользователь должен его сменить.",
+  "admin.users.copied": "Скопировано",
+  "admin.users.copy": "Копировать",
+  "admin.users.dismiss": "Закрыть",
+  "admin.users.accounts": "Учётные записи",
+  "admin.users.you": "(вы)",
+  "admin.users.chip.admin": "Администратор",
+  "admin.users.chip.resetPending": "Сброс ожидается",
+  "admin.users.chip.deletion": "Удаление {date}",
+  "admin.users.chip.deletionHint": "Запрошено удаление учётной записи; будет стёрта {date}",
+  "admin.users.meta": "{campaigns} · регистрация: {date}",
+  "admin.users.resetShort": "Сбросить",
+  "admin.users.more": "Ещё действия для {name}",
+  "admin.users.campaigns.one": "{count} кампания",
+  "admin.users.campaigns.other": "{count} кампаний",
+  "admin.users.campaigns.few": "{count} кампании",
+  "admin.users.campaigns.many": "{count} кампаний",
+};

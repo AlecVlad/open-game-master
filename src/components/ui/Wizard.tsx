@@ -7,6 +7,7 @@ import { GoldTitle } from "@/components/ui/GoldTitle";
 import { StepWipe, useStepWipe } from "@/components/ui/StepWipe";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui";
+import { useI18n } from "@/lib/i18n/provider";
 
 // Stepped wizard: gold progress bar, steps that slide sideways, Back in the
 // header and Continue in the footer. Fills whatever holds it (a Dialog or a
@@ -71,7 +72,7 @@ export function Wizard({
   steps,
   title,
   onDone,
-  doneLabel = "Done",
+  doneLabel,
   onCancel,
   step: controlledStep,
   onStepChange,
@@ -103,6 +104,7 @@ export function Wizard({
   finishFromAnyStep?: boolean;
   stepNames?: boolean;
 }) {
+  const { t } = useI18n();
   const [internalStep, setInternalStep] = useState(0);
   const controlled = controlledStep !== undefined;
   const raw = controlled ? controlledStep : internalStep;
@@ -124,7 +126,7 @@ export function Wizard({
   const { wiping, run } = useStepWipe(wipe);
 
   const labelOf = (s: WizardStep, index: number) =>
-    s.label ?? (typeof s.title === "string" ? s.title : `Step ${index + 1}`);
+    s.label ?? (typeof s.title === "string" ? s.title : t("wizard.step", { n: index + 1 }));
 
   // The furthest step reached so far. The wipe marks progress: it plays on
   // Continue into a step not yet seen, and every other move (Back, a
@@ -210,7 +212,7 @@ export function Wizard({
               // 44px to tap, drawn as before: the negative margin keeps the
               // header where it was.
               className="-my-2 -ml-3 flex size-11 shrink-0 items-center justify-center rounded-md text-stone-400 transition-colors hover:bg-stone-800 hover:text-stone-200"
-              aria-label={step === 0 ? "Cancel" : "Back"}
+              aria-label={step === 0 ? t("wizard.cancel") : t("wizard.back")}
             >
               <ChevronLeft className="size-4" />
             </button>
@@ -224,7 +226,7 @@ export function Wizard({
             </span>
           ) : null}
           <span className="eyebrow shrink-0 text-xs text-stone-400" aria-live="polite">
-            Step {step + 1} / {total}
+            {t("wizard.progress", { n: step + 1, total })}
             {variant === "diamonds" && current ? (
               // The gold step title sits right under the header on a phone,
               // so the name is only shown where there is room for it; a
@@ -268,13 +270,13 @@ export function Wizard({
                 onClick={showNotice}
                 className="-my-2 min-h-11 shrink-0 whitespace-nowrap px-1 font-mono text-xs text-amber-300 underline-offset-2 hover:text-amber-200 hover:underline"
               >
-                Show me
+                {t("wizard.show")}
               </button>
             ) : null}
             <button
               type="button"
               onClick={notice.onDismiss}
-              aria-label="Dismiss"
+              aria-label={t("wizard.dismiss")}
               className="-my-2 -mr-3 flex size-11 shrink-0 items-center justify-center rounded text-stone-400 transition-colors hover:text-stone-200"
             >
               <X className="size-3.5" />
@@ -344,7 +346,7 @@ export function Wizard({
               className="wizard-blocker reveal min-w-0 flex-1 text-left text-xs text-amber-300/90 underline-offset-2 hover:text-amber-200 hover:underline max-sm:basis-full"
             >
               <span role="status">{blocker}</span>
-              <span className="ml-1 whitespace-nowrap font-mono text-xs text-stone-400">Show me</span>
+              <span className="ml-1 whitespace-nowrap font-mono text-xs text-stone-400">{t("wizard.show")}</span>
             </button>
           ) : (
             <p id={blockerId} role="status" className="wizard-blocker reveal min-w-0 flex-1 text-xs text-amber-300/90 max-sm:basis-full">
@@ -368,7 +370,7 @@ export function Wizard({
         ) : null}
         {step > 0 ? (
           <button type="button" onClick={back} className={ui.btnSecondary}>
-            Back
+            {t("wizard.back")}
           </button>
         ) : null}
         {/* Held with aria-disabled rather than disabled when there is a
@@ -394,11 +396,11 @@ export function Wizard({
             blocker && "wizard-continue-held",
           )}
         >
-          {last ? doneLabel : (current?.continueLabel ?? "Continue")}
+          {last ? (doneLabel ?? t("wizard.done")) : (current?.continueLabel ?? t("wizard.continue"))}
         </button>
         {finishEarly ? (
           <button type="button" onClick={onDone} className={ui.btnPrimary}>
-            {doneLabel}
+            {doneLabel ?? t("wizard.done")}
           </button>
         ) : null}
       </footer>

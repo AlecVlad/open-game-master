@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Check } from "lucide-react";
+import { useI18n } from "@/lib/i18n/provider";
 import { SessionBanner, bannerButtonClass } from "@/app/campaigns/[campaignId]/SessionBanner";
 import { formatLeft, type TableWaitView } from "@/lib/dm/table-wait-logic";
 
@@ -22,6 +23,7 @@ export function TableWaitBanner({
   steersStory?: boolean;
   onGoOn?: () => void;
 }) {
+  const { t } = useI18n();
   const [passing, setPassing] = useState(false);
   const [refusal, setRefusal] = useState("");
   const now = useSecondClock(Boolean(wait?.deadline));
@@ -38,10 +40,10 @@ export function TableWaitBanner({
       const response = await fetch(`/api/campaigns/${campaignId}/pass`, { method: "POST" });
       if (!response.ok) {
         const data = (await response.json().catch(() => ({}))) as { error?: string };
-        setRefusal(data.error ?? "The pass did not go through.");
+        setRefusal(data.error ?? t("campaign.tableWait.error.pass"));
       }
     } catch {
-      setRefusal("Could not reach the table.");
+      setRefusal(t("campaign.tableWait.error.server"));
     } finally {
       setPassing(false);
     }
@@ -51,7 +53,7 @@ export function TableWaitBanner({
     <SessionBanner
       glyph="tab-party"
       tone="quiet"
-      title={wait.waitingOn.length ? "The GM is waiting on" : "Everyone has answered"}
+      title={wait.waitingOn.length ? t("campaign.tableWait.title.waiting") : t("campaign.tableWait.title.answered")}
       actions={
         mine || (steersStory && wait.deadline && onGoOn) ? (
           <>
@@ -61,9 +63,9 @@ export function TableWaitBanner({
                 onClick={pass}
                 disabled={passing}
                 className={bannerButtonClass(true)}
-                title="Nothing to add this beat: the GM stops waiting on you."
+                title={t("campaign.tableWait.tooltip.pass")}
               >
-                Pass
+                {t("campaign.tableWait.action.pass")}
               </button>
             ) : null}
             {steersStory && wait.deadline && onGoOn ? (
@@ -71,9 +73,9 @@ export function TableWaitBanner({
                 type="button"
                 onClick={onGoOn}
                 className={bannerButtonClass()}
-                title="Stop waiting: the GM answers whoever has acted."
+                title={t("campaign.tableWait.tooltip.goOn")}
               >
-                Go on now
+                {t("campaign.tableWait.action.goOn")}
               </button>
             ) : null}
           </>
@@ -84,20 +86,20 @@ export function TableWaitBanner({
         {wait.waitingOn.map((seat, index) => (
           <span key={seat.userId}>
             {index > 0 ? ", " : ""}
-            {seat.userId === meUserId ? "you" : seat.name}
+            {seat.userId === meUserId ? t("campaign.tableWait.you") : seat.name}
           </span>
         ))}
         {wait.answered.map((seat, index) => (
           <span key={seat.userId} className="opacity-50">
             {index > 0 || wait.waitingOn.length ? ", " : ""}
             {seat.name}
-            {seat.passed ? " (passed)" : <Check className="inline size-3 align-baseline" />}
+            {seat.passed ? ` ${t("campaign.tableWait.passed")}` : <Check className="inline size-3 align-baseline" />}
           </span>
         ))}
         {left !== null ? (
-          <span className="opacity-80"> · the GM goes on in {formatLeft(left)}</span>
+          <span className="opacity-80">{t("campaign.tableWait.countdown", { time: formatLeft(left, t) })}</span>
         ) : (
-          <span className="opacity-80"> · the GM answers once everyone has acted or passed</span>
+          <span className="opacity-80">{t("campaign.tableWait.whenReady")}</span>
         )}
       </span>
       {refusal ? (

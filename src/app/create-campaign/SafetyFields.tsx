@@ -1,6 +1,7 @@
 "use client";
 
 import { SafetyToneFields } from "@/components/SafetyToneFields";
+import { useI18n } from "@/lib/i18n/provider";
 import type { StepProps } from "@/app/create-campaign/draft";
 import { normalizeGm, normalizeSafety } from "@/lib/dm/safety-logic";
 
@@ -9,6 +10,7 @@ import { normalizeGm, normalizeSafety } from "@/lib/dm/safety-logic";
 // tone and the narrator's voice at once, which the line under it says, since
 // the voice it changes is the one chosen beside the narration above.
 export function SafetyFields({ draft, patch, gates }: StepProps) {
+  const { t } = useI18n();
   return (
     <div className="space-y-2">
       <SafetyToneFields
@@ -21,8 +23,7 @@ export function SafetyFields({ draft, patch, gates }: StepProps) {
         tableLanguage={draft.tableLanguage}
       />
       <p className="text-xs text-stone-500">
-        A GM personality also sets the narrator&apos;s voice, except at a table in another language Kokoro has voices of its own for{gates.ttsAvailable && draft.ttsEnabled ? "" : ", kept for when narration is on"}.
-        Lines and veils are separated by commas.
+        {t(gates.ttsAvailable && draft.ttsEnabled ? "safetyTone.personalityNote.active" : "safetyTone.personalityNote.inactive")}
       </p>
     </div>
   );

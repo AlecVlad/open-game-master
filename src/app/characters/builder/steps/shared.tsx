@@ -8,6 +8,9 @@ import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui";
 import { owedHeadline, type OwedPick } from "../owed";
 import type { BlockerTarget } from "../submit";
+import { TARGET_WORDS } from "../owed";
+import { useI18n } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages";
 
 // What a ⓘ next to a name needs: text to show, or a pack row to read it from.
 export type InfoSource = { text?: string | null; reference?: ContentRef; meta?: string };
@@ -31,10 +34,12 @@ export function OwedLine({
   onShow: (target: BlockerTarget) => void;
   onFill?: () => void;
 }) {
-  const headline = owedHeadline(picks.length);
-  if (!headline) {
+  const { t, tp } = useI18n();
+  if (!owedHeadline(picks.length)) {
     return null;
   }
+  const words = picks.length <= 9 ? t(`builder.owed.n.${picks.length}` as MessageKey) : String(picks.length);
+  const headline = tp("builder.owed.headline", picks.length, { words });
   return (
     <p key={picks.length} className="reveal flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-stone-400" data-owed={picks.length}>
       <span className="text-amber-200/90">{headline}:</span>
@@ -51,7 +56,7 @@ export function OwedLine({
             title={pick.message}
             className="underline decoration-amber-500/40 underline-offset-2 transition-colors hover:text-amber-100"
           >
-            {pick.label}
+            {pick.label === TARGET_WORDS[pick.target] ? t(`builder.target.${pick.target}` as MessageKey) : pick.label}
           </button>
         </span>
       ))}
@@ -62,7 +67,7 @@ export function OwedLine({
           data-quick-fill=""
           className="ml-1 rounded-md border border-sky-500/40 px-1.5 py-0.5 text-sky-200 transition-colors hover:bg-sky-500/10"
         >
-          Fill what&apos;s left
+          {t("builder.fill")}
         </button>
       ) : null}
     </p>
@@ -72,15 +77,16 @@ export function OwedLine({
 // "Pick for me" on one card that the level brings (a subclass, an ability
 // score improvement): the card stays blank until it is pressed.
 export function PickForMe({ onPick, what }: { onPick: () => void; what: string }) {
+  const { t } = useI18n();
   return (
     <button
       type="button"
       onClick={onPick}
       data-pick-for-me=""
-      aria-label={`Pick ${what} for me`}
+      aria-label={t("builder.pickAria", { what })}
       className="shrink-0 rounded-md border border-sky-500/40 px-1.5 py-0.5 text-xs text-sky-200 transition-colors hover:bg-sky-500/10"
     >
-      Pick for me
+      {t("builder.pick")}
     </button>
   );
 }
@@ -163,6 +169,7 @@ export function Chip({
   homebrew?: boolean;
   info?: InfoSource;
 }) {
+  const { t } = useI18n();
   return (
     <span
       className={cn(
@@ -183,7 +190,7 @@ export function Chip({
           // A 12 px cross with a 44 px reach: the ring past the edge takes
           // the tap without making the chip any taller.
           className="relative text-stone-500 after:absolute after:-inset-4 after:rounded-full after:content-[''] hover:text-red-400"
-          aria-label={`Remove ${label}`}
+          aria-label={t("builder.remove", { label })}
         >
           <X className="size-3" />
         </button>

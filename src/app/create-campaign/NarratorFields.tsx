@@ -1,6 +1,8 @@
 "use client";
 
 import { InfoButton } from "@/components/ui/InfoDialog";
+import { useI18n } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages/index";
 import { Select } from "@/components/ui/Select";
 import { Slider } from "@/components/ui/Slider";
 import { NarratorLanguageNote, VoicePicker } from "@/components/VoicePicker";
@@ -24,28 +26,35 @@ export const CASTING_INFO = `Two choices decide who reads a line aloud.\n\n**The
 // they were. A server with no speech service keeps the switch visible and
 // says why it is off.
 export function NarrationFields(props: StepProps & { onFlip?: () => void }) {
+  const { t } = useI18n();
+  const messageKey = (part: string) => `createCampaign.experience.narration.${part}` as MessageKey;
   const { draft, patch, gates } = props;
+  const characterVoicesPlace = t(messageKey("casting.characterVoicesPlace"));
+  const castingInfo = [
+    t(messageKey("casting.infoIntro")),
+    t(messageKey("casting.narrator")),
+    t(messageKey("casting.characters")),
+    t(messageKey("casting.between"), { place: characterVoicesPlace }),
+    t(messageKey("casting.separate")),
+  ].join("\n\n");
   return (
     <div className="space-y-3">
       <SheetRows {...props} keys={["ttsEnabled"]} />
       {!gates.ttsAvailable ? (
-        <p className="text-xs text-stone-500">
-          This server has no speech service yet, so nothing is read aloud. Ask the server owner to set one up; the
-          campaign can turn narration on from its Table settings afterwards.
-        </p>
+        <p className="text-xs text-stone-500">{t(messageKey("serverMissing"))}</p>
       ) : null}
       {draft.ttsEnabled ? (
         <>
           <div className="block">
-            <FieldLabel>Narrator voice</FieldLabel>
+            <FieldLabel>{t(messageKey("narratorVoice"))}</FieldLabel>
             <div className="flex flex-wrap items-center gap-2">
-              <VoicePicker value={draft.ttsVoice} onChange={(ttsVoice) => patch({ ttsVoice })} label="Narrator voice" className="grow" language={draft.tableLanguage} />
+              <VoicePicker value={draft.ttsVoice} onChange={(ttsVoice) => patch({ ttsVoice })} label={t(messageKey("narratorVoice"))} className="grow" language={draft.tableLanguage} />
               <VoicePreviewButton voice={draft.ttsVoice} />
               <span className="flex items-center gap-2 text-xs text-stone-400">
-                Pace
+                {t(messageKey("pace"))}
                 <span className="w-28">
                   <Slider
-                    label="Narrator pace"
+                    label={t(messageKey("pace"))}
                     min={0.7}
                     max={1.4}
                     step={0.05}
@@ -62,37 +71,32 @@ export function NarrationFields(props: StepProps & { onFlip?: () => void }) {
           <div>
             <FieldLabel className="mb-1.5">
               <span className="flex items-center gap-1">
-                Who voices the characters?
-                <InfoButton label="Character voices" text={CASTING_INFO} />
+                {t(messageKey("charactersLabel"))}
+                <InfoButton label={t(messageKey("casting.infoLabel"))} text={castingInfo} />
               </span>
             </FieldLabel>
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               <ToggleCard
                 active={!draft.ttsAutoCast}
                 onClick={() => patch({ ttsAutoCast: false })}
-                label="The narrator reads them"
-                hint="Until you give a character a voice of their own"
+                label={t(messageKey("casting.narratorReads"))}
+                hint={t(messageKey("casting.narratorReadsHint"))}
               />
               <ToggleCard
                 active={draft.ttsAutoCast}
                 onClick={() => patch({ ttsAutoCast: true })}
-                label="Each speaker gets a voice"
-                hint="Cast from this server's voices as they first speak, then kept"
+                label={t(messageKey("casting.eachSpeaker"))}
+                hint={t(messageKey("casting.eachSpeakerHint"))}
               />
             </div>
             <p className="mt-1.5 text-xs text-stone-500">
-              {draft.ttsAutoCast
-                ? "Anyone who speaks is given a voice the first time they do and keeps it. "
-                : "Speakers without a voice of their own are read by the narrator. "}
-              Change any character&apos;s voice later in {CHARACTER_VOICES_PLACE}.
+              {draft.ttsAutoCast ? t(messageKey("casting.autoHelp")) : t(messageKey("casting.manualHelp"))}{" "}
+              {t(messageKey("casting.changeVoiceLater"), { place: characterVoicesPlace })}
             </p>
           </div>
         </>
       ) : gates.ttsAvailable ? (
-        <p className="text-xs text-stone-500">
-          Narration is off, so nothing is read aloud. The narrator and character voice choices are kept for when it
-          is turned on.
-        </p>
+        <p className="text-xs text-stone-500">{t(messageKey("offNote"))}</p>
       ) : null}
     </div>
   );
@@ -101,45 +105,45 @@ export function NarrationFields(props: StepProps & { onFlip?: () => void }) {
 // Who else the AI brings to the table. Allies only exist when the AI
 // narrates; the limits appear once a mode that uses them is chosen.
 export function AlliesFields({ draft, patch, gates }: StepProps) {
+  const { t } = useI18n();
+  const messageKey = (part: string) => `createCampaign.experience.narration.${part}` as MessageKey;
   const { aiNarrates, solo } = gates;
   if (!aiNarrates) {
     return null;
   }
   return (
     <div>
-      <FieldLabel className="mb-1.5">AI allies</FieldLabel>
+      <FieldLabel className="mb-1.5">{t(messageKey("allies.label"))}</FieldLabel>
       <Select<GameSettings["companions"]>
         value={draft.companions}
         onChange={(companions) => patch({ companions })}
-        label="AI allies"
+        label={t(messageKey("allies.label"))}
         className="w-full"
-        options={(Object.keys(COMPANION_LABELS) as Array<GameSettings["companions"]>).map((mode) => ({ value: mode, label: COMPANION_LABELS[mode] }))}
+        options={(Object.keys(COMPANION_LABELS) as Array<GameSettings["companions"]>).map((mode) => ({ value: mode, label: t(messageKey(`allies.mode.${mode}`)) }))}
       />
       <p className="mt-1 text-xs text-stone-500">
-        {solo
-          ? "Party members travel with you until dismissed; guests are allies who show up for a scene or a battle and then leave."
-          : "Guests are friendly NPCs the GM brings in for a scene or a battle; they fight with real stats and leave when the fight ends. Party members stay until dismissed."}
+        {t(messageKey(solo ? "allies.soloHelp" : "allies.groupHelp"))}
       </p>
       {draft.companions !== "off" ? (
         <div className="mt-2 grid grid-cols-2 gap-3">
           {draft.companions !== "guests" ? (
             <label className="block">
-              <span className="mb-1 block text-xs text-stone-500">Party members at once</span>
+              <span className="mb-1 block text-xs text-stone-500">{t(messageKey("allies.partyMembersAtOnce"))}</span>
               <Select<string>
                 value={String(draft.maxCompanions)}
                 onChange={(count) => patch({ maxCompanions: Number(count) })}
-                label="Party members at once"
+                label={t(messageKey("allies.partyMembersAtOnce"))}
                 className="w-full"
                 options={[1, 2, 3, 4].map((count) => ({ value: String(count), label: String(count) }))}
               />
             </label>
           ) : null}
           <label className="block">
-            <span className="mb-1 block text-xs text-stone-500">Guests at once</span>
+            <span className="mb-1 block text-xs text-stone-500">{t(messageKey("allies.guestsAtOnce"))}</span>
             <Select<string>
               value={String(draft.maxGuests)}
               onChange={(count) => patch({ maxGuests: Number(count) })}
-              label="Guests at once"
+              label={t(messageKey("allies.guestsAtOnce"))}
               className="w-full"
               options={[1, 2, 3, 4].map((count) => ({ value: String(count), label: String(count) }))}
             />

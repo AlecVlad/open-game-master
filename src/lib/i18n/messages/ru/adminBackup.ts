@@ -1,0 +1,35 @@
+// Русский: раздел «Резервные копии и восстановление» админ-панели.
+// Ключи те же, что в en/adminBackup.ts; формы .few и .many нужны только русскому.
+import type { enAdminBackup } from "../en/adminBackup.ts";
+
+export const ruAdminBackup: Partial<Record<keyof typeof enAdminBackup, string>> & Record<string, string> = {
+  "admin.backup.unit.gb": "ГБ",
+  "admin.backup.unit.mb": "МБ",
+  "admin.backup.unit.kb": "КБ",
+  "admin.backup.err.create": "Не удалось создать резервную копию.",
+  "admin.backup.err.reach": "Не удалось связаться с сервером.",
+  "admin.backup.err.verify": "Этот архив не прошёл проверку.",
+  "admin.backup.err.restore": "Восстановление не удалось.",
+  "admin.backup.restore.confirm": "Восстановить {name}? Всё, что сейчас есть на этом сервере (кампании, учётные записи, загрузки и настройки), будет заменено содержимым этого архива. Как только файлы окажутся на месте, сервер перестанет принимать игру; перезапустите его, чтобы загрузить восстановленный мир.",
+  "admin.backup.restore.title": "Восстановить эту резервную копию?",
+  "admin.backup.restore.action": "Восстановить",
+  "admin.backup.delete.confirm": "Удалить резервную копию {name}? Архив и его отпечаток будут удалены.",
+  "admin.backup.delete.title": "Удалить эту резервную копию?",
+  "admin.backup.delete.action": "Удалить",
+  "admin.backup.delete.item": "Удалить {name}",
+  "admin.backup.loading": "Загрузка резервных копий",
+  "admin.backup.intro": "Резервная копия сохраняет зашифрованную базу кампаний, загрузки, сгенерированные медиафайлы и настройки сервера в один архив. Скачанные модели в него не входят, если вы не включите их: они скачаются заново при первом использовании. В архиве хранится ключ шифрования базы, так что обращайтесь с ним как с паролем: тот, у кого он есть, может прочитать все кампании.",
+  "admin.backup.take": "Сделать копию сейчас",
+  "admin.backup.includeModels": "Включить скачанные модели",
+  "admin.backup.snapshotting": "Снимок базы данных и упаковка архива…",
+  "admin.backup.restored.note": "Восстановлено: {name}. Сервер перестал принимать игру; перезапустите его сейчас, чтобы загрузить восстановленный мир.",
+  "admin.backup.empty": "Резервных копий пока нет. Сделайте одну перед большой сессией или восстановите ту, что вы создали скриптом scripts/odm-backup.mjs.",
+  "admin.backup.integrity": "целостность в порядке: кампаний — {campaigns}, пользователей — {users}, сообщений — {messages}",
+  "admin.backup.verified": "проверена",
+  "admin.backup.restoredTag": "восстановлена",
+  "admin.backup.verify.hint": "Проверить целостность и открыть зашифрованную базу, ничего не изменяя",
+  "admin.backup.verify.again": "Проверить заново",
+  "admin.backup.verify.once": "Проверить",
+  "admin.backup.restore.hint": "Заменить состояние этого сервера содержимым архива",
+  "admin.backup.download": "Скачать архив",
+};

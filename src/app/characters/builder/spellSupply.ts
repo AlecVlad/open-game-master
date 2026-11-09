@@ -1,4 +1,6 @@
 import { textKey } from "@/lib/language/text-logic";
+import type { MessageKey } from "@/lib/i18n/messages/index";
+import type { Params } from "@/lib/i18n/core";
 import { spellOnListKey } from "@/lib/classes/class-spell-list";
 import { checklistSpell, checklistSpellsOn, spellLevelOf } from "@/lib/srd/spell-lists";
 
@@ -135,11 +137,33 @@ export function spellShortageLines(input: {
   listCap: number | null;
   listVerb: "prepare" | "know" | "write in your spellbook";
   maxSpellLevel: number;
-}): string[] {
+}, translate?: (key: MessageKey, params?: Params) => string): string[] {
   const { className, supply, cantripCap, listCap, listVerb, maxSpellLevel } = input;
   const lines: string[] = [];
   const say = (have: number, cap: number, one: string, many: string, may: string) => {
     const missing = cap - have;
+    if (translate) {
+      const haveText = have === 0
+        ? translate("builder.spells.shortage.have.none")
+        : translate(have === 1 ? "builder.spells.shortage.have.one" : "builder.spells.shortage.have.many", { count: have });
+      const kind = one === "cantrip" ? "cantrip" : "spell";
+      const plural = have === 0 ? "zero" : new Intl.PluralRules("ru").select(have);
+      const spellText = translate(`builder.spells.shortage.kind.${kind}.${plural}` as MessageKey);
+      const take = have === 0
+        ? ""
+        : translate(have === 1 ? "builder.spells.shortage.take.one" : "builder.spells.shortage.take.many", { count: have });
+      const missingText = translate(missing === 1 ? "builder.spells.shortage.missing.one" : "builder.spells.shortage.missing.other", { count: missing });
+      lines.push(translate("builder.spells.shortage.entry", {
+        have: haveText,
+        className,
+        spells: spellText,
+        verb: translate(may === "know" ? "builder.spells.listVerb.known" : may === "write in your spellbook" ? "builder.spells.listVerb.book" : "builder.spells.listVerb.prepared"),
+        cap,
+        take,
+        missing: missingText,
+      }));
+      return;
+    }
     const taken = have === 0 ? "" : have === 1 ? ` Take it;` : ` Take all ${have};`;
     lines.push(
       `This server's spell list has ${have === 0 ? "no" : `only ${have}`} ${className} ${have === 1 ? one : many}, and you may ${may} ${cap}.${taken}${have === 0 ? " The" : " the"} ${missing === 1 ? `missing one does` : `${missing} missing ones do`} not stop you saving.`,
@@ -153,7 +177,7 @@ export function spellShortageLines(input: {
     say(supply.spells, listCap, `spell${upTo}`, `spells${upTo}`, listVerb);
   }
   if (lines.length) {
-    lines.push("Whoever runs this server can add more by installing the content pack.");
+    lines.push(translate ? translate("builder.spells.shortage.server") : "Whoever runs this server can add more by installing the content pack.");
   }
   return lines;
 }

@@ -17,6 +17,9 @@ const { countableRows, featuresOn, flipRow, tableSheet } = await import(
   "../src/app/create-campaign/table-sheet.ts"
 );
 const { coverSheet } = await import("../src/app/create-campaign/cover-sheet.ts");
+const { translate } = await import("../src/lib/i18n/core.ts");
+const { DICTIONARIES } = await import("../src/lib/i18n/messages/index.ts");
+const translateRu = (key, params) => translate(DICTIONARIES, "ru", key, params);
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -272,6 +275,19 @@ test("the cover keeps the old read-back wording for solo, packs and a human narr
   const human = coverSheet({ ...DRAFT, title: "Ours" }, { solo: false, aiNarrates: false }, null);
   assert.deepEqual(human.chips, ["temperate sky"], "length is an AI narrator's fact");
   assert.equal(human.stampSub, "level 1");
+});
+
+test("the cover uses Russian messages without changing the underlying draft", () => {
+  const sheet = coverSheet(DRAFT, TABLE, null, translateRu);
+  assert.equal(sheet.title, "Кампания без названия");
+  assert.equal(sheet.theme, "Мир, который вы опишете сами.");
+  assert.equal(sheet.meta, "Игроков: 5 · уровень 1 · Только цифровые");
+  assert.equal(sheet.difficulty, "Обычная");
+  assert.equal(sheet.stampSub, "4–5 актов");
+  assert.equal(sheet.setting, "Высокое фэнтези");
+  assert.equal(sheet.party, "Игроков: 5 · уровень 1");
+  assert.equal(sheet.dice, "Только цифровые");
+  assert.deepEqual(sheet.chips, ["Небо: умеренный", "Продолжительность: Обычная (4–5 актов)"]);
 });
 
 console.log(`test-world-portals: ${passed} passed`);

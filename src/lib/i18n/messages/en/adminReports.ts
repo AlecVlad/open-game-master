@@ -1,0 +1,23 @@
+// English, the source language: the admin panel's Reports tab.
+export const enAdminReports = {
+  "admin.reports.reason.harassment": "Harassment",
+  "admin.reports.reason.sexual": "Sexual content",
+  "admin.reports.reason.hate": "Hate",
+  "admin.reports.reason.violence": "Violence or threats",
+  "admin.reports.reason.spam": "Spam",
+  "admin.reports.reason.other": "Other",
+  "admin.reports.err.generic": "That didn't work.",
+  "admin.reports.title": "Moderation queue",
+  "admin.reports.showResolved": "Show resolved",
+  "admin.reports.intro": "Players flag Game Master passages, messages and other players from the table. Reports come to this server only; there is no central moderation behind the app.",
+  "admin.reports.emptyAll": "No reports yet.",
+  "admin.reports.emptyOpen": "Nothing waiting. Open reports show up here.",
+  "admin.reports.who.dm": "Game Master passage",
+  "admin.reports.who.player": "Player {name}",
+  "admin.reports.who.deleted": "Player (account deleted)",
+  "admin.reports.in": "in",
+  "admin.reports.reportedBy": ", reported by {name} on {date}",
+  "admin.reports.reporterSays": "Reporter says:",
+  "admin.reports.resolve": "Mark resolved",
+  "admin.reports.reopen": "Reopen",
+} satisfies Record<string, string>;

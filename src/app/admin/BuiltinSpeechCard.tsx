@@ -5,6 +5,8 @@ import { useCallback, useEffect, useState } from "react";
 import { cn } from "@/lib/cn";
 import type { SttStatus } from "@/lib/stt-backend";
 import { ui } from "@/lib/ui";
+import { useI18n } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages/index";
 
 // whisper and openai arrive from servers newer than 0.26.4; the apps draw
 // this card for older hosts too, which send neither.
@@ -19,13 +21,13 @@ type Status = Omit<SttStatus, "whisper" | "openai"> & Partial<Pick<SttStatus, "w
   };
 };
 
-const ACTIVE_LABEL: Record<Status["active"], string> = {
-  whisper: "the Whisper service",
-  builtin: "the built-in engine",
-  openai: "OpenAI, on this server's key",
+const ACTIVE_LABEL: Record<Status["active"], MessageKey> = {
+  whisper: "admin.builtinSpeech.active.whisper",
+  builtin: "admin.builtinSpeech.active.builtin",
+  openai: "admin.builtinSpeech.active.openai",
   // The Android app's game screens still dictate with the phone's own
   // recognizer (useDictation's native engine), so their mics stay.
-  none: "nothing yet, so the mic buttons are hidden (the Android app uses the phone's own recognizer)",
+  none: "admin.builtinSpeech.active.none",
 };
 
 // Which "no model is picked" lines the card shows. A host older than these
@@ -35,13 +37,13 @@ export function modelNotes(status: Partial<Pick<Status, "whisper" | "openai">> |
 }
 
 // The engine's state, or a sentence saying why it could not be read.
-async function request(method: "GET" | "POST"): Promise<Status | string> {
+async function request(method: "GET" | "POST", t: (key: MessageKey) => string): Promise<Status | string> {
   try {
     const response = await fetch("/api/admin/speech", { method, cache: "no-store" });
     const data = await response.json().catch(() => ({}));
-    return response.ok ? (data as Status) : data.error || "Could not read the speech engine's state.";
+    return response.ok ? (data as Status) : data.error || t("admin.builtinSpeech.err.read");
   } catch {
-    return "Could not reach the server.";
+    return t("admin.builtinSpeech.err.network");
   }
 }
 
@@ -49,6 +51,7 @@ async function request(method: "GET" | "POST"): Promise<Status | string> {
 // Whisper into this server (src/lib/stt-builtin.ts), a bar while it comes
 // down, and a line saying which engine dictation uses right now.
 export function BuiltinSpeechCard() {
+  const { t } = useI18n();
   const [status, setStatus] = useState<Status | null>(null);
   const [error, setError] = useState("");
 
@@ -62,7 +65,8 @@ export function BuiltinSpeechCard() {
   }, []);
 
   useEffect(() => {
-    void request("GET").then(apply);
+    void request("GET", t).then(apply);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [apply]);
 
   const installing = status?.builtin.status === "installing";
@@ -70,8 +74,9 @@ export function BuiltinSpeechCard() {
     if (!installing) {
       return;
     }
-    const timer = window.setInterval(() => void request("GET").then(apply), 1000);
+    const timer = window.setInterval(() => void request("GET", t).then(apply), 1000);
     return () => window.clearInterval(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [installing, apply]);
 
   const builtin = status?.builtin;
@@ -82,22 +87,20 @@ export function BuiltinSpeechCard() {
     <div className="panel rounded-xl p-3 sm:col-span-2">
       <div className="flex flex-wrap items-center gap-2">
         <div className="min-w-0 flex-1">
-          <p className="font-display text-sm tracking-wide text-amber-100">Built-in speech recognition</p>
+          <p className="font-display text-sm tracking-wide text-amber-100">{t("admin.builtinSpeech.title")}</p>
           <p className="mt-0.5 text-xs leading-5 text-stone-400">
-            Runs Whisper inside this server on the CPU, so dictation and push-to-talk work without a
-            separate speech service. Downloads {builtin?.downloadMb ?? 76} MB once. A Whisper service,
-            when one answers, still comes first.
+            {t("admin.builtinSpeech.intro", { mb: builtin?.downloadMb ?? 76 })}
           </p>
         </div>
         {builtin?.installed && !installing ? (
           <span className="speech-installed reveal-pop inline-flex items-center gap-1 rounded-full border border-emerald-500/40 bg-emerald-950/40 px-2.5 py-1 text-xs text-emerald-200">
-            <Check className="tick-in size-3.5" /> Installed
+            <Check className="tick-in size-3.5" /> {t("admin.builtinSpeech.installed")}
           </span>
         ) : (
           <button
             type="button"
             disabled={!status || installing}
-            onClick={() => void request("POST").then(apply)}
+            onClick={() => void request("POST", t).then(apply)}
             className={cn(ui.btnSecondary, "h-9 text-[12px]")}
           >
             {installing ? (
@@ -107,7 +110,7 @@ export function BuiltinSpeechCard() {
             ) : (
               <Download className="size-3.5" />
             )}
-            {installing ? "Installing" : builtin?.status === "error" ? "Try again" : "Install"}
+            {installing ? t("admin.builtinSpeech.installing") : builtin?.status === "error" ? t("admin.builtinSpeech.retry") : t("admin.builtinSpeech.install")}
           </button>
         )}
       </div>
@@ -118,14 +121,14 @@ export function BuiltinSpeechCard() {
             <div className="bar-ease h-full rounded-full bg-amber-400/80" style={{ width: `${Math.max(3, percent)}%` }} />
           </div>
           <p className="mt-1 text-[11px] text-stone-400">
-            {percent ? `Downloading ${builtin?.model}: ${percent}%` : `Starting the download of ${builtin?.model}...`}
+            {percent ? t("admin.builtinSpeech.downloading", { model: builtin?.model ?? "", percent }) : t("admin.builtinSpeech.starting", { model: builtin?.model ?? "" })}
           </p>
         </div>
       ) : null}
 
       {builtin?.status === "error" && builtin.error ? (
         <p role="alert" className="mt-2 text-xs text-red-400">
-          The install failed: {builtin.error}
+          {t("admin.builtinSpeech.failed", { error: builtin.error })}
         </p>
       ) : null}
       {error ? (
@@ -136,19 +139,17 @@ export function BuiltinSpeechCard() {
 
       {status ? (
         <p className="mt-2 border-t border-stone-800 pt-2 text-[11px] text-stone-400">
-          Dictation is using <span className="text-stone-200">{ACTIVE_LABEL[status.active]}</span>.
+          {t("admin.builtinSpeech.using")}<span className="text-stone-200">{t(ACTIVE_LABEL[status.active])}</span>.
         </p>
       ) : null}
       {notes.whisper ? (
         <p role="status" className="mt-1 text-[11px] text-amber-300">
-          A Whisper service answers, but no model is picked for it and it doesn&apos;t list exactly one, so dictation skips it. Pick
-          its model in the Whisper model field.
+          {t("admin.builtinSpeech.note.whisper")}
         </p>
       ) : null}
       {notes.openai ? (
         <p role="status" className="mt-1 text-[11px] text-amber-300">
-          An OpenAI key is saved, but no transcription model is picked, so nothing is heard until you pick one under OpenAI
-          transcription in Admin &gt; Speech.
+          {t("admin.builtinSpeech.note.openai")}
         </p>
       ) : null}
     </div>

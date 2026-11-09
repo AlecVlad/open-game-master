@@ -9,6 +9,7 @@ import { ui } from "@/lib/ui";
 import { cn } from "@/lib/cn";
 import { blobToDataUrl, exportCanvas } from "@/lib/image-encode";
 import { Slider } from "@/components/ui/Slider";
+import { useI18n } from "@/lib/i18n/provider";
 
 // The familiar profile-picture flow: pick a file, pan/zoom a square crop,
 // export 512x512, upload through the existing /api/upload route.
@@ -49,6 +50,7 @@ export function AvatarCropDialog({
   onUploaded: (image: UploadedImage) => void;
   onClose: () => void;
 }) {
+  const { t } = useI18n();
   const [source, setSource] = useState("");
   const [fileName, setFileName] = useState("");
   const [crop, setCrop] = useState({ x: 0, y: 0 });
@@ -68,11 +70,11 @@ export function AvatarCropDialog({
       return;
     }
     if (!["image/png", "image/jpeg", "image/webp"].includes(file.type)) {
-      setError("Only PNG, JPEG, and WebP images are supported.");
+      setError(t("avatar.err.type"));
       return;
     }
     if (file.size > 8 * 1024 * 1024) {
-      setError("Image is larger than 8MB.");
+      setError(t("avatar.err.size"));
       return;
     }
     setError("");
@@ -97,13 +99,13 @@ export function AvatarCropDialog({
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError(data.error || "Upload failed.");
+        setError(data.error || t("avatar.err.upload"));
         return;
       }
       onUploaded(data as UploadedImage);
       onClose();
     } catch {
-      setError("Could not process the image.");
+      setError(t("avatar.err.process"));
     } finally {
       setBusy(false);
     }
@@ -118,7 +120,7 @@ export function AvatarCropDialog({
         >
           <div className="mb-3 flex items-center justify-between">
             <Dialog.Title className="gold-title font-display text-lg tracking-wide">{title}</Dialog.Title>
-            <Dialog.Close aria-label="Close" className="rounded-md p-1.5 text-stone-500 hover:bg-stone-800 hover:text-stone-300">
+            <Dialog.Close aria-label={t("avatar.close")} className="rounded-md p-1.5 text-stone-500 hover:bg-stone-800 hover:text-stone-300">
               <X className="size-4" />
             </Dialog.Close>
           </div>
@@ -146,17 +148,17 @@ export function AvatarCropDialog({
                   onCropComplete={onCropComplete}
                   // The crop area takes focus and moves with the arrow keys;
                   // nothing said so, and it had no name to be found by.
-                  cropperProps={{ "aria-label": "Portrait framing", "aria-describedby": hintId }}
+                  cropperProps={{ "aria-label": t("avatar.framing"), "aria-describedby": hintId }}
                   mediaProps={{ alt: "" }}
                 />
               </div>
               <p id={hintId} className="mt-2 text-xs text-stone-400">
-                Drag the picture, or focus it and use the arrow keys. The slider zooms.
+                {t("avatar.hint")}
               </p>
               <div className="mt-2 flex items-center gap-2">
                 <ZoomIn className="size-4 text-stone-500" aria-hidden="true" />
                 <Slider
-                  label="Zoom"
+                  label={t("avatar.zoom")}
                   min={1}
                   max={4}
                   step={0.05}
@@ -173,7 +175,7 @@ export function AvatarCropDialog({
                   }}
                   className={ui.btnSmall}
                 >
-                  Center and fit
+                  {t("avatar.fit")}
                 </button>
               </div>
             </>
@@ -184,7 +186,7 @@ export function AvatarCropDialog({
               className="motion-press flex h-40 w-full flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-amber-500/30 bg-stone-950/40 text-sm text-stone-400 hover:border-amber-500/60 hover:text-amber-100"
             >
               <Upload className="size-5" aria-hidden="true" />
-              Choose an image
+              {t("avatar.choose")}
             </button>
           )}
 
@@ -201,14 +203,14 @@ export function AvatarCropDialog({
                 onClick={() => fileInput.current?.click()}
                 className={ui.btnSmall}
               >
-                Different image
+                {t("avatar.other")}
               </button>
             ) : (
               <span />
             )}
             <div className="flex gap-2">
               <button type="button" onClick={onClose} className={ui.btnSmall}>
-                Cancel
+                {t("avatar.cancel")}
               </button>
               <button
                 type="button"
@@ -216,7 +218,7 @@ export function AvatarCropDialog({
                 disabled={busy || !source}
                 className={ui.btnPrimary}
               >
-                {busy ? <Loader2 className="size-4 animate-spin" /> : null} Save
+                {busy ? <Loader2 className="size-4 animate-spin" /> : null} {t("avatar.save")}
               </button>
             </div>
           </div>

@@ -1,0 +1,20 @@
+// English, the source language: the front door (sign-in screen) and the forced password change.
+export const enAuthDoor = {
+  "door.forced.title": "Set a new password",
+  "door.forced.body": "An admin reset your password. Enter the temporary password you were given and pick a new one.",
+  "door.forced.submit": "Set new password",
+  "door.w.high-fantasy": "High fantasy",
+  "door.w.dark-fantasy": "Dark fantasy",
+  "door.w.horror": "Horror",
+  "door.w.mystery": "Mystery",
+  "door.w.steampunk": "Steampunk",
+  "door.w.cyberpunk": "Cyberpunk",
+  "door.w.post-apocalyptic": "Post-apocalyptic",
+  "door.behind": "Behind the door tonight",
+  "door.sevenKinds": "One of seven kinds of world your table can play.",
+  "door.tagline": "Gather your party. An AI Game Master runs the table; the dice are honest and the story is yours.",
+  "door.howto": "How to play",
+  "door.licenses": "Licenses",
+  "door.privacy": "Privacy",
+  "door.terms": "Terms",
+} satisfies Record<string, string>;

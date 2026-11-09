@@ -14,6 +14,9 @@ const { GROUP_STEP } = await import("../src/app/create-campaign/groups.ts");
 const { withCapabilities } = await import("../src/app/create-campaign/capabilities.ts");
 const { campaignPayload } = await import("../src/app/create-campaign/payload.ts");
 const summaries = await import("../src/app/create-campaign/summaries.ts");
+const { translate } = await import("../src/lib/i18n/core.ts");
+const { DICTIONARIES } = await import("../src/lib/i18n/messages/index.ts");
+const translateRu = (key, params) => translate(DICTIONARIES, "ru", key, params);
 
 const read = (file) => fs.readFileSync(new URL(`../src/app/create-campaign/${file}`, import.meta.url), "utf8");
 const essentials = read("EssentialsStep.tsx");
@@ -133,6 +136,34 @@ await test("the closed groups and the review say what is set, from the draft", (
   assert.equal(summaries.playersSummary(draft, { ...allGates, solo: true }), "one character each · changes apply at once");
   assert.equal(summaries.voiceChatSummary({ ...draft, voiceChat: { ...draft.voiceChat, enabled: false } }), "Off");
   assert.match(summaries.prepSummary({ ...draft, contentImport: { ...draft.contentImport, sourceId: "w", select: ["npcs"] } }, "Harbor Prep"), /prep from Harbor Prep/);
+});
+
+await test("creator summaries use Russian interface messages when a translator is supplied", () => {
+  const draft = { ...DEFAULT_DRAFT };
+  assert.equal(
+    summaries.narrationSummary({ ...draft, ttsEnabled: false }, allGates, "Heart", translateRu),
+    "Выключено: текст не озвучивается",
+  );
+  assert.equal(
+    summaries.bondsSummary({ relationships: "off", romance: "off" }, translateRu),
+    "Отношения выключены",
+  );
+  assert.equal(
+    summaries.voiceChatSummary({ ...draft.voiceChat, enabled: false }, translateRu),
+    "Выключено",
+  );
+  assert.equal(
+    summaries.customRules({
+      ...draft,
+      houseRules: "x",
+      variantRules: { ...draft.variantRules, flanking: true },
+    }, translateRu),
+    "Дополнительных правил: 1 · Домашние правила",
+  );
+  assert.equal(
+    summaries.worldSummary(draft, allGates, null, translateRu),
+    "Без готового мира · Английский (English) · Обычная (4–5 актов)",
+  );
 });
 
 finish();

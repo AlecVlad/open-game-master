@@ -18,6 +18,8 @@ import { ConnectedAgentsSection } from "@/app/settings/ConnectedAgentsSection";
 import { ChangePasswordForm } from "@/app/ChangePasswordForm";
 import { currentPathname, currentQuery, replaceAddress } from "@/lib/navigation";
 import { shellHost, type ShellHost } from "@/lib/shell-host";
+import { useI18n } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages/index";
 
 // window.odmShell is set once before any page script runs and never changes.
 const subscribeNever = () => () => {};
@@ -29,6 +31,7 @@ const subscribeNever = () => () => {};
 // way back is the app's home, where the world asks for a sign-in the app
 // keeps. The account menu draws no Log out in the app for the same reason.
 function SignedOutDoor({ shell, children }: { shell: ShellHost | null; children: string }) {
+  const { t } = useI18n();
   if (shell) {
     return (
       <button
@@ -36,7 +39,7 @@ function SignedOutDoor({ shell, children }: { shell: ShellHost | null; children:
         onClick={() => shell.showServers()}
         className="inline-flex min-h-10 items-center rounded-md text-amber-200 outline-none hover:text-amber-400 focus-visible:ring-2 focus-visible:ring-amber-300/70"
       >
-        App home
+        {t("settings.appHome")}
       </button>
     );
   }
@@ -58,8 +61,8 @@ type Me = {
   deletionDueAt?: string | null;
 };
 
-function dueDate(iso: string): string {
-  return new Date(iso).toLocaleDateString(undefined, {
+function dueDate(iso: string, lang?: string): string {
+  return new Date(iso).toLocaleDateString(lang === "ru" ? "ru-RU" : undefined, {
     year: "numeric",
     month: "long",
     day: "numeric",
@@ -69,6 +72,7 @@ function dueDate(iso: string): string {
 // Account settings: profile picture, password, Discord link, deletion, and
 // the About card naming the server.
 export default function SettingsPage() {
+  const { t, tp, lang } = useI18n();
   const [me, setMe] = useState<Me | null>(null);
   const [loading, setLoading] = useState(true);
   const shell = useSyncExternalStore<ShellHost | null>(subscribeNever, shellHost, () => null);
@@ -98,9 +102,9 @@ export default function SettingsPage() {
   const [discordNotice] = useState(() => {
     if (typeof window === "undefined") return "";
     const query = currentQuery();
-    if (query.get("linked") === "1") return "Discord account linked.";
+    if (query.get("linked") === "1") return t("settings.discord.linked");
     if (query.get("error") === "discord_taken") {
-      return "That Discord account is already linked to another user.";
+      return t("settings.discord.taken");
     }
     return "";
   });
@@ -158,14 +162,14 @@ export default function SettingsPage() {
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setDeleteError(data.error || "Could not delete your account.");
+        setDeleteError(data.error || t("settings.err.delete"));
         setDeleting(false);
         return;
       }
       setConfirmingDelete(false);
       setScheduled({ dueAt: data.dueAt, purged: data.purged === true });
     } catch {
-      setDeleteError("Could not delete your account.");
+      setDeleteError(t("settings.err.delete"));
       setDeleting(false);
     }
   }
@@ -197,8 +201,8 @@ export default function SettingsPage() {
   const graceDays = about?.graceDays ?? 14;
   const graceCopy =
     graceDays === 0
-      ? "Your account, the campaigns you created, your characters and your pictures are erased immediately."
-      : `Your account is signed out everywhere and erased after ${graceDays} day${graceDays === 1 ? "" : "s"}, together with the campaigns you created, your characters and your pictures. Signing in before then lets you keep it.`;
+      ? t("settings.grace.now")
+      : tp("settings.grace.later", graceDays, { count: graceDays });
 
   if (loading) {
     return <PageLoading width="narrow" />;
@@ -208,9 +212,9 @@ export default function SettingsPage() {
     return (
       <PageNotice width="narrow">
         {scheduled.purged
-          ? "Your account and everything it owned have been deleted. "
-          : `Your account is scheduled for deletion on ${dueDate(scheduled.dueAt)}. You have been signed out everywhere. To keep it, sign in again before then and choose "Keep my account". `}
-        <SignedOutDoor shell={shell}>Back to the front door</SignedOutDoor>
+          ? t("settings.gone.purged")
+          : t("settings.gone.scheduled", { date: dueDate(scheduled.dueAt, lang) })}
+        <SignedOutDoor shell={shell}>{t("settings.gone.door")}</SignedOutDoor>
       </PageNotice>
     );
   }
@@ -218,9 +222,9 @@ export default function SettingsPage() {
   if (!me) {
     return (
       <PageNotice width="narrow">
-        {shell ? "Your session at this server ended. Sign in again from " : null}
-        <SignedOutDoor shell={shell}>Log in</SignedOutDoor>
-        {shell ? "." : " to manage your account."}
+        {shell ? t("settings.ended") : null}
+        <SignedOutDoor shell={shell}>{t("settings.login")}</SignedOutDoor>
+        {shell ? "." : t("settings.toManage")}
       </PageNotice>
     );
   }
@@ -231,28 +235,28 @@ export default function SettingsPage() {
       width="narrow"
       icon={PIXEL_ICONS.characters}
       glyph="tab-settings"
-      title="Account settings"
-      blurb={`Signed in as ${me.username}`}
+      title={t("settings.title")}
+      blurb={t("settings.signedAs", { name: me.username })}
       actions={
         me.isAdmin ? (
           <Link href="/admin" className={ui.btnSecondary}>
-            <GameIcon icon={{ kind: "glyph", key: "tab-admin" }} size="size-6" /> Admin panel
+            <GameIcon icon={{ kind: "glyph", key: "tab-admin" }} size="size-6" /> {t("settings.adminPanel")}
           </Link>
         ) : null
       }
     >
       {/* The page's parts, one tap away, with who each one belongs to: an
           account setting follows you to any device, a device one stays here. */}
-      <nav aria-label="Settings sections" className="contents-rail panel">
+      <nav aria-label={t("settings.nav.aria")} className="contents-rail panel">
         {[
-          { id: "settings-profile", label: "Profile", glyph: "tab-characters" },
-          { id: "settings-dice", label: "Dice", glyph: "die-d20" },
-          ...(deviceWorld && !me.isAdmin ? [] : [{ id: "settings-signin", label: "Sign-in", glyph: "tab-admin" }]),
-          { id: "settings-appearance", label: "Appearance", glyph: "tab-settings" },
-          { id: "settings-dictation", label: "Dictation", glyph: "ui-speech" },
-          { id: "settings-blocked", label: "Blocked", glyph: "ui-lock" },
-          { id: "settings-agents", label: "Agents", glyph: "ui-agent" },
-          { id: "settings-account", label: "Account", glyph: "quest-failed" },
+          { id: "settings-profile", label: t("settings.nav.profile"), glyph: "tab-characters" },
+          { id: "settings-dice", label: t("settings.nav.dice"), glyph: "die-d20" },
+          ...(deviceWorld && !me.isAdmin ? [] : [{ id: "settings-signin", label: t("settings.nav.signin"), glyph: "tab-admin" }]),
+          { id: "settings-appearance", label: t("settings.nav.appearance"), glyph: "tab-settings" },
+          { id: "settings-dictation", label: t("settings.nav.dictation"), glyph: "ui-speech" },
+          { id: "settings-blocked", label: t("settings.nav.blocked"), glyph: "ui-lock" },
+          { id: "settings-agents", label: t("settings.nav.agents"), glyph: "ui-agent" },
+          { id: "settings-account", label: t("settings.nav.account"), glyph: "quest-failed" },
         ].map((stop) => (
           <button
             key={stop.id}
@@ -268,14 +272,14 @@ export default function SettingsPage() {
         ))}
       </nav>
 
-      <PageSection id="settings-profile" heading="Profile picture" glyph="tab-characters">
+      <PageSection id="settings-profile" heading={t("settings.profile.heading")} glyph="tab-characters">
         <div className="flex items-center gap-5">
           <span className="medallion">
             {me.avatar ? (
               <ImageLightbox
                 src={me.avatar.url}
-                alt="Your avatar"
-                caption="Your avatar"
+                alt={t("settings.profile.alt")}
+                caption={t("settings.profile.alt")}
                 className="size-24 rounded-full object-cover"
               />
             ) : (
@@ -291,7 +295,7 @@ export default function SettingsPage() {
               disabled={saving}
               className={ui.btnPrimary}
             >
-              {me.avatar ? "Change picture" : "Add picture"}
+              {me.avatar ? t("settings.profile.change") : t("settings.profile.add")}
             </button>
             {me.avatar ? (
               <button
@@ -300,40 +304,38 @@ export default function SettingsPage() {
                 disabled={saving}
                 className={cn(ui.btnSmall, "text-xs hover:border-red-500/50 hover:text-red-400")}
               >
-                <Trash2 className="size-3.5" /> Remove
+                <Trash2 className="size-3.5" /> {t("settings.profile.remove")}
               </button>
             ) : null}
           </div>
         </div>
         <p className="mt-3 text-xs text-stone-500">
-          Shown next to your name in lobbies and at the table. Character portraits are set on each
-          character.
+          {t("settings.profile.note")}
         </p>
       </PageSection>
 
       <PageSection
         id="settings-dice"
-        heading="Your dice"
+        heading={t("settings.dice.heading")}
         glyph="die-d20"
-        intro="The virtual dice that tumble across every table you sit at. Follows your account on this server, on every device."
+        intro={t("settings.dice.intro")}
       >
         <DiceLookSummary />
       </PageSection>
 
       {deviceWorld && !me.isAdmin ? null : (
-      <PageSection id="settings-signin" heading={me.hasPassword === false ? "Set a password" : "Password"} glyph="tab-admin">
+      <PageSection id="settings-signin" heading={me.hasPassword === false ? t("settings.pw.set") : t("settings.pw.heading")} glyph="tab-admin">
         {me.hasPassword === false ? (
           <>
             <p className="mb-3 text-sm text-stone-400">
-              You sign in with Discord. Set a password to also log in with your username, for
-              example in the desktop and mobile apps.
+              {t("settings.pw.discordOnly")}
             </p>
             {/* lockCurrent hides the current-password field; the server
                 skips verification for accounts that have none. */}
             <ChangePasswordForm
               currentPassword=""
               lockCurrent
-              submitLabel="Set password"
+              submitLabel={t("settings.pw.submit")}
               onChanged={() => {
                 setMe((current) => (current ? { ...current, hasPassword: true } : current));
                 flashPasswordSaved();
@@ -345,7 +347,7 @@ export default function SettingsPage() {
         )}
         {passwordChanged ? (
           <p className="reveal mt-2 inline-flex items-center gap-1 text-sm text-emerald-400">
-            <Check className="size-4" /> Password saved. Other devices were signed out.
+            <Check className="size-4" /> {t("settings.pw.saved")}
           </p>
         ) : null}
       </PageSection>
@@ -356,11 +358,11 @@ export default function SettingsPage() {
           {me.discordLinked ? (
             <p className="reveal text-sm text-stone-400">
               <Check className="mr-1 inline size-4 text-emerald-400" />
-              Linked. You can sign in with Discord.
+              {t("settings.discord.linkedLine")}
             </p>
           ) : (
             <a href="/api/auth/discord/start?link=1" className={ui.btnSmall}>
-              <Link2 className="size-3.5" /> Link Discord account
+              <Link2 className="size-3.5" /> {t("settings.discord.link")}
             </a>
           )}
           {discordNotice ? <p className="live-in mt-2 text-sm text-amber-300">{discordNotice}</p> : null}
@@ -383,12 +385,12 @@ export default function SettingsPage() {
 
       {me.deletionDueAt ? (
         <PageSection
-          heading="Deletion scheduled"
+          heading={t("settings.del.scheduled")}
           glyph="quest-failed"
-          ribbon="Pending"
+          ribbon={t("settings.del.pending")}
           ribbonTone="ember"
           tone="danger"
-          intro={`This account will be permanently deleted on ${dueDate(me.deletionDueAt)}. Until then everything still works, and you can call it off.`}
+          intro={t("settings.del.intro", { date: dueDate(me.deletionDueAt, lang) })}
         >
           <button
             type="button"
@@ -397,14 +399,14 @@ export default function SettingsPage() {
             className={ui.btnPrimary}
           >
             {keeping ? <Loader2 className="size-4 animate-spin" /> : <Undo2 className="size-4" />}
-            Keep my account
+            {t("settings.del.keep")}
           </button>
         </PageSection>
       ) : (
         <PageSection
-          heading="Delete account"
+          heading={t("settings.del.heading")}
           glyph="quest-failed"
-          ribbon="Irreversible"
+          ribbon={t("settings.del.irreversible")}
           ribbonTone="ember"
           tone="danger"
           intro={graceCopy}
@@ -418,12 +420,12 @@ export default function SettingsPage() {
             }}
             className={cn(ui.btnSmall, "hover:border-red-500/50 hover:text-red-400")}
           >
-            <Trash2 className="size-3.5" /> Delete account
+            <Trash2 className="size-3.5" /> {t("settings.del.heading")}
           </button>
         </PageSection>
       )}
 
-      <PageSection heading="About" glyph="system-lore">
+      <PageSection heading={t("settings.about")} glyph="system-lore">
         {about ? (
           <p className="reveal text-sm text-stone-300">
             {about.serverName} <span className="text-stone-500">v{about.version}</span>
@@ -433,19 +435,19 @@ export default function SettingsPage() {
         )}
         <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2">
           <Link href="/rulebook" className={ui.btnSmall}>
-            Rulebook
+            {t("settings.about.rulebook")}
           </Link>
           <Link href="/reference" className={ui.btnSmall}>
-            Rules reference
+            {t("settings.about.reference")}
           </Link>
           <Link href="/terms" className={ui.btnSmall}>
-            Terms of service
+            {t("settings.about.terms")}
           </Link>
           <Link href="/privacy" className={ui.btnSmall}>
-            Privacy policy
+            {t("settings.about.privacy")}
           </Link>
           <Link href="/licenses" className={ui.btnSmall}>
-            Licenses and attribution
+            {t("settings.about.licenses")}
           </Link>
           <a
             href="https://github.com/Lebbitheplow/open-game-master"
@@ -460,7 +462,7 @@ export default function SettingsPage() {
 
       {cropping ? (
         <AvatarCropDialog
-          title="Profile picture"
+          title={t("settings.profile.heading")}
           onUploaded={(image) => setAvatar({ url: image.url })}
           onClose={() => setCropping(false)}
         />

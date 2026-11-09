@@ -4,6 +4,8 @@ import { readLoad, useLoadStatus } from "@/lib/load-state";
 import { EmptyState } from "@/components/EmptyState";
 import { Pin, Save } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages/index";
 import { cn } from "@/lib/cn";
 import { SectionHead } from "@/components/ui/SectionHead";
 import { Select } from "@/components/ui/Select";
@@ -78,21 +80,19 @@ export const REST_LABELS: Record<GameSettings["variantRules"]["restVariant"], st
 // offer the same choices this panel does without the lead having to open the
 // lobby afterwards to find them.
 type RestVariant = GameSettings["variantRules"]["restVariant"];
-const REST_OPTIONS = (Object.keys(REST_LABELS) as RestVariant[]).map((variant) => ({
-  value: variant,
-  label: REST_LABELS[variant],
-  icon: { kind: "glyph" as const, key: variant === "standard" ? "rest-short" : "rest-long" },
-}));
+const variantRuleMessage = (part: string): MessageKey =>
+  `createCampaign.experience.variantRules.${part}` as MessageKey;
 
 // One variant rule: the kit switch, its name, and the word that says which
 // way it is set (a player reads "on" or "off", not the knob's position).
 function VariantSwitch({ label, tip, on, onChange }: { label: string; tip: string; on: boolean; onChange: (next: boolean) => void }) {
+  const { t } = useI18n();
   return (
     <Tooltip content={tip}>
       <span className="flex min-h-9 items-center gap-2 text-xs text-stone-300">
         <Switch on={on} onChange={onChange} label={label} />
         <span className="min-w-0 flex-1">{label}</span>
-        <span className={on ? "text-amber-200" : "text-stone-500"}>{on ? "on" : "off"}</span>
+        <span className={on ? "text-amber-200" : "text-stone-500"}>{t(variantRuleMessage(on ? "on" : "off"))}</span>
       </span>
     </Tooltip>
   );
@@ -105,19 +105,31 @@ export function VariantRulesFields({
   value: GameSettings["variantRules"];
   onChange: (next: GameSettings["variantRules"]) => void;
 }) {
+  const { t } = useI18n();
+  const restOptions = (Object.keys(REST_LABELS) as RestVariant[]).map((variant) => ({
+    value: variant,
+    label: t(variantRuleMessage(`rest.${variant}`)),
+    icon: { kind: "glyph" as const, key: variant === "standard" ? "rest-short" : "rest-long" },
+  }));
   return (
     <div>
-      <SectionHead title="Variant rules" glyph="system-rules" level="h4" />
+      <SectionHead title={t(variantRuleMessage("title"))} glyph="system-rules" level="h4" />
       <div className="stagger-pop grid gap-x-4 gap-y-0.5 sm:grid-cols-2">
         {VARIANT_TOGGLES.map((toggle) => (
-          <VariantSwitch key={toggle.key} label={toggle.label} tip={toggle.tip} on={Boolean(value[toggle.key])} onChange={(next) => onChange({ ...value, [toggle.key]: next })} />
+          <VariantSwitch
+            key={toggle.key}
+            label={t(variantRuleMessage(`${toggle.key}.label`))}
+            tip={t(variantRuleMessage(`${toggle.key}.tip`))}
+            on={Boolean(value[toggle.key])}
+            onChange={(next) => onChange({ ...value, [toggle.key]: next })}
+          />
         ))}
       </div>
       <Select<RestVariant>
         value={value.restVariant}
         onChange={(restVariant) => onChange({ ...value, restVariant })}
-        options={REST_OPTIONS}
-        label="Rest lengths"
+        options={restOptions}
+        label={t(variantRuleMessage("restLengths"))}
         className="mt-2 w-full"
       />
     </div>
