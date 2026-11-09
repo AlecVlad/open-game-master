@@ -38,7 +38,7 @@ import { useI18n } from "@/lib/i18n/provider";
 // top of it as their own buttons, since a button cannot live inside a link.
 
 export default function WorkshopListPage() {
-  const { t } = useI18n();
+  const { t, tp } = useI18n();
   const [workshops, setWorkshops] = useState<WorkshopSummary[]>([]);
   const [loading, setLoading] = useState(true);
   // A refused or failed read is shown in the server's words with a way to
@@ -210,7 +210,7 @@ export default function WorkshopListPage() {
               <span className="mb-1 block font-display text-[11px] tracking-[0.1em] text-amber-300/85">{t("workshop.shelf.form.party")}</span>
               <div className="flex flex-wrap items-center gap-2">
                 <NumberStepper label={t("workshop.shelf.form.partySize")} min={1} max={8} value={size} onChange={setSize} />
-                <span className="text-sm text-stone-400">{t("workshop.shelf.form.heroes", { count: size })}</span>
+                <span className="text-sm text-stone-400">{tp("workshop.shelf.form.partyCount", size)}</span>
                 <NumberStepper label={t("workshop.shelf.form.partyLevel")} min={1} max={20} value={level} onChange={setLevel} />
               </div>
               <span className="mt-1 block text-xs text-stone-500">
@@ -294,7 +294,7 @@ export default function WorkshopListPage() {
                   {workshop.title}
                 </span>
                 <span className="text-xs text-stone-500">
-                  {t("workshop.shelf.tile.party", { count: workshop.gameSettings.targetParty.size })} {t("workshop.shelf.tile.level", { level: workshop.gameSettings.targetParty.level })}
+                  {tp("workshop.shelf.tile.party", workshop.gameSettings.targetParty.size)} {t("workshop.shelf.tile.level", { level: workshop.gameSettings.targetParty.level })}
                 </span>
               </Link>
               <div className="absolute right-2 top-2 flex gap-0.5">
