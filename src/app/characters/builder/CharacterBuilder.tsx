@@ -647,7 +647,7 @@ function CharacterBuilderForm({
     appearance: Boolean(state.appearance.trim()),
     backstory: Boolean(state.backstory.trim()),
     owed,
-  });
+  }, i18n);
 
   // Each step's title is the task in plain words; its label is the short
   // name printed under its diamond and said with it, and the one the notices
