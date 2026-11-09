@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode, Ref } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/cn";
 import type { Genre } from "@/lib/schemas/game-settings";
 import type { FranchiseGroup, WorldPackSummary } from "@/lib/worlds/types";
@@ -39,6 +40,7 @@ export function EssentialsStep(
     onPrepChosen: (chosen: { title: string; arcComing: boolean } | null) => void;
   },
 ) {
+  const { t } = useI18n();
   const { draft, patch, gates, active, groups, selectedPack } = props;
   return (
     <div className={cn("space-y-4 text-sm", active && "cc-live")}>
@@ -58,7 +60,7 @@ export function EssentialsStep(
           {...groupProps(groups, "world")}
           title="World and story"
           glyph="system-world"
-          summary={worldSummary(draft, gates, selectedPack?.name ?? null)}
+          summary={worldSummary(draft, gates, selectedPack?.name ?? null, t)}
         >
           <WorldPackField
             draft={draft}
@@ -76,7 +78,7 @@ export function EssentialsStep(
           {...groupProps(groups, "character")}
           title="Character creation"
           glyph="tab-characters"
-          summary={characterSummary(draft)}
+          summary={characterSummary(draft, t)}
         >
           <CharacterRulesFields draft={draft} patch={patch} gates={gates} />
           <SheetRows draft={draft} patch={patch} gates={gates} keys={["multiclassingEnabled"]} />
@@ -86,7 +88,7 @@ export function EssentialsStep(
           {...groupProps(groups, "prep")}
           title="House rules, lore and prep"
           glyph="system-lore"
-          summary={prepSummary(draft, props.prepSource)}
+          summary={prepSummary(draft, props.prepSource, t)}
         >
           <WorldSetupFields
             collapsible={false}
