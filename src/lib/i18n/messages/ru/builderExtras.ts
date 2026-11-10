@@ -366,7 +366,7 @@ export const ruBuilderExtras: Partial<Record<keyof typeof enBuilderExtras, strin
   "builder.extra.buildMath.working.ability.race": "происхождение {bonus}",
   "builder.extra.buildMath.working.ability.gain": "{source} {amount}",
   "builder.extra.buildMath.working.slotTable.multiclass": "таблица мультикласса при уровне заклинателя {level}",
-  "builder.extra.buildMath.working.slotTable.class": "таблица класса «{klass}» для {level}-го уровня этого класса",
+  "builder.extra.buildMath.working.slotTable.class": "Таблица заклинателя «{klass}» для {level}-го уровня",
   "builder.extra.buildMath.working.slotTable.single": "таблица класса «{klass}» для {level}-го уровня",
   "builder.extra.buildMath.working.spellDc": "8, бонус мастерства {proficiency}, модификатор {ability} {modifier}",
   "builder.extra.buildMath.working.spellAttack": "бонус мастерства {proficiency}, модификатор {ability} {modifier}",
