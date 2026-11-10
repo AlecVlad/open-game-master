@@ -1,41 +1,45 @@
-# CLAUDE — IMPORTANT: localization handoff
+# HANDOFF FOR THE FIRST AGENT — READ BEFORE RESUMING
 
-**Repo:** `AlecVlad/open-game-master`  
-**Твоя известная рабочая ветка:** `i18n-ru-stage0`  
-**Актуальная интегрированная ветка:** `integrate/ru-0.34.1`
+**Repository:** `AlecVlad/open-game-master`  
+**Your baseline branch:** `i18n-ru-stage0`  
+**Active translation branch:** `i18n-ru-agent2`  
+**Baseline commit:** `e63715ab4b34e9385223ba2017e7518768e97e48` (v0.33.0)
 
-## Важно о ветках
+## Current division of work
 
-`i18n-ru-stage0` — более ранняя точка истории, где есть твои коммиты по переводу (последний известный: `e63715ab`, перевод шага Ancestry).
+The second agent (ChatGPT) is continuing the localization on `i18n-ru-agent2`, created from your `i18n-ru-stage0` commit `e63715ab`.
 
-Проверка Git-графа показала:
-- `i18n-ru-agent2` опережает `i18n-ru-stage0` на 241 коммит;
-- `integrate/ru-0.34.1` опережает `i18n-ru-stage0` на 429 коммитов;
-- `stage0` не содержит уникальных коммитов поверх интегрированной ветки: это её предок.
+The second agent owns the remaining localization work across the project, including:
+- remaining character-builder components;
+- `src/app/create-campaign`;
+- `src/app/setup`;
+- campaign session/game UI and the remaining campaign pages;
+- shared components, help, rulebook/reference and the remaining user-facing areas.
 
-**Не продолжай крупные изменения в старой копии `stage0` и не переноси её целиком поверх актуальной ветки.** Сначала сохрани возможные локальные/незапушенные изменения своей сессии, затем переключись или аккуратно перенеси только свой незакоммиченный diff в `integrate/ru-0.34.1`. Не потеряй работу, которая ещё не попала в GitHub.
+The second agent pushes only to the fork branch `i18n-ru-agent2`. Do not expect code changes to be committed to `stage0` while that work is in progress.
 
-## Что уже сделано после stage0
+## Do not merge yet
 
-Ветка `i18n-ru-agent2` (рабочая ветка второго агента, не твоя Claude-ветка) была объединена с актуальным upstream `Lebbitheplow/open-game-master:main` трёхсторонним merge.
+Until the second agent reports localization work complete:
 
-- Merge-коммит: `7fd508fd79b6275a76e55fcb33e9f6a29b337450`.
-- Сохранены изменения upstream и переводческие изменения из `i18n-ru-agent2`.
-- Вручную сведены два пересекавшихся файла:
-  - `src/app/campaigns/[campaignId]/AfterRollCard.tsx`: сохранена новая логика оригинала (таймер, реакции союзников, Chronal Shift и состояния ожидания), поверх неё оставлена локализация.
-  - `src/app/characters/builder/steps/ClassChoices.tsx`: оставлен перевод и восстановлена актуальная логика выбора экспертиз `derived.expertiseSkills ?? proficientSkills`.
-- В `src/lib/i18n/messages/en/campaignSession.ts` и `ru/campaignSession.ts` добавлены 22 парных ключа для новых сообщений After Roll.
-- В `scripts/test-i18n.mjs` добавлена проверка этих ключей в обоих словарях.
+1. Do not merge `i18n-ru-agent2` into `stage0` or another branch.
+2. Do not merge or copy files from `i18n-ru-workshop` or `i18n-ru-fonts`; these branches are reserved for your later integration.
+3. Do not merge upstream `main` / v0.34.1. The active localization is deliberately based on v0.33.0; you will integrate upstream after the translation work is complete and localize only the upstream changes then.
+4. Preserve any uncommitted work in your own session before switching branches.
 
-## Проверки
+## What to do when the second agent is finished
 
-Финальные файлы и наличие ключей проверены статически. **TypeScript, тесты, lint и production build не запускались; успешная сборка не подтверждена.** Не называй проверки пройденными без фактического запуска.
+1. Fetch the fork and read `BUILD_REPORT.md` from `i18n-ru-agent2`.
+2. Review the branch diff and reports; check the actual test/build results rather than assuming they passed.
+3. Integrate `i18n-ru-agent2`, `i18n-ru-workshop` and `i18n-ru-fonts` according to the owner's plan. The owner expects you to handle the later branch merge and proofreading.
+4. Only then integrate upstream `main` / v0.34.1 and translate any new or changed user-facing text.
 
-## Что делать дальше
+## Important clarification about an older branch
 
-1. Сначала проверь незакоммиченные изменения в своей среде `stage0` и сохрани их отдельно.
-2. Сверь их с `integrate/ru-0.34.1`; не затирай более новые версии файлов.
-3. Продолжай локализацию уже на `integrate/ru-0.34.1` после переноса незакоммиченной работы.
-4. Работай небольшими коммитами; не меняй `main`, upstream и не создавай PR/merge без разрешения пользователя.
+An earlier assistant session created `integrate/ru-0.34.1` by merging upstream with the previous translation state. Under the owner's latest instructions, **that branch is not the active base for the current translation**. Leave it untouched; do not copy from it or merge it into the active `i18n-ru-agent2` branch.
 
-**Смысл:** твоя предыдущая работа не выброшена — её история входит в актуальную интеграционную ветку. Нужно перенести только то, что ещё осталось незакоммиченным в твоей сессии, а не начинать перевод заново.
+## Current progress marker
+
+The active branch has a running `BUILD_REPORT.md`. The latest report is the source of truth for completed files and verification status. At the time this note was updated, the first group (lineage carousel localization) had been committed there. Automated tests and build were not yet run in the assistant's remote-only environment.
+
+**Only this handoff note was changed on `i18n-ru-stage0` by the assistant; no application code was changed on this branch.**
