@@ -240,5 +240,7 @@ export const ruCampaignPanels: Partial<Record<keyof typeof enCampaignPanels, str
   "campaign.dmConsole.queue.allAnswered": "На всё отвечено",
   "campaign.dmConsole.queue.empty": "Ожидающих действий нет. На все сообщения группы дан ответ.",
   "campaign.dmConsole.actionCount.one": "{count} действие",
+  "campaign.dmConsole.actionCount.few": "{count} действия",
+  "campaign.dmConsole.actionCount.many": "{count} действий",
   "campaign.dmConsole.actionCount.other": "{count} действий",
 };
