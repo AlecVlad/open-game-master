@@ -349,11 +349,12 @@ export function parseTrait(line: string, entry: LineageEntry, messages?: Lineage
   if (/skill/i.test(text) && entry.skillChoice) {
     const { count, from } = entry.skillChoice;
     const skills = from?.map((id) => SRD_SKILLS.find((skill) => skill.id === id)?.name ?? id) ?? [];
-    const among = skills.length ? ` from ${skills.join(", ")}` : "";
-    const translatedAmong = skills.length ? ` из списка: ${skills.join(", ")}` : "";
+    const among = skills.length
+      ? (messages?.t ? messages.t("builder.extra.lineage.trait.skill.among", { skills: skills.join(", ") }) : ` from ${skills.join(", ")}`)
+      : "";
     return {
       head: text,
-      body: messages?.tp ? messages.tp("builder.extra.lineage.trait.skill", count, { among: messages.t ? translatedAmong : among }) : `${countWord(count)} ${count === 1 ? "skill" : "skills"} of your choice${among}, asked for on this step.`,
+      body: messages?.tp ? messages.tp("builder.extra.lineage.trait.skill", count, { among }) : `${countWord(count)} ${count === 1 ? "skill" : "skills"} of your choice${among}, asked for on this step.`,
     };
   }
   if (/tool/i.test(text) && entry.toolChoice) {
