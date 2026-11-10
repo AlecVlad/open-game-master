@@ -174,7 +174,7 @@ export function buildMathSections({ derived, scores, klass, atTable }: BuildMath
         id: "proficiency",
         label: "Proficiency bonus",
         value: formatModifier(sheet.proficiencyBonus),
-        working: `level ${effectiveLevel}`,
+        working: msg(messages, "builder.extra.buildMath.working.level", { level: effectiveLevel }, `level ${effectiveLevel}`),
       },
       {
         id: "passive-perception",
@@ -193,13 +193,13 @@ export function buildMathSections({ derived, scores, klass, atTable }: BuildMath
       const race = derived.racialBonus[ability] ?? 0;
       const gains = derived.abilityGains[ability] ?? [];
       const working = [
-        assigned === null ? null : `assigned ${assigned}`,
-        race ? `race ${formatModifier(race)}` : null,
-        ...gains.filter((gain) => gain.amount).map((gain) => `${gain.source} ${formatModifier(gain.amount)}`),
+        assigned === null ? null : msg(messages, "builder.extra.buildMath.working.ability.assigned", { score: assigned }, `assigned ${assigned}`),
+        race ? msg(messages, "builder.extra.buildMath.working.ability.race", { bonus: formatModifier(race) }, `race ${formatModifier(race)}`) : null,
+        ...gains.filter((gain) => gain.amount).map((gain) => msg(messages, "builder.extra.buildMath.working.ability.gain", { source: gain.source, amount: formatModifier(gain.amount) }, `${gain.source} ${formatModifier(gain.amount)}`)),
       ].filter(Boolean);
       return {
         id: `ability-${ability}`,
-        label: ABILITY_NAMES[ability],
+        label: messages?.t?.((`builder.extra.ability.${ability}`) as MessageKey) ?? ABILITY_NAMES[ability],
         value: `${shownAbilities[ability]} (${formatModifier(sheet.abilityMods[ability])})`,
         working: working.join(", "),
       };
@@ -211,7 +211,7 @@ export function buildMathSections({ derived, scores, klass, atTable }: BuildMath
     title: "Saving throws",
     rows: ABILITIES.map((ability) => ({
       id: `save-${ability}`,
-      label: `${ABILITY_NAMES[ability]} save`,
+      label: msg(messages, "builder.extra.buildMath.row.save", { ability: messages?.t?.((`builder.extra.ability.${ability}`) as MessageKey) ?? ABILITY_NAMES[ability] }, `${ABILITY_NAMES[ability]} save`),
       value: formatModifier(sheet.saves[ability]),
       working: workingOf(sheet.parts.saves[ability], messages),
     })),
@@ -234,10 +234,10 @@ export function buildMathSections({ derived, scores, klass, atTable }: BuildMath
   const slotDesks = (derived.casterDesks ?? []).filter((desk) => desk.klass.casterType !== "pact" && desk.maxSpellLevel > 0);
   const slotTable =
     derived.multiclass && slotDesks.length > 1
-      ? `multiclass table at caster level ${casterLevelFor(derived.classList ?? [])}`
+      ? msg(messages, "builder.extra.buildMath.working.slotTable.multiclass", { level: casterLevelFor(derived.classList ?? []) }, `multiclass table at caster level ${casterLevelFor(derived.classList ?? [])}`)
       : derived.multiclass && derived.casterKlass
-        ? `${derived.casterKlass.name} table at ${derived.casterKlass.name.toLowerCase()} level ${derived.casterLevel ?? effectiveLevel}`
-        : `${klass.name} table at level ${effectiveLevel}`;
+        ? msg(messages, "builder.extra.buildMath.working.slotTable.class", { klass: derived.casterKlass.name, level: derived.casterLevel ?? effectiveLevel }, `${derived.casterKlass.name} table at ${derived.casterKlass.name.toLowerCase()} level ${derived.casterLevel ?? effectiveLevel}`)
+        : msg(messages, "builder.extra.buildMath.working.slotTable.single", { klass: klass.name, level: effectiveLevel }, `${klass.name} table at level ${effectiveLevel}`);
   // With more than one casting class each has its own save DC and attack,
   // from its own ability (backlog F9, phase 2).
   const desks = (derived.casterDesks ?? []).filter((desk) => desk.ability && desk.spellSaveDc !== null);
@@ -248,13 +248,13 @@ export function buildMathSections({ derived, scores, klass, atTable }: BuildMath
           id: `spell-dc-${desk.classId}`,
           label: `${desk.klass.name} spell save DC`,
           value: String(desk.spellSaveDc),
-          working: `8, proficiency ${formatModifier(sheet.proficiencyBonus)}, ${(desk.ability ?? "").toUpperCase()} modifier ${formatModifier((desk.spellSaveDc ?? 8) - 8 - sheet.proficiencyBonus)}`,
+          working: msg(messages, "builder.extra.buildMath.working.spellDc", { proficiency: formatModifier(sheet.proficiencyBonus), ability: (desk.ability ?? "").toUpperCase(), modifier: formatModifier((desk.spellSaveDc ?? 8) - 8 - sheet.proficiencyBonus) }, `8, proficiency ${formatModifier(sheet.proficiencyBonus)}, ${(desk.ability ?? "").toUpperCase()} modifier ${formatModifier((desk.spellSaveDc ?? 8) - 8 - sheet.proficiencyBonus)}`),
         },
         {
           id: `spell-attack-${desk.classId}`,
           label: `${desk.klass.name} spell attack`,
           value: formatModifier(desk.spellAttack ?? 0),
-          working: `proficiency ${formatModifier(sheet.proficiencyBonus)}, ${(desk.ability ?? "").toUpperCase()} modifier ${formatModifier((desk.spellAttack ?? 0) - sheet.proficiencyBonus)}`,
+          working: msg(messages, "builder.extra.buildMath.working.spellAttack", { proficiency: formatModifier(sheet.proficiencyBonus), ability: (desk.ability ?? "").toUpperCase(), modifier: formatModifier((desk.spellAttack ?? 0) - sheet.proficiencyBonus) }, `proficiency ${formatModifier(sheet.proficiencyBonus)}, ${(desk.ability ?? "").toUpperCase()} modifier ${formatModifier((desk.spellAttack ?? 0) - sheet.proficiencyBonus)}`),
         },
       ])
     : [];
@@ -271,8 +271,8 @@ export function buildMathSections({ derived, scores, klass, atTable }: BuildMath
           {
             id: "slots-pact",
             label: "Pact magic slots",
-            value: `${derived.pactSlots.max} at ${SLOT_LEVELS[derived.pactSlots.level - 1]?.[1] ?? derived.pactSlots.level} level`,
-            working: "warlock levels, recovered on a short rest",
+            value: msg(messages, "builder.extra.buildMath.working.pactSlotValue", { count: derived.pactSlots.max, level: SLOT_LEVELS[derived.pactSlots.level - 1]?.[1] ?? derived.pactSlots.level }, `${derived.pactSlots.max} at ${SLOT_LEVELS[derived.pactSlots.level - 1]?.[1] ?? derived.pactSlots.level} level`),
+            working: messages?.t?.("builder.extra.buildMath.working.pactSlots") ?? "warlock levels, recovered on a short rest",
           },
         ]
       : []),
@@ -300,10 +300,10 @@ export function buildMathSections({ derived, scores, klass, atTable }: BuildMath
           {
             id: `weapon-${row.name}`,
             label: row.name,
-            value: `${formatModifier(row.weapon.toHit)} to hit, ${row.weapon.damage} ${row.weapon.damageType}`,
+            value: msg(messages, "builder.extra.buildMath.working.weaponValue", { hit: formatModifier(row.weapon.toHit), damage: row.weapon.damage, damageType: row.weapon.damageType }, `${formatModifier(row.weapon.toHit)} to hit, ${row.weapon.damage} ${row.weapon.damageType}`),
             working: [
-              `to hit: ${workingOf(row.weapon.toHitParts, messages)}`,
-              `damage adds ${row.weapon.ability} modifier`,
+              msg(messages, "builder.extra.buildMath.working.weaponToHit", { parts: workingOf(row.weapon.toHitParts, messages) }, `to hit: ${workingOf(row.weapon.toHitParts)}`),
+              msg(messages, "builder.extra.buildMath.working.weaponDamage", { ability: row.weapon.ability.toUpperCase() }, `damage adds ${row.weapon.ability} modifier`),
               ...row.weapon.notes,
             ].join("; "),
           },
