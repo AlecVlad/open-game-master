@@ -23,7 +23,7 @@ import {
 // when it is asked, and says so in the transcript afterwards.
 
 function MonsterButton({ campaignId }: { campaignId: string }) {
-  const { t } = useI18n();
+  const { t, tp } = useI18n();
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
 
@@ -44,11 +44,7 @@ function MonsterButton({ campaignId }: { campaignId: string }) {
       // where a DM will actually read it; this is only the receipt.
       setNotice(
         notes.length
-          ? notes.length === 1
-            ? t("campaign.dmDelegation.monsters.one", { count: notes.length })
-            : [2, 3, 4].includes(notes.length % 10) && ![11, 12, 13, 14].includes(notes.length % 100)
-              ? t("campaign.dmDelegation.monsters.few", { count: notes.length })
-              : t("campaign.dmDelegation.monsters.many", { count: notes.length })
+          ? tp("campaign.dmDelegation.monsters", notes.length)
           : t("campaign.dmDelegation.monsters.empty"),
       );
     } catch {
@@ -76,19 +72,14 @@ function MonsterButton({ campaignId }: { campaignId: string }) {
 }
 
 function CoverControl({ campaignId, cover }: { campaignId: string; cover: DmCover | null }) {
-  const { t } = useI18n();
+  const { t, tp } = useI18n();
   const [turns, setTurns] = useState(5);
   const [brief, setBrief] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const running = coverActive(cover);
   const count = cover?.turnsLeft ?? 0;
-  const countIsFew = [2, 3, 4].includes(count % 10) && ![11, 12, 13, 14].includes(count % 100);
-  const countLabel = count === 1
-    ? t("campaign.dmDelegation.cover.active.one")
-    : countIsFew
-      ? t("campaign.dmDelegation.cover.active.few", { count })
-      : t("campaign.dmDelegation.cover.active.many", { count });
+  const countLabel = tp("campaign.dmDelegation.cover.active", count);
 
   async function set(nextTurns: number) {
     setBusy(true);
@@ -147,7 +138,7 @@ function CoverControl({ campaignId, cover }: { campaignId: string; cover: DmCove
               onChange={(next) => setTurns(Number(next))}
               options={[1, 3, 5, 10, MAX_COVER_TURNS].map((count) => ({
                 value: String(count),
-                label: count === 1 ? t("campaign.dmDelegation.cover.answers.one", { count }) : countIsFew ? t("campaign.dmDelegation.cover.answers.few", { count }) : t("campaign.dmDelegation.cover.answers.many", { count }),
+                label: tp("campaign.dmDelegation.cover.answers", count),
               }))}
               label={t("campaign.dmDelegation.cover.answers.label")}
               size="sm"
@@ -205,14 +196,9 @@ export function DmDelegationPanel({
 // a player owed an answer is owed the knowledge that the person answering
 // them stepped out and the AI is standing in.
 export function DmCoverNotice({ cover }: { cover: DmCover | null }) {
-  const { t } = useI18n();
+  const { tp } = useI18n();
   const count = cover?.turnsLeft ?? 0;
-  const countIsFew = [2, 3, 4].includes(count % 10) && ![11, 12, 13, 14].includes(count % 100);
-  const coverText = count === 1
-    ? t("campaign.dmDelegation.cover.active.one")
-    : countIsFew
-      ? t("campaign.dmDelegation.cover.active.few", { count })
-      : t("campaign.dmDelegation.cover.active.many", { count });
+  const coverText = tp("campaign.dmDelegation.cover.active", count);
   if (!coverActive(cover)) {
     return null;
   }
