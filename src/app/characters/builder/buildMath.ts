@@ -122,30 +122,47 @@ export function buildMathSections({ derived, scores, klass, atTable }: BuildMath
     derived.extras?.find((entry) => entry.klass.id === id)?.klass.name ?? klass.name;
   const hpWorking = preview.hpKept
     ? hpLine.reason
-    : split
-      ? [
-          `level 1: d${parts.hitDie} ${parts.hitDie}, Con ${formatModifier(parts.conMod)}${parts.bonusPerLevel ? `, bonus ${formatModifier(parts.bonusPerLevel)}` : ""} = ${parts.firstLevel}`,
-          ...split
-            .filter((entry) => entry.levels > 0)
-            .map((entry) =>
-              preview.hpMethod === "rolled"
-                ? `${entry.levels} ${nameOf(entry.id).toLowerCase()} ${entry.levels === 1 ? "level" : "levels"} rolled on a d${entry.hitDie} by the server when you save`
-                : `${entry.levels} ${entry === split[0] ? "more " : ""}${nameOf(entry.id).toLowerCase()} ${entry.levels === 1 ? "level" : "levels"} at ${entry.perLevel} each (d${entry.hitDie}) = ${entry.levels * entry.perLevel}`,
-            ),
-          ...(parts.featureHp ? [`features ${formatModifier(parts.featureHp)}`] : []),
-        ].join("; ")
-      : [
-        `level 1: d${parts.hitDie} ${parts.hitDie}, Con ${formatModifier(parts.conMod)}${parts.bonusPerLevel ? `, bonus ${formatModifier(parts.bonusPerLevel)}` : ""} = ${parts.firstLevel}`,
-        ...(effectiveLevel > 1
-          ? [
-              preview.hpMethod === "rolled"
-                ? `${effectiveLevel - 1} more levels rolled by the server when you save`
-                : `${effectiveLevel - 1} more levels at ${parts.perLevel} each (${preview.hpMethod === "max" ? "die's highest face" : "average"} ${parts.face}, Con ${formatModifier(parts.conMod)}${parts.bonusPerLevel ? `, bonus ${formatModifier(parts.bonusPerLevel)}` : ""}) = ${parts.laterLevels}`,
-            ]
-          : []),
-        ...(parts.featureHp ? [`features ${formatModifier(parts.featureHp)}`] : []),
-      ].join("; ");
-  const acLine = armorClassLine(derived.acInfo?.ac ?? derived.ac, derived.acInfo?.parts, messages);
+    : (() => {
+        const bonus = parts.bonusPerLevel ? formatModifier(parts.bonusPerLevel) : "";
+        const bonusPart = parts.bonusPerLevel
+          ? msg(messages, "builder.extra.buildMath.working.hp.bonus", { bonus }, ", bonus " + bonus)
+          : "";
+        const firstFallback = "level 1: d" + parts.hitDie + " " + parts.hitDie + ", Con " + formatModifier(parts.conMod) + bonusPart + " = " + parts.firstLevel;
+        const first = msg(messages, "builder.extra.buildMath.working.hp.level1", {
+          die: parts.hitDie, con: formatModifier(parts.conMod), bonus: bonusPart, total: parts.firstLevel,
+        }, firstFallback);
+        const featureLine = parts.featureHp ? msg(messages, "builder.extra.buildMath.working.hp.features", { value: formatModifier(parts.featureHp) }, "features " + formatModifier(parts.featureHp)) : null;
+        if (split) {
+          return [
+            first,
+            ...split.filter((entry) => entry.levels > 0).map((entry) => {
+              const className = nameOf(entry.id);
+              if (preview.hpMethod === "rolled") {
+                const fallback = entry.levels + " " + className.toLowerCase() + " " + (entry.levels === 1 ? "level" : "levels") + " rolled on a d" + entry.hitDie + " by the server when you save";
+                return pluralMsg(messages, "builder.extra.buildMath.working.hp.classRolled", entry.levels, { className, die: entry.hitDie }, fallback);
+              }
+              const more = entry === split[0];
+              const fallback = entry.levels + " " + (more ? "more " : "") + className.toLowerCase() + " " + (entry.levels === 1 ? "level" : "levels") + " at " + entry.perLevel + " each (d" + entry.hitDie + ") = " + entry.levels * entry.perLevel;
+              return pluralMsg(messages, "builder.extra.buildMath.working.hp.classAt", entry.levels, {
+                className, perLevel: entry.perLevel, die: entry.hitDie, total: entry.levels * entry.perLevel, more: more ? (messages?.t?.("builder.extra.buildMath.working.hp.more") ?? "more ") : "",
+              }, fallback);
+            }),
+            ...(featureLine ? [featureLine] : []),
+          ].join("; ");
+        }
+        const laterLevels = effectiveLevel - 1;
+        const later = laterLevels > 0
+          ? preview.hpMethod === "rolled"
+            ? pluralMsg(messages, "builder.extra.buildMath.working.hp.levelsRolled", laterLevels, {}, laterLevels + " more levels rolled by the server when you save")
+            : pluralMsg(messages, "builder.extra.buildMath.working.hp.levelsAt", laterLevels, {
+                perLevel: parts.perLevel,
+                faceName: preview.hpMethod === "max" ? (messages?.t?.("builder.extra.buildMath.working.hp.face.max") ?? "die's highest face") : (messages?.t?.("builder.extra.buildMath.working.hp.face.average") ?? "average"),
+                face: parts.face, con: formatModifier(parts.conMod), bonus: bonusPart, total: parts.laterLevels,
+              }, laterLevels + " more levels at " + parts.perLevel + " each (" + (preview.hpMethod === "max" ? "die's highest face" : "average") + " " + parts.face + ", Con " + formatModifier(parts.conMod) + bonusPart + ") = " + parts.laterLevels)
+          : null;
+        return [first, ...(later ? [later] : []), ...(featureLine ? [featureLine] : [])].join("; ");
+      })();
+    const acLine = armorClassLine(derived.acInfo?.ac ?? derived.ac, derived.acInfo?.parts, messages);
   sections.push({
     id: "core",
     title: "Core",
