@@ -9,6 +9,7 @@ import { useLowEffects } from "@/lib/effects-mode";
 import { InfoBody } from "@/components/ui/InfoDialog";
 import { cn } from "@/lib/cn";
 import { classRoles } from "@/lib/srd/class-roles";
+import type { BuildMathMessages } from "./derivedReasons";
 import { buildMathSections, createChangeAnnouncer, knownSoFarRows, type BuildMathRow } from "./buildMath";
 import { LineageDetails } from "./LineageCarousel";
 import type { LineageMessages } from "./lineage";
@@ -53,24 +54,24 @@ export function BuildMathPanel({
   gender: BuilderState["gender"];
 }) {
   const { t, tp } = useI18n();
-  const messages: LineageMessages = { t, tp };
+  const messages: BuildMathMessages = useMemo(() => ({ t, tp }), [t, tp]);
   const headingId = useId();
   const bodyId = useId();
   const [open, setOpen] = useState(false);
   const low = useLowEffects();
   const sections = useMemo(
-    () => buildMathSections({ derived, scores, klass, atTable }),
-    [derived, scores, klass, atTable],
+    () => buildMathSections({ derived, scores, klass, atTable }, messages),
+    [derived, scores, klass, atTable, messages],
   );
 
   // One short polite line per burst of changes (buildMath.ts).
   const [spoken, setSpoken] = useState("");
   const announcer = useRef<ReturnType<typeof createChangeAnnouncer> | null>(null);
   useEffect(() => {
-    const made = createChangeAnnouncer({ say: setSpoken });
+    const made = createChangeAnnouncer({ say: setSpoken, messages });
     announcer.current = made;
     return () => made.dispose();
-  }, []);
+  }, [messages]);
   useEffect(() => {
     announcer.current?.update(sections);
   }, [sections]);
@@ -184,7 +185,7 @@ export function BuildMathPanel({
               race,
               racialBonus: derived.racialBonus,
               proficientSkills: derived.proficientSkills,
-            })}
+            }, messages)}
             klass={klass}
             race={race}
             races={races}
