@@ -351,7 +351,6 @@ function monsterSide(
             })
             .join("; "),
         },
-        },
       ],
     },
     averageAc,
