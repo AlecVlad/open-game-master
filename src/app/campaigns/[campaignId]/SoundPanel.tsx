@@ -150,6 +150,7 @@ function LayerRow({ layer, ambience }: { layer: AmbienceLayerName; ambience: Amb
 function CueTile({
   glyph,
   label,
+  unavailableLabel,
   on,
   available,
   busy,
@@ -159,13 +160,14 @@ function CueTile({
   // cue: silence, which has no picture because there is nothing to hear.
   glyph: string | null;
   label: string;
+  unavailableLabel: string;
   on: boolean;
   available: boolean;
   busy: boolean;
   onPick: () => void;
 }) {
   return (
-    <Tooltip content={available ? label : `${label}: no audio on this server yet`}>
+    <Tooltip content={available ? label : unavailableLabel}>
       <button
         type="button"
         onClick={onPick}
@@ -249,6 +251,7 @@ function Pickers({ ambience, steering }: { ambience: AmbienceAudio; steering: So
           <CueTile
             glyph={null}
             label={t("campaign.sound.silence")}
+            unavailableLabel={t("campaign.sound.silence")}
             on={current === null}
             available
             busy={busy}
@@ -260,6 +263,7 @@ function Pickers({ ambience, steering }: { ambience: AmbienceAudio; steering: So
             key={cue.id}
             glyph={`cue-${cue.id}`}
             label={cueLabel(tab, cue.id, t)}
+            unavailableLabel={t("campaign.sound.cueUnavailable", { label: cueLabel(tab, cue.id, t) })}
             on={tab !== "sting" && current === cue.id}
             available={Boolean(ambience.tracks[cue.id]?.length)}
             busy={busy}
