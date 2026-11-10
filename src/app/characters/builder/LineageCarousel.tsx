@@ -2,6 +2,7 @@
 
 import { ChevronDown, ChevronLeft, ChevronRight, Star } from "lucide-react";
 import { useEffect, useId, useRef, useState, type CSSProperties } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { Dialog } from "@/components/ui/Dialog";
 import { InfoButton, renderRules, type ContentRef } from "@/components/ui/InfoDialog";
 import { cn } from "@/lib/cn";
@@ -18,6 +19,7 @@ import {
   traitLines,
   wrapIndex,
   type LineageEntry,
+  type LineageMessages,
 } from "./lineage";
 
 // Everything the carousel shows for one lineage. `info` is exactly what the
@@ -43,7 +45,7 @@ export type LineageSlide = LineageEntry & {
 
 const sectionLabel = "mb-1.5 block font-display text-[0.875rem] font-semibold uppercase tracking-[0.2em] text-amber-500/80";
 
-function Traits({ slide }: { slide: LineageSlide }) {
+function Traits({ slide, messages }: { slide: LineageSlide; messages?: LineageMessages }) {
   const baseId = useId();
   const lines = traitLines(slide);
   // The first trait with something to say arrives open, so the panel never
@@ -60,7 +62,7 @@ function Traits({ slide }: { slide: LineageSlide }) {
   return (
     <div className="flex flex-col gap-[5px]">
       {lines.map((line, index) => {
-        const parsed = parseTrait(line, slide);
+        const parsed = parseTrait(line, slide, messages);
         const open = openTrait === index && Boolean(parsed.body);
         const bodyId = `${baseId}-trait-${index}`;
         const head = (
@@ -112,15 +114,15 @@ function Traits({ slide }: { slide: LineageSlide }) {
 // One lineage's write-up: its plate, bonuses and facts, the classes it suits,
 // its tongues, what it leaves to choose and its traits. The carousel shows it
 // for the lineage being browsed; the build math panel for the one chosen.
-export function LineageDetails({ slide }: { slide: LineageSlide }) {
+export function LineageDetails({ slide, messages }: { slide: LineageSlide; messages?: LineageMessages }) {
   const srd = srdRaceFor(slide.id);
-  const choices = lineageChoices(slide);
+  const choices = lineageChoices(slide, messages);
   const lines = traitLines(slide);
   const facts = [
-    { key: "Speed", value: `${slide.speed} ft` },
-    ...(srd?.size ? [{ key: "Size", value: srd.size }] : []),
-    { key: "Traits", value: String(lines.length) },
-    ...(slide.source ? [{ key: "Source", value: slide.source }] : []),
+    { key: messages?.t("builder.extra.lineage.fact.speed") ?? "Speed", value: `${slide.speed} ft` },
+    ...(srd?.size ? [{ key: messages?.t("builder.extra.lineage.fact.size") ?? "Size", value: srd.size }] : []),
+    { key: messages?.t("builder.extra.lineage.fact.traits") ?? "Traits", value: String(lines.length) },
+    ...(slide.source ? [{ key: messages?.t("builder.extra.lineage.fact.source") ?? "Source", value: slide.source }] : []),
   ];
   const fits = lineageFits(slide);
   return (
@@ -154,9 +156,9 @@ export function LineageDetails({ slide }: { slide: LineageSlide }) {
             player who picks the people first knows where it leads. */}
         {fits ? (
           <p className="text-xs leading-normal text-stone-300">
-            <span className="font-display font-semibold uppercase tracking-[0.12em] text-amber-400/90">Good fits </span>
+            <span className="font-display font-semibold uppercase tracking-[0.12em] text-amber-400/90">{messages?.t("builder.extra.lineage.fits") ?? "Good fits"} </span>
             {fits.kind === "any"
-              ? "Any class: its bonuses are yours to place."
+              ? (messages?.t("builder.extra.lineage.fits.any") ?? "Any class: its bonuses are yours to place.")
               : `${fits.names.join(", ")}.`}
           </p>
         ) : null}
@@ -164,12 +166,12 @@ export function LineageDetails({ slide }: { slide: LineageSlide }) {
           <p className="font-serif text-base italic leading-normal text-stone-300">{slide.packBlurb}</p>
         ) : null}
         <div className="rounded-[10px] border border-stone-700/60 bg-stone-950/60 px-3 py-2.5">
-          <span className={sectionLabel}>Tongues</span>
+          <span className={sectionLabel}>{messages?.t("builder.extra.lineage.languages") ?? "Tongues"}</span>
           <span className="font-serif text-base leading-normal text-stone-300">{slide.languages.join(", ")}</span>
         </div>
         {choices.length ? (
           <div className="rounded-[10px] border border-amber-500/30 bg-amber-950/20 px-3 py-2.5">
-            <span className={sectionLabel}>Leaves you to choose</span>
+            <span className={sectionLabel}>{messages?.t("builder.extra.lineage.choices") ?? "Leaves you to choose"}</span>
             <div className="flex flex-wrap gap-1">
               {choices.map((choice) => (
                 <span key={choice} className="creator-chip" data-size="md">
@@ -181,12 +183,12 @@ export function LineageDetails({ slide }: { slide: LineageSlide }) {
         ) : null}
         <div>
           <span className={cn(sectionLabel, "flex items-center gap-1.5")}>
-            Lineage traits
+            {messages?.t("builder.extra.lineage.traits") ?? "Lineage traits"}
             {/* The full write-up, as the old picker's info button gave it:
                 the pack's own entry when one is installed. */}
             <InfoButton label={slide.name} text={slide.info.text} reference={slide.info.reference} />
           </span>
-          <Traits slide={slide} />
+          <Traits slide={slide} messages={messages} />
         </div>
       </div>
     </>
@@ -211,6 +213,8 @@ export function LineageCarousel({
   chosenId: string;
   onChoose: (id: string) => void;
 }) {
+  const { t, tp } = useI18n();
+  const messages: LineageMessages = { t, tp };
   // Which way the last step went, so the incoming lineage slides in from
   // that side. Cleared on close: opening the dialog is not a step.
   const [dir, setDir] = useState<"next" | "prev" | null>(null);
@@ -256,7 +260,7 @@ export function LineageCarousel({
           <span className="truncate uppercase tracking-[0.14em]">{slide.name}</span>
           {slide.canonical ? (
             <span className="font-mono text-[0.875rem] normal-case tracking-normal text-stone-500">
-              {slide.canonical} in the rules
+              {slide.canonical} {t("builder.extra.lineage.rules")}
             </span>
           ) : null}
         </span>
@@ -270,7 +274,7 @@ export function LineageCarousel({
         }}
       >
         <div className="mb-3.5 flex items-center justify-between gap-2">
-          <button type="button" onClick={() => step(-1)} className={navButton} aria-label={`Previous: ${prev.name}`}>
+          <button type="button" onClick={() => step(-1)} className={navButton} aria-label={t("builder.extra.lineage.previous", { name: prev.name })}>
             <ChevronLeft className="size-3.5 shrink-0" aria-hidden="true" />
             <span className="truncate">{prev.name}</span>
           </button>
@@ -282,17 +286,17 @@ export function LineageCarousel({
               {index + 1} / {slides.length}
             </span>
             <span className="sr-only" aria-live="polite" aria-atomic="true">
-              {slidePosition(slide, index, slides.length)}
+              {slidePosition(slide, index, slides.length, messages)}
             </span>
             {slide.recommended ? (
               <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/50 bg-amber-400/10 px-1.5 py-px font-display text-[0.875rem] font-bold uppercase tracking-[0.12em] text-amber-300">
                 <Star className="size-2.5 fill-current" aria-hidden="true" />
-                Recommended
+                {t("builder.extra.lineage.recommended")}
               </span>
             ) : null}
             {slide.group ? <span className="truncate font-mono text-[0.875rem] text-stone-500">{slide.group}</span> : null}
           </span>
-          <button type="button" onClick={() => step(1)} className={navButton} aria-label={`Next: ${next.name}`}>
+          <button type="button" onClick={() => step(1)} className={navButton} aria-label={t("builder.extra.lineage.next", { name: next.name })}>
             <span className="truncate">{next.name}</span>
             <ChevronRight className="size-3.5 shrink-0" aria-hidden="true" />
           </button>
@@ -326,12 +330,12 @@ export function LineageCarousel({
             touchStart.current = null;
           }}
         >
-          <LineageDetails slide={slide} />
+          <LineageDetails slide={slide} messages={messages} />
         </div>
 
         <div className="mt-4 flex justify-end gap-2">
           <button type="button" onClick={close} className={ui.btnSecondary}>
-            Close
+            {t("builder.extra.lineage.close")}
           </button>
           <button
             type="button"
@@ -341,7 +345,7 @@ export function LineageCarousel({
             }}
             className={ui.btnPrimary}
           >
-            {chosen ? `Keep ${slide.name}` : `Choose ${slide.name}`}
+            {chosen ? t("builder.extra.lineage.keep", { name: slide.name }) : t("builder.extra.lineage.choose", { name: slide.name })}
           </button>
         </div>
       </div>
