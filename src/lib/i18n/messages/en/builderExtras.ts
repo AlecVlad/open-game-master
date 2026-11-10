@@ -162,6 +162,7 @@ export const enBuilderExtras = {
   "builder.extra.lineage.trait.language.other": "Choose {count} more languages on this step.",
   "builder.extra.lineage.trait.cantrip.one": "Choose one {list} cantrip on this step.",
   "builder.extra.lineage.trait.cantrip.other": "Choose {count} {list} cantrips on this step.",
+  "builder.extra.lineage.trait.skill.among": " from {skills}",
   "builder.extra.lineage.trait.skill.one": "Choose one skill{among} on this step.",
   "builder.extra.lineage.trait.skill.other": "Choose {count} skills{among} on this step.",
   "builder.extra.lineage.trait.tool": "Choose one of these tools on this step: {tools}.",
