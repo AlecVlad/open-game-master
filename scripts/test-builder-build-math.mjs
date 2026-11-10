@@ -321,16 +321,16 @@ test("the picks show the class and ancestry write-ups their cards' details show"
   const calling = read("../src/app/characters/builder/steps/CallingStep.tsx");
   // One write-up each, rendered by the dialog and by the panel.
   assert.match(carousel, /<LineageDetails slide=\{slide\} \/>/);
-  assert.match(panel, /<LineageDetails slide=\{slide\} \/>/);
+  assert.match(panel, /<LineageDetails slide=\{slide\} messages=\{messages\} \/>/);
   assert.match(calling, /meta=\{\s*details\s*\?\s*classDetailsMeta\(/);
   assert.match(panel, /classDetailsMeta\(/);
   assert.match(panel, /<InfoBody\s/);
   assert.match(read("../src/components/ui/InfoDialog.tsx"), /<InfoBody meta=\{meta\}/);
   // Named for a new player, and the card's "?" is "About", so "details"
   // means one thing.
-  assert.match(panel, /Character details/);
-  assert.match(panel, /aria-label=\{open \? "Hide character details" : "Show character details"\}/);
-  assert.match(panel, /\{open \? "Hide" : "Show"\}/);
+  assert.match(panel, /builder\.extra\.buildMath\.title/);
+  assert.match(panel, /t\(open \? "builder\.extra\.buildMath\.hide" : "builder\.extra\.buildMath\.show"\)/);
+  assert.match(panel, /open \? t\("builder\.extra\.buildMath\.hideShort"\) : t\("builder\.extra\.buildMath\.showShort"\)/);
   assert.match(read("../src/app/characters/builder/OptionCardGrid.tsx"), /aria-label=\{`About \$\{option\.name\}`\}/);
   // Shown only until the full table can be worked out.
   assert.match(panel, /sections\.length \? \([\s\S]*<table[\s\S]*\) : \(\s*<PicksSoFar/);
