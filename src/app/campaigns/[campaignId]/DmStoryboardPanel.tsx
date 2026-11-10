@@ -262,7 +262,7 @@ export function DmStoryboardPanel({
                 void add(newKind, newTitle);
               }
             }}
-            placeholder="The miller's daughter has not come home"
+            placeholder={t("campaign.storyboard.newTitlePlaceholder")}
             className={ui.input}
           />
         </label>
@@ -463,11 +463,11 @@ export function DmStoryboardPanel({
           <SectionHead title={t("campaign.storyboard.compile.title")} glyph="system-lore" />
           <p className="text-[11px] leading-snug text-stone-400">
             {data.compiled.summary.lines.length
-              ? `Imported into a campaign, this board becomes ${data.compiled.summary.lines.join(", ")}.`
-              : "Nothing yet. Cards become lore, quests, prepared fights, GM notes and the story arc."}
+              ? t("campaign.storyboard.compile.description", { items: data.compiled.summary.lines.join(", ") })
+              : t("campaign.storyboard.compile.empty")}
           </p>
           {data.compiled.summary.arcRefusal ? (
-            <p className="reveal text-[10px] text-amber-300/70">{data.compiled.summary.arcRefusal}</p>
+            <p className="reveal text-[10px] text-amber-300/70">{!data.compiled.premise ? t("campaign.storyboard.compile.refusal.noPremise") : t("campaign.storyboard.compile.refusal.tooFew", { count: data.compiled.arcBeats.length, min: 2 })}</p>
           ) : null}
         </div>
       ) : null}
