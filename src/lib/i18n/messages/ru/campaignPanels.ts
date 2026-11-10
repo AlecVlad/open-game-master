@@ -2313,4 +2313,5 @@ export const ruCampaignPanels: Partial<Record<keyof typeof enCampaignPanels, str
   "campaign.marketEditor.nameEveryLine": "Укажите название каждой позиции или удалите её с полки.",
   "campaign.marketEditor.priceLabel": "Позиция {number}: цена",
   "campaign.marketEditor.priceExample": "15 gp, 2 sp или 5 cp",
+  "campaign.market.shopNamePlaceholder": "Лавка Марлы",
 };
