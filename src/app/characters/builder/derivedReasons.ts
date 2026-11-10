@@ -23,12 +23,8 @@ export function hitPointsLine(input: {
   maxHp: number;
   range: { min: number; max: number };
   method: HpMethod;
-  // A stored character keeps the hit points it came home with.
   kept: boolean;
-  // Built in the library, where no table has chosen a method yet.
   atTable: boolean;
-  // A class list's dice (backlog F9), the first class's first: each later
-  // level counts its own class's die.
   dice?: number[];
 }, messages?: BuildMathMessages): DerivedLine {
   const { hitDie, level, maxHp, range, method } = input;
@@ -36,33 +32,44 @@ export function hitPointsLine(input: {
   if (input.kept) {
     return {
       value: String(maxHp),
-      reason: "Kept from the stored character while its level and Constitution stand.",
+      reason: messages?.t?.("builder.extra.buildMath.reason.hp.kept") ?? "Kept from the stored character while its level and Constitution stand.",
     };
   }
-  const first = `1st level is the d${hitDie}'s maximum plus Constitution`;
+  const firstFallback = "1st level is the d" + hitDie + "'s maximum plus Constitution";
+  const first = messages?.t?.("builder.extra.buildMath.reason.hp.first", { die: hitDie }) ?? firstFallback;
   if (level <= 1) {
-    return { value: String(maxHp), reason: `${first}.` };
+    return { value: String(maxHp), reason: firstFallback + "." };
   }
   if (mixed) {
-    const dice = [...new Set(input.dice)].map((die) => `d${die}`).join(", ");
+    const dice = [...new Set(input.dice ?? [])].map((die) => "d" + die).join(", ");
+    const methodId = method === "rolled" ? "rolled" : method === "max" ? "max" : "average";
+    const methodFallback = method === "rolled" ? "rolled by the server when you save" : method === "max" ? "at its highest face" : "at the table's average";
+    const methodText = messages?.t?.(("builder.extra.buildMath.reason.hp.method." + methodId) as MessageKey) ?? methodFallback;
+    const fallback = firstFallback + "; each later level its own class's die (" + dice + "), " + methodFallback + ", plus Constitution (at least 1).";
     return {
-      value: method === "rolled" ? `${range.min} to ${range.max}` : String(maxHp),
-      reason: `${first}; each later level its own class's die (${dice}), ${method === "rolled" ? "rolled by the server when you save" : method === "max" ? "at its highest face" : "at the table's average"}, plus Constitution (at least 1).`,
+      value: method === "rolled" ? range.min + " to " + range.max : String(maxHp),
+      reason: messages?.t?.("builder.extra.buildMath.reason.hp.mixed", { first, dice, method: methodText }) ?? fallback,
     };
   }
   if (method === "rolled") {
+    const fallback = firstFallback + "; the server rolls a d" + hitDie + " for each later level when you save (every level adds at least 1).";
     return {
-      value: `${range.min} to ${range.max}`,
-      reason: `${first}; the server rolls a d${hitDie} for each later level when you save (every level adds at least 1).`,
+      value: range.min + " to " + range.max,
+      reason: messages?.t?.("builder.extra.buildMath.reason.hp.rolled", { first, die: hitDie }) ?? fallback,
     };
   }
-  const later =
-    method === "max"
-      ? `each later level the die's highest face, ${hitDie}`
-      : `each later level the table's average, ${fixedDieValue(hitDie)}`;
+  const laterFallback = method === "max"
+    ? "each later level the die's highest face, " + hitDie
+    : "each later level the table's average, " + fixedDieValue(hitDie);
+  const later = method === "max"
+    ? (messages?.t?.("builder.extra.buildMath.reason.hp.later.max", { die: hitDie }) ?? laterFallback)
+    : (messages?.t?.("builder.extra.buildMath.reason.hp.later.average", { face: fixedDieValue(hitDie) }) ?? laterFallback);
+  const tableNoteFallback = " A table that rolls or maximises hit points works them its own way when this character joins.";
+  const tableNote = input.atTable ? "" : (messages?.t?.("builder.extra.buildMath.reason.hp.tableNote") ?? tableNoteFallback);
+  const fallback = firstFallback + "; " + laterFallback + ", plus Constitution (at least 1)." + (input.atTable ? "" : tableNoteFallback);
   return {
     value: String(maxHp),
-    reason: `${first}; ${later}, plus Constitution (at least 1).${input.atTable ? "" : " A table that rolls or maximises hit points works them its own way when this character joins."}`,
+    reason: messages?.t?.("builder.extra.buildMath.reason.hp.fixed", { first, later, tableNote }) ?? fallback,
   };
 }
 
