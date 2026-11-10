@@ -2305,4 +2305,5 @@ export const enCampaignPanels = {
   "campaign.marketEditor.nameEveryLine": "Name every line, or take it off the shelf.",
   "campaign.marketEditor.priceLabel": "Line {number} price",
   "campaign.marketEditor.priceExample": "15 gp, 2 sp or 5 cp",
+  "campaign.market.shopNamePlaceholder": "Marla\u2019s Sundries",
 } satisfies Record<string, string>;
