@@ -8,20 +8,25 @@ type Translate = (key: MessageKey, params?: Params) => string;
 // field names and option values are protocol identifiers, not display text.
 // Translate only the human-facing copy on a clone, leaving every submitted
 // value and every matching key exactly as the engine expects.
-function displayText(t: Translate, key: string, fallback: string): string {
+function displayText(t: Translate, key: string, fallback: string, sharedKey?: string): string {
   const translated = t(key as MessageKey);
-  return translated === key ? fallback : translated;
+  if (translated !== key) return translated;
+  if (sharedKey) {
+    const shared = t(sharedKey as MessageKey);
+    if (shared !== sharedKey) return shared;
+  }
+  return fallback;
 }
 
 export function localizeCatalogField(field: CatalogField, entryName: string, t: Translate): CatalogField {
   const base = `campaign.dmCatalog.${entryName}.field.${field.name}`;
   return {
     ...field,
-    label: displayText(t, `${base}.label`, field.label),
+    label: displayText(t, `${base}.label`, field.label, `campaign.dmCatalog.shared.field.${field.name}.label`),
     ...(field.placeholder
-      ? { placeholder: displayText(t, `${base}.placeholder`, field.placeholder) }
+      ? { placeholder: displayText(t, `${base}.placeholder`, field.placeholder, `campaign.dmCatalog.shared.field.${field.name}.placeholder`) }
       : {}),
-    ...(field.help ? { help: displayText(t, `${base}.help`, field.help) } : {}),
+    ...(field.help ? { help: displayText(t, `${base}.help`, field.help, `campaign.dmCatalog.shared.field.${field.name}.help`) } : {}),
     ...(field.options
       ? {
           options: field.options.map((option) => {
@@ -35,7 +40,7 @@ export function localizeCatalogField(field: CatalogField, entryName: string, t: 
             }
             return {
               ...option,
-              label: displayText(t, `${base}.option.${option.value}`, fallback),
+              label: displayText(t, `${base}.option.${option.value}`, fallback, `campaign.dmCatalog.shared.option.${option.value}`),
             };
           }),
         }
@@ -44,9 +49,9 @@ export function localizeCatalogField(field: CatalogField, entryName: string, t: 
       ? {
           other: {
             ...field.other,
-            label: displayText(t, `${base}.other.label`, field.other.label),
+            label: displayText(t, `${base}.other.label`, field.other.label, `campaign.dmCatalog.shared.field.${field.name}.other.label`),
             ...(field.other.placeholder
-              ? { placeholder: displayText(t, `${base}.other.placeholder`, field.other.placeholder) }
+              ? { placeholder: displayText(t, `${base}.other.placeholder`, field.other.placeholder, `campaign.dmCatalog.shared.field.${field.name}.other.placeholder`) }
               : {}),
           },
         }
