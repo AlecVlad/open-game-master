@@ -84,7 +84,7 @@ export function BeatEditor({
     : "";
   const prose = checkProse(edit.body);
   const proseMessages = prose.map((warning) => {
-    const count = Number(warning.message.match(/^\\d+/)?.[0] ?? 0);
+    const count = Number(warning.message.match(/^\d+/)?.[0] ?? 0);
     if (warning.kind === "joined-sentences") return t("campaign.storyboard.prose.joined", { count });
     if (warning.kind === "long-run") return t("campaign.storyboard.prose.longRun", { count, letters: 28 });
     return t("campaign.storyboard.prose.fewSpaces");
@@ -164,7 +164,9 @@ export function BeatEditor({
 
       <SectionHead title={t("campaign.storyboard.whoAndWhere")} glyph="system-cast" className="mb-0 pt-1" />
       <div className="stagger-up grid gap-2 sm:grid-cols-2">
-        {LINK_FIELDS.map(([field, bucket, label]) => (
+        {LINK_FIELDS.map(([field, bucket]) => {
+          const label = linkLabel(t, field);
+          return (
           <Field key={field} label={label}>
             <Select
               label={label}
@@ -194,7 +196,8 @@ export function BeatEditor({
               </p>
             ) : null}
           </Field>
-        ))}
+          );
+        })}
       </div>
 
       <div className="flex flex-col gap-1">
