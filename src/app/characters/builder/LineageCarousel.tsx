@@ -119,10 +119,10 @@ export function LineageDetails({ slide, messages }: { slide: LineageSlide; messa
   const choices = lineageChoices(slide, messages);
   const lines = traitLines(slide);
   const facts = [
-    { key: messages?.t("builder.extra.lineage.fact.speed") ?? "Speed", value: `${slide.speed} ft` },
-    ...(srd?.size ? [{ key: messages?.t("builder.extra.lineage.fact.size") ?? "Size", value: srd.size }] : []),
-    { key: messages?.t("builder.extra.lineage.fact.traits") ?? "Traits", value: String(lines.length) },
-    ...(slide.source ? [{ key: messages?.t("builder.extra.lineage.fact.source") ?? "Source", value: slide.source }] : []),
+    { key: messages?.t?.("builder.extra.lineage.fact.speed") ?? "Speed", value: `${slide.speed} ft` },
+    ...(srd?.size ? [{ key: messages?.t?.("builder.extra.lineage.fact.size") ?? "Size", value: srd.size }] : []),
+    { key: messages?.t?.("builder.extra.lineage.fact.traits") ?? "Traits", value: String(lines.length) },
+    ...(slide.source ? [{ key: messages?.t?.("builder.extra.lineage.fact.source") ?? "Source", value: slide.source }] : []),
   ];
   const fits = lineageFits(slide);
   return (
@@ -156,9 +156,9 @@ export function LineageDetails({ slide, messages }: { slide: LineageSlide; messa
             player who picks the people first knows where it leads. */}
         {fits ? (
           <p className="text-xs leading-normal text-stone-300">
-            <span className="font-display font-semibold uppercase tracking-[0.12em] text-amber-400/90">{messages?.t("builder.extra.lineage.fits") ?? "Good fits"} </span>
+            <span className="font-display font-semibold uppercase tracking-[0.12em] text-amber-400/90">{messages?.t?.("builder.extra.lineage.fits") ?? "Good fits"} </span>
             {fits.kind === "any"
-              ? (messages?.t("builder.extra.lineage.fits.any") ?? "Any class: its bonuses are yours to place.")
+              ? (messages?.t?.("builder.extra.lineage.fits.any") ?? "Any class: its bonuses are yours to place.")
               : `${fits.names.join(", ")}.`}
           </p>
         ) : null}
@@ -166,12 +166,12 @@ export function LineageDetails({ slide, messages }: { slide: LineageSlide; messa
           <p className="font-serif text-base italic leading-normal text-stone-300">{slide.packBlurb}</p>
         ) : null}
         <div className="rounded-[10px] border border-stone-700/60 bg-stone-950/60 px-3 py-2.5">
-          <span className={sectionLabel}>{messages?.t("builder.extra.lineage.languages") ?? "Tongues"}</span>
+          <span className={sectionLabel}>{messages?.t?.("builder.extra.lineage.languages") ?? "Tongues"}</span>
           <span className="font-serif text-base leading-normal text-stone-300">{slide.languages.join(", ")}</span>
         </div>
         {choices.length ? (
           <div className="rounded-[10px] border border-amber-500/30 bg-amber-950/20 px-3 py-2.5">
-            <span className={sectionLabel}>{messages?.t("builder.extra.lineage.choices") ?? "Leaves you to choose"}</span>
+            <span className={sectionLabel}>{messages?.t?.("builder.extra.lineage.choices") ?? "Leaves you to choose"}</span>
             <div className="flex flex-wrap gap-1">
               {choices.map((choice) => (
                 <span key={choice} className="creator-chip" data-size="md">
@@ -183,7 +183,7 @@ export function LineageDetails({ slide, messages }: { slide: LineageSlide; messa
         ) : null}
         <div>
           <span className={cn(sectionLabel, "flex items-center gap-1.5")}>
-            {messages?.t("builder.extra.lineage.traits") ?? "Lineage traits"}
+            {messages?.t?.("builder.extra.lineage.traits") ?? "Lineage traits"}
             {/* The full write-up, as the old picker's info button gave it:
                 the pack's own entry when one is installed. */}
             <InfoButton label={slide.name} text={slide.info.text} reference={slide.info.reference} />
