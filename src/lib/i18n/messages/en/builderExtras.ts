@@ -167,4 +167,12 @@ export const enBuilderExtras = {
   "builder.extra.lineage.trait.skill.other": "Choose {count} skills{among} on this step.",
   "builder.extra.lineage.trait.tool": "Choose one of these tools on this step: {tools}.",
 
+  "builder.extra.catalog.filter.placeholder": "Filter this list...",
+  "builder.extra.catalog.filter.aria": "Filter the catalog list",
+  "builder.extra.catalog.error.retry": "Could not reach the server to list these. Close and open this section to try again.",
+  "builder.extra.catalog.error.noPack": "The content pack is not installed on this server, so there is nothing to list. Whoever runs it can install it with: node scripts/import-open5e.mjs",
+  "builder.extra.catalog.empty": "Nothing here.",
+  "builder.extra.catalog.homebrew": "Homebrew",
+  "builder.extra.catalog.truncated": "Showing the first {count}. Search by name above for the rest.",
+
 } satisfies Record<string, string>;
