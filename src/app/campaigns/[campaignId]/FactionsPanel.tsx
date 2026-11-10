@@ -13,6 +13,7 @@ import { LoreImageField } from "@/app/workshop/lore/LoreFields";
 import { GlyphChip, KitButton, LoadFailed, PanelError, PanelLoading, panelField, panelRow } from "./PanelKit";
 import { WorldEntryLink, useOpenOnArrival } from "@/app/workshop/world/WorldEntryLink";
 import { useUnsavedDraft } from "@/app/workshop/unsaved";
+import { useI18n } from "@/lib/i18n/provider";
 
 // A faction as the editor's draft.
 function draftOf(faction: FactionView): Draft {
@@ -79,6 +80,24 @@ export function FactionsPanel({
   // how prep says where it starts, and that travels.
   workshop?: boolean;
 }) {
+  const { t } = useI18n();
+  const attitudeLabels: Record<FactionAttitude, string> = {
+    hostile: t("campaign.factions.attitude.hostile"),
+    wary: t("campaign.factions.attitude.wary"),
+    neutral: t("campaign.factions.attitude.neutral"),
+    friendly: t("campaign.factions.attitude.friendly"),
+    allied: t("campaign.factions.attitude.allied"),
+  };
+  const reputationLabels: Record<string, string> = {
+    hunted: t("campaign.factions.reputation.hunted"),
+    disliked: t("campaign.factions.reputation.disliked"),
+    suspected: t("campaign.factions.reputation.suspected"),
+    unknown: t("campaign.factions.reputation.unknown"),
+    noticed: t("campaign.factions.reputation.noticed"),
+    trusted: t("campaign.factions.reputation.trusted"),
+    honoured: t("campaign.factions.reputation.honoured"),
+  };
+  const localReputation = (label: string) => reputationLabels[label] ?? label;
   const showsStanding = !workshop;
   const [factions, setFactions] = useState<FactionView[] | null>(null);
   const [editing, setEditing] = useState<string | "new" | null>(null);
