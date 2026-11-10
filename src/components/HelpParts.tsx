@@ -39,6 +39,7 @@ const SECTION_TITLE_KEYS: Record<string, MessageKey> = {
   "Copying things": "help.section.workshopCopy",
   "With or without AI": "help.section.workshopAI",
   "Where the rules live": "help.section.workshopRules",
+  "The tools, one by one": "help.section.workshopTools",
 };
 
 const MODE_LABEL_KEYS: Record<string, MessageKey> = {
