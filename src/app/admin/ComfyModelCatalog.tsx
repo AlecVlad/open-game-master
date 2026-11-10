@@ -10,6 +10,7 @@ import type { ComfyDiscovery } from "@/app/admin/AdminImagesSection";
 import { paintsHere } from "@/lib/image-models/curate";
 import type { MaskedConfig } from "@/app/admin/AdminSettingsFields";
 import { useI18n } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages/index";
 
 
 // Every image model ODM can run on ComfyUI, curated for the machine this
@@ -20,6 +21,47 @@ import { useI18n } from "@/lib/i18n/provider";
 type Images = MaskedConfig["images"];
 
 const hardwareLabel = (id: string) => HARDWARE_PROFILES.find((profile) => profile.id === id)?.label ?? id;
+
+const MODEL_BLURB_KEYS: Record<string, MessageKey> = {
+  z_turbo: "admin.images.catalog.blurb.z_turbo",
+  z_image: "admin.images.catalog.blurb.z_image",
+  qwen_image_21: "admin.images.catalog.blurb.qwen_image_21",
+  qwen_image_21_turbo: "admin.images.catalog.blurb.qwen_image_21_turbo",
+  qwen_image: "admin.images.catalog.blurb.qwen_image",
+  qwen_image_lightning: "admin.images.catalog.blurb.qwen_image_lightning",
+  krea2_turbo: "admin.images.catalog.blurb.krea2_turbo",
+  flux1_schnell: "admin.images.catalog.blurb.flux1_schnell",
+  flux1_dev: "admin.images.catalog.blurb.flux1_dev",
+  flux1_krea_dev: "admin.images.catalog.blurb.flux1_krea_dev",
+  flux2_dev: "admin.images.catalog.blurb.flux2_dev",
+  flux2_klein_4b: "admin.images.catalog.blurb.flux2_klein_4b",
+  flux2_klein_4b_base: "admin.images.catalog.blurb.flux2_klein_4b_base",
+  flux2_klein_9b: "admin.images.catalog.blurb.flux2_klein_9b",
+  chroma1_hd: "admin.images.catalog.blurb.chroma1_hd",
+  chroma1_radiance: "admin.images.catalog.blurb.chroma1_radiance",
+  hidream_fast: "admin.images.catalog.blurb.hidream_fast",
+  hidream_dev: "admin.images.catalog.blurb.hidream_dev",
+  hidream_full: "admin.images.catalog.blurb.hidream_full",
+  sd35_large: "admin.images.catalog.blurb.sd35_large",
+  sd35_medium: "admin.images.catalog.blurb.sd35_medium",
+  pony_xl: "admin.images.catalog.blurb.pony_xl",
+  sdxl: "admin.images.catalog.blurb.sdxl",
+  hunyuan_image_21: "admin.images.catalog.blurb.hunyuan_image_21",
+  longcat_image: "admin.images.catalog.blurb.longcat_image",
+  ovis_image: "admin.images.catalog.blurb.ovis_image",
+  boogu_turbo: "admin.images.catalog.blurb.boogu_turbo",
+  capybara: "admin.images.catalog.blurb.capybara",
+  ideogram4: "admin.images.catalog.blurb.ideogram4",
+  ming_image: "admin.images.catalog.blurb.ming_image",
+  kandinsky5_lite: "admin.images.catalog.blurb.kandinsky5_lite",
+  omnigen2: "admin.images.catalog.blurb.omnigen2",
+  pixeldit: "admin.images.catalog.blurb.pixeldit",
+  hidream_o1_dev: "admin.images.catalog.blurb.hidream_o1_dev",
+  netayume_lumina: "admin.images.catalog.blurb.netayume_lumina",
+  anima: "admin.images.catalog.blurb.anima",
+  newbie: "admin.images.catalog.blurb.newbie",
+};
+
 
 function measured(row: VerifiedRow) {
   return {
@@ -61,7 +103,7 @@ function ModelRow({
           {inUse ? t("admin.images.catalog.inUse") : installed ? t("admin.images.catalog.installed") : t("admin.images.catalog.toAdd", { size: report.downloadGb })}
         </span>
       </div>
-      <p className="text-[11px] leading-4 text-stone-400">{model.blurb}</p>
+      <p className="text-[11px] leading-4 text-stone-400">{MODEL_BLURB_KEYS[model.id] ? t(MODEL_BLURB_KEYS[model.id]) : model.blurb}</p>
       <p className="text-[11px] leading-4 text-stone-500">
         {row && row.verdict !== "fails"
           ? t("admin.images.catalog.measured", measured(row))

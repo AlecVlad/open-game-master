@@ -166,6 +166,7 @@ export const ruAdminHarness: Partial<Record<keyof typeof enAdminHarness, string>
   "admin.harness.status.phone": "Программы-агенты работают на компьютере, а не на телефоне.",
   "admin.harness.status.pathMissing": "По пути {path} не найдена запускаемая программа.",
   "admin.harness.status.notFound": "Программа {program} не найдена на этой машине.",
+  "admin.harness.status.checkFailed": "Не удалось проверить программу.",
 };
 
 [executed on device: PZLD8SRKH9OMZNV (424c96e3-c9c5-4152-a4d9-25b4c5961356)]

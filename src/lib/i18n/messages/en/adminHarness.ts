@@ -128,6 +128,7 @@ export const enAdminHarness = {
   "admin.harness.picture.detail.painted": "{seconds} s through the tables' own picture queue",
   "admin.harness.picture.detail.missingFile": "The file the table would be sent is missing or unreadable.",
   "admin.harness.picture.detail.notLandscape": "{width} × {height}; this is not the landscape shape a map asks for, so the table crops it.",
+  "admin.harness.status.checkFailed": "The program could not be checked.",
   "admin.harness.picture.detail.dimensions": "Image size: {width} × {height}",
   "admin.harness.picture.detail.file": "File format: {format}, size: {size} KB",
   "admin.harness.test.error.couldNotRun": "The test could not run.",
