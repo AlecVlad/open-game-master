@@ -386,4 +386,8 @@ export const enCampaignPanels = {
   "campaign.dmOdds.roundsToDrop": "Rounds to drop",
   "campaign.dmOdds.unknown": "unknown",
   "campaign.dmOdds.never": "never",
+
+  "campaign.dmConsoleParts.clear.aria": "Clear {label}",
+  "campaign.dmConsoleParts.clear.title": "Clear: {emptyHint}",
+  "campaign.dmConsoleParts.close": "Close",
 } satisfies Record<string, string>;
