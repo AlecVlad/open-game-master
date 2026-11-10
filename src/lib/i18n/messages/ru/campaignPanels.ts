@@ -398,4 +398,10 @@ export const ruCampaignPanels: Partial<Record<keyof typeof enCampaignPanels, str
   "campaign.dmConsoleParts.clear.aria": "Очистить поле «{label}»",
   "campaign.dmConsoleParts.clear.title": "Очистить: {emptyHint}",
   "campaign.dmConsoleParts.close": "Закрыть",
+
+  "campaign.dmAction.error.refused": "Игровой движок отклонил действие.",
+  "campaign.dmAction.error.server": "Не удалось связаться с сервером.",
+  "campaign.dmAction.blocked": "Для этого действия бой должен быть начат. Сначала начните бой.",
+  "campaign.dmAction.confirm.run": "Выполнить",
+  "campaign.dmAction.run": "Выполнить",
 };
