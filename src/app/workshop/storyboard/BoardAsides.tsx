@@ -109,6 +109,7 @@ export function SharedWorkshopCard({
   };
   onChanged: () => void;
 }) {
+  const { t } = useI18n();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -124,7 +125,7 @@ export function SharedWorkshopCard({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ commonWorkshopId }),
         }),
-        "That could not be changed.",
+        t("campaign.storyboard.shared.error"),
       );
       if (sent.error !== null) {
         setError(sent.error);
@@ -139,31 +140,27 @@ export function SharedWorkshopCard({
 
   return (
     <AsideCard
-      title="Shared workshop"
+      title={t("campaign.storyboard.shared.title")}
       icon={<GameIcon icon={{ kind: "glyph", key: "system-cast" }} size="size-7" />}
       tour="storyboard-shared"
     >
       {shared.chapters.length ? (
         <p className="text-xs text-stone-400">
-          {shared.chapters.length === 1 ? "One chapter draws" : `${shared.chapters.length} chapters draw`} on
-          this workshop: {shared.chapters.map((chapter) => chapter.title).join(", ")}. Its cast,
-          places, maps and fights show in their pickers.
+          {t("campaign.storyboard.shared.chapterDraws", { count: shared.chapters.length })} on
+          {shared.chapters.map((chapter) => chapter.title).join(", ")}. {t("campaign.storyboard.shared.pickerExplanation")}
         </p>
       ) : (
         <>
           <p className="text-xs text-stone-400">
-            Write the recurring cast, places, maps and fights once in one workshop, and let each
-            chapter&apos;s cards pick from it. Picks follow the shared rows as they change. A
-            campaign that imports this chapter brings what its cards pick, once, and later
-            chapters reuse it.
+            {t("campaign.storyboard.shared.description")}
           </p>
           <Select
-            label="Draws on"
+            label={t("campaign.storyboard.shared.drawsOn")}
             value={shared.common?.id ?? ""}
             disabled={busy}
             onChange={(id) => void choose(id)}
             options={[
-              { value: "", label: "Nothing shared" },
+              { value: "", label: t("campaign.storyboard.shared.nothing") },
               ...shared.choices.map((choice) => ({
                 value: choice.id,
                 label: choice.title,
@@ -178,16 +175,30 @@ export function SharedWorkshopCard({
   );
 }
 
-export function CompileCard({ summary }: { summary: CompileSummary }) {
+export function CompileCard({ summary, compiled }: { summary: CompileSummary; compiled: CompiledBoard }) {
+  const { t, tp } = useI18n();
+  const lines = [
+    compiled.lore.length ? tp("campaign.storyboard.compile.lore", compiled.lore.length) : "",
+    compiled.quests.length ? tp("campaign.storyboard.compile.quests", compiled.quests.length) : "",
+    compiled.encounters.length ? tp("campaign.storyboard.compile.encounters", compiled.encounters.length) : "",
+    compiled.notes.length ? tp("campaign.storyboard.compile.notes", compiled.notes.length) : "",
+    compiled.moments.length ? tp("campaign.storyboard.compile.moments", compiled.moments.length) : "",
+  ].filter(Boolean);
+  if (!summary.arcRefusal && compiled.arcBeats.length) lines.push(tp("campaign.storyboard.compile.arc", compiled.arcBeats.length));
+  const refusal = !summary.arcRefusal ? "" : !compiled.premise
+    ? t("campaign.storyboard.compile.refusal.noPremise")
+    : compiled.arcBeats.length < 2
+      ? t("campaign.storyboard.compile.refusal.tooFew", { count: compiled.arcBeats.length, min: 2 })
+      : t("campaign.storyboard.compile.refusal.existingArc");
   return (
-    <AsideCard title="What this becomes" icon={<GameIcon icon={{ kind: "glyph", key: "tab-campaigns" }} size="size-7" />} tour="storyboard-compile">
+    <AsideCard title={t("campaign.storyboard.compile.title")}> icon={<GameIcon icon={{ kind: "glyph", key: "tab-campaigns" }} size="size-7" />} tour="storyboard-compile">
       <p className="text-xs text-stone-400">
-        {summary.lines.length
-          ? `Imported into a campaign, this board becomes ${summary.lines.join(", ")}.`
-          : "Nothing yet. Cards become lore, quests, prepared fights, GM notes and the story arc."}
+        {lines.length
+          ? t("campaign.storyboard.compile.description", { items: lines.join(", ") })
+          : t("campaign.storyboard.compile.empty")}
       </p>
       {summary.arcRefusal ? (
-        <p className="reveal text-[11px] text-amber-300/70">{summary.arcRefusal}</p>
+        <p className="reveal text-[11px] text-amber-300/70">{refusal}</p>
       ) : null}
     </AsideCard>
   );
