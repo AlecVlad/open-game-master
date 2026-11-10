@@ -123,7 +123,7 @@ export function FactionsPanel({
     return () => {
       cancelled = true;
     };
-  }, [campaignId, refreshKey, reload, settle]);
+  }, [campaignId, refreshKey, reload, settle, t]);
 
   function startEdit(faction: FactionView) {
     setError("");
@@ -177,12 +177,12 @@ export function FactionsPanel({
           }
           setError(
             found === "missing"
-              ? "The server did not answer and the faction is not in the list, so it was not added. Your words are kept; press Add again."
-              : "The server could not be reached, so it is not known yet whether the faction was added. Your words are kept. Check the list before adding it again.",
+              ? t("campaign.factions.error.saveMissing")
+              : t("campaign.factions.error.saveUnknown"),
           );
           return;
         }
-        setError(sent.unanswered ? `${sent.error} The list was read again; check it before saving again.` : sent.error);
+        setError(sent.unanswered ? t("campaign.factions.error.saveUnanswered", { error: sent.error }) : sent.error);
         if (sent.unanswered) setReload((current) => current + 1);
         return;
       }
@@ -194,7 +194,7 @@ export function FactionsPanel({
   }
 
   async function remove(faction: FactionView) {
-    if (!(await appConfirm(`Take ${faction.name} out of the world?`, { actionLabel: "Take them out", tone: "danger" }))) {
+    if (!(await appConfirm(t("campaign.factions.confirm.remove", { name: faction.name }), { actionLabel: t("campaign.factions.confirm.removeAction"), tone: "danger" }))) {
       return;
     }
     setError("");
@@ -300,16 +300,16 @@ export function FactionsPanel({
         {factions.map((faction) => {
           const items: ContextMenuItem[] = steersStory
             ? [
-                { id: "edit", label: "Edit", glyph: "ui-edit", onSelect: () => startEdit(faction) },
+                { id: "edit", label: t("campaign.factions.menu.edit"), glyph: "ui-edit", onSelect: () => startEdit(faction) },
                 ...(showsStanding ? Array.from({ length: REPUTATION_MAX - REPUTATION_MIN + 1 }, (_, index) => REPUTATION_MIN + index) : []).map((step, index) => ({
                   id: `standing-${step}`,
-                  label: `Standing ${step > 0 ? "+" : ""}${step}: ${reputationLabel(step)}`,
+                  label: t("campaign.factions.menu.standing", { score: `${step > 0 ? "+" : ""}${step}`, reputation: localReputation(reputationLabel(step)) }),
                   glyph: step < 0 ? "attitude-hostile" : step === 0 ? "attitude-neutral" : "attitude-friendly",
                   separated: index === 0,
                   disabled: step === faction.standing,
                   onSelect: () => void setStanding(faction, step),
                 })),
-                { id: "remove", label: `Remove ${faction.name}`, glyph: "ui-delete", tone: "danger" as const, separated: true, onSelect: () => void remove(faction) },
+                { id: "remove", label: t("campaign.factions.menu.remove", { name: faction.name }), glyph: "ui-delete", tone: "danger" as const, separated: true, onSelect: () => void remove(faction) },
               ]
             : [];
           return (
@@ -330,16 +330,16 @@ export function FactionsPanel({
                     {faction.power !== undefined ? <span className="text-[11px] font-normal text-violet-300">{t("campaign.factions.power.value", { power: faction.power })}</span> : null}
                   </p>
                   {faction.blurb ? <p className="reveal text-xs leading-5 text-stone-400">{faction.blurb}</p> : null}
-                  {faction.goal ? <p className="reveal text-xs italic leading-5 text-violet-300/80">Goal: {faction.goal}</p> : null}
+                  {faction.goal ? <p className="reveal text-xs italic leading-5 text-violet-300/80">{t("campaign.factions.goal.value", { goal: faction.goal })}</p> : null}
                   {showsStanding ? (
-                    <div className="mt-1 flex items-center gap-1" title={`The party is ${faction.standingLabel} to them`}>
+                    <div className="mt-1 flex items-center gap-1" title={t("campaign.factions.standing.title", { standing: localReputation(faction.standingLabel) })}>
                       {Array.from({ length: REPUTATION_MAX - REPUTATION_MIN + 1 }, (_, index) => REPUTATION_MIN + index).map((step) => (
                         <button
                           key={step}
                           type="button"
                           disabled={!steersStory}
                           onClick={() => void setStanding(faction, step)}
-                          aria-label={`Standing ${step}`}
+                          aria-label={t("campaign.factions.standing.aria", { step })}
                           aria-pressed={step === faction.standing}
                           className={cn(
                             "bar-ease h-2.5 w-3.5 rounded-sm enabled:hover:brightness-125 motion-press",
