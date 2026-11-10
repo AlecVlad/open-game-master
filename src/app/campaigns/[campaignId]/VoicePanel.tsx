@@ -21,13 +21,13 @@ import { SectionHead } from "@/components/ui/SectionHead";
 import { Select } from "@/components/ui/Select";
 import { VoiceRooms, VoiceSettings } from "@/app/campaigns/[campaignId]/VoicePanelParts";
 import { canRecordTranscript } from "@/app/campaigns/[campaignId]/transcript-capture";
+import { useI18n } from "@/lib/i18n/provider";
 import { useVoiceRoom } from "@/app/campaigns/[campaignId]/useVoiceRoom";
 import { VoicePeerRow } from "@/app/campaigns/[campaignId]/VoicePeerRow";
 import {
-  FLOOR_VOICE_LABELS,
-  TRANSMIT_BLOCK_LABELS,
   mayTransmit,
   type TurnEnforcement,
+  type TransmitBlock,
   type VoiceFloorMode,
 } from "@/lib/voice/turn-logic";
 import type { VoiceChannelView, VoiceRosterEntry } from "@/lib/voice/types";
@@ -74,6 +74,18 @@ export function VoicePanel({
   // The table's transcription switch (13.3).
   transcribe?: boolean;
 }) {
+  const { t, tp } = useI18n();
+  const floorVoiceLabels: Record<VoiceFloorMode, string> = {
+    open: t("campaign.voice.floor.open"),
+    hold: t("campaign.voice.floor.hold"),
+    spotlight: t("campaign.voice.floor.spotlight"),
+    initiative: t("campaign.voice.floor.initiative"),
+  };
+  const transmitBlockLabels: Record<Exclude<TransmitBlock, "">, string> = {
+    dm_holds_floor: t("campaign.voice.transmit.dmHolds"),
+    not_your_turn: t("campaign.voice.transmit.notYourTurn"),
+    spotlight_elsewhere: t("campaign.voice.transmit.spotlightElsewhere"),
+  };
   // The same rule the server enforces, asked here to label the UI. The
   // server is what actually pauses a producer; in mesh, where no server
   // carries the audio, the hook closes the track itself so "you are muted"
@@ -127,16 +139,16 @@ export function VoicePanel({
         });
         const data = await response.json().catch(() => ({}));
         if (!response.ok) {
-          setRoomError(data.error || "That room change did not go through.");
+          setRoomError(data.error || t("campaign.voice.error.roomChange"));
           return;
         }
         setRoomError("");
         setChannels(data.channels ?? []);
       } catch {
-        setRoomError("Could not reach the server.");
+        setRoomError(t("campaign.voice.error.server"));
       }
     },
-    [campaignId],
+    [campaignId, t],
   );
 
   if (!voice.available) {
@@ -144,11 +156,11 @@ export function VoicePanel({
       <div className="panel flex items-start gap-3 rounded-xl px-4 py-3">
         <GameIcon icon={{ kind: "glyph", key: "ui-voice" }} size="size-9" className="opacity-60 grayscale" />
         <div className="min-w-0">
-          <p className="font-display text-sm tracking-wide text-stone-300">Voice chat is off</p>
+          <p className="font-display text-sm tracking-wide text-stone-300">{t("campaign.voice.unavailable.title")}</p>
           <p className="mt-0.5 text-xs text-stone-500">
             {voice.unavailableReason === "server"
-              ? "This server has voice chat switched off."
-              : "Turn it on in campaign settings to talk at this table."}
+              ? t("campaign.voice.unavailable.server")
+              : t("campaign.voice.unavailable.campaign")}
           </p>
         </div>
       </div>
@@ -164,20 +176,20 @@ export function VoicePanel({
   // room for either, so their controls are not offered there.
   const sfu = voice.transport === "sfu";
   const floorNote =
-    turnEnforcement === "off" || floorMode === "open" ? "" : FLOOR_VOICE_LABELS[floorMode];
+    turnEnforcement === "off" || floorMode === "open" ? "" : floorVoiceLabels[floorMode];
   const control = cn(ui.btnSmall, "session-voice-btn");
 
   return (
     <div data-voice-panel={voice.transport} className={cn("panel rounded-xl", compact ? "p-3" : "p-4")}>
       <SectionHead
-        title="Voice"
+        title={t("campaign.voice.title")}
         glyph="ui-voice"
         level="h3"
         className="mb-2"
         aside={
           voice.peers.length ? (
             <span key={voice.peers.length} className="count-pop text-xs text-stone-400">
-              {voice.peers.length} on the call
+              {tp("campaign.voice.peerCount", voice.peers.length)}
             </span>
           ) : null
         }
@@ -192,8 +204,8 @@ export function VoicePanel({
               <button
                 type="button"
                 onClick={() => void voice.toggleHand()}
-                aria-label={voice.handRaised ? "Lower your hand" : "Ask to speak"}
-                title={voice.handRaised ? "Lower your hand" : "Ask to speak"}
+                aria-label={voice.handRaised ? t("campaign.voice.hand.lower") : t("campaign.voice.hand.raise")}
+                title={voice.handRaised ? t("campaign.voice.hand.lower") : t("campaign.voice.hand.raise")}
                 data-tone={voice.handRaised ? "on" : undefined}
                 className={control}
               >
@@ -207,14 +219,14 @@ export function VoicePanel({
               <Select
                 value={voice.sayRange}
                 onChange={(next) => void voice.setSayRange(next)}
-                label="How far your voice carries"
+                label={t("campaign.voice.range.label")}
                 size="sm"
                 align="end"
                 className="w-28"
                 options={[
-                  { value: "whisper", label: "Whisper" },
-                  { value: "normal", label: "Normal" },
-                  { value: "shout", label: "Shout" },
+                  { value: "whisper", label: t("campaign.voice.range.whisper") },
+                  { value: "normal", label: t("campaign.voice.range.normal") },
+                  { value: "shout", label: t("campaign.voice.range.shout") },
                 ]}
               />
             ) : null}
@@ -225,11 +237,11 @@ export function VoicePanel({
             <button
               type="button"
               onClick={voice.toggleDeafen}
-              aria-label={voice.deafened ? "Turn the call back on" : "Silence the call"}
+              aria-label={voice.deafened ? t("campaign.voice.deafen.disable") : t("campaign.voice.deafen.enable")}
               title={
                 voice.deafened
-                  ? "Turn the call back on"
-                  : "Silence everyone (you keep transmitting)"
+                  ? t("campaign.voice.deafen.disable")
+                  : t("campaign.voice.deafen.title")
               }
               data-tone={voice.deafened ? "off" : undefined}
               className={control}
@@ -249,19 +261,19 @@ export function VoicePanel({
                 onPointerUp={() => voice.setTalking(false)}
                 onPointerLeave={() => voice.setTalking(false)}
                 onContextMenu={(event) => event.preventDefault()}
-                title="Hold to talk (or hold the ` key)"
+                title={t("campaign.voice.ptt.title")}
                 data-tone={voice.talking ? "live" : undefined}
                 className={cn(control, "select-none touch-none gap-1 px-3 text-xs")}
               >
                 <Radio className={cn("size-3.5", voice.talking && "animate-pulse")} />
-                {voice.talking ? "Talking" : "Hold"}
+                {voice.talking ? t("campaign.voice.ptt.talking") : t("campaign.voice.ptt.hold")}
               </button>
             ) : (
               <button
                 type="button"
                 onClick={() => void voice.toggleMute()}
-                aria-label={voice.muted ? "Unmute" : "Mute"}
-                title={voice.muted ? "Unmute" : "Mute"}
+                aria-label={voice.muted ? t("campaign.voice.mute.disable") : t("campaign.voice.mute.enable")}
+                title={voice.muted ? t("campaign.voice.mute.disable") : t("campaign.voice.mute.enable")}
                 data-tone={voice.muted ? "off" : undefined}
                 className={control}
               >
@@ -271,8 +283,8 @@ export function VoicePanel({
             <button
               type="button"
               onClick={() => setShowSettings((open) => !open)}
-              aria-label="Microphone settings"
-              title="Microphone settings"
+              aria-label={t("campaign.voice.settings")}
+              title={t("campaign.voice.settings")}
               aria-expanded={showSettings}
               data-tone={showSettings ? "on" : undefined}
               className={control}
@@ -282,8 +294,8 @@ export function VoicePanel({
             <button
               type="button"
               onClick={() => void voice.leave()}
-              aria-label="Leave voice"
-              title="Leave voice"
+              aria-label={t("campaign.voice.leave")}
+              title={t("campaign.voice.leave")}
               className={control}
             >
               <PhoneOff className="size-4" />
@@ -301,7 +313,7 @@ export function VoicePanel({
             ) : (
               <Mic className="size-4" />
             )}
-            Join
+            {t("campaign.voice.join")}
           </button>
         )}
       </div>
@@ -314,7 +326,7 @@ export function VoicePanel({
           {floorNote}
           {voice.connected && !myVerdict.mayTransmit && myVerdict.block ? (
             <span className="text-stone-500">
-              · {turnEnforcement === "strict" ? "you are muted" : TRANSMIT_BLOCK_LABELS[myVerdict.block]}
+              · {turnEnforcement === "strict" ? t("campaign.voice.floor.youMuted") : transmitBlockLabels[myVerdict.block as Exclude<TransmitBlock, "">]}
             </span>
           ) : null}
         </p>
@@ -325,7 +337,7 @@ export function VoicePanel({
       {voice.reconnecting ? (
         <p className="live-in mt-2 flex items-center gap-1.5 text-xs text-amber-300">
           <WifiOff className="size-3.5 shrink-0" />
-          Connection dropped, reconnecting
+          {t("campaign.voice.connection.reconnecting")}
         </p>
       ) : null}
 
@@ -363,8 +375,8 @@ export function VoicePanel({
         <p className="reveal mt-2 flex items-center gap-1 text-[11px] text-amber-300/80">
           <Radio className="size-3" />
           {canRecordTranscript()
-            ? "This table is being transcribed while you are on the call."
-            : "This table is transcribed, but this device cannot record, so what you say is not written down."}
+            ? t("campaign.voice.transcript.recording")
+            : t("campaign.voice.transcript.deviceUnavailable")}
         </p>
       ) : null}
       {voice.peers.length ? (
@@ -395,7 +407,7 @@ export function VoicePanel({
           ))}
         </ul>
       ) : (
-        <p className="mt-2 text-xs text-stone-500">Nobody is on the call yet.</p>
+        <p className="mt-2 text-xs text-stone-500">{t("campaign.voice.empty")}</p>
       )}
     </div>
   );
