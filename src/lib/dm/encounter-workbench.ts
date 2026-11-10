@@ -267,6 +267,7 @@ function monsterSide(
   input: WorkbenchInput,
   partyAc: number,
   partyHp: number,
+  lang: Lang,
 ): { forecast: SideForecast; averageAc: number; hitPoints: number; warnings: string[] } {
   const rules = input.variantRules ?? {};
   const warnings: string[] = [];
@@ -286,7 +287,7 @@ function monsterSide(
 
     const attacks = entry.stats.attacks ?? [];
     if (!attacks.length) {
-      warnings.push(`${entry.name} has no attacks, so it contributes no damage to this estimate.`);
+      warnings.push(msg(lang, "campaign.dmWorkbench.monster.noAttacks", { name: entry.name }));
       continue;
     }
     let best = attacks[0];
@@ -308,14 +309,16 @@ function monsterSide(
     const perBody = forecast.perAttack * swings;
     damagePerRound += perBody * entry.count;
     lines.push(
-      `${entry.count} x ${entry.name}: ${swings} x ${best.damage} at +${best.toHit} is ${(
-        perBody * entry.count
-      ).toFixed(1)}`,
+      countMsg(lang, "campaign.dmWorkbench.monster.attackLine", entry.count, {
+        name: entry.name,
+        attacks: countMsg(lang, "campaign.dmWorkbench.attacks", swings),
+        damage: best.damage,
+        bonus: best.toHit,
+        expected: (perBody * entry.count).toFixed(1),
+      }),
     );
     if ((entry.stats.traits ?? []).some((trait) => /\d+d\d+/.test(trait))) {
-      warnings.push(
-        `${entry.name} has dice in its traits (a breath weapon or similar) that this estimate does not count. It hits harder than the number says.`,
-      );
+      warnings.push(msg(lang, "campaign.dmWorkbench.monster.traitDamage", { name: entry.name }));
     }
   }
 
@@ -327,23 +330,27 @@ function monsterSide(
       rounds: roundsToDrop(partyHp, damagePerRound),
       parts: [
         {
-          label: "Roster output",
-          value: `${damagePerRound.toFixed(1)} a round`,
+          label: msg(lang, "campaign.dmWorkbench.monster.output"),
+          value: msg(lang, "campaign.dmWorkbench.perRound", { damage: damagePerRound.toFixed(1) }),
           detail: lines.length
-            ? `${lines.join("; ")}. Against the party's baseline AC ${partyAc}, misses and crits counted.`
-            : "Nothing on this roster has an attack.",
+            ? msg(lang, "campaign.dmWorkbench.monster.outputDetail", { lines: lines.join("; "), ac: partyAc })
+            : msg(lang, "campaign.dmWorkbench.monster.noneAttack"),
         },
         {
-          label: "Roster hit points",
+          label: msg(lang, "campaign.dmWorkbench.monster.hitPoints"),
           value: String(hitPoints),
           detail: input.roster
             .map((entry) => {
               const tough = effectiveHp(entry.stats, entry.stats.cr);
-              return `${entry.count} x ${entry.stats.maxHp}${
-                tough.multiplier !== 1 ? ` at x${tough.multiplier} for what it shrugs off` : ""
-              }`;
+              return countMsg(lang, "campaign.dmWorkbench.monster.hpEntry", entry.count, {
+                hp: entry.stats.maxHp,
+                resistance: tough.multiplier !== 1
+                  ? msg(lang, "campaign.dmWorkbench.monster.resistance", { multiplier: tough.multiplier })
+                  : "",
+              });
             })
             .join("; "),
+        },
         },
       ],
     },
