@@ -6,6 +6,7 @@ import { cn } from "@/lib/cn";
 import { MonsterTile, ui } from "@/lib/ui";
 import { GameIcon } from "@/components/ui/GameIcon";
 import { SectionHead } from "@/components/ui/SectionHead";
+import { useI18n } from "@/lib/i18n/provider";
 
 // Monster lookup: the campaign's own genre catalog, then the exact numbers
 // start_encounter would spawn. A CR with no match falls back to the DMG's
@@ -26,6 +27,7 @@ export function StatblockFinder({
   campaignId: string;
   collapsible?: boolean;
 }) {
+  const { t } = useI18n();
   const [query, setQuery] = useState("");
   const [matches, setMatches] = useState<StatblockMatch[]>([]);
   // The table's setting, for the boss plate on high-rating matches.
@@ -78,7 +80,7 @@ export function StatblockFinder({
         <input
           value={query}
           onChange={(event) => setQuery(event.target.value.slice(0, 80))}
-          placeholder="wolf, or leave empty for what fits the party"
+          placeholder={t("campaign.statblockFinder.placeholder")}
           className={inputClass}
         />
         <button
@@ -87,7 +89,7 @@ export function StatblockFinder({
           disabled={busy}
           className={cn(ui.btnSecondary, "shrink-0")}
         >
-          Search
+          {t("campaign.statblockFinder.search")}
         </button>
       </div>
       {matches.length ? (
@@ -123,16 +125,16 @@ export function StatblockFinder({
             {String(detail?.name ?? "")}
             {detail?.synthesized ? (
               <span className="ml-1.5 font-display text-[10px] tracking-wide text-amber-300/80">
-                DMG baseline
+                {t("campaign.statblockFinder.baseline")}
               </span>
             ) : null}
           </p>
           <p className="text-stone-500">
-            AC {stats.ac} · {stats.maxHp} hp · CR {stats.cr} · speed {stats.speed}
+            {t("campaign.statblockFinder.stats", { ac: stats.ac, hp: stats.maxHp, cr: stats.cr, speed: stats.speed })}
           </p>
           {stats.attacks.map((attack) => (
             <p key={attack.name} className="text-stone-400">
-              {attack.name}: +{attack.toHit} to hit, {attack.damage}
+              {t("campaign.statblockFinder.attack", { name: attack.name, bonus: attack.toHit, damage: attack.damage })}
             </p>
           ))}
         </div>
@@ -150,7 +152,7 @@ export function StatblockFinder({
           className="flex min-h-10 w-full items-center gap-2 text-left font-display text-sm tracking-wide text-amber-100"
         >
           <GameIcon icon={{ kind: "glyph", key: "system-bestiary" }} size="size-7" />
-          Look up a monster
+          {t("campaign.statblockFinder.title")}
           {open ? (
             <ChevronDown className="ml-auto size-4 text-stone-500" />
           ) : (
@@ -164,7 +166,7 @@ export function StatblockFinder({
 
   return (
     <section className="panel rounded-xl p-3">
-      <SectionHead title="Look up a monster" glyph="system-bestiary" />
+      <SectionHead title={t("campaign.statblockFinder.title")} glyph="system-bestiary" />
       {controls}
     </section>
   );
