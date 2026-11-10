@@ -3,6 +3,7 @@
 import { scopedParams, useContentCampaign } from "@/lib/content-scope";
 import { Check, ChevronDown, ChevronRight, Loader2, Plus } from "lucide-react";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { InfoButton } from "@/components/ui/InfoDialog";
 import { cn } from "@/lib/cn";
 import { contentSlug, describeContentEntry, spellSummary } from "@/lib/help";
@@ -91,6 +92,7 @@ export default function CatalogBrowser({
   // shows it: written under the row, and a blocked row cannot be picked.
   judge?: (entry: PickerEntry) => { blocked: boolean; note: string } | null;
 }) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(defaultOpen);
   const [expanded, setExpanded] = useState<string[]>(openSections);
   const [loaded, setLoaded] = useState<Record<string, Loaded>>({});
@@ -223,8 +225,8 @@ export default function CatalogBrowser({
           <input
             value={filter}
             onChange={(event) => setFilter(event.target.value)}
-            placeholder="Narrow this list..."
-            aria-label="Narrow the browsed list"
+            placeholder={t("builder.extra.catalog.filter.placeholder")}
+            aria-label={t("builder.extra.catalog.filter.aria")}
             className="mb-2 w-full rounded-md border border-stone-700/70 bg-stone-950 px-2.5 py-1.5 text-xs text-stone-200 outline-none focus:border-amber-400/60"
           />
 
@@ -316,10 +318,10 @@ export default function CatalogBrowser({
                     {!isLoading && !rows.length ? (
                       <p className="px-1 py-1 text-sm text-stone-500" role={failedKeys.includes(section.key) ? "alert" : undefined}>
                         {failedKeys.includes(section.key)
-                          ? "Could not reach the server to list these. Close and open this section to try again."
+                          ? t("builder.extra.catalog.error.retry")
                           : unavailable
-                            ? "The content pack is not installed on this server, so there is nothing to list. Whoever runs it can install it with: node scripts/import-open5e.mjs"
-                            : "Nothing here."}
+                            ? t("builder.extra.catalog.error.noPack")
+                            : t("builder.extra.catalog.empty")}
                       </p>
                     ) : null}
                     <ul className="max-h-72 overflow-y-auto">
@@ -372,7 +374,7 @@ export default function CatalogBrowser({
                                     </span>
                                     <span className="shrink-0 text-[0.875rem] text-stone-500">
                                       {entry.source === "homebrew"
-                                        ? "homebrew"
+                                        ? t("builder.extra.catalog.homebrew")
                                         : (metaOf?.(entry) ?? "")}
                                     </span>
                                   </button>
@@ -397,7 +399,7 @@ export default function CatalogBrowser({
                     </ul>
                     {loaded[section.key]?.truncated ? (
                       <p className="px-1 pt-1 text-sm text-stone-500">
-                        Showing the first {rows.length}. Search by name above for the rest.
+                        {t("builder.extra.catalog.truncated", { count: rows.length })}
                       </p>
                     ) : null}
                   </div>
