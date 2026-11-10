@@ -97,6 +97,7 @@ export const ruSetup: Partial<Record<keyof typeof enSetup, string>> & Record<str
   "setup.story.apiKey": "Ключ API",
   "setup.story.keyStorageNote": "Ключ хранится на этом сервере и больше нигде не отображается. Все игровые столы используют его для работы ИИ-ведущего, поэтому на шаге «Игроки» можно ограничить доступ посторонним.",
   "setup.story.openaiKeyCoversMedia": "Один ключ OpenAI также позволяет создавать изображения, озвучивать историю и принимать диктовку. На следующих двух шагах его можно использовать без повторного ввода.",
+  "setup.story.windowNeeds": "Для повествования рассказчику требуется контекстное окно не менее {narration} токенов, а для сражений — не менее {combat}. Рекомендуемый размер — {recommended} токенов или больше.",
   "setup.welcome.serverName": "Название сервера",
   "setup.welcome.serverNameHelp": "Показывается на странице входа и в списках серверов приложений.",
   "setup.welcome.whatWeSetUp": "Что мы настроим",
