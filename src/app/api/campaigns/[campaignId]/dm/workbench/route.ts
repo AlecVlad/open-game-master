@@ -10,6 +10,9 @@ import {
   TEMPLATE_MAX_ENEMIES,
 } from "@/lib/dm/encounter-template-logic";
 import { encounterCeiling, thresholdsForParty } from "@/lib/srd/encounter-math";
+import { getLang } from "@/lib/i18n/server";
+import { translate } from "@/lib/i18n/core";
+import { DICTIONARIES } from "@/lib/i18n/messages/index";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -44,14 +47,21 @@ export async function POST(
     return context;
   }
   const { campaign } = context;
+  const lang = await getLang();
+  const t = (key: string, params?: Record<string, string | number>) => translate(DICTIONARIES, lang, key, params);
   const parsed = bodySchema.safeParse(await request.json().catch(() => ({})));
   if (!parsed.success) {
-    return Response.json({ error: "A roster needs at least one monster." }, { status: 400 });
+    return Response.json({ error: t("campaign.dmWorkbench.error.rosterRequired") }, { status: 400 });
   }
 
   const roster = checkRoster(parseRoster(parsed.data.enemies));
   if ("error" in roster) {
-    return Response.json({ error: roster.error }, { status: 400 });
+    const tooMany = roster.error.match(/^That is (\d+) creatures/);
+    return Response.json({
+      error: tooMany
+        ? t("campaign.dmWorkbench.error.rosterTooLarge", { count: Number(tooMany[1]), max: TEMPLATE_MAX_ENEMIES })
+        : t("campaign.dmWorkbench.error.rosterRequired"),
+    }, { status: 400 });
   }
 
   const resolved: WorkbenchRosterEntry[] = [];
@@ -61,7 +71,7 @@ export async function POST(
     });
     if (!match) {
       return Response.json(
-        { error: `Nothing in the bestiary answers to "${row.monster}".` },
+        { error: t("campaign.dmWorkbench.error.monsterNotFound", { name: row.monster }) },
         { status: 400 },
       );
     }
@@ -90,7 +100,7 @@ export async function POST(
       multiplyNumeric: campaign.gameSettings.variantRules.criticalDamageMods,
     },
     ceiling: encounterCeiling(campaign.difficulty, thresholdsForParty(levels).deadly),
-  });
+  }, lang);
 
   return Response.json({
     readout,
