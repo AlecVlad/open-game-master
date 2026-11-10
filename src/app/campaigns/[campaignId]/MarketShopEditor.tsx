@@ -9,10 +9,12 @@ import { Select } from "@/components/ui/Select";
 import { cn } from "@/lib/cn";
 import { readWrite } from "@/lib/load-state";
 import { MARKUP_STEPS, costToCopper, type StockLine } from "@/lib/dm/shop-logic";
-import { formatPrice, parseCoins, unreadCoins } from "@/lib/srd/currency";
+import { formatPrice, parseCoins } from "@/lib/srd/currency";
 import { withoutBonus } from "@/lib/srd/item-row";
 import { KitButton, panelField, SettingToggle } from "./PanelKit";
 import { textKey } from "@/lib/language/text-logic";
+import { useI18n } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages";
 
 // The Market's shop editor (#171), for whoever holds the prep: the DM seat,
 // the lead of an AI-narrated table, the workshop's author. Every field is
@@ -42,18 +44,24 @@ export type Named = { id: string; name: string };
 const KINDS = ["general", "smith", "apothecary", "outfitter", "curiosities"] as const;
 const SIZES = ["hamlet", "village", "town", "city"] as const;
 const MAX_LINES = 60;
+const KIND_LABEL_KEYS: Record<(typeof KINDS)[number], MessageKey> = {
+  general: "campaign.market.kind.general", smith: "campaign.market.kind.smith", apothecary: "campaign.market.kind.apothecary",
+  outfitter: "campaign.market.kind.outfitter", curiosities: "campaign.market.kind.curiosities",
+};
+const SIZE_LABEL_KEYS: Record<(typeof SIZES)[number], MessageKey> = {
+  hamlet: "campaign.market.size.hamlet", village: "campaign.market.size.village", town: "campaign.market.size.town", city: "campaign.market.size.city",
+};
 
 // The haggle ladder in words, so a markup is picked rather than typed.
-function markupLabel(step: number): string {
-  return step === 1 ? "List price" : step < 1 ? `${Math.round((1 - step) * 100)}% off` : step === 2 ? "Double" : `+${Math.round((step - 1) * 100)}%`;
+function markupLabel(step: number, t: ReturnType<typeof useI18n>["t"]): string {
+  return step === 1 ? t("campaign.marketEditor.markupList") : step < 1 ? t("campaign.marketEditor.markupOff", { percent: Math.round((1 - step) * 100) }) : step === 2 ? t("campaign.marketEditor.markupDouble") : t("campaign.marketEditor.markupExtra", { percent: Math.round((step - 1) * 100) });
 }
-
-const MARKUP_OPTIONS = MARKUP_STEPS.map((step) => ({ value: String(step), label: markupLabel(step) }));
 
 // A price typed the way the table says it ("15 gp", "2 sp 5 cp", a bare
 // number is gold), shown back in coin. A slip that is not a price keeps the
 // last good one and says so.
 function CoinField({ value, onChange, label }: { value: number; onChange: (cp: number) => void; label: string }) {
+  const { t } = useI18n();
   const [draft, setDraft] = useState<string | null>(null);
   const [bad, setBad] = useState<string | null>(null);
   const commit = () => {
@@ -65,7 +73,7 @@ function CoinField({ value, onChange, label }: { value: number; onChange: (cp: n
       onChange(parsed);
       setBad(null);
     } else {
-      setBad(parsed === null ? unreadCoins(draft) : "Write a price like 15 gp, 2 sp or 5 cp.");
+      setBad(t("campaign.marketEditor.coinInvalid"));
     }
     setDraft(null);
   };
@@ -102,6 +110,8 @@ export function MarketShopEditor({
   onSaved: () => void;
   onCancel: () => void;
 }) {
+  const { t } = useI18n();
+  const markupOptions = MARKUP_STEPS.map((step) => ({ value: String(step), label: markupLabel(step, t) }));
   const [draft, setDraft] = useState({
     name: shop.name,
     kind: shop.kind,
@@ -140,10 +150,10 @@ export function MarketShopEditor({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
         }),
-        "The shop could not be saved.",
+        t("campaign.marketEditor.saveFailed"),
       );
       if (sent.error !== null) {
-        setError(sent.unanswered ? `${sent.error} The shelf is kept here; save again.` : sent.error);
+        setError(sent.unanswered ? `${sent.error} ${t("campaign.marketEditor.saveUnanswered")}` : sent.error);
         return false;
       }
       onSaved();
@@ -171,47 +181,47 @@ export function MarketShopEditor({
     );
 
   return (
-    <div className="panel reveal space-y-2.5 rounded-lg p-2.5" aria-label={`Edit ${shop.name}`}>
+    <div className="panel reveal space-y-2.5 rounded-lg p-2.5" aria-label={t("campaign.marketEditor.ariaLabel", { shop: shop.name })}>
       <div className="flex flex-wrap items-center gap-1.5">
-        <input value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} maxLength={80} aria-label="Shop name" className={cn(panelField, "min-w-[9rem] flex-1")} />
-        <Select size="sm" label="Kind of shop" value={draft.kind} options={KINDS.map((kind) => ({ value: kind as string, label: kind }))} onChange={(kind) => setDraft({ ...draft, kind })} className="pk-w-28" />
-        <Select size="sm" label="Size of the place" value={draft.size} options={SIZES.map((size) => ({ value: size as string, label: size }))} onChange={(size) => setDraft({ ...draft, size })} className="pk-w-24" />
+        <input value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} maxLength={80} aria-label={t("campaign.marketEditor.shopName")} className={cn(panelField, "min-w-[9rem] flex-1")} />
+        <Select size="sm" label={t("campaign.marketEditor.kindLabel")} value={draft.kind} options={KINDS.map((kind) => ({ value: kind as string, label: t(KIND_LABEL_KEYS[kind]) }))} onChange={(kind) => setDraft({ ...draft, kind })} className="pk-w-28" />
+        <Select size="sm" label={t("campaign.marketEditor.sizeLabel")} value={draft.size} options={SIZES.map((size) => ({ value: size as string, label: t(SIZE_LABEL_KEYS[size]) }))} onChange={(size) => setDraft({ ...draft, size })} className="pk-w-24" />
       </div>
       <div className="grid grid-cols-2 gap-1.5">
         <Select
           size="sm"
-          label="Where it stands"
+          label={t("campaign.marketEditor.where")}
           value={draft.locationId}
-          options={[{ value: "", label: "No place yet" }, ...places.map((place) => ({ value: place.id, label: place.name, icon: { kind: "glyph" as const, key: "tab-map" } }))]}
+          options={[{ value: "", label: t("campaign.market.noPlace") }, ...places.map((place) => ({ value: place.id, label: place.name, icon: { kind: "glyph" as const, key: "tab-map" } }))]}
           onChange={(locationId) => setDraft({ ...draft, locationId })}
         />
         <Select
           size="sm"
-          label="Who keeps it"
+          label={t("campaign.marketEditor.whoKeeps")}
           value={draft.keeperNpcId}
-          options={[{ value: "", label: "Nobody named" }, ...keepers.map((npc) => ({ value: npc.id, label: npc.name, icon: { kind: "glyph" as const, key: "system-cast" } }))]}
+          options={[{ value: "", label: t("campaign.market.noKeeper") }, ...keepers.map((npc) => ({ value: npc.id, label: npc.name, icon: { kind: "glyph" as const, key: "system-cast" } }))]}
           onChange={(keeperNpcId) => setDraft({ ...draft, keeperNpcId })}
         />
       </div>
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
         <SettingToggle on={draft.buys} onToggle={() => setDraft({ ...draft, buys: !draft.buys })}>
-          Buys from the party
+          {t("campaign.marketEditor.buysFromParty")}
         </SettingToggle>
-        <Select size="sm" label="Prices" value={draft.markup} options={MARKUP_OPTIONS} onChange={(markup) => setDraft({ ...draft, markup })} className="pk-w-28" />
+        <Select size="sm" label={t("campaign.marketEditor.prices")} value={draft.markup} options={markupOptions} onChange={(markup) => setDraft({ ...draft, markup })} className="pk-w-28" />
         <span className="flex items-center gap-1.5 text-xs text-stone-400">
-          Restocks every
-          <NumberStepper size="sm" label="Days between restocks" value={draft.restockDays} min={0} max={365} onChange={(restockDays) => setDraft({ ...draft, restockDays })} suffix="days" />
+          {t("campaign.marketEditor.restockEvery")}
+          <NumberStepper size="sm" label={t("campaign.marketEditor.daysBetween")} value={draft.restockDays} min={0} max={365} onChange={(restockDays) => setDraft({ ...draft, restockDays })} suffix={t("campaign.marketEditor.daysSuffix")} />
         </span>
       </div>
       <p className="text-[11px] text-stone-500">
         {draft.restockDays === 0
-          ? "It never restocks: what is sold stays sold."
+          ? t("campaign.marketEditor.neverRestocks")
           : shop.preparedStock
-            ? `A restock refills this shelf every ${draft.restockDays} day${draft.restockDays === 1 ? "" : "s"}; what the party sold the keeper stays.`
-            : `It restocks from the content pack every ${draft.restockDays} day${draft.restockDays === 1 ? "" : "s"} until you save a shelf here.`}
+            ? t("campaign.marketEditor.preparedRestock", { days: draft.restockDays })
+            : t("campaign.marketEditor.packRestock", { days: draft.restockDays })}
       </p>
 
-      <ul className="stagger space-y-1" aria-label="The shelf">
+      <ul className="stagger space-y-1" aria-label={t("campaign.marketEditor.shelfAria")}>
         {lines.map((line, index) => (
           <li key={index} className="flex flex-wrap items-center gap-1 rounded-md border border-stone-800/80 bg-stone-950/40 p-1.5">
             <GameIcon icon={{ kind: "item", key: line.itemName || "pack", family: "item-gear" }} size="size-6" />
@@ -219,23 +229,23 @@ export function MarketShopEditor({
               value={line.itemName}
               onChange={(event) => setLine(index, { itemName: event.target.value })}
               maxLength={80}
-              placeholder="Item name"
-              aria-label={`Line ${index + 1} item`}
+              placeholder={t("campaign.marketEditor.itemName")}
+              aria-label={t("campaign.marketEditor.lineItem", { number: index + 1 })}
               className={cn(panelField, "min-w-[7rem] flex-1", !line.itemName.trim() && "border-amber-500/50")}
             />
-            <NumberStepper size="sm" label={`Line ${index + 1} count`} value={line.qty} min={0} max={999} onChange={(qty) => setLine(index, { qty })} />
-            <CoinField label={`Line ${index + 1} price`} value={line.priceCp} onChange={(priceCp) => setLine(index, { priceCp })} />
-            <KitButton tone="iconDanger" always aria-label={`Take ${line.itemName || "this line"} off the shelf`} onClick={() => setLines((current) => current.filter((_, at) => at !== index))}>
+            <NumberStepper size="sm" label={t("campaign.marketEditor.lineCount", { number: index + 1 })} value={line.qty} min={0} max={999} onChange={(qty) => setLine(index, { qty })} />
+            <CoinField label={t("campaign.marketEditor.linePrice", { number: index + 1 })} value={line.priceCp} onChange={(priceCp) => setLine(index, { priceCp })} />
+            <KitButton tone="iconDanger" always aria-label={t("campaign.marketEditor.removeLine", { item: line.itemName || t("campaign.marketEditor.thisLine") })} onClick={() => setLines((current) => current.filter((_, at) => at !== index))}>
               <X className="size-3.5" />
             </KitButton>
             {line.srdName && textKey(line.srdName) !== textKey(withoutBonus(line.itemName)) ? (
               <span className="flex basis-full items-center gap-1 text-[11px] text-stone-400">
-                <span className="rounded border border-stone-700/80 px-1.5 py-0.5">Listed as {line.srdName}</span>
+                <span className="rounded border border-stone-700/80 px-1.5 py-0.5">{t("campaign.marketEditor.listedAs", { name: line.srdName })}</span>
                 <KitButton
                   tone="iconDanger"
                   always
-                  aria-label={`Sell ${line.itemName || "this line"} as no listed item`}
-                  title="Sell it as no listed item: nothing the catalog says about it applies"
+                  aria-label={t("campaign.marketEditor.sellUnlisted", { item: line.itemName || t("campaign.marketEditor.thisLine") })}
+                  title={t("campaign.marketEditor.sellUnlistedTitle")}
                   onClick={() => setLine(index, { srdName: undefined })}
                 >
                   <X className="size-3.5" />
@@ -246,21 +256,21 @@ export function MarketShopEditor({
               value={line.note}
               onChange={(event) => setLine(index, { note: event.target.value })}
               maxLength={120}
-              placeholder="A note for the storyteller (optional)"
-              aria-label={`Line ${index + 1} note`}
+              placeholder={t("campaign.marketEditor.lineNotePlaceholder")}
+              aria-label={t("campaign.marketEditor.lineNoteAria", { number: index + 1 })}
               className={cn(panelField, "basis-full")}
             />
           </li>
         ))}
-        {!lines.length ? <li className="text-xs italic text-stone-500">Bare shelves. Add what this shop sells.</li> : null}
+        {!lines.length ? <li className="text-xs italic text-stone-500">{t("campaign.marketEditor.emptyShelf")}</li> : null}
       </ul>
 
       {lines.length < MAX_LINES ? (
         <div className="space-y-1.5">
           <ContentPick
             kind="items"
-            label="Add an item from the catalog"
-            placeholder="Add from the catalog: lantern, rope, potion..."
+            label={t("campaign.marketEditor.addCatalogItem")}
+            placeholder={t("campaign.marketEditor.addCatalogPlaceholder")}
             onPick={(entry) =>
               addLine({
                 itemName: entry.name.slice(0, 80),
@@ -272,28 +282,28 @@ export function MarketShopEditor({
             }
           />
           <KitButton tone="link" onClick={() => addLine({ itemName: "", qty: 1, priceCp: 100, note: "" })}>
-            <Plus className="size-3.5" /> Write a line by hand
+            <Plus className="size-3.5" /> {t("campaign.marketEditor.writeByHand")}
           </KitButton>
         </div>
       ) : (
-        <p className="text-[11px] text-stone-500">A shelf holds {MAX_LINES} lines.</p>
+        <p className="text-[11px] text-stone-500">{t("campaign.marketEditor.shelfLimit", { max: MAX_LINES })}</p>
       )}
 
       {error ? <p role="alert" className="live-in motion-shake text-xs text-red-300">{error}</p> : null}
-      {unnamed ? <p className="live-in text-[11px] text-amber-300/90">Name every line, or take it off the shelf.</p> : null}
+      {unnamed ? <p className="live-in text-[11px] text-amber-300/90">{t("campaign.marketEditor.nameEveryLine")}</p> : null}
       <div className="flex flex-wrap items-center gap-1.5">
         <KitButton tone="primary" disabled={Boolean(busy) || unnamed} busy={busy === "save"} onClick={() => void save()}>
-          Save the shop
+          {t("campaign.marketEditor.save")}
         </KitButton>
-        <KitButton onClick={onCancel}>Cancel</KitButton>
+        <KitButton onClick={onCancel}>{t("campaign.marketEditor.cancel")}</KitButton>
         <span className="flex-1" />
         {shop.preparedStock ? (
           <KitButton tone="link" disabled={Boolean(busy)} onClick={() => void send({ stockFromPack: true }, "pack")}>
-            Let the pack restock it
+            {t("campaign.marketEditor.restockFromPack")}
           </KitButton>
         ) : null}
-        <KitButton disabled={Boolean(busy)} busy={busy === "restock"} onClick={() => void send({ restock: true }, "restock")} title="Refill the shelf now, as a restock day would">
-          <RotateCw className="size-3.5" /> Restock now
+        <KitButton disabled={Boolean(busy)} busy={busy === "restock"} onClick={() => void send({ restock: true }, "restock")} title={t("campaign.marketEditor.restockNowTitle")}>
+          <RotateCw className="size-3.5" /> {t("campaign.marketEditor.restockNow")}
         </KitButton>
       </div>
     </div>
