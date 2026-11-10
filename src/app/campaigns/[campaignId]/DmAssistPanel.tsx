@@ -22,6 +22,7 @@ import type { CharacterSheet } from "@/lib/schemas/sheet";
 import { LengthNote } from "@/components/ui/LengthNote";
 import { QUESTION_MAX_CHARS, questionLength } from "@/lib/dm/ask-logic";
 import { useI18n } from "@/lib/i18n/provider";
+import { localizeCatalogEntry } from "@/lib/dm/catalog-ui";
 
 // The DM's assist rail: read-only answers from engines that already exist.
 // Nothing here applies anything to the game. The one exception is the
@@ -102,6 +103,15 @@ function IntentSuggest({
   }
 
   const openEntry = open ? findAdjudication(ADJUDICATIONS, open.name) : null;
+  const displaySuggestions = suggestions.map((suggestion) => {
+    const entry = findAdjudication(ADJUDICATIONS, suggestion.name);
+    const displayEntry = entry ? localizeCatalogEntry(entry, t) : null;
+    return {
+      ...suggestion,
+      label: displayEntry?.label ?? suggestion.label,
+      summary: displayEntry?.summary ?? suggestion.summary,
+    };
+  });
 
   return (
     <DeskCard glyph="die-d20" title={t("campaign.dmAssist.suggest.title")}>
@@ -138,7 +148,7 @@ function IntentSuggest({
 
       {suggestions.length ? (
         <ul className="stagger mt-2 space-y-1.5">
-          {suggestions.map((suggestion) => (
+          {displaySuggestions.map((suggestion) => (
             <li key={suggestion.name}>
               {open?.name === suggestion.name && openEntry ? (
                 <div className="reveal space-y-1">
