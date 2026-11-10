@@ -343,9 +343,9 @@ export function knownSoFarRows({
     | undefined;
   racialBonus: Partial<Record<Ability, number>>;
   proficientSkills: string[];
-}): BuildMathRow[] {
+}, messages?: BuildMathMessages): BuildMathRow[] {
   const bonuses = ABILITIES.flatMap((ability) =>
-    racialBonus[ability] ? [`${ABILITY_NAMES[ability]} ${formatModifier(racialBonus[ability] ?? 0)}`] : [],
+    racialBonus[ability] ? [`${messages?.t?.((`builder.extra.ability.${ability}`) as MessageKey) ?? ABILITY_NAMES[ability]} ${formatModifier(racialBonus[ability] ?? 0)}`] : [],
   );
   // The bumps the race leaves to the player (a half-elf's two +1s) that are
   // not placed yet: a placed one is in racialBonus beyond the race's own.
@@ -354,7 +354,7 @@ export function knownSoFarRows({
     const placed = ABILITIES.reduce((sum, ability) => sum + Math.max(0, (racialBonus[ability] ?? 0) - (race?.asi?.[ability] ?? 0)), 0);
     const owed = choice.count - Math.round(placed / choice.amount);
     if (owed > 0) {
-      bonuses.push(`+${choice.amount} to ${COUNT_WORDS[owed] ?? owed} ${bonuses.length ? "more " : ""}of your choice`);
+      bonuses.push(pluralMsg(messages, "builder.extra.buildMath.working.ancestryOwed", owed, { amount: choice.amount, more: bonuses.length ? (messages?.t?.("builder.extra.buildMath.working.ancestryMore") ?? "more ") : "" }, `+${choice.amount} to ${COUNT_WORDS[owed] ?? owed} ${bonuses.length ? "more " : ""}of your choice`));
     }
   }
   const variant = race?.variants ? pickedVariant(race) : null;
@@ -363,29 +363,29 @@ export function knownSoFarRows({
     return skill ? [skill.name] : [];
   });
   return [
-    { id: "proficiency", label: "Proficiency bonus", value: formatModifier(proficiencyBonus(level)), working: `level ${level}` },
+    { id: "proficiency", label: "Proficiency bonus", value: formatModifier(proficiencyBonus(level)), working: msg(messages, "builder.extra.buildMath.working.level", { level }, `level ${level}`) },
     ...(klass
       ? [
           { id: "hit-die", label: "Hit die", value: `d${klass.hitDie}`, working: klass.name },
           {
             id: "save-proficiencies",
             label: "Proficient saves",
-            value: klass.saves.map((save) => ABILITY_NAMES[save] ?? save).join(", "),
+            value: klass.saves.map((save) => messages?.t?.((`builder.extra.ability.${save}`) as MessageKey) ?? ABILITY_NAMES[save] ?? save).join(", "),
             working: klass.name,
           },
         ]
       : []),
     ...(race?.variants
-      ? [{ id: "species-choice", label: race.variants.label, value: variant?.name ?? "still to choose", working: race.name }]
+      ? [{ id: "species-choice", label: race.variants.label, value: variant?.name ?? (messages?.t?.("builder.extra.buildMath.working.stillToChoose") ?? "still to choose"), working: race.name }]
       : []),
     ...(race
       ? [
-          { id: "ancestry-bonuses", label: "Ancestry bonuses", value: bonuses.join(", ") || "none", working: race.name },
+          { id: "ancestry-bonuses", label: "Ancestry bonuses", value: bonuses.join(", ") || (messages?.t?.("builder.extra.buildMath.working.none") ?? "none"), working: race.name },
           { id: "speed", label: "Speed", value: `${race.speed} ft`, working: race.name },
         ]
       : []),
     ...(skills.length
-      ? [{ id: "skill-proficiencies", label: "Proficient skills", value: skills.join(", "), working: "class, background and ancestry picks" }]
+      ? [{ id: "skill-proficiencies", label: "Proficient skills", value: skills.join(", "), working: messages?.t?.("builder.extra.buildMath.working.skillsFromPicks") ?? "class, background and ancestry picks" }]
       : []),
   ];
 }
