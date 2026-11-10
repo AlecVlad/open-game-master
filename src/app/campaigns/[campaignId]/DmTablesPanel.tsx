@@ -276,7 +276,7 @@ export function DmTablesPanel({
 
   // A save after a delete would otherwise PATCH a table that is gone.
   function remove(table: RollTable) {
-    return ask(table, { method: "DELETE" }, "Could not delete that.", () => {
+    return ask(table, { method: "DELETE" }, t("campaign.dmTables.error.delete"), () => {
       if (editingId === table.id) open(null);
     });
   }
@@ -450,7 +450,7 @@ export function DmTablesPanel({
                       >
                         {busy === table.id ? <Loader2 className="size-3.5 animate-spin" /> : t("campaign.dmTables.roll")}
                       </button>
-                      <RowMenu items={items} label={table.name} />
+                      <RowMenu items={items} label={table.name} trigger={{ label: t("common.actionsFor", { name: table.name }) }} />
                     </span>
                   </div>
                   {result?.tableId === table.id ? (
