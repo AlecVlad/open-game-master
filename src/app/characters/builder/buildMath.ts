@@ -12,7 +12,7 @@ import type { Ability } from "@/lib/schemas/sheet";
 import { pickedVariant, type SpeciesVariantGroup } from "@/lib/content/species-variants";
 import { SRD_SKILLS, findSkill, formatModifier, proficiencyBonus, type DerivedPart } from "@/lib/srd";
 import { ABILITY_NAMES } from "@/lib/srd/legality/types";
-import { armorClassLine, hitPointsLine } from "./derivedReasons";
+import { armorClassLine, hitPointsLine, type BuildMathMessages } from "./derivedReasons";
 import { casterLevelFor } from "@/lib/srd/multiclass";
 import type { BuilderDerived } from "./useBuilderDerived";
 
@@ -56,9 +56,30 @@ export type BuildMathInput = {
 
 // The parts as a line, in the sheet's own words and signs, as the sheet's
 // own breakdown writes them: "DEX modifier +3, proficiency +2".
-export function workingOf(parts: DerivedPart[]): string {
+function translatedPartLabel(label: string, messages?: BuildMathMessages): string {
+  if (!messages?.t) return label;
+  const ability = /^(STR|DEX|CON|INT|WIS|CHA) modifier$/.exec(label)?.[1]?.toLowerCase();
+  if (ability) {
+    const name = messages.t(("builder.extra.ability." + ability) as import("@/lib/i18n/messages").MessageKey);
+    return messages.t("builder.extra.buildMath.working.part.ability", { ability: name });
+  }
+  const keys: Record<string, import("@/lib/i18n/messages").MessageKey> = {
+    proficiency: "builder.extra.buildMath.working.part.proficiency",
+    "half proficiency": "builder.extra.buildMath.working.part.halfProficiency",
+    expertise: "builder.extra.buildMath.working.part.expertise",
+    untrained: "builder.extra.buildMath.working.part.untrained",
+    features: "builder.extra.buildMath.working.part.features",
+    "subclass features": "builder.extra.buildMath.working.part.subclassFeatures",
+    "magic items": "builder.extra.buildMath.working.part.magicItems",
+    base: "builder.extra.buildMath.working.part.base",
+  };
+  const key = keys[label];
+  return key ? messages.t(key) : label;
+}
+
+export function workingOf(parts: DerivedPart[], messages?: BuildMathMessages): string {
   return parts
-    .map((part) => `${part.label} ${formatModifier(part.value)}`)
+    .map((part) => translatedPartLabel(part.label, messages) + " " + formatModifier(part.value))
     .join(", ");
 }
 
@@ -67,7 +88,7 @@ const SLOT_LEVELS: Array<[string, string]> = [
   ["1", "1st"], ["2", "2nd"], ["3", "3rd"], ["4", "4th"], ["5", "5th"], ["6", "6th"], ["7", "7th"], ["8", "8th"], ["9", "9th"],
 ];
 
-export function buildMathSections({ derived, scores, klass, atTable }: BuildMathInput): BuildMathSection[] {
+export function buildMathSections({ derived, scores, klass, atTable }: BuildMathInput, messages?: BuildMathMessages): BuildMathSection[] {
   const { preview, hp, shownAbilities, effectiveLevel } = derived;
   if (!preview || !shownAbilities || !hp || !klass) {
     return [];
@@ -84,7 +105,7 @@ export function buildMathSections({ derived, scores, klass, atTable }: BuildMath
     kept: preview.hpKept,
     atTable,
     ...(derived.multiclass ? { dice: [klass.hitDie, ...(derived.extras ?? []).map((entry) => entry.klass.hitDie)] } : {}),
-  });
+  }, messages);
   const parts = hp.parts;
   // A class list's later levels, class by class: each its own die.
   const split = hp.split ?? null;
@@ -115,7 +136,7 @@ export function buildMathSections({ derived, scores, klass, atTable }: BuildMath
           : []),
         ...(parts.featureHp ? [`features ${formatModifier(parts.featureHp)}`] : []),
       ].join("; ");
-  const acLine = armorClassLine(derived.acInfo?.ac ?? derived.ac, derived.acInfo?.parts);
+  const acLine = armorClassLine(derived.acInfo?.ac ?? derived.ac, derived.acInfo?.parts, messages);
   sections.push({
     id: "core",
     title: "Core",
