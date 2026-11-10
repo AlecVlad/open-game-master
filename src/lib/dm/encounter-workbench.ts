@@ -367,7 +367,7 @@ export type WorkbenchReadout = {
   attrition: AttritionReadout;
 };
 
-export function workbench(input: WorkbenchInput): WorkbenchReadout {
+export function workbench(input: WorkbenchInput, lang: Lang = "en"): WorkbenchReadout {
   const partyAc = Math.round(
     input.partyLevels.reduce((total, level) => total + baselineFor(level).ac, 0) /
       Math.max(1, input.partyLevels.length),
@@ -376,42 +376,42 @@ export function workbench(input: WorkbenchInput): WorkbenchReadout {
 
   // The two sides need each other's armour class, so the roster is measured
   // first (its AC does not depend on the party) and the party second.
-  const monsters = monsterSide(input, partyAc, partyHp);
-  const party = partySide(input, monsters.averageAc, monsters.hitPoints);
+  const monsters = monsterSide(input, partyAc, partyHp, lang);
+  const party = partySide(input, monsters.averageAc, monsters.hitPoints, lang);
 
   const warnings = [...monsters.warnings];
   const partyRounds = party.rounds;
   const monsterRounds = monsters.forecast.rounds;
   let outcome: string;
   if (partyRounds === null) {
-    outcome = "The party cannot get through this, on these numbers.";
+    outcome = msg(lang, "campaign.dmWorkbench.outcome.partyCannotWin");
   } else if (monsterRounds === null) {
-    outcome = `The party clears this in about ${partyRounds} round${
-      partyRounds === 1 ? "" : "s"
-    } and takes nothing back.`;
+    outcome = msg(lang, "campaign.dmWorkbench.outcome.noDamage", {
+      rounds: countMsg(lang, "campaign.dmWorkbench.rounds", partyRounds),
+    });
   } else if (partyRounds < monsterRounds) {
     const margin = monsterRounds - partyRounds;
-    outcome = `The party clears this in about ${partyRounds} round${
-      partyRounds === 1 ? "" : "s"
-    }, with roughly ${margin} round${margin === 1 ? "" : "s"} of margin.`;
+    outcome = msg(lang, "campaign.dmWorkbench.outcome.withMargin", {
+      rounds: countMsg(lang, "campaign.dmWorkbench.rounds", partyRounds),
+      margin: countMsg(lang, "campaign.dmWorkbench.rounds", margin),
+    });
   } else {
-    outcome = `On these numbers the roster drops the party first, in about ${monsterRounds} round${
-      monsterRounds === 1 ? "" : "s"
-    } against the party's ${partyRounds}.`;
+    outcome = msg(lang, "campaign.dmWorkbench.outcome.monstersWin", {
+      monsterRounds: countMsg(lang, "campaign.dmWorkbench.rounds", monsterRounds),
+      partyRounds: countMsg(lang, "campaign.dmWorkbench.rounds", partyRounds),
+    });
   }
 
   // Both sides are assumed to concentrate fire and nobody heals, retreats or
   // uses a spell slot. Said out loud, because it is why a real fight of this
   // shape usually goes better for the party than the number does.
-  warnings.push(
-    "Both sides are swinging every round with nobody healing, hiding or running. A real fight of this shape usually goes a round or two longer.",
-  );
+  warnings.push(msg(lang, "campaign.dmWorkbench.warning.noHealing"));
   if (partyRounds !== null && partyRounds <= 1) {
-    warnings.push("One round is not a fight. This roster will be gone before it acts twice.");
+    warnings.push(msg(lang, "campaign.dmWorkbench.warning.oneRound"));
   }
 
   return {
-    budget: budget(input),
+    budget: budget(input, lang),
     attrition: { party, monsters: monsters.forecast, outcome, warnings },
   };
 }
