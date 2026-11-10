@@ -2314,4 +2314,7 @@ export const ruCampaignPanels: Partial<Record<keyof typeof enCampaignPanels, str
   "campaign.marketEditor.priceLabel": "Позиция {number}: цена",
   "campaign.marketEditor.priceExample": "15 gp, 2 sp или 5 cp",
   "campaign.market.shopNamePlaceholder": "Лавка Марлы",
+  "campaign.market.detailsMeta": "{price} за штуку; в наличии: {qty}",
+  "campaign.market.askSellerPrompt": "Предлагаю торговцу из магазина «{shop}» предмет «{item}». Сколько он готов за него заплатить?",
+  "campaign.market.tradeUnreachable": "Не удалось связаться с сервером. Ассортимент обновляется; проверьте его, прежде чем повторять попытку.",
 };
