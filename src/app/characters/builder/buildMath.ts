@@ -9,6 +9,7 @@
 // slots the save stores (casting.ts builderSpellSlots). This module only
 // lays them out as rows and says what changed.
 import type { Ability } from "@/lib/schemas/sheet";
+import type { MessageKey } from "@/lib/i18n/messages";
 import { pickedVariant, type SpeciesVariantGroup } from "@/lib/content/species-variants";
 import { SRD_SKILLS, findSkill, formatModifier, proficiencyBonus, type DerivedPart } from "@/lib/srd";
 import { ABILITY_NAMES } from "@/lib/srd/legality/types";
@@ -53,6 +54,14 @@ export type BuildMathInput = {
   // Built for a table that has chosen how hit points are worked.
   atTable: boolean;
 };
+function msg(messages: BuildMathMessages | undefined, key: MessageKey, params: Record<string, string | number>, fallback: string): string {
+  return messages?.t?.(key, params) ?? fallback;
+}
+
+function pluralMsg(messages: BuildMathMessages | undefined, key: string, count: number, params: Record<string, string | number>, fallback: string): string {
+  return messages?.tp?.(key, count, params) ?? fallback;
+}
+
 
 // The parts as a line, in the sheet's own words and signs, as the sheet's
 // own breakdown writes them: "DEX modifier +3, proficiency +2".
@@ -60,10 +69,10 @@ function translatedPartLabel(label: string, messages?: BuildMathMessages): strin
   if (!messages?.t) return label;
   const ability = /^(STR|DEX|CON|INT|WIS|CHA) modifier$/.exec(label)?.[1]?.toLowerCase();
   if (ability) {
-    const name = messages.t(("builder.extra.ability." + ability) as import("@/lib/i18n/messages").MessageKey);
+    const name = messages.t(("builder.extra.ability." + ability) as MessageKey);
     return messages.t("builder.extra.buildMath.working.part.ability", { ability: name });
   }
-  const keys: Record<string, import("@/lib/i18n/messages").MessageKey> = {
+  const keys: Record<string, MessageKey> = {
     proficiency: "builder.extra.buildMath.working.part.proficiency",
     "half proficiency": "builder.extra.buildMath.working.part.halfProficiency",
     expertise: "builder.extra.buildMath.working.part.expertise",
