@@ -242,4 +242,18 @@ export const enBuilderExtras = {
   "builder.extra.playstyle.easy": "Easy to learn",
   "builder.extra.playstyle.noFit": "No class here fits that exactly; every class is in the grid below.",
 
+  "builder.extra.quickReadback.quizLead.one": "Here is your character. {count} choice was picked for you",
+  "builder.extra.quickReadback.quizLead.other": "Here is your character. {count} choices were picked for you",
+  "builder.extra.quickReadback.fillLead.one": "Picked for you: {count} choice",
+  "builder.extra.quickReadback.fillLead.other": "Picked for you: {count} choices",
+  "builder.extra.quickReadback.stillOwed.one": "You still have {count} choice to make.",
+  "builder.extra.quickReadback.stillOwed.other": "You still have {count} choices to make.",
+  "builder.extra.quickReadback.aria": "Picked for you",
+  "builder.extra.quickReadback.unchanged": "Nothing you had chosen was changed. Change any of them, or undo them all. Undo leaves any you have changed since.",
+  "builder.extra.quickReadback.badge": "Picked for you",
+  "builder.extra.quickReadback.changeAria": "Change {label}",
+  "builder.extra.quickReadback.change": "Change",
+  "builder.extra.quickReadback.undo": "Undo all of these",
+  "builder.extra.quickReadback.keep": "Keep them",
+
 } satisfies Record<string, string>;
