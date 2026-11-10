@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { Select } from "@/components/ui/Select";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { GameIcon } from "@/components/ui/GameIcon";
@@ -8,7 +9,9 @@ import { cn } from "@/lib/cn";
 import { readWrite } from "@/lib/load-state";
 import { ui } from "@/lib/ui";
 import { PanelError } from "@/app/campaigns/[campaignId]/PanelKit";
-import { BEAT_LABELS, type BeatKind, type Suggestion } from "@/lib/workshop/board";
+import type { BeatKind, Suggestion } from "@/lib/workshop/board";
+import type { CompiledBoard } from "@/lib/workshop/board-compile";
+import { beatLabel, suggestionReason } from "@/app/workshop/storyboard/storyboard-i18n";
 import type { CompileSummary } from "@/lib/workshop/board-compile";
 
 // What sits beside the workshop board: what the board is missing and what
@@ -63,24 +66,25 @@ export function SuggestionsCard({
   busy: boolean;
   onAdd: (kind: BeatKind, title: string) => void;
 }) {
+  const { t } = useI18n();
   if (!suggestions.length) {
     return null;
   }
   return (
-    <AsideCard title="What this board is missing" icon={<GameIcon icon={{ kind: "glyph", key: "rest-inspiration" }} size="size-7" />} tour="storyboard-missing">
+    <AsideCard title={t("campaign.storyboard.suggestions.title")} icon={<GameIcon icon={{ kind: "glyph", key: "rest-inspiration" }} size="size-7" />} tour="storyboard-missing">
       <p className="text-[11px] text-stone-500">
-        Counted, not guessed. Nothing here asked a model what your story needs.
+        {t("campaign.storyboard.suggestions.description")}
       </p>
       {suggestions.map((suggestion) => (
         <div key={suggestion.id} className="flex flex-wrap items-center gap-2 text-xs">
-          <span className="flex-1 text-xs text-stone-400">{suggestion.reason}</span>
+          <span className="flex-1 text-xs text-stone-400">{suggestionReason(t, suggestion)}</span>
           <button
             type="button"
             disabled={busy}
             onClick={() => onAdd(suggestion.kind, suggestion.title)}
             className={cn(ui.btnSmall, "px-2 py-1.5")}
           >
-            + {BEAT_LABELS[suggestion.kind]}
+            + {beatLabel(t, suggestion.kind)}
           </button>
         </div>
       ))}
