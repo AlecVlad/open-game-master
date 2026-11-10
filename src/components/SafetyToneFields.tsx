@@ -61,6 +61,25 @@ const TONE_MESSAGE_KEYS: Record<Tone, MessageKey> = {
 export const BOUNDARY_LABELS: Record<Boundaries, string> = { family: "All ages", standard: "Standard", mature: "Mature" };
 export const STRICTNESS_LABELS: Record<Strictness, string> = { lenient: "Lenient", standard: "By the book", harsh: "Harsh" };
 
+const STOCK_PERSONALITY_MESSAGE_KEYS: Record<string, { name: MessageKey; blurb: MessageKey }> = {
+  "The Storyteller": { name: "safetyTone.personality.storyteller.name", blurb: "safetyTone.personality.storyteller.blurb" },
+  "The Referee": { name: "safetyTone.personality.referee.name", blurb: "safetyTone.personality.referee.blurb" },
+  "The Grim Chronicler": { name: "safetyTone.personality.grimChronicler.name", blurb: "safetyTone.personality.grimChronicler.blurb" },
+  "The Trickster": { name: "safetyTone.personality.trickster.name", blurb: "safetyTone.personality.trickster.blurb" },
+  "The Courtier": { name: "safetyTone.personality.courtier.name", blurb: "safetyTone.personality.courtier.blurb" },
+};
+
+function localizePersonality(
+  preset: Personality,
+  t: (key: MessageKey, params?: Params) => string,
+): Personality {
+  // Stock presets are shared; a user's own names and descriptions stay untouched.
+  if (preset.userId !== null) return preset;
+  const keys = STOCK_PERSONALITY_MESSAGE_KEYS[preset.name];
+  return keys ? { ...preset, name: t(keys.name), blurb: t(keys.blurb) } : preset;
+}
+
+
 function ListField({ label, hint, value, onChange }: { label: string; hint: string; value: string[]; onChange: (next: string[]) => void }) {
   // Typed as one line and kept as a list on blur, so a half-typed entry is
   // never cut at its comma. A list changed from outside (saved defaults laid
@@ -137,10 +156,11 @@ export function SafetyToneFields({
     };
   }, [showPresets]);
   // A preset's voice counts only where it can narrate this table.
+  const localizedPresets = presets.map((preset) => localizePersonality(preset, t));
   const voiced = (preset: Personality) => personalityVoiceFits(tableLanguage, preset.ttsVoice);
   const isChosen = (preset: Personality) =>
     preset.gm.strictness === gm.strictness && preset.gm.tone.join() === gm.tone.join() && (!ttsVoice || !voiced(preset) || preset.ttsVoice === ttsVoice);
-  const chosenPreset = presets.find(isChosen);
+  const chosenPreset = localizedPresets.find(isChosen);
   const toggleTone = (tone: Tone) => {
     const has = gm.tone.includes(tone);
     if (!has && gm.tone.length >= TONE_MAX) {
@@ -193,11 +213,11 @@ export function SafetyToneFields({
             {t("safetyTone.tone.choosePersonality")}
             <InfoButton
               label={t("safetyTone.tone.personalitiesInfoLabel")}
-              text={personalitiesInfo(presets, Boolean(onVoice) && presets.some(voiced), t)}
+              text={personalitiesInfo(localizedPresets, Boolean(onVoice) && localizedPresets.some(voiced), t)}
             />
           </p>
           <div className="stagger-pop flex flex-wrap items-center gap-1.5">
-            {presets.map((preset) => {
+            {localizedPresets.map((preset) => {
               const active = isChosen(preset);
               return (
                 <button
