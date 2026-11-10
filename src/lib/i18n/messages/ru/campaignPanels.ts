@@ -196,4 +196,6 @@ export const ruCampaignPanels: Partial<Record<keyof typeof enCampaignPanels, str
   "campaign.factions.reputation.noticed": "заметили",
   "campaign.factions.reputation.trusted": "доверяют",
   "campaign.factions.reputation.honoured": "почитают",
+  "campaign.factions.error.saveUnanswered": "Не удалось подтвердить сохранение ({error}). Список обновлён; проверьте его, прежде чем повторять попытку.",
+  "campaign.factions.goal.value": "Цель: {goal}",
 };
