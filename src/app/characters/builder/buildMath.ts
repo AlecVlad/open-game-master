@@ -393,21 +393,54 @@ export function knownSoFarRows({
 // What a screen reader hears when picks move the numbers: the first number
 // that changed, said as "Armor class 16, was 14", and how many more did. A
 // row that appears is said with its value alone; one that goes is not said.
-export function changeLine(before: ReadonlyMap<string, string>, after: BuildMathSection[]): string | null {
+function translatedRowLabel(row: BuildMathRow, messages?: BuildMathMessages): string {
+  if (!messages?.t) return row.label;
+  const keyById: Record<string, MessageKey> = {
+    ac: "builder.extra.buildMath.row.ac",
+    hp: "builder.extra.buildMath.row.hp",
+    initiative: "builder.extra.buildMath.row.initiative",
+    proficiency: "builder.extra.buildMath.row.proficiency",
+    "passive-perception": "builder.extra.buildMath.row.passivePerception",
+    "hit-die": "builder.extra.buildMath.row.hitDie",
+    "save-proficiencies": "builder.extra.buildMath.row.saveProficiencies",
+    "ancestry-bonuses": "builder.extra.buildMath.row.ancestryBonuses",
+    speed: "builder.extra.buildMath.row.speed",
+    "skill-proficiencies": "builder.extra.buildMath.row.skillProficiencies",
+    "spell-dc": "builder.extra.buildMath.row.spellDc",
+    "spell-attack": "builder.extra.buildMath.row.spellAttack",
+    "slots-pact": "builder.extra.buildMath.row.pactSlots",
+  };
+  const fixed = keyById[row.id];
+  if (fixed) return messages.t(fixed);
+  if (row.id.startsWith("spell-dc-")) return messages.t("builder.extra.buildMath.row.classSpellDc", { klass: row.label.replace(/ spell save DC$/i, "") });
+  if (row.id.startsWith("spell-attack-")) return messages.t("builder.extra.buildMath.row.classSpellAttack", { klass: row.label.replace(/ spell attack$/i, "") });
+  if (row.id.startsWith("ability-")) return messages.t((`builder.extra.ability.${row.id.slice("ability-".length)}`) as MessageKey);
+  if (row.id.startsWith("save-")) {
+    const ability = messages.t((`builder.extra.ability.${row.id.slice("save-".length)}`) as MessageKey);
+    return messages.t("builder.extra.buildMath.row.save", { ability });
+  }
+  if (row.id.startsWith("slots-")) return messages.t("builder.extra.buildMath.row.slots", { level: row.id.slice("slots-".length) });
+  return row.label;
+}
+export function changeLine(before: ReadonlyMap<string, string>, after: BuildMathSection[], messages?: BuildMathMessages): string | null {
   const changed: string[] = [];
   for (const row of after.flatMap((section) => section.rows)) {
     const was = before.get(row.id);
     if (was === undefined) {
-      changed.push(`${row.label} ${row.value}`);
+      changed.push(`${translatedRowLabel(row, messages)} ${row.value}`);
     } else if (was !== row.value) {
-      changed.push(`${row.label} ${row.value}, was ${was}`);
+      changed.push(`${translatedRowLabel(row, messages)} ${row.value}, was ${was}`);
     }
   }
   if (!changed.length) {
     return null;
   }
   const more = changed.length - 1;
-  return more ? `${changed[0]}. ${more} more ${more === 1 ? "number" : "numbers"} changed.` : `${changed[0]}.`;
+  if (!messages?.t) {
+    return more ? `${changed[0]}. ${more} more ${more === 1 ? "number" : "numbers"} changed.` : `${changed[0]}.`;
+  }
+  if (!more) return messages.t("builder.extra.buildMath.working.change.single", { first: changed[0] });
+  return messages.tp?.("builder.extra.buildMath.working.change.more", more, { first: changed[0] }) ?? `${changed[0]}. ${more} more numbers changed.`;
 }
 
 export function snapshotOf(sections: BuildMathSection[]): Map<string, string> {
@@ -425,10 +458,12 @@ type Timers = {
 // first table seen is the starting point and is not announced.
 export function createChangeAnnouncer({
   say,
+  messages,
   waitMs = 1200,
   timers = { setTimeout: (run, ms) => setTimeout(run, ms), clearTimeout: (handle) => clearTimeout(handle as ReturnType<typeof setTimeout>) },
 }: {
   say: (line: string) => void;
+  messages?: BuildMathMessages;
   waitMs?: number;
   timers?: Timers;
 }) {
@@ -437,7 +472,7 @@ export function createChangeAnnouncer({
   let pending: unknown = null;
   const flush = () => {
     pending = null;
-    const line = said ? changeLine(said, latest) : null;
+    const line = said ? changeLine(said, latest, messages) : null;
     said = snapshotOf(latest);
     if (line) {
       say(line);
