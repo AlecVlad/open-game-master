@@ -239,21 +239,21 @@ export function DmStoryboardPanel({
       {loadError ? <LoadFailed error={loadError} onRetry={() => void load()} /> : null}
       <div className="flex flex-wrap items-end gap-2">
         <div className="w-full sm:w-52">
-          <FieldLabel>Card</FieldLabel>
+          <FieldLabel>{t("campaign.storyboard.card")}</FieldLabel>
           <Select
             value={newKind}
             onChange={setNewKind}
             options={BEAT_KINDS.map((kind) => ({
               value: kind,
-              label: BEAT_LABELS[kind],
-              hint: BEAT_HINTS[kind],
+              label: beatLabel(t, kind),
+              hint: beatHint(t, kind),
               icon: { kind: "glyph" as const, key: KIND_GLYPH[kind] },
             }))}
-            label="Card"
+            label={t("campaign.storyboard.card")}
           />
         </div>
         <label className="flex min-w-[10rem] flex-1 flex-col">
-          <FieldLabel>In a few words</FieldLabel>
+          <FieldLabel>{t("campaign.storyboard.shortTitle")}</FieldLabel>
           <input
             value={newTitle}
             onChange={(event) => setNewTitle(event.target.value.slice(0, TITLE_MAX))}
@@ -272,10 +272,10 @@ export function DmStoryboardPanel({
           onClick={() => void add(newKind, newTitle)}
           className={ui.btnSecondary}
         >
-          <Plus className="size-4" /> Add
+          <Plus className="size-4" /> {t("campaign.storyboard.add")}
         </button>
       </div>
-      <p key={newKind} className="live-in text-[11px] leading-snug text-stone-400">{BEAT_HINTS[newKind]}</p>
+      <p key={newKind} className="live-in text-[11px] leading-snug text-stone-400">{beatHint(t, newKind)}</p>
       {error ? <PanelError className="text-[11px]">{error}</PanelError> : null}
       {note ? <p className="live-in text-[11px] text-emerald-400">{note}</p> : null}
     </>
@@ -321,7 +321,7 @@ export function DmStoryboardPanel({
             busy={busy}
             onAdd={(kind, title) => void add(kind, title)}
           />
-          {nodes.length ? <CompileCard summary={data.compiled.summary} /> : null}
+          {nodes.length ? <CompileCard summary={data.compiled.summary} compiled={data.compiled} /> : null}
           {data.shared ? (
             <SharedWorkshopCard
               workshopId={campaignId}
@@ -338,7 +338,7 @@ export function DmStoryboardPanel({
               close();
             }
           }}
-          title={open?.title || "Card"}
+          title={open?.title || t("campaign.storyboard.card")}
           className="lg:w-[min(92vw,40rem)]"
         >
           {open && edit ? (
@@ -359,27 +359,27 @@ export function DmStoryboardPanel({
   return (
     <div className="flex flex-col gap-4">
       <section className={cn(ui.card, "dm-card flex flex-col gap-2 p-3")}>
-        <SectionHead title="Add a card" glyph="system-storyboard" />
+        <SectionHead title={t("campaign.storyboard.addCard")} glyph="system-storyboard" />
         {addRow}
       </section>
 
       {data.suggestions.length ? (
         <div className={cn(ui.card, "dm-card reveal flex flex-col gap-1.5 p-3")}>
-          <SectionHead title="What this board is missing" glyph="quest-hidden" />
+          <SectionHead title={t("campaign.storyboard.suggestions.title")} glyph="quest-hidden" />
           <p className="text-[11px] text-stone-500">
-            Counted, not guessed. Nothing here asked a model what your story needs.
+            {t("campaign.storyboard.suggestions.description")}
           </p>
           {data.suggestions.map((suggestion) => (
             <div key={suggestion.id} className="flex flex-wrap items-center gap-2">
-              <span className="flex-1 text-[11px] text-stone-400">{suggestion.reason}</span>
+              <span className="flex-1 text-[11px] text-stone-400">{suggestionReason(t, suggestion)}</span>
               <button
                 type="button"
                 disabled={busy} aria-busy={busy}
-                onClick={() => void add(suggestion.kind, suggestion.title)}
+                onClick={() => void add(suggestion.kind, suggestionTitle(t, suggestion))}
                 className={cn(ui.btnSmall, "min-h-9 gap-1 px-2 py-1 text-[11px]")}
               >
                 <GameIcon icon={{ kind: "glyph", key: KIND_GLYPH[suggestion.kind] }} size="size-5" />
-                + {BEAT_LABELS[suggestion.kind]}
+                + {beatLabel(t, suggestion.kind)}
               </button>
             </div>
           ))}
@@ -388,7 +388,7 @@ export function DmStoryboardPanel({
 
       <div className="flex flex-col gap-1.5">
         {nodes.length === 0 ? (
-          <EmptyState size="sm" art="board" title="Nothing on the board. Start with a reason the party would go somewhere." />
+          <EmptyState size="sm" art="board" title={t("campaign.storyboard.empty.title")} hint={t("campaign.storyboard.empty.hint")} />
         ) : null}
         {data.board.order.map((id) => {
           const node = nodes.find((entry) => entry.id === id);
@@ -416,12 +416,12 @@ export function DmStoryboardPanel({
                   className={cn(ui.btnSmall, quietRow, "flex-1 flex-wrap gap-x-2 gap-y-0")}
                 >
                   <span className="font-display text-[10px] tracking-[0.12em] text-amber-200/80">
-                    {BEAT_LABELS[node.kind]}
+                    {beatLabel(t, node.kind)}
                   </span>
                   <span className="text-sm text-stone-100">{node.title}</span>
                   {node.out.length ? (
                     <span className="basis-full text-[10px] text-stone-500">
-                      leads to{" "}
+                      {t("campaign.storyboard.leadsToPrefix")}{" "}
                       {node.out
                         .map((target) => {
                           const name = nameOf(target);
@@ -434,7 +434,7 @@ export function DmStoryboardPanel({
                   ) : null}
                   {data.broken?.[node.id]?.length ? (
                     <span className="basis-full text-[10px] text-amber-300/80">
-                      {data.broken[node.id].length} pick{data.broken[node.id].length === 1 ? " is" : "s are"} missing
+                      {tp("campaign.storyboard.missingPicks", data.broken[node.id].length)}
                     </span>
                   ) : null}
                 </button>
@@ -442,7 +442,7 @@ export function DmStoryboardPanel({
                   type="button"
                   onClick={() => void remove(node.id)}
                   className={cn(ui.iconAction, "hover:text-red-300")}
-                  aria-label={`Delete ${node.title}`}
+                  aria-label={t("campaign.storyboard.deleteCard", { title: node.title })}
                 >
                   <Trash2 className="size-3.5" />
                 </button>
@@ -460,7 +460,7 @@ export function DmStoryboardPanel({
 
       {nodes.length ? (
         <div className={cn(ui.card, "dm-card reveal flex flex-col gap-1 p-3")}>
-          <SectionHead title="What this becomes" glyph="system-lore" />
+          <SectionHead title={t("campaign.storyboard.compile.title")} glyph="system-lore" />
           <p className="text-[11px] leading-snug text-stone-400">
             {data.compiled.summary.lines.length
               ? `Imported into a campaign, this board becomes ${data.compiled.summary.lines.join(", ")}.`
