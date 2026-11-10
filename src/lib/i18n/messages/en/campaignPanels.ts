@@ -358,8 +358,7 @@ export const enCampaignPanels = {
   "campaign.dmAssist.encounter.threshold.medium": "{xp} medium",
   "campaign.dmAssist.encounter.threshold.hard": "{xp} hard",
   "campaign.dmAssist.encounter.threshold.deadly": "{xp} deadly",
-  "campaign.dmAssist.encounter.rawXp": "Raw XP is {xp
-  "campaign.dmHeldAsks.heading": "Waiting for a relationship answer",
+  "campaign.dmAssist.encounter.rawXp": "Raw XP is {xp  "campaign.dmHeldAsks.heading": "Waiting for a relationship answer",
   "campaign.dmHeldAsks.request": "Proposal from {character} to {subject}: “{stage}”. No answer has been given yet.",
   "campaign.dmHeldAsks.answer": "Answer for {name}",
   "campaign.dmHeldAsks.stage.interested": "mutual interest",
