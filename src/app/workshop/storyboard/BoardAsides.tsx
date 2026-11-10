@@ -109,7 +109,7 @@ export function SharedWorkshopCard({
   };
   onChanged: () => void;
 }) {
-  const { t } = useI18n();
+  const { t, tp } = useI18n();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -146,8 +146,7 @@ export function SharedWorkshopCard({
     >
       {shared.chapters.length ? (
         <p className="text-xs text-stone-400">
-          {t("campaign.storyboard.shared.chapterDraws", { count: shared.chapters.length })} on
-          {shared.chapters.map((chapter) => chapter.title).join(", ")}. {t("campaign.storyboard.shared.pickerExplanation")}
+          {tp("campaign.storyboard.shared.chapterDraws", shared.chapters.length)} on {shared.common?.title ?? t("campaign.storyboard.shared.thisWorkshop")}: {shared.chapters.map((chapter) => chapter.title).join(", ")}. {t("campaign.storyboard.shared.pickerExplanation")}
         </p>
       ) : (
         <>
@@ -191,7 +190,7 @@ export function CompileCard({ summary, compiled }: { summary: CompileSummary; co
       ? t("campaign.storyboard.compile.refusal.tooFew", { count: compiled.arcBeats.length, min: 2 })
       : t("campaign.storyboard.compile.refusal.existingArc");
   return (
-    <AsideCard title={t("campaign.storyboard.compile.title")}> icon={<GameIcon icon={{ kind: "glyph", key: "tab-campaigns" }} size="size-7" />} tour="storyboard-compile">
+    <AsideCard title={t("campaign.storyboard.compile.title")} icon={<GameIcon icon={{ kind: "glyph", key: "tab-campaigns" }} size="size-7" />} tour="storyboard-compile">
       <p className="text-xs text-stone-400">
         {lines.length
           ? t("campaign.storyboard.compile.description", { items: lines.join(", ") })
