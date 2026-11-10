@@ -62,6 +62,18 @@ export const ruAdminImages: Partial<Record<keyof typeof enAdminImages, string>> 
   "admin.images.catalog.show": "Показать",
   "admin.images.catalog.device": "{hardware}, видеопамять: {memory} ГБ",
   "admin.images.catalog.measured": "Портрет или существо: {portrait}, сцена: {landscape} · первое после смены модели: {first} · пик: {peak} ГБ · шагов: {steps}",
+  "admin.images.catalog.unfit.one.visible": "{count} модель не может хорошо рисовать на этой машине",
+  "admin.images.catalog.unfit.other.visible": "{count} моделей не могут хорошо рисовать на этой машине",
+  "admin.images.catalog.unfit.one.hidden": "{count} модель не может хорошо рисовать на этой машине и исключена из списка",
+  "admin.images.catalog.unfit.other.hidden": "{count} моделей не могут хорошо рисовать на этой машине и исключены из списка",
+  "admin.images.catalog.unfit.visible.one": "{count} модель не может хорошо рисовать на этой машине",
+  "admin.images.catalog.unfit.visible.few": "{count} модели не могут хорошо рисовать на этой машине",
+  "admin.images.catalog.unfit.visible.many": "{count} моделей не могут хорошо рисовать на этой машине",
+  "admin.images.catalog.unfit.visible.other": "{count} модели не могут хорошо рисовать на этой машине",
+  "admin.images.catalog.unfit.hidden.one": "{count} модель не может хорошо рисовать на этой машине и исключена из списка",
+  "admin.images.catalog.unfit.hidden.few": "{count} модели не могут хорошо рисовать на этой машине и исключены из списка",
+  "admin.images.catalog.unfit.hidden.many": "{count} моделей не могут хорошо рисовать на этой машине и исключены из списка",
+  "admin.images.catalog.unfit.hidden.other": "{count} модели не могут хорошо рисовать на этой машине и исключены из списка",
 };
 
 [executed on device: PZLD8SRKH9OMZNV (424c96e3-c9c5-4152-a4d9-25b4c5961356)]

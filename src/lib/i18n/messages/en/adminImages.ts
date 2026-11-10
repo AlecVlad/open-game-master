@@ -59,6 +59,14 @@ export const enAdminImages = {
   "admin.images.catalog.show": "Show them",
   "admin.images.catalog.device": "{hardware}, {memory} GB for the GPU",
   "admin.images.catalog.measured": "{portrait} for a portrait or creature, {landscape} for a scene · {first} for the first after a switch · peak {peak} GB · {steps} steps",
+  "admin.images.catalog.unfit.one.visible": "{count} model cannot paint well here",
+  "admin.images.catalog.unfit.other.visible": "{count} models cannot paint well here",
+  "admin.images.catalog.unfit.one.hidden": "{count} model cannot paint well here and is left off the list",
+  "admin.images.catalog.unfit.other.hidden": "{count} models cannot paint well here and are left off the list",
+  "admin.images.catalog.unfit.visible.one": "{count} model cannot paint well here",
+  "admin.images.catalog.unfit.visible.other": "{count} models cannot paint well here",
+  "admin.images.catalog.unfit.hidden.one": "{count} model cannot paint well here and is left off the list",
+  "admin.images.catalog.unfit.hidden.other": "{count} models cannot paint well here and are left off the list",
 } satisfies Record<string, string>;
 
 [executed on device: PZLD8SRKH9OMZNV (424c96e3-c9c5-4152-a4d9-25b4c5961356)]

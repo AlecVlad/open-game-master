@@ -110,7 +110,7 @@ export function ComfyModelCatalog({
   checkpoint: string;
   onPick: (patch: Partial<Images>) => void;
 }) {
-  const { t } = useI18n();
+  const { t, tp } = useI18n();
   const hardware = discovery.hardware?.label ?? null;
   // The models that cannot paint here (did not run, or want more GPU
   // memory than this one has) and the ones that painted poorly are kept
@@ -162,7 +162,7 @@ export function ComfyModelCatalog({
       </p>
       {unfit.length ? (
         <p className="mt-2 text-[11px] leading-4 text-stone-500">
-          {t(unfit.length === 1 ? "admin.images.catalog.unfit.one" : "admin.images.catalog.unfit.other", { count: unfit.length, status: t(showUnfit ? "admin.images.catalog.unfit.visible" : "admin.images.catalog.unfit.hidden") })}.{" "}
+          {tp(showUnfit ? "admin.images.catalog.unfit.visible" : "admin.images.catalog.unfit.hidden", unfit.length)}.{" "}
           <button type="button" className="underline hover:text-stone-300" onClick={() => setShowUnfit((on) => !on)}>
             {showUnfit ? t("admin.images.catalog.hide") : t("admin.images.catalog.show")}
           </button>

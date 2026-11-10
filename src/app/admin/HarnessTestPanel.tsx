@@ -45,6 +45,23 @@ export function HarnessTestPanel({
   const [testing, setTesting] = useState(false);
   const [stages, setStages] = useState<Stage[] | null>(null);
   const [error, setError] = useState("");
+  const localizeDetail = (detail?: string) => {
+    if (!detail) return detail;
+    if (detail === "No agent program is chosen yet.") return t("admin.harness.test.detail.noProgram");
+    if (detail === "The program did not answer.") return t("admin.harness.test.detail.noAnswer");
+    if (detail === "The program answered without calling ODM's tool, so it cannot run a table.") return t("admin.harness.test.detail.noTool");
+    if (detail === "The program stopped after the tool call.") return t("admin.harness.test.detail.stoppedAfterTool");
+    if (detail === "Its own tools are removed; only the table's tools are offered.") return t("admin.harness.test.detail.lockdownRemoved");
+    if (detail === "Its own tools are contained: read-only, an empty folder, every approval refused.") return t("admin.harness.test.detail.lockdownContained");
+    if (detail === "The reply arrived whole rather than streamed.") return t("admin.harness.test.detail.notStreamed");
+    const signIn = detail.match(/^Run `([^\`]+)` on this machine\.$/);
+    if (signIn) return t("admin.harness.test.detail.signIn", { command: signIn[1] });
+    const notFound = detail.match(/^(.+) was not found\.$/);
+    if (notFound) return t("admin.harness.test.detail.notFound", { program: notFound[1] });
+    const wrongReply = detail.match(/^It replied "([\s\S]*)" instead of the tool's answer\.$/);
+    if (wrongReply) return t("admin.harness.test.detail.wrongReply", { reply: wrongReply[1] });
+    return detail;
+  };
 
   async function test() {
     setTesting(true);
@@ -58,13 +75,13 @@ export function HarnessTestPanel({
       });
       const data = (await response.json().catch(() => ({}))) as { stages?: Stage[]; error?: string };
       if (!response.ok || !data.stages) {
-        setError(data.error ?? "The test could not run.");
+        setError(data.error ?? t("admin.harness.test.error.couldNotRun"));
         setStages(null);
         return;
       }
       setStages(data.stages);
     } catch {
-      setError("Could not reach the server.");
+      setError(t("admin.harness.test.error.reach"));
       setStages(null);
     } finally {
       setTesting(false);
@@ -121,7 +138,7 @@ export function HarnessTestPanel({
                     {t(STAGE_LABELS[stage.id] ?? "admin.harness.test.unknown")}
                   </span>
                   {stage.detail ? (
-                    <span className="block text-xs text-stone-500">{stage.detail}</span>
+                    <span className="block text-xs text-stone-500">{localizeDetail(stage.detail)}</span>
                   ) : null}
                 </span>
               </li>
@@ -135,7 +152,7 @@ export function HarnessTestPanel({
         </p>
       ) : failed && !testing ? (
         <p role="alert" className="motion-shake text-sm text-red-400">
-          {failed.detail ?? t("admin.harness.test.stopped")}
+          {localizeDetail(failed.detail) ?? t("admin.harness.test.stopped")}
         </p>
       ) : null}
       {error ? (
