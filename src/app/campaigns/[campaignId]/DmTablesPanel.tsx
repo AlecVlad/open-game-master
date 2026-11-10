@@ -82,7 +82,7 @@ export function DmTablesPanel({
         }
         settle(outcome);
       }),
-    [campaignId, settle],
+    [campaignId, settle, t],
   );
 
   // Refetches on mount and after every edit, the same shape as BondsPanel.
