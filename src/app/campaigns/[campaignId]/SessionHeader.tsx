@@ -14,6 +14,7 @@ import { ui } from "@/lib/ui";
 import { headerButtonClass } from "@/app/campaigns/[campaignId]/headerButton";
 import { VoiceDock } from "@/app/campaigns/[campaignId]/VoiceDock";
 import { useCapabilities } from "@/lib/use-capabilities";
+import { useI18n } from "@/lib/i18n/provider";
 import { RulebookDialog } from "@/components/rulebook/RulebookDialog";
 import type { NarrationAudio } from "@/app/campaigns/[campaignId]/useNarrationAudio";
 import type { AmbienceAudio } from "@/app/campaigns/[campaignId]/useAmbienceAudio";
@@ -32,6 +33,7 @@ function HeaderAudioControl({
   offLabel,
   enableLabel,
   volumeLabel,
+  waitingLabel,
   unlocked,
   muted,
   volume,
@@ -44,6 +46,7 @@ function HeaderAudioControl({
   offLabel: string;
   enableLabel: string;
   volumeLabel: string;
+  waitingLabel: string;
   unlocked: boolean;
   muted: boolean;
   volume: number;
@@ -60,7 +63,7 @@ function HeaderAudioControl({
 }) {
   const quiet = muted || !unlocked;
   const waiting = !muted && held > 0;
-  const toggleLabel = waiting ? `${enableLabel} (${held} waiting)` : !unlocked ? enableLabel : muted ? offLabel : onLabel;
+  const toggleLabel = waiting ? `${enableLabel} (${waitingLabel})` : !unlocked ? enableLabel : muted ? offLabel : onLabel;
   const buttonClass = headerButtonClass(!quiet);
   const enablingRef = useRef(false);
   const notePress = () => {
@@ -199,7 +202,8 @@ export const SessionHeader = memo(function SessionHeader({
   // 553), which no campaign list shows: its way out is its workshop.
   exit?: HeaderExit;
 }) {
-  const out = exit ?? ALL_CAMPAIGNS;
+  const { t } = useI18n();
+  const out = exit ?? { ...ALL_CAMPAIGNS, label: t("campaign.sessionHeader.allCampaigns") };
   // Narration switched off server-wide: no passage is read aloud, so the
   // narration volume would steer nothing (issue 275; the lobby's own row
   // reads Off for the same reason).
@@ -222,7 +226,7 @@ export const SessionHeader = memo(function SessionHeader({
       <div className="min-w-0 flex-1">
         <h1 className="gold-title session-title font-display">{title}</h1>
         <p key={scene} className="live-in truncate font-serif text-xs italic text-stone-400">
-          {scene || "The adventure unfolds"}
+          {scene || t("campaign.sessionHeader.sceneDefault")}
         </p>
       </div>
       {ribbon ? <div className="cine-ribbon-slot hidden lg:flex">{ribbon}</div> : null}
@@ -235,11 +239,11 @@ export const SessionHeader = memo(function SessionHeader({
             the 3D animation switch, the player's own dice, and shake to
             roll on a phone. */}
         <DropdownMenu.Root>
-          <Tooltip content="Dice" side="bottom">
+          <Tooltip content={t("campaign.sessionHeader.dice")} side="bottom">
             <DropdownMenu.Trigger asChild>
               <button
                 type="button"
-                aria-label="Dice"
+                aria-label={t("campaign.sessionHeader.dice")}
                 data-tour="header-dice"
                 className={headerButtonClass(dice3d)}
               >
@@ -252,8 +256,8 @@ export const SessionHeader = memo(function SessionHeader({
               <DropdownMenu.Item className={diceItem} onSelect={onRollDice}>
                 <GameIcon icon={{ kind: "glyph", key: "die-d20" }} size="size-6" />
                 <span>
-                  Roll dice
-                  <span className="session-menu-hint">For the table, or in secret</span>
+                  {t("campaign.sessionHeader.rollDice")}
+                  <span className="session-menu-hint">{t("campaign.sessionHeader.rollDiceHint")}</span>
                 </span>
               </DropdownMenu.Item>
               <DropdownMenu.Separator className="my-1 h-px bg-stone-700/60" />
@@ -267,7 +271,7 @@ export const SessionHeader = memo(function SessionHeader({
                     <Check className="size-3.5 text-amber-300" />
                   </DropdownMenu.ItemIndicator>
                 </span>
-                3D dice animation
+                {t("campaign.sessionHeader.dice3dAnimation")}
               </DropdownMenu.CheckboxItem>
               {shake.supported ? (
                 <DropdownMenu.CheckboxItem
@@ -280,23 +284,24 @@ export const SessionHeader = memo(function SessionHeader({
                       <Check className="size-3.5 text-amber-300" />
                     </DropdownMenu.ItemIndicator>
                   </span>
-                  Shake to roll
+                  {t("campaign.sessionHeader.shakeToRoll")}
                 </DropdownMenu.CheckboxItem>
               ) : null}
               <DropdownMenu.Separator className="my-1 h-px bg-stone-700/60" />
               <DropdownMenu.Item className={diceItem} onSelect={onCustomizeDice}>
                 <GameIcon icon={{ kind: "glyph", key: "die-d20" }} size="size-6" />
-                Customise my dice
+                {t("campaign.sessionHeader.customizeDice")}
               </DropdownMenu.Item>
             </DropdownMenu.Content>
           </DropdownMenu.Portal>
         </DropdownMenu.Root>
         {narrates ? (
           <HeaderAudioControl
-            onLabel="Mute narration"
-            offLabel="Unmute narration"
-            enableLabel="Enable narration audio"
-            volumeLabel="Narration volume"
+            onLabel={t("campaign.sessionHeader.narrationMute")}
+            offLabel={t("campaign.sessionHeader.narrationUnmute")}
+            enableLabel={t("campaign.sessionHeader.narrationEnable")}
+            volumeLabel={t("campaign.sessionHeader.narrationVolume")}
+            waitingLabel={t("campaign.sessionHeader.narrationWaiting", { count: narration.held })}
             unlocked={narration.unlocked}
             muted={narration.muted}
             volume={narration.volume}
@@ -320,11 +325,11 @@ export const SessionHeader = memo(function SessionHeader({
           </div>
         ) : null}
         {stage ? (
-          <Tooltip content={stage.on ? "Show the story here, with the board in its tab" : "Show the board here, with the story beside it"} side="bottom">
+          <Tooltip content={stage.on ? t("campaign.sessionHeader.stageStoryTooltip") : t("campaign.sessionHeader.stageBoardTooltip")} side="bottom">
             <button
               type="button"
               onClick={stage.onToggle}
-              aria-label={stage.on ? "Show the story" : "Show the board"}
+              aria-label={stage.on ? t("campaign.sessionHeader.stageShowStory") : t("campaign.sessionHeader.stageShowBoard")}
               aria-pressed={stage.on}
               data-tour="header-stage"
               className={headerButtonClass(stage.on)}
@@ -343,11 +348,11 @@ export const SessionHeader = memo(function SessionHeader({
           <RulebookButton />
         </div>
         <div className="hidden sm:flex">
-          <Tooltip content="How everything works, the guided tours and Report a problem" side="bottom">
+          <Tooltip content={t("campaign.sessionHeader.helpTooltip")} side="bottom">
             <button
               type="button"
               onClick={onHelp}
-              aria-label="Help"
+              aria-label={t("campaign.sessionHeader.help")}
               data-tour="header-help"
               className={headerButtonClass(false)}
             >
@@ -395,13 +400,14 @@ const ALL_CAMPAIGNS: HeaderExit = { href: "/", label: "All campaigns", glyph: "t
 // Campaign prep, or the way back from it. Beside All campaigns from sm up,
 // because both are places to go; a phone has it in its table menu.
 function PrepButton({ control }: { control: PrepControl }) {
-  const label = control.open ? "Back to the table" : "Campaign prep";
+  const { t } = useI18n();
+  const label = control.open ? t("campaign.sessionHeader.backToTable") : t("campaign.sessionHeader.campaignPrep");
   return (
     <Tooltip
       content={
         control.open
-          ? "Back to the table, as you left it"
-          : "The party, rules, lore and Bring in prep, without ending play. The table waits as it is."
+          ? t("campaign.sessionHeader.prepBackTooltip")
+          : t("campaign.sessionHeader.prepOpenTooltip")
       }
       side="bottom"
     >
@@ -426,13 +432,14 @@ function PrepButton({ control }: { control: PrepControl }) {
 // next one is readied; a phone has it in its table menu. Lit between
 // sessions, when starting is the thing to do.
 function SessionButton({ control }: { control: SessionControl }) {
-  const label = control.held ? `Start session ${control.next}` : "End the session";
+  const { t } = useI18n();
+  const label = control.held ? t("campaign.sessionHeader.startSession", { next: control.next }) : t("campaign.sessionHeader.endSession");
   return (
     <Tooltip
       content={
         control.held
-          ? "Pick the story up where it stopped. Everyone at the table is back in play."
-          : "Stop for tonight: play waits where it stands until you start the next session. Nothing is lost."
+          ? t("campaign.sessionHeader.sessionStartTooltip")
+          : t("campaign.sessionHeader.sessionEndTooltip")
       }
       side="bottom"
     >
@@ -453,11 +460,12 @@ function SessionButton({ control }: { control: SessionControl }) {
 // Pause for a break, or, while one is on, Resume for those who may lift it.
 // Lit while the table is paused; for anyone else it only says so.
 function TableBreakButton({ control }: { control: TableBreakControl }) {
+  const { t } = useI18n();
   const label = !control.paused
-    ? "Pause the table for a break"
+    ? t("campaign.sessionHeader.pauseTableForBreak")
     : control.mayResume
-      ? "Resume the table"
-      : "The table is paused";
+      ? t("campaign.sessionHeader.resumeTable")
+      : t("campaign.sessionHeader.tablePaused");
   return (
     <Tooltip content={label} side="bottom">
       <button
@@ -479,13 +487,14 @@ function TableBreakButton({ control }: { control: TableBreakControl }) {
 // leaving the session.
 function RulebookButton() {
   const [open, setOpen] = useState(false);
+  const { t } = useI18n();
   return (
     <>
-      <Tooltip content="The rulebook: every rule, spell and monster" side="bottom">
+      <Tooltip content={t("campaign.sessionHeader.rulebookTooltip")} side="bottom">
         <button
           type="button"
           onClick={() => setOpen(true)}
-          aria-label="Rulebook"
+          aria-label={t("campaign.sessionHeader.rulebook")}
           data-tour="header-rulebook"
           className={headerButtonClass(open)}
         >
