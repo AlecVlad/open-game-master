@@ -31,6 +31,11 @@ function blankEvent(): EventDraft {
 
 export function CalendarSection({ campaignId }: { campaignId: string }) {
   const { t } = useI18n();
+  const presetLabels: Record<string, string> = {
+    seasons: t("campaign.calendar.preset.seasons"),
+    generic: t("campaign.calendar.preset.generic"),
+    daycount: t("campaign.calendar.preset.daycount"),
+  };
   const repeatLabels: Record<EventDraft["repeat"], string> = {
     none: t("campaign.calendar.event.repeat.once"),
     monthly: t("campaign.calendar.event.repeat.monthly"),
@@ -83,7 +88,7 @@ export function CalendarSection({ campaignId }: { campaignId: string }) {
     return () => {
       cancelled = true;
     };
-  }, [campaignId, reload, reloads, settle]);
+  }, [campaignId, reload, reloads, settle, t]);
 
   async function applyPreset(preset: string) {
     setSaving(true);
@@ -157,7 +162,7 @@ export function CalendarSection({ campaignId }: { campaignId: string }) {
         <span className="eyebrow mr-1 text-[10px] text-amber-400/80">{t("campaign.calendar.preset.label")}</span>
         {presets.map((preset) => (
           <button key={preset.id} type="button" disabled={saving} aria-busy={saving} data-on={clock.calendar.id === preset.id ? "" : undefined} aria-pressed={clock.calendar.id === preset.id} onClick={() => void applyPreset(preset.id)} className="pk-pill pk-tap motion-press">
-            {preset.name}
+            {presetLabels[preset.id] ?? preset.name}
           </button>
         ))}
       </div>
