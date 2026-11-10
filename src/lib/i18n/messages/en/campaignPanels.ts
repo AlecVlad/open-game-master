@@ -2357,4 +2357,8 @@ export const enCampaignPanels = {
   "campaign.market.detailsMeta": "{price} here, {qty} on the shelf",
   "campaign.market.askSellerPrompt": "I offer my {item} to the keeper of {shop} and ask what they would pay.",
   "campaign.market.tradeUnreachable": "The server could not be reached. The shelf is being reloaded; check it before trying again.",
+
+  "campaign.dmDelegation.monsters.other": "{count} monsters acted. See the log.",
+  "campaign.dmDelegation.cover.answers.other": "{count} answers",
+  "campaign.dmDelegation.cover.active.other": "The GM stepped away; the AI will answer {count} more times.",
 } satisfies Record<string, string>;
