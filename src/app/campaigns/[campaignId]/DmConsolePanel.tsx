@@ -34,6 +34,7 @@ import type { CharacterSheet } from "@/lib/schemas/sheet";
 import { useRomanceBonds } from "@/app/campaigns/[campaignId]/CompanionBondLine";
 import { HeldAsks, heldAsksOf, type HeldAsk } from "@/app/campaigns/[campaignId]/HeldAsks";
 import { useI18n } from "@/lib/i18n/provider";
+import { localizeCatalogEntry } from "@/lib/dm/catalog-ui";
 
 // The DM's console: the queue of what the players have done and not yet been
 // answered on, and every adjudication the rules engine can perform.
@@ -225,6 +226,13 @@ export function DmConsolePanel({
       }))
       .filter((group) => group.entries.length > 0);
   }, [capabilities]);
+  const displayGroups = useMemo(
+    () => groups.map((group) => ({
+      ...group,
+      entries: group.entries.map((entry) => localizeCatalogEntry(entry, t)),
+    })),
+    [groups, t],
+  );
   // The rail carries the catalog's own categories plus two that are not
   // adjudications at all: the assist tools, which apply nothing, and the DM's
   // tables and monster lookup, which are reference.
@@ -260,12 +268,12 @@ export function DmConsolePanel({
     hostOffers(capabilities, "resolveAsPlayed"),
   );
 
-  const active = groups.find((group) => group.category === category) ?? null;
+  const active = displayGroups.find((group) => group.category === category) ?? null;
   // Steps asked in a fight, owed their answer once it is over.
   const bonds = useRomanceBonds(campaignId, bondsKey, !encounter);
   const held = encounter ? [] : heldAsksOf(bonds);
   const [answering, setAnswering] = useState<HeldAsk | null>(null);
-  const romanceEntry = groups.flatMap((group) => group.entries).find((entry) => entry.name === "romance_advance") ?? null;
+  const romanceEntry = displayGroups.flatMap((group) => group.entries).find((entry) => entry.name === "romance_advance") ?? null;
   const waiting = queue.length + held.length;
 
   const tabs: Array<readonly [ConsoleTab, string]> = [
@@ -301,7 +309,7 @@ export function DmConsolePanel({
     ["dm-queue", t("campaign.dmConsole.section.queue.title"), waiting ? t("campaign.dmConsole.section.queue.hint.count", { count: waiting }) : t("campaign.dmConsole.section.queue.hint.empty"), "tab-log"],
   ];
   const commands: PaletteCommand[] = [
-    ...groups.flatMap((group) =>
+    ...displayGroups.flatMap((group) =>
       group.entries.map((entry) => ({
         id: `do-${entry.name}`,
         label: entry.label,
