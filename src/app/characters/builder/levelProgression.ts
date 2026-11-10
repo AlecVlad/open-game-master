@@ -20,6 +20,8 @@ import { classFeaturesFor, subclassLevelFor } from "@/lib/srd/features";
 import { ABILITY_NAMES } from "@/lib/srd/legality/types";
 import { spellbookAllowance, spellStyleFor } from "@/lib/srd/spell-prep";
 import type { ThirdCasterSetting } from "@/lib/srd/third-caster";
+import type { Params } from "@/lib/i18n/core";
+import type { MessageKey } from "@/lib/i18n/messages/index";
 
 export type ProgressionInput = {
   classId: string;

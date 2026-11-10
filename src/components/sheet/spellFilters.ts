@@ -40,7 +40,10 @@ export const CASTING_TIME_LABELS: Record<CastingTimeKind, string> = {
 // A school key as a player reads it: "evocation" is "Evocation". Written
 // here rather than left to CSS, which a native list and a screen reader
 // never see.
-export function schoolLabel(school: string): string {
+export function schoolLabel(school: string, translate?: SpellFilterTranslator): string {
+  if (translate) {
+    return translate(("builder.spells.filter.school." + school.toLowerCase()) as MessageKey);
+  }
   return school.replace(/(^|\s)(\p{L})/gu, (_, gap: string, letter: string) => gap + letter.toUpperCase());
 }
 
@@ -50,6 +53,18 @@ const CASTING_TIME_WORDS: Record<CastingTimeKind, string> = {
   reaction: "a reaction",
   longer: "a minute or longer",
 };
+
+function castingTimeLabel(kind: CastingTimeKind, translate?: SpellFilterTranslator): string {
+  return translate
+    ? translate(("builder.spells.filter.time." + kind) as MessageKey)
+    : CASTING_TIME_LABELS[kind];
+}
+
+function castingTimeWord(kind: CastingTimeKind, translate?: SpellFilterTranslator): string {
+  return translate
+    ? translate(("builder.spells.filter.time." + kind) as MessageKey)
+    : CASTING_TIME_WORDS[kind];
+}
 
 const kindOf =(time: CastingTime): CastingTimeKind => (typeof time === "number" ? "longer" : time);
 

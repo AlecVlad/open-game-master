@@ -950,6 +950,7 @@ function SwapPrompt({
   onSwap: (out: string) => void;
   onCancel: () => void;
 }) {
+  const { t } = useI18n();
   return (
     <div
       role="group"

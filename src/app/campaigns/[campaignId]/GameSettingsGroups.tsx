@@ -3,6 +3,8 @@
 import { STAGES, isStageEnabled } from "@/lib/dm/stages";
 import { DELEGATIONS, DELEGATION_HINTS, DELEGATION_LABELS } from "@/lib/dm/delegation";
 import { Select } from "@/components/ui/Select";
+import { useI18n } from "@/lib/i18n/provider";
+import { formatFeet, formatMeasurementText } from "@/lib/measurement-system";
 import { Tooltip } from "@/components/ui/Tooltip";
 import { InfoButton } from "@/components/ui/InfoDialog";
 import { SettingToggle, panelField } from "./PanelKit";
@@ -33,6 +35,7 @@ import {
   type ConscienceSetting,
   type DicePolicy,
   type Genre,
+  type MeasurementSystem,
   type TableLanguage,
 } from "@/lib/schemas/game-settings-options";
 import { alliesShown, conscienceShown } from "@/app/campaigns/[campaignId]/table-settings-groups";
@@ -72,6 +75,7 @@ export function WorldGroup({
   preset,
 }: Base & { packs: WorldPackSummary[]; selectedPack: WorldPackSummary | null; preset: GenrePreset }) {
   const aiNarrates = settings.dmMode !== "human";
+  const { t } = useI18n();
   return (
     <>
       {packs.length ? (
@@ -152,6 +156,21 @@ export function WorldGroup({
           className={selectClass}
         />
         <span className="text-stone-500">{TABLE_LANGUAGE_HELP}</span>
+      </div>
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="pk-rowlabel">{t("measurement.system.label")}</span>
+        <Select<MeasurementSystem>
+          size="sm"
+          label={t("measurement.system.label")}
+          value={settings.measurementSystem}
+          onChange={(measurementSystem) => patch({ measurementSystem })}
+          options={[
+            { value: "si", label: t("measurement.system.si") },
+            { value: "imperial", label: t("measurement.system.imperial") },
+          ]}
+          className={selectClass}
+        />
+        <span className="text-stone-500">{t("measurement.system.hint")}</span>
       </div>
       {aiNarrates ? (
         <div className="reveal flex flex-wrap items-center gap-2">
@@ -772,11 +791,11 @@ export function VoiceChatGroup({ settings, patch, transcribes }: Base & { transc
                     label="How far a normal speaking voice carries"
                     value={String(rules.hearingRangeFeet)}
                     onChange={(value) => setRule({ hearingRangeFeet: Number(value) })}
-                    options={[15, 30, 60, 120].map((feet) => ({ value: String(feet), label: `${feet} ft` }))}
+                    options={[15, 30, 60, 120].map((feet) => ({ value: String(feet), label: formatFeet(feet, settings.measurementSystem, settings.tableLanguage) }))}
                     className={selectClass}
                   />
                 </span>
-                <Tooltip content="Lets each player pick whisper (5 ft), normal, or shout (120 ft). The range is the speaker's, because shouting is something you do rather than something done to you.">
+                <Tooltip content={formatMeasurementText("Lets each player pick whisper (5 ft), normal, or shout (120 ft). The range is the speaker's, because shouting is something you do rather than something done to you.", settings.measurementSystem, settings.tableLanguage)}>
                   <SettingToggle on={rules.sayRange} onToggle={() => setRule({ sayRange: !rules.sayRange })}>
                     Whisper/shout {rules.sayRange ? "on" : "off"}
                   </SettingToggle>

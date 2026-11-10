@@ -9,6 +9,7 @@ import type {
   GameSettings,
   Genre,
   TableLanguage,
+  MeasurementSystem,
 } from "@/lib/schemas/game-settings";
 
 // Everything the new-campaign wizard collects, as one object. The wizard is
@@ -28,6 +29,7 @@ export type CampaignDraft = {
   genre: Genre;
   customGenreText: string;
   tableLanguage: TableLanguage;
+  measurementSystem: MeasurementSystem;
   worldPack: string;
   // A theme or premise the person typed is never clobbered by a later pack
   // choice; one the pack filled in is fair game to replace.
@@ -99,6 +101,7 @@ export const DEFAULT_DRAFT: CampaignDraft = {
   genre: "high_fantasy",
   customGenreText: "",
   tableLanguage: "english",
+  measurementSystem: "si",
   worldPack: "",
   themeTouched: false,
   descriptionTouched: false,

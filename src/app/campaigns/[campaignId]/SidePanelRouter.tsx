@@ -481,6 +481,8 @@ export function SidePanelRouter({
                 encounter={encounter ?? null}
                 campaignId={campaignId}
                 worldPack={campaign?.gameSettings?.worldPack ?? ""}
+                measurementSystem={campaign?.gameSettings?.measurementSystem ?? "si"}
+                tableLanguage={campaign?.gameSettings?.tableLanguage ?? "english"}
                 lights={Object.fromEntries((battleMap?.tokens ?? []).filter((token) => token.kind === "pc" && token.light).map((token) => [token.refId, token.light!]))}
                 activeSheetId={activeSheetId}
                 multiCharacter={campaign?.gameSettings?.multiCharacter ?? "off"}
@@ -560,6 +562,8 @@ export function SidePanelRouter({
 
         intents={battleMap.intents}
         genre={campaign?.gameSettings?.genre ?? null}
+        measurementSystem={campaign?.gameSettings?.measurementSystem ?? "si"}
+        tableLanguage={campaign?.gameSettings?.tableLanguage ?? "english"}
         turnBudget={
           // The character being played, as the Hand reads it
           // (src/lib/battlemap/hand-table.ts): any owned sheet's turn put

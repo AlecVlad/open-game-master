@@ -115,6 +115,8 @@ export function SessionChatColumn({
         hidden={Boolean(stage) && !showTranscript}
         messages={messages}
         campaignId={campaignId}
+        measurementSystem={campaign?.gameSettings?.measurementSystem ?? "si"}
+        tableLanguage={campaign?.gameSettings?.tableLanguage ?? "english"}
         canRetryTurn={steersStory}
         canIllustrate={steersStory}
         rolls={rolls}

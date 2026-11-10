@@ -184,6 +184,7 @@ export const enSetup = {
   "setup.media.comfyUsual": "Nothing answered at ComfyUI's usual address. Start ComfyUI (default port 8188), or enter its address.",
   "setup.media.comfyAddress": "ComfyUI address",
   "setup.media.modelCheckpoint": "Model file (checkpoint)",
+  "setup.media.checkpointPlaceholder": "SDXL checkpoint in ComfyUI/models/checkpoints",
   "setup.media.checkingModels": "Checking installed models…",
   "setup.media.imageModel": "Image model",
   "setup.media.checkingAddress": "Checking models at this address…",

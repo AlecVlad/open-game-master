@@ -7,6 +7,7 @@ import {
   DM_MODES,
   GENRES,
   HP_METHODS,
+  MEASUREMENT_SYSTEMS,
   STARTING_WEALTH,
   TABLE_LANGUAGES,
 } from "@/lib/schemas/game-settings-options";
@@ -23,6 +24,7 @@ export {
   type DicePolicy,
   type DmModeSetting,
   type Genre,
+  type MeasurementSystem,
   type TableLanguage,
 } from "@/lib/schemas/game-settings-options";
 
@@ -54,6 +56,8 @@ export const gameSettingsSchema = z.object({
   customGenreText: z.string().trim().max(500).default(""),
   // The language the table plays in (game-settings-options.ts).
   tableLanguage: z.enum(TABLE_LANGUAGES).default("english"),
+  // How physical quantities are shown to players; rules remain canonical.
+  measurementSystem: z.enum(MEASUREMENT_SYSTEMS).default("si"),
   // Selected pre-configured world (src/lib/worlds/packs), or "" for a plain
   // genre. Choosing a pack ALSO writes its baseGenre into `genre` above, so
   // every existing genre consumer keeps working and a pack that is later

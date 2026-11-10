@@ -13,6 +13,7 @@ import { useGoneCompanions } from "@/app/campaigns/[campaignId]/useGoneCompanion
 import { MessageItem } from "@/app/campaigns/[campaignId]/MessageItem";
 import { Prose } from "@/app/campaigns/[campaignId]/Prose";
 import { DM_STATUS_PHRASES } from "@/app/campaigns/[campaignId]/dmStatusPhrases";
+import type { MeasurementSystem } from "@/lib/measurement-system";
 import { useDmDraft, useDmDraftSeq } from "@/app/campaigns/[campaignId]/liveStore";
 import { isNarration, voicedByServer } from "@/lib/dm/ooc-question";
 import type {
@@ -64,10 +65,14 @@ const DmDraftBubble = memo(function DmDraftBubble({
   dmStatus,
   statusPhrase,
   follow,
+  measurementSystem,
+  tableLanguage,
 }: {
   dmStatus: DmStatus;
   statusPhrase: string;
   follow: (behavior: ScrollBehavior) => void;
+  measurementSystem: MeasurementSystem;
+  tableLanguage: string;
 }) {
   const dmDraft = useDmDraft();
   useEffect(() => {
@@ -79,7 +84,7 @@ const DmDraftBubble = memo(function DmDraftBubble({
       <div className="session-dm animate-fade-up">
         <SectionHead title="Game Master" glyph="tab-dm" level="h4" />
         <p className="session-dm-body whitespace-pre-wrap text-pretty font-serif text-base leading-relaxed text-stone-100">
-          <Prose text={dmDraft} />
+          <Prose text={dmDraft} measurementSystem={measurementSystem} tableLanguage={tableLanguage} />
           <span className="stream-caret" aria-hidden="true" />
         </p>
       </div>
@@ -107,6 +112,8 @@ export function MessageList({
   members = [],
   locations = [],
   dmStatus,
+  measurementSystem = "imperial",
+  tableLanguage = "english",
   mediaStatus = {},
   narrationStatus = NO_NARRATION_STATUS,
   onReplayAudio,
@@ -152,6 +159,8 @@ export function MessageList({
   // Names and faces of the cast, for speech lines.
   cast?: CastMember[];
   dmStatus: DmStatus;
+  measurementSystem?: MeasurementSystem;
+  tableLanguage?: string;
   mediaStatus?: Record<string, MediaStatus>;
   // Only failures are read here; a muted seat is handed none.
   narrationStatus?: Record<string, NarrationStatus>;
@@ -362,7 +371,7 @@ export function MessageList({
   const draftSeq = useDmDraftSeq();
   const draftAt = draftSeq === null ? -1 : messages.findIndex((message) => message.seq > draftSeq);
   const draftBubble = (
-    <DmDraftBubble key="dm-draft" dmStatus={dmStatus} statusPhrase={statusPhrase} follow={follow} />
+    <DmDraftBubble key="dm-draft" dmStatus={dmStatus} statusPhrase={statusPhrase} follow={follow} measurementSystem={measurementSystem} tableLanguage={tableLanguage} />
   );
 
   // Only the reader scrolling up leaves the end. A pane that shrinks also
@@ -400,6 +409,8 @@ export function MessageList({
           onDispute={stableDispute}
           message={message}
           campaignId={campaignId}
+          measurementSystem={measurementSystem}
+          tableLanguage={tableLanguage}
           canRetryTurn={canRetryTurn}
           canIllustrate={canIllustrate}
           rollsById={rollsById}

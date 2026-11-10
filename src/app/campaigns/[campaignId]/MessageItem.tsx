@@ -19,6 +19,7 @@ import { ContextMenu } from "@/components/ui/ContextMenu";
 import { ImageLightbox } from "@/components/ui/ImageLightbox";
 import { SectionHead } from "@/components/ui/SectionHead";
 import { cn } from "@/lib/cn";
+import type { MeasurementSystem } from "@/lib/measurement-system";
 import { encodeImageForUpload } from "@/lib/image-encode";
 import { ui } from "@/lib/ui";
 import { haltedTurnPrefix, type CampaignMember } from "@/lib/campaign-types";
@@ -64,6 +65,8 @@ function isMouseContextMenu(event: ReactMouseEvent): boolean {
 export const MessageItem = memo(function MessageItem({
   message,
   campaignId,
+  measurementSystem = "imperial",
+  tableLanguage = "english",
   canRetryTurn,
   canIllustrate,
   rollsById,
@@ -90,6 +93,8 @@ export const MessageItem = memo(function MessageItem({
 }: {
   message: CampaignMessage;
   campaignId: string;
+  measurementSystem?: MeasurementSystem;
+  tableLanguage?: string;
   cast: CastMember[];
   canRetryTurn: boolean;
   // This row is the viewer's own message: nothing to report.
@@ -472,7 +477,7 @@ export const MessageItem = memo(function MessageItem({
               }}
             />
           ) : (
-            <DmContent content={message.content} rollsById={rollsById} sheetsById={sheetsById} cast={cast} lines={message.speech} speaker={message.speaker} />
+            <DmContent content={message.content} rollsById={rollsById} sheetsById={sheetsById} cast={cast} lines={message.speech} speaker={message.speaker} measurementSystem={measurementSystem} tableLanguage={tableLanguage} />
           )}
           {message.generatedImage ? (
             <ImageLightbox

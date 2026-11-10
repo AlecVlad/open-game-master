@@ -159,6 +159,7 @@ export async function newContext(browser, viewport, { app, toursSeen = true }) {
   const size = VIEWPORTS[viewport];
   const context = await browser.newContext({
     viewport: { width: size.width, height: size.height },
+    locale: process.env.ODM_BROWSER_LOCALE || "en-US",
     colorScheme: "dark",
     hasTouch: size.touch,
     isMobile: size.touch && app,

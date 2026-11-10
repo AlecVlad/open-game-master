@@ -6,6 +6,7 @@ import { registerOutput, releaseOutput } from "@/lib/audio-devices";
 import { CHECKPOINT_PRESET, comfyModel } from "@/lib/image-models/catalog";
 import { honoursNegative } from "@/lib/image-models/workflow";
 import { ui } from "@/lib/ui";
+import { useT } from "@/lib/i18n/provider";
 import { Select } from "@/components/ui/Select";
 import { comfyModelOptions, comfyModelPatch, fetchComfyModels } from "@/app/admin/AdminImagesSection";
 import { BuiltinSpeechCard } from "@/app/admin/BuiltinSpeechCard";
@@ -45,25 +46,27 @@ export async function loadSetupComfyModels(
   url: string,
   scanned: ScanResult["comfyui"],
   signal: AbortSignal,
+  fallbackError: string,
 ): Promise<SetupComfyModels | null> {
   const address = url.trim();
   if (!address) return null;
   if (scanned && sameComfyAddress(address, scanned.url)) return { ...scanned, url: address, error: null };
-  const found = await fetchComfyModels(address, signal);
+  const found = await fetchComfyModels(address, signal, fallbackError);
   return { url: address, checkpoints: found.checkpoints, models: found.models, hardware: found.hardware, error: found.error };
 }
 
 // The best model measured on this hardware, when this ComfyUI lacks it and
 // has none as good: worth a line in the wizard.
-export function betterModelHint(comfy: SetupComfyModels | null): string {
+export function betterModelHint(comfy: SetupComfyModels | null, t: ReturnType<typeof useT>): string {
   if (!comfy?.hardware || comfy.error) return "";
   const recommended = comfy.models.filter((model) => model.verified?.verdict === "recommended");
   if (!recommended.length || recommended.some((model) => !model.missing.length)) return "";
   const best = recommended[0];
-  return `Measured best on ${comfy.hardware.label}: ${comfyModel(best.id)?.label ?? best.id}, about ${Math.round(best.verified!.seconds.square)} s a picture. This ComfyUI lacks its files (${best.downloadGb} GB); Admin > Images lists them.`;
+  return t("setup.media.betterModelHint", { hardware: comfy.hardware.label, model: comfyModel(best.id)?.label ?? best.id, seconds: Math.round(best.verified!.seconds.square), size: best.downloadGb });
 }
 
 function KeyField({ label, value, onChange, saved, hint }: { label: string; value: string; onChange: (value: string) => void; saved: boolean; hint: string }) {
+  const t = useT();
   return (
     <label className="reveal block">
       <span className="mb-1 block text-xs font-medium text-stone-400">{label}</span>
@@ -72,7 +75,7 @@ function KeyField({ label, value, onChange, saved, hint }: { label: string; valu
         className={ui.input}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        placeholder={saved ? "•••••••• (saved, leave blank to keep it)" : "sk-..."}
+        placeholder={saved ? t("setup.media.keyFieldPlaceholder") : "sk-..."}
         autoComplete="off"
       />
       <span className="mt-1 block text-[11px] text-stone-500">{hint}</span>
@@ -105,12 +108,13 @@ export function withNarration(current: Draft, narration: Draft["narration"], kok
 // "Look again" for a step whose services the scan looks for: start one, then
 // press it, and the card lights up without leaving the wizard.
 function ScanAgain({ scanning, onRescan, what }: { scanning: boolean; onRescan?: () => void; what: string }) {
+  const t = useT();
   if (!onRescan) return null;
   return (
     <div className="flex items-center justify-between gap-2">
-      <span className="text-xs text-stone-500">{scanning ? `Looking for ${what} on this computer…` : `Started ${what} just now?`}</span>
+      <span className="text-xs text-stone-500">{scanning ? t("setup.media.scanLook", { service: what }) : t("setup.media.scanStarted", { service: what })}</span>
       <button type="button" className={ui.btnSmall} onClick={onRescan} disabled={scanning} aria-busy={scanning}>
-        <RefreshCw className={cn("size-3.5", scanning && "animate-spin")} /> Look again
+        <RefreshCw className={cn("size-3.5", scanning && "animate-spin")} /> {t("setup.media.lookAgain")}
       </button>
     </div>
   );
@@ -119,23 +123,23 @@ function ScanAgain({ scanning, onRescan, what }: { scanning: boolean; onRescan?:
 // The commands that start each local service, for an admin who has none
 // running yet. They match docs/media-setup.md.
 function ComfyStartHints() {
+  const t = useT();
   return (
     <details className="reveal rounded-lg border border-stone-800 bg-stone-950/40 px-3 py-2">
-      <summary className="cursor-pointer text-sm text-stone-300">How do I start ComfyUI?</summary>
+      <summary className="cursor-pointer text-sm text-stone-300">{t("setup.media.comfyStart")}</summary>
       <div className="mt-3 space-y-3 text-xs text-stone-400">
         <div>
-          <span className="mb-1 block">On Linux or a Mac, with Python 3 and Git installed (install the PyTorch build for your GPU first if the ComfyUI README says to):</span>
+          <span className="mb-1 block">{t("setup.media.comfyLinux")}</span>
           <CopyLine
             text="git clone https://github.com/comfyanonymous/ComfyUI && cd ComfyUI && python -m venv venv && . venv/bin/activate && pip install -r requirements.txt && python main.py --listen 127.0.0.1 --port 8188"
-            label="ComfyUI install command"
+            label={t("setup.media.comfyInstallCommand")}
           />
         </div>
-        <p>On Windows, the ComfyUI desktop installer or the portable build both work.</p>
+        <p>{t("setup.media.comfyWindows")}</p>
         <p>
-          Then give it a model: a checkpoint in ComfyUI/models/checkpoints, or one of the measured models Admin &gt; Image
-          generation lists with its download links. Press Look again once it is running.{" "}
+          {t("setup.media.comfyModelHelp")}{" "}
           <a href={MEDIA_GUIDE} target="_blank" rel="noreferrer" className="text-amber-200 underline">
-            The media guide, step by step
+            {t("setup.media.guideStep")}
           </a>
           .
         </p>
@@ -145,22 +149,23 @@ function ComfyStartHints() {
 }
 
 function KokoroStartHints() {
+  const t = useT();
   return (
     <details className="reveal rounded-lg border border-stone-800 bg-stone-950/40 px-3 py-2">
-      <summary className="cursor-pointer text-sm text-stone-300">How do I start Kokoro?</summary>
+      <summary className="cursor-pointer text-sm text-stone-300">{t("setup.media.kokoroStart")}</summary>
       <div className="mt-3 space-y-3 text-xs text-stone-400">
         <div>
-          <span className="mb-1 block">On the processor, with Docker:</span>
-          <CopyLine text="docker run -d --name kokoro --restart unless-stopped -p 8880:8880 ghcr.io/remsky/kokoro-fastapi-cpu:latest" label="Kokoro CPU command" />
+          <span className="mb-1 block">{t("setup.media.processor")}</span>
+          <CopyLine text="docker run -d --name kokoro --restart unless-stopped -p 8880:8880 ghcr.io/remsky/kokoro-fastapi-cpu:latest" label={t("setup.media.kokoroCpuCommand")} />
         </div>
         <div>
-          <span className="mb-1 block">On an NVIDIA graphics card, faster:</span>
-          <CopyLine text="docker run -d --name kokoro --restart unless-stopped --gpus all -p 8880:8880 ghcr.io/remsky/kokoro-fastapi-gpu:latest" label="Kokoro GPU command" />
+          <span className="mb-1 block">{t("setup.media.nvidia")}</span>
+          <CopyLine text="docker run -d --name kokoro --restart unless-stopped --gpus all -p 8880:8880 ghcr.io/remsky/kokoro-fastapi-gpu:latest" label={t("setup.media.kokoroGpuCommand")} />
         </div>
         <p>
-          It answers on port 8880 within a minute of starting. Press Look again and its voices appear.{" "}
+          {t("setup.media.kokoroReady")}{" "}
           <a href={MEDIA_GUIDE} target="_blank" rel="noreferrer" className="text-amber-200 underline">
-            More in the media guide
+            {t("setup.media.kokoroGuide")}
           </a>
           .
         </p>
@@ -205,6 +210,7 @@ export function PicturesStep({
   // checkpoint to pick, which holds Continue until one is picked.
   onComfyOffers?: (offers: boolean) => void;
 }) {
+  const t = useT();
   const scannedComfy = scan?.comfyui ?? null;
   const address = draft.comfy.url.trim();
   const scanMatches = Boolean(scannedComfy && sameComfyAddress(address, scannedComfy.url));
@@ -214,13 +220,13 @@ export function PicturesStep({
     if (draft.pictures !== "comfyui" || !address || scanMatches) return;
     const controller = new AbortController();
     const timer = window.setTimeout(() => {
-      void loadSetupComfyModels(address, scannedComfy, controller.signal)
+      void loadSetupComfyModels(address, scannedComfy, controller.signal, t("setup.media.comfyError"))
         .then((found) => {
           if (!controller.signal.aborted) setCheckedComfy(found);
         })
         .catch(() => {
           if (!controller.signal.aborted) {
-            setCheckedComfy({ url: address, checkpoints: [], models: [], hardware: null, error: "Could not check ComfyUI. Check its address." });
+            setCheckedComfy({ url: address, checkpoints: [], models: [], hardware: null, error: t("setup.media.comfyError") });
           }
         });
     }, 250);
@@ -228,7 +234,7 @@ export function PicturesStep({
       window.clearTimeout(timer);
       controller.abort();
     };
-  }, [address, draft.pictures, scannedComfy, scanMatches]);
+  }, [address, draft.pictures, scannedComfy, scanMatches, t]);
 
   const comfy = scanMatches && scannedComfy
     ? { ...scannedComfy, url: address, error: null }
@@ -251,29 +257,29 @@ export function PicturesStep({
     <div className="space-y-4">
       {suggestion ? (
         <SuggestionNote
-          reason={suggestion.reason}
+          reason={suggestion.pick === "agent" ? t("setup.media.suggestion.picture.agent", { agent: agentLabel }) : suggestion.pick === "openai" ? t("setup.media.suggestion.picture.openai") : suggestion.pick === "comfyui" ? t("setup.media.suggestion.picture.comfyui") : t("setup.media.suggestion.picture.none")}
           title={fillsStep(suggestion.pick) ? picksName[suggestion.pick] : undefined}
           taken={draft.pictures === suggestion.pick}
           onTake={() => pick(suggestion.pick)}
         />
       ) : null}
-      <ChoiceCards label="Pictures">
+      <ChoiceCards label={t("setup.media.picturesGroup")}>
         <ChoiceCard
           picked={draft.pictures === "comfyui"}
           onPick={() => pick("comfyui")}
           suggested={suggestion?.pick === "comfyui"}
           glyph="ui-paint"
-          title="ComfyUI on this computer"
-          sub="Portraits, scene art and battle maps, painted on your own GPU. Free to run."
-          badge={scanning || checkingComfy ? { text: "Looking…", tone: "off" } : comfy && !comfy.error ? { text: "Found", tone: "ready" } : { text: "Not found", tone: "off" }}
+          title={t("setup.media.comfyChoiceTitle")}
+          sub={t("setup.media.comfyChoiceSub")}
+          badge={scanning || checkingComfy ? { text: t("setup.media.looking"), tone: "off" } : comfy && !comfy.error ? { text: t("setup.media.comfyFound"), tone: "ready" } : { text: t("setup.media.notFound"), tone: "off" }}
         />
         <ChoiceCard
           picked={draft.pictures === "openai"}
           onPick={() => pick("openai")}
           suggested={suggestion?.pick === "openai"}
           glyph="tab-admin"
-          title="OpenAI's image model"
-          sub={storyIsOpenAi ? "On the key from the last step. Each picture is billed to it." : "Billed to an OpenAI key, per picture. No GPU needed."}
+          title={t("setup.media.openAiPictureTitle")}
+          sub={storyIsOpenAi ? t("setup.media.openAiPictureSubWithKey") : t("setup.media.openAiPictureSub")}
         />
         {agentPaints ? (
           <ChoiceCard
@@ -281,13 +287,13 @@ export function PicturesStep({
             onPick={() => pick("agent")}
             suggested={suggestion?.pick === "agent"}
             glyph="system-share"
-            title={`${agentLabel} paints`}
+            title={t("setup.media.agentPictureTitle", { agent: agentLabel })}
             sub={
               agentVerified
-                ? `${agentLabel}'s own image tool, on its own plan. It painted a test map here already.`
-                : `${agentLabel}'s own image tool, on its own plan. One test map first, painted the way a table asks for one.`
+                ? t("setup.media.agentPictureTested")
+                : t("setup.media.agentPictureTest", { agent: agentLabel })
             }
-            badge={agentVerified ? { text: "Tested", tone: "ready" } : null}
+            badge={agentVerified ? { text: t("setup.media.tested"), tone: "ready" } : null}
           />
         ) : null}
         <ChoiceCard
@@ -295,8 +301,8 @@ export function PicturesStep({
           onPick={() => pick("none")}
           suggested={suggestion?.pick === "none"}
           glyph="tab-handout"
-          title="No pictures for now"
-          sub="Painted placeholders stand in. A ComfyUI started later on this computer is picked up on its own."
+          title={t("setup.media.noPicturesTitle")}
+          sub={t("setup.media.noPicturesSub")}
         />
       </ChoiceCards>
 
@@ -307,26 +313,26 @@ export function PicturesStep({
         <div key="comfy" className="reveal-height space-y-3">
           {!address && !scanning ? (
             <p className="su-note">
-              Nothing answered at ComfyUI&apos;s usual address. Start ComfyUI (its default port is 8188), or type where it runs.{" "}
+              {t("setup.media.comfyNone")}{" "}
               <a href={MEDIA_GUIDE} target="_blank" rel="noreferrer" className="text-amber-200 underline">
-                Installing ComfyUI, step by step
+                {t("setup.media.comfyGuide")}
               </a>
               .
             </p>
           ) : null}
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="block">
-              <span className="mb-1 block text-xs font-medium text-stone-400">ComfyUI address</span>
+              <span className="mb-1 block text-xs font-medium text-stone-400">{t("setup.media.comfyAddress")}</span>
               <input className={ui.input} value={draft.comfy.url} onChange={(event) => { setCheckedComfy(null); setComfy({ url: event.target.value }); }} placeholder="http://127.0.0.1:8188" />
             </label>
             {checkingComfy ? (
               <label className="block">
-                <span className="mb-1 block text-xs font-medium text-stone-400">Model file (checkpoint)</span>
-                <input className={ui.input} disabled placeholder="Checking installed models…" />
+                <span className="mb-1 block text-xs font-medium text-stone-400">{t("setup.media.modelCheckpoint")}</span>
+                <input className={ui.input} disabled placeholder={t("setup.media.checkingModels")} />
               </label>
             ) : comfy && (comfy.checkpoints.length || options.length > 1) ? (
-              <div role="group" aria-label="Image model" className="block">
-                <span className="mb-1 block text-xs font-medium text-stone-400">Image model</span>
+              <div role="group" aria-label={t("setup.media.imageModel")} className="block">
+                <span className="mb-1 block text-xs font-medium text-stone-400">{t("setup.media.imageModel")}</span>
                 <Select
                   value={draft.comfy.preset !== CHECKPOINT_PRESET ? `preset:${draft.comfy.preset}` : `checkpoint:${draft.comfy.checkpoint}`}
                   onChange={(value) => {
@@ -338,24 +344,24 @@ export function PicturesStep({
                     });
                   }}
                   options={options}
-                  label="Image model"
+                  label={t("setup.media.imageModel")}
                   className="w-full"
                 />
               </div>
             ) : (
               <label className="block">
-                <span className="mb-1 block text-xs font-medium text-stone-400">Model file (checkpoint)</span>
-                <input className={ui.input} value={draft.comfy.checkpoint} onChange={(event) => setComfy({ checkpoint: event.target.value, preset: "checkpoint" })} placeholder="Any SDXL checkpoint in ComfyUI/models/checkpoints" />
+                <span className="mb-1 block text-xs font-medium text-stone-400">{t("setup.media.modelCheckpoint")}</span>
+                <input className={ui.input} value={draft.comfy.checkpoint} onChange={(event) => setComfy({ checkpoint: event.target.value, preset: "checkpoint" })} placeholder={t("setup.media.checkpointPlaceholder")} />
               </label>
             )}
           </div>
-          {comfy?.error ? <p role="alert" className="text-xs text-red-300">{comfy.error}</p> : checkingComfy ? <p role="status" className="text-xs text-stone-500">Checking models at this address…</p> : null}
+          {comfy?.error ? <p role="alert" className="text-xs text-red-300">{comfy.error}</p> : checkingComfy ? <p role="status" className="text-xs text-stone-500">{t("setup.media.checkingAddress")}</p> : null}
           <p className="text-[11px] text-stone-500">
             {chosenModel && !honoursNegative(chosenModel)
-              ? `${chosenModel.label} runs without a negative prompt, so a table's boundary cannot keep anything out of its pictures.`
-              : "Any checkpoint works; the campaign's genre supplies the art style."}
+              ? t("setup.media.noNegative", { model: chosenModel.label })
+              : t("setup.media.anyCheckpoint")}
           </p>
-          {betterModelHint(comfy) ? <p className="text-[11px] text-stone-500">{betterModelHint(comfy)}</p> : null}
+          {betterModelHint(comfy, t) ? <p className="text-[11px] text-stone-500">{betterModelHint(comfy, t)}</p> : null}
         </div>
       ) : draft.pictures === "agent" ? (
         <div key="agent" className="reveal-height">
@@ -370,19 +376,19 @@ export function PicturesStep({
       ) : draft.pictures === "openai" ? (
         <div key="openai" className="reveal-height space-y-3">
           {storyIsOpenAi ? (
-            <p className="su-note">Pictures go to OpenAI on the storyteller&apos;s key. Nothing more to paste.</p>
+            <p className="su-note">{t("setup.media.openAiNoPaste")}</p>
           ) : (
             <KeyField
-              label="OpenAI API key"
+              label={t("setup.media.pictureKey")}
               value={draft.picturesKey}
               onChange={(picturesKey) => update((current) => ({ ...current, picturesKey }))}
               saved={openaiKeySaved}
-              hint="Used only for pictures. Each portrait, scene and map is billed to it."
+              hint={t("setup.media.pictureKeyHint")}
             />
           )}
           <ModelChoiceField
-            label="Picture model"
-            hint="The picture models the key lists."
+            label={t("setup.media.pictureModel")}
+            hint={t("setup.media.pictureModelHint")}
             role="image"
             provider="images"
             apiKey={draft.picturesKey}
@@ -400,6 +406,7 @@ export function PicturesStep({
 type TestResult = { ok: boolean; model?: string; voice?: string; audio?: string; error?: string };
 
 function NarrationTest({ body }: { body: Record<string, string> }) {
+  const t = useT();
   const [testing, setTesting] = useState(false);
   const [result, setResult] = useState<TestResult | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -415,7 +422,7 @@ function NarrationTest({ body }: { body: Record<string, string> }) {
         body: JSON.stringify(body),
       });
       const data = (await response.json().catch(() => null)) as TestResult | null;
-      setResult(data ?? { ok: false, error: "The test request failed without an answer." });
+      setResult(data ?? { ok: false, error: t("setup.media.testFailure") });
       if (data?.ok && data.audio) {
         if (audioRef.current) releaseOutput(audioRef.current);
         const audio = registerOutput(new Audio(data.audio));
@@ -424,7 +431,7 @@ function NarrationTest({ body }: { body: Record<string, string> }) {
         void audio.play().catch(() => {});
       }
     } catch {
-      setResult({ ok: false, error: "Could not reach this server." });
+      setResult({ ok: false, error: t("setup.media.testCouldNotReach") });
     } finally {
       setTesting(false);
     }
@@ -433,15 +440,15 @@ function NarrationTest({ body }: { body: Record<string, string> }) {
   return (
     <div className="space-y-2">
       <button type="button" onClick={test} disabled={testing} aria-busy={testing} className={ui.btnSmall}>
-        {testing ? <Loader2 className="size-4 animate-spin" /> : <Zap className="size-4" />} Hear a line
+        {testing ? <Loader2 className="size-4 animate-spin" /> : <Zap className="size-4" />} {t("setup.media.hearLine")}
       </button>
       {result?.ok ? (
         <p role="status" className="live-in flex items-center gap-1 text-sm text-emerald-400">
-          <Check className="tick-in size-4" /> Spoken by {result.model} in the voice {result.voice}.
+          <Check className="tick-in size-4" /> {t("setup.media.spokenBy", { model: result.model ?? "", voice: result.voice ?? "" })}
         </p>
       ) : result ? (
         <p role="alert" className="motion-shake flex items-start gap-1 text-sm text-red-400">
-          <X className="mt-0.5 size-4 shrink-0" /> {result.error || "The speech server did not answer."}
+          <X className="mt-0.5 size-4 shrink-0" /> {result.error || t("setup.media.speechNoAnswer")}
         </p>
       ) : null}
     </div>
@@ -469,6 +476,7 @@ export function VoiceStep({
   suggestion?: NarrationSuggestion;
   onRescan?: () => void;
 }) {
+  const t = useT();
   const kokoro = scan?.kokoro ?? null;
   const whisper = scan?.whisper ?? null;
   const pick = (narration: Draft["narration"]) => update((current) => withNarration(current, narration, kokoro));
@@ -479,37 +487,37 @@ export function VoiceStep({
     <div className="space-y-4">
       {suggestion ? (
         <SuggestionNote
-          reason={suggestion.reason}
+          reason={suggestion.pick === "kokoro" ? t("setup.media.suggestion.voice.kokoro") : suggestion.pick === "openai" ? t("setup.media.suggestion.voice.openai") : t("setup.media.suggestion.voice.off")}
           title={fillsStep(suggestion.pick) ? picksName[suggestion.pick] : undefined}
           taken={draft.narration === suggestion.pick}
           onTake={() => pick(suggestion.pick)}
         />
       ) : null}
-      <ChoiceCards label="Narration">
+      <ChoiceCards label={t("setup.media.voiceChoice")}>
         <ChoiceCard
           picked={draft.narration === "kokoro"}
           onPick={() => pick("kokoro")}
           suggested={suggestion?.pick === "kokoro"}
           glyph="ui-speech"
-          title="Kokoro on this computer"
-          sub="Reads each passage aloud in the campaign's chosen voice. Free, and the text stays here."
-          badge={scanning ? { text: "Looking…", tone: "off" } : kokoro ? { text: "Found", tone: "ready" } : { text: "Not found", tone: "off" }}
+          title={t("setup.media.kokoroChoiceTitle")}
+          sub={t("setup.media.kokoroChoiceSub")}
+          badge={scanning ? { text: t("setup.media.looking"), tone: "off" } : kokoro ? { text: t("setup.media.comfyFound"), tone: "ready" } : { text: t("setup.media.notFound"), tone: "off" }}
         />
         <ChoiceCard
           picked={draft.narration === "openai"}
           onPick={() => pick("openai")}
           suggested={suggestion?.pick === "openai"}
           glyph="tab-admin"
-          title="OpenAI's voices"
-          sub={storyIsOpenAi ? "On the storyteller's key. Every passage read aloud is billed to it." : "Billed to an OpenAI key for every passage read aloud."}
+          title={t("setup.media.openAiVoiceTitle")}
+          sub={storyIsOpenAi ? t("setup.media.openAiVoiceWithKey") : t("setup.media.openAiVoiceSub")}
         />
         <ChoiceCard
           picked={draft.narration === "off"}
           onPick={() => pick("off")}
           suggested={suggestion?.pick === "off"}
           glyph="tab-handout"
-          title="Text only"
-          sub="No narration. Nothing is sent anywhere to be spoken."
+          title={t("setup.media.textOnly")}
+          sub={t("setup.media.textOnlyHint")}
         />
       </ChoiceCards>
 
@@ -519,27 +527,27 @@ export function VoiceStep({
       {draft.narration === "kokoro" ? (
         <div key="kokoro" className="reveal-height space-y-3">
           {!kokoro && !scanning ? (
-            <p className="su-note">Nothing answered at Kokoro&apos;s usual address (port 8880). Start it with a command above, or type where it runs.</p>
+            <p className="su-note">{t("setup.media.kokoroMissing")}</p>
           ) : null}
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="block">
-              <span className="mb-1 block text-xs font-medium text-stone-400">Kokoro address</span>
+              <span className="mb-1 block text-xs font-medium text-stone-400">{t("setup.media.kokoroAddress")}</span>
               <input className={ui.input} value={draft.kokoro.url} onChange={(event) => setKokoro({ url: event.target.value })} placeholder="http://127.0.0.1:8880" />
             </label>
             {kokoro?.voices.length ? (
-              <div role="group" aria-label="Default voice" className="block">
-                <span className="mb-1 block text-xs font-medium text-stone-400">Default voice</span>
+              <div role="group" aria-label={t("setup.media.defaultVoice")} className="block">
+                <span className="mb-1 block text-xs font-medium text-stone-400">{t("setup.media.defaultVoice")}</span>
                 <Select
                   value={draft.kokoro.voice}
                   onChange={(voice) => setKokoro({ voice })}
                   options={kokoro.voices.map((voice) => ({ value: voice, label: voice }))}
-                  label="Default voice"
+                  label={t("setup.media.defaultVoice")}
                   className="w-full"
                 />
               </div>
             ) : (
               <label className="block">
-                <span className="mb-1 block text-xs font-medium text-stone-400">Default voice</span>
+                <span className="mb-1 block text-xs font-medium text-stone-400">{t("setup.media.defaultVoice")}</span>
                 <input className={ui.input} value={draft.kokoro.voice} onChange={(event) => setKokoro({ voice: event.target.value })} placeholder="af_heart" />
               </label>
             )}
@@ -550,15 +558,15 @@ export function VoiceStep({
         <div key="openai" className="reveal-height space-y-3">
           {storyIsOpenAi ? null : (
             <KeyField
-              label="OpenAI API key"
+              label={t("setup.media.narrationKey")}
               value={draft.narrationKey}
               onChange={(narrationKey) => update((current) => ({ ...current, narrationKey }))}
               saved={ttsKeySaved}
-              hint="Used only for narration. Blank uses the key saved for pictures, if there is one."
+              hint={t("setup.media.narrationKeyHint")}
             />
           )}
           <ModelChoiceField
-            label="Narration model"
+            label={t("setup.media.narrationModel")}
             role="narration"
             provider="speech"
             baseUrl={OPENAI_V1}
@@ -574,14 +582,14 @@ export function VoiceStep({
       ) : null}
 
       <div className="space-y-2">
-        <h4 className="text-sm font-medium text-stone-200">Push-to-talk dictation</h4>
+        <h4 className="text-sm font-medium text-stone-200">{t("setup.media.dictation")}</h4>
         {whisper ? (
           <>
             <p className="su-row text-sm text-stone-300">
-              <Lamp tone="ok" /> A Whisper server at {host(whisper.url)} turns speech into text, with the model picked here.
+              <Lamp tone="ok" /> {t("setup.media.whisperFound", { host: host(whisper.url) })}
             </p>
             <ModelChoiceField
-              label="Whisper model"
+              label={t("setup.media.whisperModel")}
               role="dictation"
               provider="speech"
               baseUrl={whisper.url}
@@ -597,10 +605,10 @@ export function VoiceStep({
         ) : storyIsOpenAi ? (
           <>
             <p className="su-row text-sm text-stone-300">
-              <Lamp tone="ok" /> The OpenAI key takes dictation too, with the model picked here.
+              <Lamp tone="ok" /> {t("setup.media.storyOpenAiDictation")}
             </p>
             <ModelChoiceField
-              label="Transcription model"
+              label={t("setup.media.transcriptionModel")}
               role="dictation"
               provider="speech"
               baseUrl={env.openaiImageBaseUrl || OPENAI_V1}
@@ -616,7 +624,7 @@ export function VoiceStep({
         ) : (
           <>
             <p className="text-xs text-stone-500">
-              No Whisper server answered. The built-in engine runs right here, on the CPU, after a one-time download:
+              {t("setup.media.noWhisper")}
             </p>
             <BuiltinSpeechCard />
           </>

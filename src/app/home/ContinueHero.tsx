@@ -94,6 +94,11 @@ export function RecapPanel({ campaign }: { campaign: HomeCampaign }) {
   const { t } = i18n;
   const glance = campaign.glance;
   const floor = (campaign as HomeCampaign & { floor?: { mode?: string; round?: number; currentName?: string } }).floor;
+  const [now, setNow] = useState<number | null>(null);
+  useEffect(() => {
+    const timer = window.setTimeout(() => setNow(Date.now()), 0);
+    return () => window.clearTimeout(timer);
+  }, []);
   const recap = glance?.recap?.trim() || "";
   const head = recap.charAt(0);
   const tail = recap.slice(1);
@@ -102,7 +107,7 @@ export function RecapPanel({ campaign }: { campaign: HomeCampaign }) {
     bits.push(t("home.recap.round", { round: floor.round }));
     if (floor.currentName) bits.push(t("home.recap.turn", { name: floor.currentName }));
   }
-  const ago = agoLabel(glance?.recapAt ?? campaign.updatedAt, Date.now(), i18n);
+  const ago = now === null ? null : agoLabel(glance?.recapAt ?? campaign.updatedAt, now, i18n);
   if (ago) bits.push(ago);
   // When the table meets next (issue 586), so the title screen answers
   // "when do we play" without opening the table.

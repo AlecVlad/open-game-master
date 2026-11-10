@@ -3,6 +3,7 @@ import type { GameSettings } from "@/lib/schemas/game-settings";
 import { DELEGATIONS } from "@/lib/dm/delegation";
 import { CAMPAIGN_LENGTH_LABELS, TABLE_LANGUAGE_LABELS } from "@/lib/schemas/game-settings-options";
 import { bondsSummary, boardSummary, safetySummary, voiceSummary } from "@/app/create-campaign/summaries";
+import { formatMeasurementText } from "@/lib/measurement-system";
 import { textKey } from "@/lib/language/text-logic";
 
 // The live table's settings, in the named groups the campaign creator taught
@@ -154,6 +155,7 @@ export function tableGroupSummary(id: TableGroupId, settings: GameSettings, cont
       return [
         context.packName ?? context.genreName,
         TABLE_LANGUAGE_LABELS[settings.tableLanguage],
+        settings.measurementSystem === "si" ? "SI" : "Imperial",
         aiNarrates ? `${CAMPAIGN_LENGTH_LABELS[settings.campaignLength].split(" (")[0]} length` : null,
       ]
         .filter(Boolean)
@@ -217,7 +219,7 @@ export function tableGroupSummary(id: TableGroupId, settings: GameSettings, cont
     case "board":
       return boardSummary(settings);
     case "voiceChat":
-      return voiceSummary(settings.voice);
+      return formatMeasurementText(voiceSummary(settings.voice), settings.measurementSystem, settings.tableLanguage);
   }
 }
 

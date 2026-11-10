@@ -82,7 +82,7 @@ export function StorytellerStep({
           glyph="ui-ai"
           title={t("setup.story.localTitle")}
           sub={t("setup.story.localDescription")}
-          badge={scanning ? { text: "Looking…", tone: "off" } : found.length ? { text: t("setup.story.foundCount", { count: found.length }), tone: "ready" } : null}
+          badge={scanning ? { text: t("setup.story.scan.searching"), tone: "off" } : found.length ? { text: t("setup.story.foundCount", { count: found.length }), tone: "ready" } : null}
         />
         <ChoiceCard
           picked={draft.story === "key"}
@@ -268,7 +268,7 @@ function LocalPanel({
             />
           </label>
           <button type="button" className={ui.btnSecondary} onClick={look} disabled={looking || (!local.apiKey.trim() && !keySavedHere)} aria-busy={looking}>
-            {looking ? <Loader2 className="size-4 animate-spin" /> : <Search className="size-4" />} Look again
+            {looking ? <Loader2 className="size-4 animate-spin" /> : <Search className="size-4" />} {t("setup.story.lookAgain")}
           </button>
         </div>
       ) : null}

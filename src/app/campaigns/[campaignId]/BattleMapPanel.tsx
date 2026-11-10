@@ -45,6 +45,8 @@ import { jumpRulerFor, moveNotesFrom, rulerFor } from "@/lib/battlemap/board-mov
 import { BoardMoveHints, JumpArc, useBoardMoveModes, moveModeHint } from "@/app/campaigns/[campaignId]/BoardMoveModes";
 import { TILE_FEET } from "@/lib/battlemap/types";
 import { footprintDistance } from "@/lib/battlemap/footprint";
+import { formatFeet, formatMeasurementText, type MeasurementSystem } from "@/lib/measurement-system";
+import type { TableLanguage } from "@/lib/schemas/game-settings-options";
 
 import { useAreaAim } from "@/app/campaigns/[campaignId]/BoardAreaAim";
 import { BoardMoveNotes, useMoveNotes } from "@/app/campaigns/[campaignId]/BoardMoveNotes";
@@ -153,6 +155,8 @@ export function BattleMapPanel({
   meUserId = "",
   activeSheetId = "",
   multiCharacter = "off",
+  measurementSystem = "si",
+  tableLanguage = "english",
 }: {
   campaignId: string;
   // Who is looking, which of their characters they play, and whether the
@@ -161,6 +165,8 @@ export function BattleMapPanel({
   meUserId?: string;
   activeSheetId?: string;
   multiCharacter?: string;
+  measurementSystem?: MeasurementSystem;
+  tableLanguage?: TableLanguage;
 
   // The campaign's setting: it picks the skin the board is painted in and the
   // plates the monsters wear.
@@ -509,7 +515,7 @@ export function BattleMapPanel({
     if (done) {
       setHover(null);
       const feet = (done.undone as { feet?: unknown } | undefined)?.feet;
-      moveNotes.push([{ text: typeof feet === "number" ? `Back where you stood: ${feet} feet of movement returned.` : "Back where you stood.", tone: "move" }]);
+      moveNotes.push([{ text: typeof feet === "number" ? "Back where you stood: " + formatFeet(feet, measurementSystem, tableLanguage) + " of movement returned." : "Back where you stood.", tone: "move" }]);
     }
     await refreshBattleMap();
   }
@@ -585,11 +591,11 @@ export function BattleMapPanel({
       return null;
     }
     // The DM spends no budget, so nothing they measure is ever too far.
-    if (held === null && moveMode === "jump" && view.moves) {
-      return jumpRulerFor(view, fromId, to, view.moves.jumpFeet);
-    }
-    return rulerFor(view, fromId, to, held === null, held === null && moveMode === "drag" ? view.moves?.drag?.factor ?? 1 : 1);
-  }, [hover, livePending, held, view, aimingArea, moveMode]);
+    const result = held === null && moveMode === "jump" && view.moves
+      ? jumpRulerFor(view, fromId, to, view.moves.jumpFeet)
+      : rulerFor(view, fromId, to, held === null, held === null && moveMode === "drag" ? view.moves?.drag?.factor ?? 1 : 1);
+    return result ? { ...result, label: formatMeasurementText(result.label, measurementSystem, tableLanguage) } : null;
+  }, [hover, livePending, held, view, aimingArea, moveMode, measurementSystem, tableLanguage]);
 
   // Who may be aimed at while a target is being chosen, nearest first, with
   // the distance the table would count (a diagonal is one square).
@@ -617,9 +623,9 @@ export function BattleMapPanel({
       fromTokenId: myToken.id,
       targetIds: aimTargets.map((entry) => entry.token.id),
       hoverId: aimHoverId,
-      labels: Object.fromEntries(aimTargets.map((entry) => [entry.token.id, `${entry.feet} ft`])),
+      labels: Object.fromEntries(aimTargets.map((entry) => [entry.token.id, formatFeet(entry.feet, measurementSystem, tableLanguage)])),
     };
-  }, [targeting, myToken, aimTargets, aimHoverId]);
+  }, [targeting, myToken, aimTargets, aimHoverId, measurementSystem, tableLanguage]);
 
   const overlay = useMemo<MapOverlay>(
     () => ({
@@ -1121,7 +1127,7 @@ export function BattleMapPanel({
     ...(meUserId && multiCharacter !== "off" && sheets.filter(sheet => sheet.userId === meUserId && !sheet.isCompanion).length > 1 ? [choose("play-as", "Playing as", playingSheet(sheets, meUserId, activeSheetId)?.id ?? "", sheets.filter(sheet => sheet.userId === meUserId && !sheet.isCompanion).map(sheet => option(sheet.id, sheet.name)))] : []),
     ...(canDirect ? [choose("tool", "Tool", tool, [option("handle", "Move pieces"), option("place", "Put something down"), option("measure", "Measure an area"), option("point", "Point at a tile"), ...(canDraw ? [option("draw", "Draw on the board")] : [])])] : [{ id: "point" as const, label: `Point at a tile: ${pointing ? "on" : "off"}`, disabled: null }, ...(canDraw ? [{ id: "draw" as const, label: `Drawing: ${drawing ? "on" : "off"}`, disabled: null }] : [])]),
     ...(canDirect && tool === "place" ? [choose("place-kind", "Place", placeKind, Object.entries(ADHOC_LABELS).map(([value, label]) => option(value, label))), { id: "place-name" as const, label: "Name", disabled: null, input: { value: placeName } }] : []),
-    ...(canDirect && tool === "measure" ? [choose("measure-shape", "Shape", shape, TEMPLATE_SHAPES.map(value => option(value, SHAPE_LABELS[value]))), choose("measure-size", "Size in feet", String(sizeFeet), Array.from({ length: 12 }, (_, index) => option(String((index + 1) * 5), `${(index + 1) * 5} ft`))), { id: "measure-clear" as const, label: "Clear measure", disabled: null }, ...(liveMeasure?.caught.some(entry => entry.enemyId) ? [{ id: "measure-copy" as const, label: "Copy enemy ids", disabled: null }] : [])] : []),
+    ...(canDirect && tool === "measure" ? [choose("measure-shape", "Shape", shape, TEMPLATE_SHAPES.map(value => option(value, SHAPE_LABELS[value]))), choose("measure-size", measurementSystem === "si" ? "Size in metres" : "Size in feet", String(sizeFeet), Array.from({ length: 12 }, (_, index) => option(String((index + 1) * 5), formatFeet((index + 1) * 5, measurementSystem, tableLanguage)))), { id: "measure-clear" as const, label: "Clear measure", disabled: null }, ...(liveMeasure?.caught.some(entry => entry.enemyId) ? [{ id: "measure-copy" as const, label: "Copy enemy ids", disabled: null }] : [])] : []),
     ...(drawActive && canDraw ? [choose("draw-kind", "Mark", drawKind, DRAWING_KINDS.map(value => option(value))), choose("draw-tone", "Ink", drawTone, DRAWING_TONES.map(value => option(value))), { id: "draw-ttl" as const, label: `Fades next round: ${drawTtl ? "yes" : "no"}`, disabled: null }, { id: "draw-erase" as const, label: canDirect ? "Clear all marks" : "Erase my marks", disabled: null }] : []), closePanel,
   ] };
   const orderKey = JSON.stringify([campaignId, view.mapId, encounter?.order, encounter?.turnIndex, view.round]);
@@ -1153,14 +1159,14 @@ export function BattleMapPanel({
         })() : [])].filter(Boolean),
     } : null,
     turn: view.currentTurnName ? `${view.currentTurnName}'s turn · Round ${view.round}` : "",
-    stats: [myTurn ? `${view.budgetLeft * TILE_FEET} ft left` : "", mySheet ? `HP ${mySheet.currentHp}/${effectiveMaxHp(mySheet)} · AC ${mySheet.ac}` : "",
+    stats: [myTurn ? formatFeet(view.budgetLeft * TILE_FEET, measurementSystem, tableLanguage) + " left" : "", mySheet ? `HP ${mySheet.currentHp}/${effectiveMaxHp(mySheet)} · AC ${mySheet.ac}` : "",
       myTurn && turnBudget ? `Action ${turnBudget.action ? "ready" : "spent"} · Bonus ${turnBudget.bonus ? "ready" : "spent"} · Reaction ${turnBudget.reaction ? "ready" : "spent"}` : "",
       encounter?.orderReady ? `Order: ${encounter.order.map(entry => entry.name).join(" → ")}` : ""].filter(Boolean),
-    hint: [hudHint ?? (handAim?.active ? "Choose the card's target on the board or in your hand, then play the card." : cameraLocked ? "The DM is steering the view" : boardHintText({ canDirect, tool, teleporting: Boolean(teleporting), held: Boolean(held), liveOrigin: Boolean(liveOrigin), pointing, drawing, targeting: Boolean(targeting), canMove, moveAimed: Boolean(livePending), scene, budgetLeft: view.budgetLeft, hasToken: Boolean(view.myTokenId) })), moveModeHint(moveMode, view.moves), areaAim.hint].filter(Boolean).join("\n"),
-    notices: [...moveNotes.notes.map(note => note.text), ...(fieldRoll ? [fieldRoll.label] : []), ...(handStatus?.notice ? [handStatus.notice] : []), ...(areaAim.caught.length ? [`Area catches: ${areaAim.caught.join(", ")}`] : []), ...(liveMeasure?.caught.length ? [`Measured: ${liveMeasure.caught.map(entry => entry.name).join(", ")}`] : [])], error, pending: busy || endingTurn || Boolean(handStatus?.sending),
+    hint: formatMeasurementText([hudHint ?? (handAim?.active ? "Choose the card's target on the board or in your hand, then play the card." : cameraLocked ? "The DM is steering the view" : boardHintText({ canDirect, tool, teleporting: Boolean(teleporting), held: Boolean(held), liveOrigin: Boolean(liveOrigin), pointing, drawing, targeting: Boolean(targeting), canMove, moveAimed: Boolean(livePending), scene, budgetLeft: view.budgetLeft, hasToken: Boolean(view.myTokenId) })), moveModeHint(moveMode, view.moves), areaAim.hint].filter(Boolean).join("\n"), measurementSystem, tableLanguage),
+    notices: [...moveNotes.notes.map(note => formatMeasurementText(note.text, measurementSystem, tableLanguage)), ...(fieldRoll ? [fieldRoll.label] : []), ...(handStatus?.notice ? [handStatus.notice] : []), ...(areaAim.caught.length ? [`Area catches: ${areaAim.caught.join(", ")}`] : []), ...(liveMeasure?.caught.length ? [`Measured: ${liveMeasure.caught.map(entry => entry.name).join(", ")}`] : [])], error, pending: busy || endingTurn || Boolean(handStatus?.sending),
     controls: prompt && tokensById.has(prompt.tokenId) ? [{ id: "prompt-submit", label: "Apply", disabled: null }, { id: "prompt-cancel", label: "Cancel input", disabled: null }] : [
       ...(myTurn && !scene && !targeting ? [{ id: "end-turn" as const, label: "End turn", disabled: endingTurn ? "Ending turn…" : null }] : []),
-      ...(undoFeet !== null && !targeting ? [{ id: "undo-move" as const, label: `Undo ${undoFeet} ft`, disabled: null }] : []),
+      ...(undoFeet !== null && !targeting ? [{ id: "undo-move" as const, label: "Undo " + formatFeet(undoFeet, measurementSystem, tableLanguage), disabled: null }] : []),
       ...(!cameraLocked ? [{ id: "fit" as const, label: "Fit board", disabled: null }] : []),
       ...(canDirect ? [{ id: "camera-pull" as const, label: "Bring everyone here", disabled: null }, { id: "camera-lock" as const, label: "Lock view", disabled: null }, { id: "camera-free" as const, label: "Free view", disabled: null }] : []),
       ...(cameraLocked && cameraCanRelease ? [{ id: "camera-release" as const, label: "Look around", disabled: null }] : []),
@@ -1534,6 +1540,8 @@ export function BattleMapPanel({
           commanded={commanding}
           budget={turnBudget}
           speedLeftFeet={myTurn ? view.budgetLeft * TILE_FEET : null}
+          measurementSystem={measurementSystem}
+          tableLanguage={tableLanguage}
           ac={mySheet?.ac ?? null}
           // The maximum the engine heals to: exhaustion 4 halves it, an
           // Amulet of Health raises it (condition-logic.ts effectiveMaxHp).
@@ -1544,7 +1552,7 @@ export function BattleMapPanel({
         <TurnBanner key={bannerKey} text={commanding ? `${view.currentTurnName}: your orders` : myTurn ? "Your turn" : view.currentTurnName} mine={myTurn} />
       ) : null}
       {fieldRoll ? <FieldDie label={fieldRoll.label} /> : null}
-      <BoardMoveNotes notes={moveNotes.notes} />
+      <BoardMoveNotes notes={moveNotes.notes} measurementSystem={measurementSystem} tableLanguage={tableLanguage} />
       {targeting ? (
         <div className="absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 items-center gap-2.5 rounded-[10px] border border-[rgba(224,112,58,0.5)] bg-[rgba(13,11,28,0.94)] px-3 py-1.5 shadow-elev-2">
           <span className="whitespace-nowrap font-display text-[10px] font-semibold uppercase tracking-[0.18em] text-[#ffbe8f]">
@@ -1577,8 +1585,8 @@ export function BattleMapPanel({
               type="button"
               onClick={() => void undoMove()}
               disabled={busy}
-              aria-label={`Undo move, ${undoFeet} feet`}
-              title={`Take back your last move and its ${undoFeet} feet (Ctrl+Z)`}
+              aria-label={"Undo move, " + formatFeet(undoFeet, measurementSystem, tableLanguage)}
+              title={"Take back your last move and its " + formatFeet(undoFeet, measurementSystem, tableLanguage) + " (Ctrl+Z)"}
               className={cn(TURN_BUTTON, "motion-pop inline-flex items-center gap-1.5")}
             >
               <Undo2 className="size-3.5" aria-hidden="true" />
@@ -1644,6 +1652,8 @@ export function BattleMapPanel({
         onMode={setMoveMode}
         areaHint={areaAim.hint}
         caught={areaAim.caught}
+        measurementSystem={measurementSystem}
+        tableLanguage={tableLanguage}
       />
       <p className="text-[11px] leading-4 text-stone-500">
         {boardHintText({
@@ -1673,6 +1683,8 @@ export function BattleMapPanel({
           }))}
           onPick={handleToken}
           onHover={setAimHoverId}
+        measurementSystem={measurementSystem}
+        tableLanguage={tableLanguage}
         />
       ) : null}
     </>

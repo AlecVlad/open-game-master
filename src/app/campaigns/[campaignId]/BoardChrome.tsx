@@ -5,6 +5,7 @@ import { litOrderRows, pointerOrderIndex } from "@/lib/battlemap/initiative-rows
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { cn } from "@/lib/cn";
+import { formatFeet, type MeasurementSystem } from "@/lib/measurement-system";
 import { GameIcon } from "@/components/ui/GameIcon";
 import { conditionIconKey } from "@/lib/battlemap/condition-glyphs";
 import { conditionRule } from "@/lib/battlemap/condition-rules";
@@ -227,6 +228,8 @@ export function TurnHud({
   commanded = false,
   budget,
   speedLeftFeet,
+  measurementSystem = "si",
+  tableLanguage = "english",
   ac,
   hp,
 }: {
@@ -236,6 +239,8 @@ export function TurnHud({
   commanded?: boolean;
   budget?: TurnHudBudget | null;
   speedLeftFeet?: number | null;
+  measurementSystem?: MeasurementSystem;
+  tableLanguage?: string;
   ac?: number | null;
   hp?: { current: number; max: number } | null;
 }) {
@@ -243,7 +248,7 @@ export function TurnHud({
     return null;
   }
   const stats = [
-    typeof speedLeftFeet === "number" ? `${speedLeftFeet} ft left` : null,
+    typeof speedLeftFeet === "number" ? formatFeet(speedLeftFeet, measurementSystem, tableLanguage) + " left" : null,
     typeof ac === "number" ? `AC ${ac}` : null,
     hp ? `${hp.current}/${hp.max}` : null,
   ].filter(Boolean);
@@ -614,6 +619,8 @@ export function TargetChips({
   targets,
   onPick,
   onHover,
+  measurementSystem = "si",
+  tableLanguage = "english",
 }: {
   targets: Array<{
     token: StageToken;
@@ -623,6 +630,8 @@ export function TargetChips({
   }>;
   onPick: (tokenId: string) => void;
   onHover?: (tokenId: string | null) => void;
+  measurementSystem?: MeasurementSystem;
+  tableLanguage?: string;
 }) {
   if (!targets.length) {
     return <p className="text-[11px] text-stone-500">Nobody here to aim at.</p>;
@@ -650,7 +659,7 @@ export function TargetChips({
           <span className="min-w-0">
             <span className="block max-w-[9rem] truncate text-xs font-medium text-stone-100">{token.name}</span>
             <span className="block font-mono text-[10px] text-stone-400">
-              {[health ? HEALTH_LABEL[health] ?? health : null, feet !== null ? `${feet} ft` : null].filter(Boolean).join(" · ")}
+              {[health ? HEALTH_LABEL[health] ?? health : null, feet !== null ? formatFeet(feet, measurementSystem, tableLanguage) : null].filter(Boolean).join(" · ")}
             </span>
           </span>
         </button>

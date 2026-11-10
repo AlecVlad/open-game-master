@@ -17,6 +17,11 @@ export const GENRES = [
 export type Genre = (typeof GENRES)[number];
 
 export const DICE_POLICIES = ["digital_only", "real_allowed"] as const;
+
+// Internal game data stays in the rules native units; this choice controls
+// only player-facing display and narration.
+export const MEASUREMENT_SYSTEMS = ["si", "imperial"] as const;
+export type MeasurementSystem = (typeof MEASUREMENT_SYSTEMS)[number];
 export type DicePolicy = (typeof DICE_POLICIES)[number];
 
 // Who narrates. Mirrors DmMode in src/lib/dm/viewer.ts, which holds the pure

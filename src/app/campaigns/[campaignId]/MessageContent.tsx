@@ -8,6 +8,7 @@ import type { CastMember } from "@/lib/dm/cast";
 import { speakerFaces } from "@/lib/speaker-faces";
 import { SpeechLine } from "@/app/campaigns/[campaignId]/SpeechLine";
 import { Prose } from "@/app/campaigns/[campaignId]/Prose";
+import type { MeasurementSystem } from "@/lib/measurement-system";
 import { RollCard } from "@/app/campaigns/[campaignId]/RollCard";
 import type { StoredRoll } from "@/lib/db/rolls";
 import type { TranscriptSheet } from "@/app/campaigns/[campaignId]/departing";
@@ -98,7 +99,7 @@ export function RolledNote({ content, rollIds, glyph, rollsById, sheetsById }: {
   );
 }
 
-export function DmContent({ content, rollsById, sheetsById, cast = [], lines, speaker }: {
+export function DmContent({ content, rollsById, sheetsById, cast = [], lines, speaker, measurementSystem = "imperial", tableLanguage = "english" }: {
   content: string;
   rollsById: Map<string, StoredRoll>;
   sheetsById: ReadonlyMap<string, TranscriptSheet>;
@@ -109,6 +110,8 @@ export function DmContent({ content, rollsById, sheetsById, cast = [], lines, sp
   lines: readonly SpokenLine[];
   // The whole passage spoken as one person.
   speaker?: Speaker;
+  measurementSystem?: MeasurementSystem;
+  tableLanguage?: string;
 }) {
   // Older messages may still carry leaked "[request_roll ...]" tool text;
   // never render it.
@@ -142,7 +145,7 @@ export function DmContent({ content, rollsById, sheetsById, cast = [], lines, sp
         {parts.map((part, index) =>
           part.kind === "text" ? (
             <SpeechLine key={index} speaker={speaker} cast={cast}>
-              <Prose text={part.text.trim()} />
+              <Prose text={part.text.trim()} measurementSystem={measurementSystem} tableLanguage={tableLanguage} />
             </SpeechLine>
           ) : (
             <RollCard key={index} roll={part.roll} characterName={part.roll.characterId ? sheetsById.get(part.roll.characterId)?.name : undefined} />
@@ -159,11 +162,11 @@ export function DmContent({ content, rollsById, sheetsById, cast = [], lines, sp
             {segmentsOf(part.text.trim(), faced).map((segment, at) =>
               segment.kind === "speech" ? (
                 <SpeechLine key={at} speaker={segment.speaker} cast={cast} faces={speakerFaces(segment.speaker, sheetsById)}>
-                  <Prose text={segment.text} />
+                  <Prose text={segment.text} measurementSystem={measurementSystem} tableLanguage={tableLanguage} />
                 </SpeechLine>
               ) : (
                 <p key={at} className="whitespace-pre-wrap text-pretty font-serif text-base leading-relaxed text-stone-100">
-                  <Prose text={segment.text.trim()} />
+                  <Prose text={segment.text.trim()} measurementSystem={measurementSystem} tableLanguage={tableLanguage} />
                 </p>
               ),
             )}

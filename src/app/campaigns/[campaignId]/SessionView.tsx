@@ -1311,6 +1311,8 @@ export function SessionView({
 
                           intents={state.battleMap.intents}
                           genre={campaign.gameSettings?.genre ?? null}
+                          measurementSystem={campaign.gameSettings?.measurementSystem ?? "si"}
+                          tableLanguage={campaign.gameSettings?.tableLanguage ?? "english"}
                           turnBudget={
                             // The engine's count, the one the Hand reads
                             // (src/lib/battlemap/hand-table.ts): a spent reaction

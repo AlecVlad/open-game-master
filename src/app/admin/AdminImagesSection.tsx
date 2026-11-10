@@ -104,7 +104,7 @@ export function comfyModelPatch(value: string, options: ReturnType<typeof comfyM
   return null;
 }
 
-export async function fetchComfyModels(url: string, signal: AbortSignal): Promise<ComfyDiscovery> {
+export async function fetchComfyModels(url: string, signal: AbortSignal, fallbackError: string): Promise<ComfyDiscovery> {
   const response = await fetch("/api/comfy", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -113,7 +113,7 @@ export async function fetchComfyModels(url: string, signal: AbortSignal): Promis
   });
   const result = (await response.json()) as Partial<ComfyStatus>;
   if (!response.ok || !result.ok) {
-    return { checkpoints: [], models: [], hardware: null, device: null, error: result.error || "Could not check ComfyUI." };
+    return { checkpoints: [], models: [], hardware: null, device: null, error: result.error || fallbackError };
   }
   return {
     checkpoints: Array.isArray(result.checkpoints) ? result.checkpoints.filter((name): name is string => typeof name === "string") : [],
@@ -172,7 +172,7 @@ function ComfyModelField({
     const controller = new AbortController();
     const timer = window.setTimeout(async () => {
       try {
-        const result = await fetchComfyModels(url, controller.signal);
+        const result = await fetchComfyModels(url, controller.signal, t("admin.images.err.comfy"));
         if (!controller.signal.aborted) setDiscovery({ url, revision, ...result });
       } catch {
         if (!controller.signal.aborted) {
@@ -186,7 +186,7 @@ function ComfyModelField({
     };
     // t changes only with the language, which re-renders the section anyway.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [url, revision]);
+  }, [url, revision, t]);
 
   const current = discovery?.url === url && discovery.revision === revision ? discovery : null;
   const preset = images.comfyWorkflowPreset;

@@ -160,6 +160,14 @@ export function buildDmSystem(
   if (language) {
     parts.push(language);
   }
+  if (campaign.gameSettings.measurementSystem === "si") {
+    parts.push([
+      "MEASUREMENT SYSTEM — SI:",
+      "For all player-facing narration and explanations, use SI units: metres (m), kilometres (km), centimetres (cm), kilograms (kg), grams (g), litres (L), degrees Celsius (\\u00B0C), and km/h.",
+      "Convert distances and weights from the rules canonical feet and pounds into SI for prose only. Never change internal tool arguments, combat calculations, battle-map coordinates, grid sizes, or database values.",
+      "Do not give both systems unless explicitly comparing them. Use accurate conversions: 1 ft = 0.3048 m; 1 in = 2.54 cm; 1 mile = 1.609344 km; 1 lb = 0.45359237 kg.",
+    ].join("\n"));
+  }
   parts.push(...settingsRules);
   // Closes what changes only with the campaign's settings; the cover block's
   // countdown below changes every turn (src/lib/prompt-boundary.ts).

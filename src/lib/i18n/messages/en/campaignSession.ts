@@ -4,6 +4,8 @@ export const enCampaignSession = {
   "campaign.audio.sound.title": "Sound is waiting",
   "campaign.audio.listen": "Listen",
   "campaign.audio.narration.arrived.one": "1 passage arrived before sound could play here. Tap or click to hear it.",
+  "campaign.audio.narration.arrived.few": "{count} passages arrived before sound could play here. Tap or click to hear the newest; the others have replay buttons.",
+  "campaign.audio.narration.arrived.many": "{count} passages arrived before sound could play here. Tap or click to hear the newest; the others have replay buttons.",
   "campaign.audio.narration.arrived.other": "{count} passages arrived before sound could play here. Tap or click to hear the newest; the others have replay buttons.",
   "campaign.audio.ambience.waiting": "The table's sound starts once you tap or click anywhere here.",
   "campaign.afterRoll.kind.roll": "Roll",

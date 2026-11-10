@@ -11,6 +11,8 @@ import { CharacterPortrait, ui } from "@/lib/ui";
 import { downloadCharacterSheetPdf } from "@/lib/pdf/download";
 import { ImageLightbox } from "@/components/ui/ImageLightbox";
 import type { CharacterSheet } from "@/lib/schemas/sheet";
+import { formatFeet, formatMeasurementText, formatPounds, type MeasurementSystem } from "@/lib/measurement-system";
+import type { TableLanguage } from "@/lib/schemas/game-settings-options";
 import {
   acBreakdownFor,
   computeSheetDerived,
@@ -82,6 +84,8 @@ export function CharacterSheetDialog({
   sheet,
   mine,
   steersStory,
+  measurementSystem = "si",
+  tableLanguage = "english",
   corrects = false,
   encumbranceRule = false,
   inCombat = false,
@@ -94,6 +98,8 @@ export function CharacterSheetDialog({
   sheet: CharacterSheet;
   mine: boolean;
   steersStory: boolean;
+  measurementSystem?: MeasurementSystem;
+  tableLanguage?: TableLanguage;
   // The viewer is the DM or the party lead: they may hand uses back, on
   // this sheet whoever owns it. A player only ever spends.
   corrects?: boolean;
@@ -270,8 +276,8 @@ export function CharacterSheetDialog({
                 {
                   glyph: "rest-speed",
                   label: "Speed",
-                  value: `${speed} ft`,
-                  title: [speedNote, ...otherSpeedsLine(derived.speeds)].join(" "),
+                  value: formatFeet(speed, measurementSystem, tableLanguage),
+                  title: formatMeasurementText([speedNote, ...otherSpeedsLine(derived.speeds)].join(" "), measurementSystem, tableLanguage),
                   tone: speed < speedState.base ? "warn" : "plain",
                 },
                 {
@@ -298,18 +304,18 @@ export function CharacterSheetDialog({
                 {
                   glyph: "coin-purse",
                   label: "Carried",
-                  value: `${load.carriedLb}${load.unweighed ? "+" : ""}/${load.capacityLb} lb`,
+                  value: formatPounds(load.carriedLb, measurementSystem, tableLanguage) + (load.unweighed ? "+" : "") + "/" + formatPounds(load.capacityLb, measurementSystem, tableLanguage),
                   tone: load.overCapacity || (encumbranceRule && load.tier !== "unencumbered") ? "warn" : "plain",
                   // Past the capacity (Strength x 15) the load can only be
                   // dragged at 5 feet, whatever the table's encumbrance rule
                   // (src/lib/dm/load-rules.ts, speedFor).
-                  title: `${
+                  title: formatMeasurementText(`${
                     load.overCapacity
                       ? `Past their carrying capacity of ${load.capacityLb} lb: they can only drag this load, at a speed of 5 feet, and nothing more can be given to them.`
                       : encumbranceRule
                         ? `${load.note ?? "Not encumbered"}. Capacity ${load.capacityLb} lb.`
                         : `Carrying capacity ${load.capacityLb} lb. Encumbrance is off for this table, so weight up to the capacity costs nothing.`
-                  }${load.unweighed ? ` ${load.unweighed} item${load.unweighed === 1 ? "" : "s"} of unknown weight are not counted.` : ""}`,
+                  }${load.unweighed ? ` ${load.unweighed} item${load.unweighed === 1 ? "" : "s"} of unknown weight are not counted.` : ""}`, measurementSystem, tableLanguage),
                   onOpen: () => setLoadOpen(true),
                   opens: "Show what makes up this load",
                 },
@@ -322,8 +328,10 @@ export function CharacterSheetDialog({
               equipment={sheet.equipment}
               purse={sheet}
               load={load}
+              measurementSystem={measurementSystem}
+              tableLanguage={tableLanguage}
             />
-            <OtherSpeeds speeds={derived.speeds} />
+            <OtherSpeeds speeds={derived.speeds} measurementSystem={measurementSystem} tableLanguage={tableLanguage} />
           </div>
 
           {sheet.wildShape ? (

@@ -38,6 +38,8 @@ import { LeadEditDialog } from "@/app/campaigns/[campaignId]/LeadEditDialog";
 import type { CampaignMember } from "@/lib/campaign-types";
 import type { Note } from "@/lib/db/notes";
 import type { Genre, LastingCompanionBlock } from "@/lib/schemas/game-settings";
+import type { MeasurementSystem } from "@/lib/measurement-system";
+import type { TableLanguage } from "@/lib/schemas/game-settings-options";
 import type { CharacterSheet } from "@/lib/schemas/sheet";
 import { computeSheetDerived, formatModifier } from "@/lib/srd";
 import { resourceName } from "@/lib/srd/class-resources";
@@ -330,6 +332,8 @@ export function PartyPanel({
   companionWorldPack,
   companionLevel = 1,
   worldPack = "",
+  measurementSystem = "si",
+  tableLanguage = "english",
   lights = {},
   activeSheetId = "",
   multiCharacter = "off",
@@ -405,6 +409,8 @@ export function PartyPanel({
   companionLevel?: number;
   // The campaign's world pack, whose art stands in for an unpainted portrait.
   worldPack?: string;
+  measurementSystem?: MeasurementSystem;
+  tableLanguage?: TableLanguage;
   // A carried light burning down, by character id
   // (docs/vtt-parity-implementation-plan.md 7.3).
   lights?: Record<string, { remaining: number; total: number }>;
@@ -1018,6 +1024,8 @@ export function PartyPanel({
           // lead of an AI table) and the party lead at any table.
           corrects={Boolean(steersStory) || meUserId === leadUserId}
           encumbranceRule={encumbranceRule}
+          measurementSystem={measurementSystem}
+          tableLanguage={tableLanguage}
           inCombat={inCombat}
           myTurn={encounter?.acting?.id === viewingSheet.id}
           names={conditionNames}

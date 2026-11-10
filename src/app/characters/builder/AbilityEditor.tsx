@@ -723,12 +723,13 @@ export function StandardArrayRow({
   isTaken: (value: number) => boolean;
   onAssign: (value: number) => void;
 }) {
+  const { t } = useI18n();
   const roving = useRovingGroup({ keys: STANDARD_ARRAY.map(String), chosen: assigned == null ? null : String(assigned) });
   return (
     <span
       className="flex min-w-[192px] flex-[1_1_192px] items-center gap-[5px]"
       role="group"
-      aria-label={t("builder.extra.ability.standard.score", { ability: label, score: "", held: "" })}
+      aria-label={t("builder.extra.ability.standard.group", { ability: label })}
       onKeyDown={roving.onKeyDown}
       onFocus={roving.onFocus}
     >

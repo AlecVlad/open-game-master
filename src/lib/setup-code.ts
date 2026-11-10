@@ -128,7 +128,7 @@ export function announceSetupCode(log: (line: string) => void = console.log) {
 // what `docker compose logs` prints. The sign-up form says so, since someone
 // who has just typed `docker compose up -d` has never seen that log.
 export function setupCodeInDockerLog(marker = "/.dockerenv"): boolean {
-  return !isDeviceWorld() && existsSync(marker);
+  return !isDeviceWorld() && existsSync(/*turbopackIgnore: true*/ marker);
 }
 
 // The address that claims the server: this machine, on the port a browser

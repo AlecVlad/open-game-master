@@ -380,7 +380,7 @@ function LevelUpSheetForm({
                   </>
                 ) : (
                   <span className="grow">
-                    <span className="text-amber-300">{t("builder.screen.levelup.subclass.pending")} </span>{t("builder.screen.levelup.subclass.description", { className: klass.name.toLowerCase(), level: pickLevel })}
+                    <span className="text-amber-300">{t("builder.screen.levelup.subclass.pending")} </span>{t("builder.screen.levelup.subclass.description", { className: klass.name.toLowerCase(), level: pickLevel ?? nextLevel })}
                   </span>
                 )}
               </span>

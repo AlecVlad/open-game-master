@@ -3,6 +3,7 @@
 import { RefreshCw } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { ui } from "@/lib/ui";
+import { useT } from "@/lib/i18n/provider";
 import { CopyLine } from "@/components/CopyLine";
 import { shellHost } from "@/lib/shell-host";
 import type { Draft } from "@/app/setup/draft";
@@ -15,12 +16,12 @@ type Update = (change: (draft: Draft) => Draft) => void;
 
 const MARKS: Record<HarnessId, string> = { claude: "CC", codex: "Cx", opencode: "oc", grok: "Gk" };
 
-function statusTone(status: HarnessStatus): { tone: "ready" | "warn" | "off"; text: string } {
-  if (status.availability !== "ok") return { tone: "off", text: "Not available here" };
-  if (!status.installed) return { tone: "off", text: "Not installed" };
-  if (status.auth.state === "signed-out") return { tone: "warn", text: "Sign in needed" };
-  if (status.auth.state === "unknown") return { tone: "warn", text: "Installed" };
-  return { tone: "ready", text: "Ready" };
+function statusTone(status: HarnessStatus, t: ReturnType<typeof useT>): { tone: "ready" | "warn" | "off"; text: string } {
+  if (status.availability !== "ok") return { tone: "off", text: t("setup.agentPanel.unavailable") };
+  if (!status.installed) return { tone: "off", text: t("setup.agentPanel.notInstalled") };
+  if (status.auth.state === "signed-out") return { tone: "warn", text: t("setup.agentPanel.signIn") };
+  if (status.auth.state === "unknown") return { tone: "warn", text: t("setup.agentPanel.installed") };
+  return { tone: "ready", text: t("setup.agentPanel.ready") };
 }
 
 // "An agent you already pay for": each program this server can run, whether
@@ -28,6 +29,7 @@ function statusTone(status: HarnessStatus): { tone: "ready" | "warn" | "off"; te
 // it is not. Nothing is saved until the step's Continue; the live test turn
 // waits on the last step, once the choice is the server's.
 export function AgentPanel({ draft, update }: { draft: Draft; update: Update }) {
+  const t = useT();
   const [statuses, setStatuses] = useState<HarnessStatus[] | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const phone = shellHost()?.platform === "android";
@@ -65,7 +67,7 @@ export function AgentPanel({ draft, update }: { draft: Draft; update: Update }) 
   if (!statuses) {
     return (
       <div className="flex items-center gap-2 text-xs text-stone-400">
-        <span className="su-scan" aria-hidden="true" /> Looking for agent programs on this computer…
+        <span className="su-scan" aria-hidden="true" /> {t("setup.agentPanel.searching")}
       </div>
     );
   }
@@ -77,14 +79,14 @@ export function AgentPanel({ draft, update }: { draft: Draft; update: Update }) 
     <div className="space-y-3">
       {unavailable && statuses[0]?.message ? <p className="su-note">{statuses[0].message}</p> : null}
       <div className="flex items-center justify-between gap-2">
-        <span className="text-xs font-medium text-stone-400">Choose the program</span>
+        <span className="text-xs font-medium text-stone-400">{t("setup.agentPanel.choose")}</span>
         <button type="button" onClick={refresh} disabled={refreshing} aria-busy={refreshing} className={ui.btnSmall}>
-          <RefreshCw className={refreshing ? "size-3.5 animate-spin" : "size-3.5"} /> Check again
+          <RefreshCw className={refreshing ? "size-3.5 animate-spin" : "size-3.5"} /> {t("setup.agentPanel.checkAgain")}
         </button>
       </div>
-      <div role="radiogroup" aria-label="Agent program" className="hx-cards stagger">
+      <div role="radiogroup" aria-label={t("setup.agentPanel.group")} className="hx-cards stagger">
         {statuses.map((status) => {
-          const pill = statusTone(status);
+          const pill = statusTone(status, t);
           const picked = draft.agent.id === status.id;
           return (
             <button
@@ -103,7 +105,7 @@ export function AgentPanel({ draft, update }: { draft: Draft; update: Update }) 
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm font-semibold text-stone-100">{status.label}</span>
                   <span className="block truncate text-[11px] text-stone-500">
-                    {status.version ? `v${status.version}` : status.installed ? "installed" : "not on this computer"}
+                    {status.version ? `v${status.version}` : status.installed ? t("setup.agentPanel.installedVersion") : t("setup.agentPanel.notOnComputer")}
                     {status.auth.plan ? ` · ${status.auth.plan}` : ""}
                   </span>
                 </span>
@@ -120,17 +122,17 @@ export function AgentPanel({ draft, update }: { draft: Draft; update: Update }) 
         <div key={chosen.id} className="reveal-height space-y-3">
           {chosen.availability === "ok" && !chosen.installed ? (
             <div className="su-row flex-col items-stretch">
-              <span className="text-sm text-stone-200">1. Install {chosen.label} on this computer</span>
-              <CopyLine text={chosen.installHint ?? ""} label="install command" />
-              <span className="text-sm text-stone-200">2. Sign it in</span>
-              <CopyLine text={chosen.signInHint ?? ""} label="sign-in command" />
-              <span className="text-xs text-stone-500">Run both in a terminal on the server&apos;s computer, then press Check again.</span>
+              <span className="text-sm text-stone-200">{t("setup.agentPanel.installStep", { agent: chosen.label })}</span>
+              <CopyLine text={chosen.installHint ?? ""} label={t("setup.agentPanel.installCommand")} />
+              <span className="text-sm text-stone-200">{t("setup.agentPanel.signInStep")}</span>
+              <CopyLine text={chosen.signInHint ?? ""} label={t("setup.agentPanel.signInCommand")} />
+              <span className="text-xs text-stone-500">{t("setup.agentPanel.runCommands")}</span>
             </div>
           ) : chosen.installed && chosen.auth.state === "signed-out" ? (
             <div className="su-row flex-col items-stretch">
-              <span className="text-sm text-stone-200">Sign {chosen.label} in on this computer</span>
-              <CopyLine text={chosen.signInHint ?? ""} label="sign-in command" />
-              <span className="text-xs text-stone-500">It opens a browser to sign in with your own plan. Then press Check again.</span>
+              <span className="text-sm text-stone-200">{t("setup.agentPanel.signInAgent", { agent: chosen.label })}</span>
+              <CopyLine text={chosen.signInHint ?? ""} label={t("setup.agentPanel.signInCommand")} />
+              <span className="text-xs text-stone-500">{t("setup.agentPanel.signInBrowser")}</span>
             </div>
           ) : chosen.message ? (
             <p className="su-note">{chosen.message}</p>
@@ -138,21 +140,20 @@ export function AgentPanel({ draft, update }: { draft: Draft; update: Update }) 
           {chosen.installed ? (
             <p className="text-xs text-stone-500">
               {chosen.path}
-              {chosen.auth.account ? ` · signed in as ${chosen.auth.account}` : ""}. It runs with none of its own tools: it can only
-              touch the table&apos;s rules engine, and this server never sees its password or key.
+              {chosen.auth.account ? ` · signed in as ${chosen.auth.account}` : ""}. {t("setup.agentPanel.accountDetail")}
             </p>
           ) : null}
           {chosen.models.length ? (
             <div className="grid gap-3 sm:grid-cols-2">
               <ModelPicker
-                label="Story model"
+                label={t("setup.agentPanel.storyModel")}
                 models={[{ id: "", label: BLANK.programDefault }, ...chosen.models.map((model) => ({ id: model.id, label: model.label }))]}
                 value={draft.agent.model}
                 recommended=""
                 onChange={(model) => setAgent({ model })}
               />
               <ModelPicker
-                label="Bookkeeping model (summaries, Ask)"
+                label={t("setup.agentPanel.utilityModel")}
                 models={[
                   { id: "", label: BLANK.utility },
                   ...[...chosen.models]

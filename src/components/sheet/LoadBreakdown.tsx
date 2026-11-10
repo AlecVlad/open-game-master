@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { formatPounds, type MeasurementSystem } from "@/lib/measurement-system";
 import { ArrowDownWideNarrow, ArrowUpNarrowWide } from "lucide-react";
 import { Dialog } from "@/components/ui/Dialog";
 import { GameIcon } from "@/components/ui/GameIcon";
@@ -34,8 +35,8 @@ const SOURCE_NOTE: Record<WeightSource, string | null> = {
   weapon: "from the SRD weapon table",
 };
 
-function pounds(value: number, places: number): string {
-  return `${Number(value.toFixed(places))} lb`;
+function pounds(value: number, places: number, system: MeasurementSystem, locale: string): string {
+  return system === "si" ? formatPounds(value, system, locale) : String(Number(value.toFixed(places))) + " lb";
 }
 
 export function LoadBreakdown({
@@ -45,6 +46,8 @@ export function LoadBreakdown({
   equipment,
   purse,
   load,
+  measurementSystem = "si",
+  tableLanguage = "english",
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -54,13 +57,15 @@ export function LoadBreakdown({
   // counts them (src/lib/srd/currency.ts purseCoins).
   purse: Purse;
   load: Encumbrance;
+  measurementSystem?: MeasurementSystem;
+  tableLanguage?: string;
 }) {
   const [key, setKey] = useState<LoadSort>("total");
   const [order, setOrder] = useState<LoadOrder>("desc");
   const lines = sortLoadLines(loadLines(equipment), key, order);
   const coins = purseCoins(purse);
   const floor = load.unweighed > 0;
-  const total = `${load.carriedLb}${floor ? "+" : ""} lb`;
+  const total = pounds(load.carriedLb, 2, measurementSystem, tableLanguage) + (floor ? "+" : "");
   return (
     <Dialog
       open={open}
@@ -74,7 +79,7 @@ export function LoadBreakdown({
           <CountPop value={total} className="font-display text-sm text-amber-100">
             {total}
           </CountPop>{" "}
-          of a {load.capacityLb} lb carrying capacity.{" "}
+          of a {pounds(load.capacityLb, 2, measurementSystem, tableLanguage)} carrying capacity.{" "}
           {floor
             ? `${load.unweighed} line${load.unweighed === 1 ? " has" : "s have"} no known weight and ${load.unweighed === 1 ? "is" : "are"} not counted, so the load is at least this.`
             : "Every line has a known weight."}
@@ -133,8 +138,8 @@ export function LoadBreakdown({
                     ) : null}
                   </th>
                   <td className="load-num">{line.qty}</td>
-                  <td className="load-num">{line.eachLb === null ? <span className="load-unknown">unknown</span> : pounds(line.eachLb, 3)}</td>
-                  <td className="load-num">{line.totalLb === null ? <span className="load-unknown">unknown</span> : pounds(line.totalLb, 2)}</td>
+                  <td className="load-num">{line.eachLb === null ? <span className="load-unknown">unknown</span> : pounds(line.eachLb, 3, measurementSystem, tableLanguage)}</td>
+                  <td className="load-num">{line.totalLb === null ? <span className="load-unknown">unknown</span> : pounds(line.totalLb, 2, measurementSystem, tableLanguage)}</td>
                 </tr>
               );
             })}
@@ -144,12 +149,12 @@ export function LoadBreakdown({
               <th scope="row">
                 <span className="block text-stone-200">Coins</span>
                 <span className="block text-[11px] text-stone-500">
-                  {formatPrice(purseCopper(purse))}, {COINS_PER_POUND} to the pound
+                  {formatPrice(purseCopper(purse))}, {measurementSystem === "si" ? (COINS_PER_POUND / 0.45359237).toFixed(1) + " per kg" : COINS_PER_POUND + " to the pound"}
                 </span>
               </th>
               <td className="load-num">{coins}</td>
-              <td className="load-num">{pounds(1 / COINS_PER_POUND, 3)}</td>
-              <td className="load-num">{pounds(coinWeightLb(coins), 2)}</td>
+              <td className="load-num">{pounds(1 / COINS_PER_POUND, 3, measurementSystem, tableLanguage)}</td>
+              <td className="load-num">{pounds(coinWeightLb(coins), 2, measurementSystem, tableLanguage)}</td>
             </tr>
             <tr className="load-sum">
               <th scope="row">Carried</th>

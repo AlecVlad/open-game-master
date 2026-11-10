@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { cn } from "@/lib/cn";
+import { formatMeasurementText, type MeasurementSystem } from "@/lib/measurement-system";
 import { dragReach } from "@/lib/battlemap/board-move";
 import type { PlayerMapView } from "@/lib/battlemap/view";
 
@@ -38,10 +39,14 @@ export function BoardMoveModes({
   mode,
   moves,
   onMode,
+  measurementSystem = "si",
+  tableLanguage = "english",
 }: {
   mode: MoveMode;
   moves: PlayerMapView["moves"];
   onMode: (mode: MoveMode) => void;
+  measurementSystem?: MeasurementSystem;
+  tableLanguage?: string;
 }) {
   if (!moves) return null;
   const options: Array<{ id: MoveMode; label: string; note: string }> = [
@@ -61,7 +66,7 @@ export function BoardMoveModes({
             role="radio"
             aria-checked={on}
             data-on={on ? "" : undefined}
-            title={option.note}
+            title={formatMeasurementText(option.note, measurementSystem, tableLanguage)}
             style={{ "--i": index } as CSSProperties}
             onClick={() => onMode(option.id)}
             className={cn(
@@ -154,6 +159,8 @@ export function BoardMoveHints({
   onMode,
   areaHint,
   caught,
+  measurementSystem = "si",
+  tableLanguage = "english",
 }: {
   moveMode: MoveMode;
   // The view's moves, or undefined when the picker is not offered.
@@ -161,22 +168,24 @@ export function BoardMoveHints({
   onMode: (mode: MoveMode) => void;
   areaHint: string | null | undefined;
   caught: string[];
+  measurementSystem?: MeasurementSystem;
+  tableLanguage?: string;
 }) {
   return (
     <>
       {moves ? (
         <div className="space-y-1">
-          <BoardMoveModes mode={moveMode} moves={moves} onMode={onMode} />
+          <BoardMoveModes mode={moveMode} moves={moves} onMode={onMode} measurementSystem={measurementSystem} tableLanguage={tableLanguage} />
           {moveModeHint(moveMode, moves) ? (
             <p key={moveMode} className="animate-fade-up text-[11px] leading-4 text-amber-200/80">
-              {moveModeHint(moveMode, moves)}
+              {formatMeasurementText(moveModeHint(moveMode, moves), measurementSystem, tableLanguage)}
             </p>
           ) : null}
         </div>
       ) : null}
       {areaHint ? (
         <p key={areaHint} className="animate-fade-up text-[11px] leading-4 text-amber-200/90">
-          {areaHint}
+          {formatMeasurementText(areaHint, measurementSystem, tableLanguage)}
           {caught.length ? <span className="text-stone-400"> Catches {caught.join(", ")}.</span> : null}
         </p>
       ) : null}

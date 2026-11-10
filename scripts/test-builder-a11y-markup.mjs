@@ -7,6 +7,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import { register } from "node:module";
 
+register("./lib/register-alias.mjs", import.meta.url);
 register("./lib/register-dialog-inline.mjs", import.meta.url);
 const { createElement } = await import("react");
 const { renderToStaticMarkup } = await import("react-dom/server");
@@ -31,7 +32,8 @@ const read = (path) => fs.readFileSync(new URL(`../${path}`, import.meta.url), "
 
   // The Appearance box is on the identity step, the last before the summary (backlog F4).
   const identity = read("src/app/characters/builder/steps/IdentityStep.tsx");
-  const appearance = identity.slice(identity.indexOf('<Field label="Appearance"'), identity.indexOf("</Field>", identity.indexOf('<Field label="Appearance"')));
+  const appearanceStart = identity.indexOf('<Field label={t("builder.id.look")}');
+  const appearance = identity.slice(appearanceStart, identity.indexOf("</Field>", appearanceStart));
   assert.ok(appearance.includes("captionId={appearanceId}"), "the Appearance field names its caption");
   assert.ok(appearance.includes("aria-labelledby={appearanceId}"), "the Appearance textarea is labelled by its caption");
   console.log("ok: builder field captions name their fields (B11)");
@@ -77,7 +79,7 @@ const read = (path) => fs.readFileSync(new URL(`../${path}`, import.meta.url), "
   assert.ok(step.includes('role="tablist"') && step.includes('role="tabpanel"'), "the classes' tabs have a tablist and their panels");
   assert.ok(step.includes("aria-controls={") && step.includes("aria-labelledby={"), "each tab controls its panel, and each panel is named by its tab");
   assert.ok(!/phase === "book"[^\n]*role="tab/.test(step), "the spellbook switch itself is no tab");
-  assert.ok(step.includes('role="group" aria-label="Spellbook step"'), "the step switch is a labelled group");
+  assert.ok(step.includes('role="group" aria-label={t("builder.spells.wizardStep.aria")}'), "the step switch is a labelled group with a translated name");
   assert.ok(step.includes("aria-pressed={mounted && phase === key}"), "each step button says whether it is on");
   console.log("ok: spell levels and spellbook steps are toggle-button groups (B10)");
 }
@@ -92,7 +94,7 @@ const read = (path) => fs.readFileSync(new URL(`../${path}`, import.meta.url), "
   assert.ok(socket.includes("disabled={!pool}"), "an empty socket is not natively disabled");
   assert.ok(socket.includes("aria-disabled={(slot === null && held === null) || undefined}"), "an empty socket is aria-disabled");
   assert.ok(socket.includes("aria-describedby={pool ? poolNoteId : undefined}"), "the socket points at the tray's note");
-  assert.ok(socket.includes("Pick up a throw from the tray first"), "an empty socket says what to do first");
+  assert.ok(socket.includes('t("builder.extra.ability.socket.empty"'), "an empty socket has a localized instruction");
   const reroll = editor.slice(editor.indexOf("onClick={throwPool}"), editor.indexOf("Reroll", editor.indexOf("onClick={throwPool}")));
   assert.ok(reroll.includes("disabled={anyRolling || asking}"), "a shut reroll is not natively disabled");
   assert.ok(reroll.includes("aria-disabled={!rerollOpen || undefined}"), "a shut reroll is aria-disabled");

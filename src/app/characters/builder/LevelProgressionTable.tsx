@@ -266,6 +266,7 @@ export function BuilderLevelTable({
   derived: BuilderDerived;
   klass: ClassOption | undefined;
 }) {
+  const { t } = useI18n();
   // A first-level build is one row, with nothing yet to compare it to.
   if (!klass || derived.effectiveLevel <= 1) {
     return null;

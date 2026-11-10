@@ -186,6 +186,7 @@ export const ruSetup: Partial<Record<keyof typeof enSetup, string>> & Record<str
   "setup.media.comfyUsual": "По стандартному адресу ComfyUI никто не отвечает. Запустите ComfyUI (порт по умолчанию — 8188) или укажите адрес вручную.",
   "setup.media.comfyAddress": "Адрес ComfyUI",
   "setup.media.modelCheckpoint": "Файл модели (checkpoint)",
+  "setup.media.checkpointPlaceholder": "Имя файла модели SDXL в ComfyUI/models/checkpoints",
   "setup.media.checkingModels": "Проверяем установленные модели…",
   "setup.media.imageModel": "Модель изображений",
   "setup.media.checkingAddress": "Проверяем модели по этому адресу…",

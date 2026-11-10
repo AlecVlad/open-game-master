@@ -10,7 +10,7 @@ export type PortalCard = {
   id: Genre;
   name: string;
   blurb: string;
-  climate: string;
+  climate: GenrePreset["climate"];
   humansOnly: boolean;
   plate: string;
   chosen: boolean;

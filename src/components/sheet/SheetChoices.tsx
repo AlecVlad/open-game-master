@@ -3,6 +3,7 @@
 import { Check, Loader2 } from "lucide-react";
 import { useRef, useState, type CSSProperties } from "react";
 import { cn } from "@/lib/cn";
+import { formatMeasurementText, type MeasurementSystem } from "@/lib/measurement-system";
 import { replayAnimation } from "@/lib/motion/replay";
 import { featureChoices } from "@/lib/battlemap/hand-subclass";
 import { otherSpeedsLine } from "@/components/sheet/sheet-state";
@@ -12,7 +13,7 @@ import { hostOffers, useCapabilities } from "@/lib/use-capabilities";
 
 // Flying and swimming speeds a subclass grants (SheetDerived.speeds), as
 // chips under the vitals; nothing when the character has none.
-export function OtherSpeeds({ speeds }: { speeds: { fly?: number; swim?: number; climb?: number } | undefined }) {
+export function OtherSpeeds({ speeds, measurementSystem = "imperial", tableLanguage = "english" }: { speeds: { fly?: number; swim?: number; climb?: number } | undefined; measurementSystem?: MeasurementSystem; tableLanguage?: string }) {
   const lines = otherSpeedsLine(speeds);
   if (!lines.length) return null;
   return (
@@ -23,7 +24,7 @@ export function OtherSpeeds({ speeds }: { speeds: { fly?: number; swim?: number;
           style={{ "--i": index } as CSSProperties}
           className="rounded-full border border-sky-700/50 bg-sky-950/40 px-2 py-0.5 text-[11px] text-sky-200"
         >
-          {line}
+          {formatMeasurementText(line, measurementSystem, tableLanguage)}
         </span>
       ))}
     </div>

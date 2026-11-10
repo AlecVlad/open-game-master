@@ -53,6 +53,8 @@ export default function TablePage({ params }: { params: Promise<{ campaignId: st
               view={state.battleMap}
               intents={state.battleMap.intents}
               genre={state.campaign.gameSettings?.genre ?? null}
+              measurementSystem={state.campaign.gameSettings?.measurementSystem ?? "si"}
+              tableLanguage={state.campaign.gameSettings?.tableLanguage ?? "english"}
               encounter={state.encounter ?? null}
               sheets={state.sheets}
               refreshBattleMap={refreshBattleMap}

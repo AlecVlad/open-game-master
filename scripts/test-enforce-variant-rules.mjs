@@ -314,14 +314,14 @@ await test("Strictness shifts EVERY named difficulty's DC by two: a moderate che
 // every file, and the engines read nothing.
 function engineSources() {
   const root = path.resolve(import.meta.dirname, "../src/lib");
-  const skip = /schemas\/|rulesets\/|rules-logic\.ts$|tours\/|help\/|db\/rulesets\.ts$|workshop/;
+  const excluded = (relative) => relative.startsWith("schemas/") || relative.startsWith("rulesets/") || relative === "rules-logic.ts" || relative.startsWith("tours/") || relative.startsWith("help/") || relative === "db/rulesets.ts" || relative.startsWith("i18n/messages/") || relative.includes("workshop");
   const out = [];
   const walk = (dir) => {
     for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
       const full = path.join(dir, entry.name);
       if (entry.isDirectory()) {
         walk(full);
-      } else if (/\.ts$/.test(entry.name) && !skip.test(path.relative(root, full))) {
+      } else if (/\.ts$/.test(entry.name) && !excluded(path.relative(root, full).replace(/\\/g, "/"))) {
         out.push(fs.readFileSync(full, "utf8"));
       }
     }
