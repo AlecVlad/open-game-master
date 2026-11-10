@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { X } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui";
@@ -44,13 +45,6 @@ export function initialValue(field: CatalogField): Value {
   }
   return "";
 }
-
-const SHARES = [
-  { value: "full", label: "Full" },
-  { value: "half", label: "Half" },
-  { value: "double", label: "Double" },
-  { value: "none", label: "None" },
-];
 
 function hitDiceLeft(sheet: CharacterSheet): number {
   if (sheet.hitDicePools?.length) {
@@ -131,6 +125,13 @@ function ShareRows({
   sheets: CharacterSheet[];
   enemies: Enemy[];
 }) {
+  const { t } = useI18n();
+  const shares = [
+    { value: "full", label: t("campaign.dmActionFields.share.full") },
+    { value: "half", label: t("campaign.dmActionFields.share.half") },
+    { value: "double", label: t("campaign.dmActionFields.share.double") },
+    { value: "none", label: t("campaign.dmActionFields.share.none") },
+  ];
   const refOf = (row: ShareRow) => (row.enemyId ? `enemy:${row.enemyId}` : `character:${row.characterId}`);
   const taken = new Set(value.map(refOf));
   const choices: SelectOption<string>[] = [
@@ -138,13 +139,13 @@ function ShareRows({
       value: `enemy:${enemy.id}`,
       label: enemyLabel(enemy),
       icon: { kind: "glyph" as const, key: "system-bestiary" },
-      group: "Enemies",
+      group: t("campaign.dmActionFields.group.enemies"),
     })),
     ...sheets.map((sheet) => ({
       value: `character:${sheet.id}`,
       label: sheet.name,
       icon: { kind: "glyph" as const, key: "tab-characters" },
-      group: "Characters",
+      group: t("campaign.dmActionFields.group.characters"),
     })),
   ];
   const nameOf = (ref: string) => choices.find((choice) => choice.value === ref)?.label ?? ref;
@@ -163,14 +164,14 @@ function ShareRows({
             <span className="min-w-0 grow truncate text-sm text-stone-200">{nameOf(refOf(row))}</span>
             <SegmentedControl
               size="sm"
-              label={`Share for ${nameOf(refOf(row))}`}
-              options={SHARES}
+              label={t("campaign.dmActionFields.share.for", { name: nameOf(refOf(row)) })}
+              options={shares}
               value={row.share}
               onChange={(share) => onChange(value.map((entry, at) => (at === index ? { ...entry, share } : entry)))}
             />
             <button
               type="button"
-              aria-label={`Take ${nameOf(refOf(row))} off`}
+              aria-label={t("campaign.dmActionFields.share.remove", { name: nameOf(refOf(row)) })}
               onClick={() => onChange(value.filter((_, at) => at !== index))}
               className={cn(ui.btnSmall, "min-h-9 px-2")}
             >
@@ -183,11 +184,11 @@ function ShareRows({
         value=""
         onChange={add}
         options={[
-          { value: "", label: "Add a creature" },
+          { value: "", label: t("campaign.dmActionFields.share.addCreature") },
           ...choices.map((choice) => ({ ...choice, disabled: taken.has(choice.value) })),
         ]}
-        label={`Add to ${field.label}`}
-        placeholder="Add a creature"
+        label={t("campaign.dmActionFields.share.addTo", { field: field.label })}
+        placeholder={t("campaign.dmActionFields.share.addCreature")}
       />
     </div>
   );
@@ -202,6 +203,7 @@ function HitDiceRows({
   onChange: (value: Value) => void;
   sheets: CharacterSheet[];
 }) {
+  const { t } = useI18n();
   const diceFor = (id: string) => value.find((row) => row.characterId === id)?.dice ?? 0;
   const set = (id: string, dice: number) =>
     onChange([...value.filter((row) => row.characterId !== id), ...(dice > 0 ? [{ characterId: id, dice }] : [])]);
@@ -214,7 +216,7 @@ function HitDiceRows({
             <span className="min-w-0 grow">
               <span className="block truncate text-sm text-stone-200">{sheet.name}</span>
               <span className="block text-[11px] text-stone-500">
-                {left ? `${left} left, ${sheet.hitDice.die}` : "No hit dice left"}
+                {left ? t("campaign.dmActionFields.hitDice.left", { left, die: sheet.hitDice.die }) : t("campaign.dmActionFields.hitDice.none")}
               </span>
             </span>
             <NumberStepper
@@ -223,7 +225,7 @@ function HitDiceRows({
               min={0}
               max={Math.min(20, left)}
               disabled={left === 0}
-              label={`Hit dice for ${sheet.name}`}
+              label={t("campaign.dmActionFields.hitDice.for", { name: sheet.name })}
               onChange={(dice) => set(sheet.id, dice)}
             />
           </li>
@@ -292,6 +294,7 @@ export function FieldInput({
   // Summon a pet's creatures, and the kind of pet the form holds.
   pets?: { catalogue: PetFormCatalogue | null; kind: string };
 }) {
+  const { t } = useI18n();
   switch (field.kind) {
     case "petForm":
       // The creatures the engine takes for this kind of pet; only a story pet
@@ -299,11 +302,11 @@ export function FieldInput({
       return (
         <PickOrType
           key={pets?.kind ?? ""}
-          field={{ ...field, other: petFormTyped(pets?.kind ?? "") ? { label: "Not in the list", placeholder: "clockwork crow" } : undefined }}
+          field={{ ...field, other: petFormTyped(pets?.kind ?? "") ? { label: t("campaign.dmActionFields.pet.notInList"), placeholder: t("campaign.dmActionFields.pet.example") } : undefined }}
           value={String(value ?? "")}
           onChange={onChange}
           options={petFormOptions(pets?.kind ?? "", pets?.catalogue ?? null)}
-          placeholder={pets?.kind ? "Pick a creature" : "Pick the kind first"}
+          placeholder={pets?.kind ? t("campaign.dmActionFields.pet.pickCreature") : t("campaign.dmActionFields.pet.pickKindFirst")}
         />
       );
     case "summonKind": {
@@ -339,14 +342,14 @@ export function FieldInput({
       // The empty row stays in the list, as it did in the browser's own
       // select, so a picked target can be unpicked.
       const options: SelectOption<string>[] = [
-        { value: "", label: "Pick a character" },
+        { value: "", label: t("campaign.dmActionFields.character.pick") },
         ...sheets.map((sheet) => ({
           value: sheet.id,
           label: sheet.name,
           icon: { kind: "glyph" as const, key: "tab-characters" },
         })),
       ];
-      return <Select value={String(value ?? "")} onChange={onChange} options={options} label={field.label} placeholder="Pick a character" />;
+      return <Select value={String(value ?? "")} onChange={onChange} options={options} label={field.label} placeholder={t("campaign.dmActionFields.character.pick")} />;
     }
     case "characters":
       return (
@@ -355,7 +358,7 @@ export function FieldInput({
           picked={Array.isArray(value) ? (value as string[]) : []}
           choices={sheets.map((sheet) => ({ id: sheet.id, name: sheet.name }))}
           onChange={onChange}
-          empty="Nobody has a character yet."
+          empty={t("campaign.dmActionFields.character.none")}
         />
       );
     case "enemies":
@@ -365,19 +368,19 @@ export function FieldInput({
           picked={Array.isArray(value) ? (value as string[]) : []}
           choices={enemies.map((enemy) => ({ id: enemy.id, name: enemyLabel(enemy) }))}
           onChange={onChange}
-          empty="No enemy is standing."
+          empty={t("campaign.dmActionFields.enemy.none")}
         />
       );
     case "enemy": {
       const options: SelectOption<string>[] = [
-        { value: "", label: "Pick an enemy" },
+        { value: "", label: t("campaign.dmActionFields.enemy.pick") },
         ...enemies.map((enemy) => ({
           value: enemy.id,
           label: enemyLabel(enemy),
           icon: { kind: "glyph" as const, key: "system-bestiary" },
         })),
       ];
-      return <Select value={String(value ?? "")} onChange={onChange} options={options} label={field.label} placeholder="Pick an enemy" />;
+      return <Select value={String(value ?? "")} onChange={onChange} options={options} label={field.label} placeholder={t("campaign.dmActionFields.enemy.pick")} />;
     }
     case "combatant":
       return (
@@ -385,19 +388,19 @@ export function FieldInput({
           field={field}
           value={String(value ?? "")}
           onChange={onChange}
-          placeholder="Pick who"
+          placeholder={t("campaign.dmActionFields.combatant.pick")}
           options={[
             ...sheets.map((sheet) => ({
               value: sheet.id,
               label: sheet.name,
               icon: { kind: "glyph" as const, key: "tab-characters" },
-              group: "Characters",
+              group: t("campaign.dmActionFields.group.characters"),
             })),
             ...enemies.map((enemy) => ({
               value: enemy.id,
               label: enemyLabel(enemy),
               icon: { kind: "glyph" as const, key: "system-bestiary" },
-              group: "Enemies",
+              group: t("campaign.dmActionFields.group.enemies"),
             })),
           ]}
         />
@@ -417,15 +420,15 @@ export function FieldInput({
     case "select": {
       const options = (field.options ?? []).map((option) => ({ value: option.value, label: option.label }));
       if (field.other) {
-        return <PickOrType field={field} value={String(value ?? "")} onChange={onChange} options={options} placeholder="Not set" />;
+        return <PickOrType field={field} value={String(value ?? "")} onChange={onChange} options={options} placeholder={t("campaign.dmActionFields.select.notSet")} />;
       }
       return (
         <Select
           value={String(value ?? "")}
           onChange={onChange}
-          options={[{ value: "", label: "Not set" }, ...options]}
+          options={[{ value: "", label: t("campaign.dmActionFields.select.notSet") }, ...options]}
           label={field.label}
-          placeholder="Not set"
+          placeholder={t("campaign.dmActionFields.select.notSet")}
         />
       );
     }
@@ -439,7 +442,7 @@ export function FieldInput({
           max={field.max}
           onChange={onChange}
           label={field.label}
-          emptyHint="Not set"
+          emptyHint={t("campaign.dmActionFields.select.notSet")}
         />
       );
     case "longtext":
