@@ -24,10 +24,20 @@ export function localizeCatalogField(field: CatalogField, entryName: string, t: 
     ...(field.help ? { help: displayText(t, `${base}.help`, field.help) } : {}),
     ...(field.options
       ? {
-          options: field.options.map((option) => ({
-            ...option,
-            label: displayText(t, `${base}.option.${option.value}`, option.label),
-          })),
+          options: field.options.map((option) => {
+            let fallback = option.label;
+            if (entryName === "afflict" && field.name === "name") {
+              if (fallback.startsWith("Disease: ")) {
+                fallback = `${displayText(t, "campaign.dmCatalog.afflict.optionPrefix.disease", "Disease")}: ${fallback.slice("Disease: ".length)}`;
+              } else if (fallback.startsWith("Poison: ")) {
+                fallback = `${displayText(t, "campaign.dmCatalog.afflict.optionPrefix.poison", "Poison")}: ${fallback.slice("Poison: ".length)}`;
+              }
+            }
+            return {
+              ...option,
+              label: displayText(t, `${base}.option.${option.value}`, fallback),
+            };
+          }),
         }
       : {}),
     ...(field.other
