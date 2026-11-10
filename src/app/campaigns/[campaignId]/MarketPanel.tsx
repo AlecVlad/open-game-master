@@ -1,6 +1,6 @@
 "use client";
 
-import { findLostCreate, readLoad, readWrite, UNREACHABLE, useLoadStatus } from "@/lib/load-state";
+import { findLostCreate, readLoad, readWrite, useLoadStatus } from "@/lib/load-state";
 import { EmptyState } from "@/components/EmptyState";
 import { ChevronDown, Info, Pencil, Plus, Trash2 } from "lucide-react";
 import { ContextMenu, type ContextMenuItem } from "@/components/ui/ContextMenu";
@@ -237,7 +237,7 @@ export function MarketPanel({
       } catch {
         // The trade may have gone through before the answer was lost: the
         // shelf and the purse are read again before anything is tried twice.
-        setWriteError(`${UNREACHABLE} The shelf is read again; check it before trying again.`);
+        setWriteError(t("campaign.market.tradeUnreachable"));
         setReload((current) => current + 1);
         return;
       }
@@ -245,11 +245,11 @@ export function MarketPanel({
       if (!response.ok && data.unpriced === true) {
         setUnpriced({ shop: shop.name, item });
       } else if (!response.ok) {
-        setError(String(data.error ?? "The keeper shakes their head."));
+        setError(String(data.error ?? t("campaign.market.keeperRejects")));
       } else if (action === "haggle") {
         // The haggler's new markup against the shop's own: equal when the
         // step met an end of the ladder.
-        setError(haggleOutcome(Number(data.result?.steps) || 0, Number(data.result?.markup) !== shop.markup, String(data.result?.prices ?? "")));
+        setError(haggleOutcome(Number(data.result?.steps) || 0, Number(data.result?.markup) !== shop.markup, String(data.result?.prices ?? ""), t));
       }
       setReload((current) => current + 1);
     } finally {
@@ -339,7 +339,7 @@ export function MarketPanel({
           open
           onOpenChange={(open) => !open && setDetails(null)}
           title={details.itemName}
-          meta={`${formatPrice(details.askingCp)} here, ${details.qty} on the shelf`}
+          meta={t("campaign.market.detailsMeta", { price: formatPrice(details.askingCp), qty: details.qty })}
           note={details.note || undefined}
           reference={{ kind: "items", slug: contentSlug(details.itemName), name: details.itemName }}
           icon={cardArtwork({ kind: "item", key: details.itemName, family: "item-gear" })}
@@ -365,7 +365,7 @@ export function MarketPanel({
         <p role="status" className="live-in flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-amber-300/90">
           <span className="min-w-0">{t("campaign.market.unpricedNotice", { item: unpriced.item })}</span>
           {onAskKeeper ? (
-            <KitButton onClick={() => onAskKeeper(`I offer my ${unpriced.item} to the keeper of ${unpriced.shop} and ask what they would pay.`)}>
+            <KitButton onClick={() => onAskKeeper(t("campaign.market.askSellerPrompt", { item: unpriced.item, shop: unpriced.shop }))}>
               {t("campaign.market.askAtCounter")}
             </KitButton>
           ) : null}
