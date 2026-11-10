@@ -2250,7 +2250,7 @@ export const enCampaignPanels = {
   "campaign.market.haggledDown": "You haggled here: your prices are {prices}.",
   "campaign.market.haggledHeld": "You haggled here: the keeper held firm.",
   "campaign.market.haggledTooHard": "You haggled here and pushed too hard: your prices are {prices}.",
-  "campaign.market.haggleRules": "Тorgue is a Persuasion check against DC {dc}: win and your prices drop a step, fail and they stay where they were, fail by 5 or more and they rise a step. One try each, and the price you get is yours, not the whole party's. The menu beside Haggle offers Intimidation and Deception instead.",
+  "campaign.market.haggleRules": "Haggling is a Persuasion check against DC {dc}: win and your prices drop a step, fail and they stay where they were, fail by 5 or more and they rise a step. One try each, and the price you get is yours, not the whole party's. The menu beside Haggle offers Intimidation and Deception instead.",
   "campaign.market.shopAwayNamed": "The party is not at {place}. Its shelf is for looking until they get there.",
   "campaign.market.shopAwayUnknown": "This shop has no place yet. Its shelf is for looking until it opens where the party is.",
   "campaign.market.details": "Details",
