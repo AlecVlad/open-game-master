@@ -19,6 +19,7 @@ export const ruSetup: Partial<Record<keyof typeof enSetup, string>> & Record<str
   "setup.wizard.title": "Настройка сервера",
   "setup.wizard.saving": "Сохранение",
   "setup.wizard.begin": "Начать",
+  "setup.wizard.continue": "Продолжить",
   "setup.wizard.startCampaign": "Создать первую кампанию",
   "setup.step.welcome.label": "Добро пожаловать",
   "setup.step.welcome.eyebrow": "Добро пожаловать",
