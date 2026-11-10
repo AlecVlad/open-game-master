@@ -111,7 +111,7 @@ export function FactionsPanel({
 
   useEffect(() => {
     let cancelled = false;
-    readLoad<{ factions?: FactionView[] }>(fetch(`/api/campaigns/${campaignId}/factions`), "The factions").then((outcome) => {
+    readLoad<{ factions?: FactionView[] }>(fetch(`/api/campaigns/${campaignId}/factions`), t("campaign.factions.load.label")).then((outcome) => {
       if (cancelled) {
         return;
       }
@@ -159,7 +159,7 @@ export function FactionsPanel({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
         }),
-        "That faction could not be saved.",
+        t("campaign.factions.error.save"),
       );
       if (sent.error !== null) {
         // A new faction whose answer was lost is looked for first: the
@@ -168,7 +168,7 @@ export function FactionsPanel({
         if (sent.unanswered && creating) {
           const name = draft.name.trim();
           const reread = async () =>
-            (await readLoad<{ factions?: FactionView[] }>(fetch(`/api/campaigns/${campaignId}/factions`), "The factions")).payload?.factions ?? null;
+            (await readLoad<{ factions?: FactionView[] }>(fetch(`/api/campaigns/${campaignId}/factions`), t("campaign.factions.load.label"))).payload?.factions ?? null;
           const found = await findLostCreate(loaded ? factions : null, reread, (faction) => faction.name === name);
           setReload((current) => current + 1);
           if (found === "made") {
@@ -198,7 +198,7 @@ export function FactionsPanel({
       return;
     }
     setError("");
-    const sent = await readWrite(fetch(`/api/campaigns/${campaignId}/factions/${faction.id}`, { method: "DELETE" }), "That faction could not be taken out.");
+    const sent = await readWrite(fetch(`/api/campaigns/${campaignId}/factions/${faction.id}`, { method: "DELETE" }), t("campaign.factions.error.remove"));
     setError(sent.error ?? "");
     setReload((current) => current + 1);
   }
@@ -211,20 +211,20 @@ export function FactionsPanel({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ standing }),
       }),
-      "The standing could not be changed.",
+      t("campaign.factions.error.standing"),
     );
     setError(sent.error ?? "");
     setReload((current) => current + 1);
   }
 
   if (factions === null) {
-    return loadError ? <LoadFailed error={loadError} onRetry={() => setReload((current) => current + 1)} /> : <PanelLoading label="Reading the banners..." />;
+    return loadError ? <LoadFailed error={loadError} onRetry={() => setReload((current) => current + 1)} /> : <PanelLoading label={t("campaign.factions.loading")} />;
   }
   return (
     <div className="space-y-2">
       {loaded && loadError ? <LoadFailed error={loadError} onRetry={() => setReload((current) => current + 1)} /> : null}
       <SectionHead
-        title="Factions"
+        title={t("campaign.factions.title")}
         glyph="tab-factions"
         aside={
           steersStory && editing === null ? (
@@ -236,7 +236,7 @@ export function FactionsPanel({
               }}
               data-tour="factions-add"
             >
-              <Plus className="size-3.5" /> Add one
+              <Plus className="size-3.5" /> {t("campaign.factions.addOne")}
             </KitButton>
           ) : factions.length ? (
             factions.length
@@ -246,31 +246,31 @@ export function FactionsPanel({
       {error ? <PanelError>{error}</PanelError> : null}
       {editing !== null ? (
         <div className="panel reveal space-y-1.5 rounded-lg p-2.5">
-          <input value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} maxLength={80} placeholder="The Reed Court" aria-label="Faction name" className={panelField} />
-          <DictateField label="What the table knows of them" onTranscript={(text) => setDraft((current) => ({ ...current, blurb: appendDictation(current.blurb, text, 400) }))}>
-            <textarea value={draft.blurb} onChange={(event) => setDraft({ ...draft, blurb: event.target.value })} rows={2} maxLength={400} placeholder="What the table knows of them" aria-label="What the table knows of them" className={panelField} />
+          <input value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} maxLength={80} placeholder={t("campaign.factions.name.placeholder")} aria-label={t("campaign.factions.name.label")} className={panelField} />
+          <DictateField label={t("campaign.factions.blurb.label")} onTranscript={(text) => setDraft((current) => ({ ...current, blurb: appendDictation(current.blurb, text, 400) }))}>
+            <textarea value={draft.blurb} onChange={(event) => setDraft({ ...draft, blurb: event.target.value })} rows={2} maxLength={400} placeholder={t("campaign.factions.blurb.label")} aria-label={t("campaign.factions.blurb.label")} className={panelField} />
           </DictateField>
-          <DictateField label="What they want" onTranscript={(text) => setDraft((current) => ({ ...current, goal: appendDictation(current.goal, text, 400) }))}>
-            <textarea value={draft.goal} onChange={(event) => setDraft({ ...draft, goal: event.target.value })} rows={2} maxLength={400} placeholder="What they want (only you read this)" aria-label="What they want (only you read this)" className={cn(panelField, "border-violet-900/60 focus:border-violet-500/70")} />
+          <DictateField label={t("campaign.factions.goal.label")} onTranscript={(text) => setDraft((current) => ({ ...current, goal: appendDictation(current.goal, text, 400) }))}>
+            <textarea value={draft.goal} onChange={(event) => setDraft({ ...draft, goal: event.target.value })} rows={2} maxLength={400} placeholder={t("campaign.factions.goal.placeholder")} aria-label={t("campaign.factions.goal.placeholder")} className={cn(panelField, "border-violet-900/60 focus:border-violet-500/70")} />
           </DictateField>
-          <div data-pill-group="" role="group" aria-label="Attitude" className="flex flex-wrap items-center gap-1">
+          <div data-pill-group="" role="group" aria-label={t("campaign.factions.attitude.label")} className="flex flex-wrap items-center gap-1">
             {FACTION_ATTITUDES.map((attitude) => (
               <button data-on={draft.attitude === attitude ? "" : undefined} key={attitude} type="button" aria-pressed={draft.attitude === attitude} onClick={() => setDraft({ ...draft, attitude })} className="pk-pill pk-tap motion-press capitalize">
                 <GameIcon icon={{ kind: "glyph", key: attitudeGlyph(attitude) }} size="size-4" />
-                {attitude}
+                {attitudeLabels[attitude]}
               </button>
             ))}
           </div>
           <div className="flex items-center gap-2 text-xs text-stone-400">
-            <span>Power</span>
-            <Slider min={0} max={5} value={draft.power} onChange={(power) => setDraft({ ...draft, power })} label="Power" className="min-w-0 flex-1" />
+            <span>{t("campaign.factions.power.label")}</span>
+            <Slider min={0} max={5} value={draft.power} onChange={(power) => setDraft({ ...draft, power })} label={t("campaign.factions.power.label")} className="min-w-0 flex-1" />
             <span key={draft.power} className="count-pop w-4 text-right tabular-nums text-stone-200">{draft.power}</span>
           </div>
-          <input value={draft.tags} onChange={(event) => setDraft({ ...draft, tags: event.target.value })} placeholder="Tags, comma separated" aria-label="Tags, comma separated" className={panelField} />
+          <input value={draft.tags} onChange={(event) => setDraft({ ...draft, tags: event.target.value })} placeholder={t("campaign.factions.tags.placeholder")} aria-label={t("campaign.factions.tags.placeholder")} className={panelField} />
           <LoreImageField imagePath={draft.portraitPath} onChange={(portraitPath) => setDraft({ ...draft, portraitPath })} />
           <div className="flex gap-1.5">
             <KitButton tone="primary" disabled={busy || !draft.name.trim()} busy={busy} onClick={() => void save()}>
-              {editing === "new" ? "Add" : "Save"}
+              {editing === "new" ? t("campaign.factions.action.add") : t("campaign.factions.action.save")}
             </KitButton>
             <KitButton
               onClick={() => {
@@ -278,7 +278,7 @@ export function FactionsPanel({
                 setError("");
               }}
             >
-              <X className="size-3.5" /> Cancel
+              <X className="size-3.5" /> {t("campaign.factions.action.cancel")}
             </KitButton>
             {onWorldEntry && editing !== "new" ? <WorldEntryLink onOpen={() => onWorldEntry(editing)} /> : null}
           </div>
@@ -287,12 +287,12 @@ export function FactionsPanel({
       {!factions.length && editing === null ? <EmptyState
           size="sm"
           art="board"
-          title="No factions yet. The powers of this world are unnamed."
+          title={t("campaign.factions.empty.title")}
           hint={
             steersStory
               ? workshop
-                ? "Name each power, what the table knows of it, what it wants and how it starts out toward the party."
-                : "Name each power, what the table knows of it and what it wants, and set where the party stands with it."
+                ? t("campaign.factions.empty.hint.workshop")
+                : t("campaign.factions.empty.hint.session")
               : undefined
           }
         /> : null}
@@ -326,8 +326,8 @@ export function FactionsPanel({
                 <div className="min-w-0 flex-1">
                   <p className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-sm font-medium text-stone-100">
                     <span className="min-w-0 truncate">{faction.name}</span>
-                    <GlyphChip glyph={attitudeGlyph(faction.attitude)} className="capitalize">{faction.attitude}</GlyphChip>
-                    {faction.power !== undefined ? <span className="text-[11px] font-normal text-violet-300">power {faction.power}</span> : null}
+                    <GlyphChip glyph={attitudeGlyph(faction.attitude)} className="capitalize">{attitudeLabels[faction.attitude]}</GlyphChip>
+                    {faction.power !== undefined ? <span className="text-[11px] font-normal text-violet-300">{t("campaign.factions.power.value", { power: faction.power })}</span> : null}
                   </p>
                   {faction.blurb ? <p className="reveal text-xs leading-5 text-stone-400">{faction.blurb}</p> : null}
                   {faction.goal ? <p className="reveal text-xs italic leading-5 text-violet-300/80">Goal: {faction.goal}</p> : null}
@@ -347,19 +347,19 @@ export function FactionsPanel({
                           )}
                         />
                       ))}
-                      <span key={faction.standing} className="count-pop ml-1 text-[11px] text-stone-400">{reputationLabel(faction.standing)}</span>
+                      <span key={faction.standing} className="count-pop ml-1 text-[11px] text-stone-400">{localReputation(reputationLabel(faction.standing))}</span>
                     </div>
                   ) : null}
                   {faction.members.length ? (
-                    <p className="reveal mt-1 text-[11px] text-stone-500">Members: {faction.members.map((member) => member.name).join(", ")}</p>
+                    <p className="reveal mt-1 text-[11px] text-stone-500">{t("campaign.factions.members", { members: faction.members.map((member) => member.name).join(", ") })}</p>
                   ) : null}
                 </div>
                 {steersStory ? (
                   <span className="flex shrink-0 flex-col items-center gap-0.5">
                     <KitButton onClick={() => startEdit(faction)}>
-                      <Pencil className="size-3" /> Edit
+                      <Pencil className="size-3" /> {t("campaign.factions.menu.edit")}
                     </KitButton>
-                    <KitButton tone="iconDanger" always onClick={() => void remove(faction)} aria-label={`Remove ${faction.name}`}>
+                    <KitButton tone="iconDanger" always onClick={() => void remove(faction)} aria-label={t("campaign.factions.menu.remove", { name: faction.name })}>
                       <Trash2 className="size-3.5" />
                     </KitButton>
                   </span>
