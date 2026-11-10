@@ -2530,7 +2530,7 @@ export const ruCampaignPanels: Partial<Record<keyof typeof enCampaignPanels, str
   "campaign.dmWorkbench.budget.creaturesAgainstParty.one": "Состав противников: {count}; группа: {characters}. {note}",
   "campaign.dmWorkbench.budget.creaturesAgainstParty.few": "Состав противников: {count}; группа: {characters}. {note}",
   "campaign.dmWorkbench.budget.creaturesAgainstParty.many": "Состав противников: {count}; группа: {characters}. {note}",
-  "campaign.dmWorkbench.budget.creaturesAgainstParty.other": "Состав противников: {count}; группа: {characters}. {note},
+  "campaign.dmWorkbench.budget.creaturesAgainstParty.other": "Состав противников: {count}; группа: {characters}. {note}",
   "campaign.dmWorkbench.characters.one": "1 персонаж",
   "campaign.dmWorkbench.characters.few": "{count} персонажа",
   "campaign.dmWorkbench.characters.many": "{count} персонажей",
