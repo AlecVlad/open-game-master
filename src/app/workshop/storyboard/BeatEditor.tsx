@@ -71,8 +71,24 @@ export function BeatEditor({
   // held until it fits (issue #302): the server refuses it the same way.
   // The readability note is a heuristic the author may dismiss; the text
   // is never changed.
-  const overflow = overflowLine("This card's text", edit.body.trim(), BODY_MAX);
+  const trimmedBody = edit.body.trim();
+  const overflow = trimmedBody.length > BODY_MAX;
+  const lost = trimmedBody.slice(BODY_MAX).trim();
+  const shownLoss = lost.length > 60 ? lost.slice(0, 60).trimEnd() + "..." : lost;
+  const overflowText = overflow
+    ? t("campaign.storyboard.overflow", {
+        length: trimmedBody.length.toLocaleString(lang),
+        max: BODY_MAX.toLocaleString(lang),
+        lost: shownLoss ? ': "' + shownLoss + '"' : "",
+      })
+    : "";
   const prose = checkProse(edit.body);
+  const proseMessages = prose.map((warning) => {
+    const count = Number(warning.message.match(/^\\d+/)?.[0] ?? 0);
+    if (warning.kind === "joined-sentences") return t("campaign.storyboard.prose.joined", { count });
+    if (warning.kind === "long-run") return t("campaign.storyboard.prose.longRun", { count, letters: 28 });
+    return t("campaign.storyboard.prose.fewSpaces");
+  });
   const [dismissed, setDismissed] = useState("");
   const proseKey = prose.map((warning) => warning.kind).join(",");
   const saveButton = (
@@ -129,15 +145,15 @@ export function BeatEditor({
         </span>
         {overflow ? (
           <span className="motion-shake w-full text-red-400" role="alert">
-            {overflow} Shorten it to save.
+            {overflowText} {t("campaign.storyboard.shortenToSave")}
           </span>
         ) : null}
         {prose.length && dismissed !== proseKey ? (
           <span className="reveal flex w-full items-start gap-1.5 text-amber-300/90" data-testid="prose-warning">
             <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
             <span>
-              {t("campaign.storyboard.prose.intro")} {prose.map((warning) => warning.message).join(" ")}
-              {prose[0].samples[0] ? ` For example: ${prose[0].samples[0]}` : ""} {t("campaign.storyboard.prose.keptUnchanged")}{" "}
+              {t("campaign.storyboard.prose.intro")} {proseMessages.join(" ")}
+              {prose[0].samples[0] ? ` ${t("campaign.storyboard.prose.example", { sample: prose[0].samples[0] })}` : ""} {t("campaign.storyboard.prose.keptUnchanged")}{" "}
               <button type="button" onClick={() => setDismissed(proseKey)} className="underline">
                 {t("campaign.storyboard.dismiss")}
               </button>
