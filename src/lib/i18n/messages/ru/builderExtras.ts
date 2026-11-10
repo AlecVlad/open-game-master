@@ -180,6 +180,7 @@ export const ruBuilderExtras: Partial<Record<keyof typeof enBuilderExtras, strin
   "builder.extra.lineage.trait.cantrip.few": "На этом шаге выберите {count} заговора из списка «{list}».",
   "builder.extra.lineage.trait.cantrip.many": "На этом шаге выберите {count} заговоров из списка «{list}».",
   "builder.extra.lineage.trait.cantrip.other": "На этом шаге выберите {count} заговора из списка «{list}».",
+  "builder.extra.lineage.trait.skill.among": " из списка: {skills}",
   "builder.extra.lineage.trait.skill.one": "На этом шаге выберите один навык{among}.",
   "builder.extra.lineage.trait.skill.few": "На этом шаге выберите {count} навыка{among}.",
   "builder.extra.lineage.trait.skill.many": "На этом шаге выберите {count} навыков{among}.",
