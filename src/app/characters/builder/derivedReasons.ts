@@ -7,8 +7,15 @@ import { formatPrice } from "@/lib/srd/currency";
 import { describeWealthDice, startingWealthDice } from "@/lib/srd/starting-wealth";
 import type { PurseView } from "./EquipmentSection";
 import type { TableRulesState } from "./useTableRules";
+import type { Params } from "@/lib/i18n/core";
+import type { MessageKey } from "@/lib/i18n/messages";
 
 export type DerivedLine = { value: string; reason: string };
+
+export type BuildMathMessages = {
+  t?: (key: MessageKey, params?: Params) => string;
+  tp?: (key: string, count: number, params?: Params) => string;
+};
 
 export function hitPointsLine(input: {
   hitDie: number;
@@ -23,7 +30,7 @@ export function hitPointsLine(input: {
   // A class list's dice (backlog F9), the first class's first: each later
   // level counts its own class's die.
   dice?: number[];
-}): DerivedLine {
+}, messages?: BuildMathMessages): DerivedLine {
   const { hitDie, level, maxHp, range, method } = input;
   const mixed = new Set(input.dice ?? []).size > 1;
   if (input.kept) {
