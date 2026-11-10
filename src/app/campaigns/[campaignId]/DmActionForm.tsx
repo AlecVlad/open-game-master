@@ -25,6 +25,7 @@ import { holdConsoleOutcome } from "@/app/campaigns/[campaignId]/ConsoleOutcomeB
 import type { PublicEncounter } from "@/lib/db/encounter-view";
 import type { CharacterSheet } from "@/lib/schemas/sheet";
 import { useI18n } from "@/lib/i18n/provider";
+import { localizeCatalogEntry } from "@/lib/dm/catalog-ui";
 
 // One adjudication, rendered from its catalog entry. Nothing here knows what
 // any particular action does: the fields come from the catalog and the rules
@@ -98,6 +99,7 @@ export function DmActionForm({
   glyph?: string;
 }) {
   const { t } = useI18n();
+  const displayEntry = useMemo(() => localizeCatalogEntry(entry, t), [entry, t]);
   const [values, setValues] = useState<Record<string, Value>>(() =>
     Object.fromEntries(
       entry.fields.map((field) => [
@@ -116,11 +118,11 @@ export function DmActionForm({
   const capabilities = useCapabilities();
   const fields = useMemo(
     () =>
-      entry.fields
+      displayEntry.fields
         .map((field) => fieldForHost(field, (feature) => hostOffers(capabilities, feature as HostFeature)))
         .filter((field): field is CatalogField => field !== null)
         .filter((field) => !field.variant || variantRules[field.variant]),
-    [entry, capabilities, variantRules],
+    [displayEntry, capabilities, variantRules],
   );
 
   // A summoning's Kind and Each target's form read the engine's catalogue
@@ -159,8 +161,8 @@ export function DmActionForm({
     const args = argsFor(shown, values);
     // What cannot be taken back asks first (end the fight, dismiss a
     // companion, a death).
-    const question = needsConfirm(entry, args);
-    if (question && !(await appConfirm(question, { title: entry.label, actionLabel: t("campaign.dmAction.confirm.run") }))) {
+    const question = needsConfirm(displayEntry, args);
+    if (question && !(await appConfirm(question, { title: displayEntry.label, actionLabel: t("campaign.dmAction.confirm.run") }))) {
       return;
     }
     setBusy(true);
@@ -180,7 +182,7 @@ export function DmActionForm({
       const lines = describeAdjudicationResult(body.result);
       setOutcome(lines);
       // Starting a fight moves the panel to the board: the result waits there.
-      if (entry.name === "start_encounter") holdConsoleOutcome(campaignId, entry.label, lines);
+      if (entry.name === "start_encounter") holdConsoleOutcome(campaignId, displayEntry.label, lines);
       // Keep the picked character or enemy: a DM usually runs several
       // actions against the same target in a row.
       setValues((current) =>
@@ -206,8 +208,8 @@ export function DmActionForm({
       <div className="flex items-start gap-2.5">
         <GameIcon icon={{ kind: "glyph", key: glyph }} size="size-8" className="shrink-0" />
         <div className="min-w-0">
-          <p className="gold-title font-display text-sm tracking-wide">{entry.label}</p>
-          <p className="text-xs leading-snug text-stone-400">{entry.summary}</p>
+          <p className="gold-title font-display text-sm tracking-wide">{displayEntry.label}</p>
+          <p className="text-xs leading-snug text-stone-400">{displayEntry.summary}</p>
         </div>
       </div>
 
