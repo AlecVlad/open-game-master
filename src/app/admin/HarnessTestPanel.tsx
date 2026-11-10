@@ -4,16 +4,18 @@ import { Check, Loader2, Minus, PlayCircle, X } from "lucide-react";
 import { useState } from "react";
 import { ui } from "@/lib/ui";
 import { HarnessPictureTest } from "@/app/admin/HarnessPictureTest";
+import { useI18n } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages/index";
 
 type Stage = { id: string; ok: boolean | null; detail?: string };
 
-const STAGE_LABELS: Record<string, string> = {
-  found: "Found on this machine",
-  signedIn: "Signed in",
-  handshake: "Connected to the table's engine",
-  toolCall: "Called a rule and used its answer",
-  lockdown: "Kept to the table's tools only",
-  streaming: "Streamed its reply",
+const STAGE_LABELS: Record<string, MessageKey> = {
+  found: "admin.harness.test.found",
+  signedIn: "admin.harness.test.signedIn",
+  handshake: "admin.harness.test.handshake",
+  toolCall: "admin.harness.test.toolCall",
+  lockdown: "admin.harness.test.lockdown",
+  streaming: "admin.harness.test.streaming",
 };
 
 const STAGE_ORDER = ["found", "signedIn", "handshake", "toolCall", "lockdown", "streaming"];
@@ -39,6 +41,7 @@ export function HarnessTestPanel({
   onVerified: () => void;
   onAdopted?: () => void;
 }) {
+  const { t } = useI18n();
   const [testing, setTesting] = useState(false);
   const [stages, setStages] = useState<Stage[] | null>(null);
   const [error, setError] = useState("");
@@ -82,12 +85,12 @@ export function HarnessTestPanel({
           aria-busy={testing}
         >
           {testing ? <Loader2 className="size-4 animate-spin" /> : <PlayCircle className="size-4" />}
-          Test the table
+          {t("admin.harness.test.run")}
         </button>
         <span className="text-xs text-stone-500">
           {saved
-            ? "Runs one tiny real turn: start, connect, call a rule, answer. Uses a little of the plan."
-            : "Save the choice first; the test runs the program the tables will use."}
+            ? t("admin.harness.test.hint.saved")
+            : t("admin.harness.test.hint.unsaved")}
         </span>
       </div>
 
@@ -115,7 +118,7 @@ export function HarnessTestPanel({
                 </span>
                 <span>
                   <span className={state === "bad" ? "text-red-300" : state === "ok" ? "text-stone-200" : "text-stone-500"}>
-                    {STAGE_LABELS[stage.id] ?? stage.id}
+                    {t(STAGE_LABELS[stage.id] ?? "admin.harness.test.unknown")}
                   </span>
                   {stage.detail ? (
                     <span className="block text-xs text-stone-500">{stage.detail}</span>
@@ -128,11 +131,11 @@ export function HarnessTestPanel({
       ) : null}
       {passed ? (
         <p role="status" className="inline-flex items-center gap-1 text-sm text-emerald-400">
-          <Check className="tick-in size-4" /> Ready to run a table.
+          <Check className="tick-in size-4" /> {t("admin.harness.test.ready")}
         </p>
       ) : failed && !testing ? (
         <p role="alert" className="motion-shake text-sm text-red-400">
-          {failed.detail ?? "The test stopped at the step marked above."}
+          {failed.detail ?? t("admin.harness.test.stopped")}
         </p>
       ) : null}
       {error ? (
@@ -153,3 +156,5 @@ export function HarnessTestPanel({
     </div>
   );
 }
+
+[executed on device: PZLD8SRKH9OMZNV (424c96e3-c9c5-4152-a4d9-25b4c5961356)]

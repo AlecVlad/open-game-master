@@ -3,6 +3,8 @@
 import { Check, ImageIcon, Loader2, Minus, Wand2, X } from "lucide-react";
 import { useState } from "react";
 import { ui } from "@/lib/ui";
+import { useI18n } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages/index";
 
 // The agent program's picture test, painted the way the tables paint
 // (src/lib/harness/picture-test.ts): the tables' own picture door and queue,
@@ -15,10 +17,10 @@ type CampaignRow = { id: string; title: string; kind: string; backend: string; p
 type Result = { image?: { url: string }; stages?: Stage[]; campaigns?: CampaignRow[]; wouldMove?: number; error?: string };
 type Moved = { id: string; title: string; from: string; mapsTurnedOn: boolean };
 
-const STAGE_LABELS: Record<string, string> = {
-  painted: "Painted a location map through the tables' picture queue",
-  saved: "Saved where the table is sent it",
-  shape: "Came back in the map's landscape shape",
+const STAGE_LABELS: Record<string, MessageKey> = {
+  painted: "admin.harness.picture.stage.painted",
+  saved: "admin.harness.picture.stage.saved",
+  shape: "admin.harness.picture.stage.shape",
 };
 const STAGE_ORDER = ["painted", "saved", "shape"];
 
@@ -52,6 +54,7 @@ export function HarnessPictureTest({
   onVerified: () => void;
   onAdopted?: () => void;
 }) {
+  const { t } = useI18n();
   const [painting, setPainting] = useState(false);
   const [result, setResult] = useState<Result | null>(null);
   const [adopting, setAdopting] = useState(false);
@@ -69,12 +72,12 @@ export function HarnessPictureTest({
         body: JSON.stringify({ action: "picture" }),
       });
       const data = (await response.json().catch(() => ({}))) as Result;
-      setResult(response.ok && data.image ? data : { ...data, error: data.error ?? "No picture came back." });
+      setResult(response.ok && data.image ? data : { ...data, error: data.error ?? t("admin.harness.picture.err.noPicture") });
       if (response.ok && data.image) {
         onVerified();
       }
     } catch {
-      setResult({ error: "Could not reach the server." });
+      setResult({ error: t("admin.harness.picture.err.reach") });
     } finally {
       setPainting(false);
     }
@@ -91,13 +94,13 @@ export function HarnessPictureTest({
       });
       const data = (await response.json().catch(() => ({}))) as { moved?: Moved[]; error?: string };
       if (!response.ok) {
-        setAdoptError(data.error ?? "Could not switch the tables over.");
+        setAdoptError(data.error ?? t("admin.harness.picture.err.adopt"));
         return;
       }
       setMoved(data.moved ?? []);
       onAdopted?.();
     } catch {
-      setAdoptError("Could not reach the server.");
+      setAdoptError(t("admin.harness.picture.err.reach"));
     } finally {
       setAdopting(false);
     }
@@ -117,10 +120,10 @@ export function HarnessPictureTest({
       <div className="flex flex-wrap items-center gap-3">
         <button type="button" className={ui.btnSmall} onClick={paint} disabled={!saved || painting} aria-busy={painting}>
           {painting ? <Loader2 className="size-4 animate-spin" /> : <ImageIcon className="size-4" />}
-          {picturesVerified ? "Paint another test picture" : "Paint a test picture"}
+          {picturesVerified ? t("admin.harness.picture.paintAgain") : t("admin.harness.picture.paint")}
         </button>
         <span className="text-xs text-stone-500">
-          Paints one location map exactly the way a table asks for one, then checks which campaigns will use it. About a minute.
+          {t("admin.harness.picture.intro")}
         </span>
       </div>
 
@@ -143,7 +146,7 @@ export function HarnessPictureTest({
                 </span>
                 <span>
                   <span className={state === "bad" ? "text-red-300" : state === "ok" ? "text-stone-200" : "text-stone-500"}>
-                    {STAGE_LABELS[stage.id] ?? stage.id}
+                    {t(STAGE_LABELS[stage.id] ?? "admin.harness.picture.stage.unknown")}
                   </span>
                   {stage.detail ? <span className="block text-xs text-stone-500">{stage.detail}</span> : null}
                 </span>
@@ -154,10 +157,10 @@ export function HarnessPictureTest({
       ) : null}
 
       {painting ? (
-        <div className="hx-picture breathe aspect-[3/2] bg-stone-900" aria-label="Painting" />
+        <div className="hx-picture breathe aspect-[3/2] bg-stone-900" aria-label={t("admin.harness.picture.painting")} />
       ) : result?.image ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img key={result.image.url} src={result.image.url} alt="The test map" className="hx-picture aspect-[3/2]" />
+        <img key={result.image.url} src={result.image.url} alt={t("admin.harness.picture.alt")} className="hx-picture aspect-[3/2]" />
       ) : null}
 
       {result && !passed && result.error ? (
@@ -218,3 +221,5 @@ export function HarnessPictureTest({
     </div>
   );
 }
+
+[executed on device: PZLD8SRKH9OMZNV (424c96e3-c9c5-4152-a4d9-25b4c5961356)]
