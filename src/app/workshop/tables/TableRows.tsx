@@ -195,7 +195,7 @@ export function TableRows({
                   >
                     {busy === table.id ? <Loader2 className="size-3.5 animate-spin" /> : t("campaign.tableRows.roll")}
                   </button>
-                  <RowMenu items={items} label={table.name} />
+                  <RowMenu items={items} label={table.name} triggerLabel={t("common.actionsFor", { name: table.name })} />
                 </span>
               </div>
               {result?.tableId === table.id ? (
