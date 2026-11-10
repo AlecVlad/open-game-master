@@ -2366,4 +2366,8 @@ export const ruCampaignPanels: Partial<Record<keyof typeof enCampaignPanels, str
   "campaign.dmDelegation.cover.active.one": "Ведущий отошёл; ИИ ответит ещё один раз.",
   "campaign.dmDelegation.cover.active.few": "Ведущий отошёл; ИИ ответит ещё {count} раза.",
   "campaign.dmDelegation.cover.active.many": "Ведущий отошёл; ИИ ответит ещё {count} раз.",
+  "campaign.dmDelegation.monsters.other": "Действовали {count} противников. Подробности — в журнале.",
+  "campaign.dmDelegation.cover.answers.other": "{count} ответов",
+  "campaign.dmDelegation.cover.active.other": "Ведущий отошёл; ИИ ответит ещё {count} раз.",
+
 };
