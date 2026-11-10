@@ -73,12 +73,12 @@ export function hitPointsLine(input: {
   };
 }
 
-export function armorClassLine(ac: number, parts: string[] | undefined): DerivedLine {
+export function armorClassLine(ac: number, parts: string[] | undefined, messages?: BuildMathMessages): DerivedLine {
   return {
     value: String(ac),
     reason: parts?.length
-      ? `From what is worn: ${parts.join(" + ")}.`
-      : "10 plus Dexterity with nothing worn.",
+      ? (messages?.t?.("builder.extra.buildMath.reason.ac.worn", { parts: parts.join(" + ") }) ?? `From what is worn: ${parts.join(" + ")}.`)
+      : (messages?.t?.("builder.extra.buildMath.reason.ac.unarmored") ?? "10 plus Dexterity with nothing worn."),
   };
 }
 
