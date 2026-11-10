@@ -101,7 +101,7 @@ function LayerRow({ layer, ambience }: { layer: AmbienceLayerName; ambience: Amb
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex items-baseline gap-2">
-            <span className={ui.sectionEyebrow}>{LAYER_LABEL[layer]}</span>
+            <span className={ui.sectionEyebrow}>{layerTitle}</span>
             {held ? (
               <Tooltip content={t("campaign.sound.heldTooltip")}>
                 <span className="sound-held">{t("campaign.sound.held")}</span>
