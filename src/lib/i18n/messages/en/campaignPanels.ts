@@ -192,4 +192,6 @@ export const enCampaignPanels = {
   "campaign.factions.reputation.noticed": "noticed",
   "campaign.factions.reputation.trusted": "trusted",
   "campaign.factions.reputation.honoured": "honoured",
+  "campaign.factions.error.saveUnanswered": "Could not confirm the save ({error}). The list was reloaded; check it before trying again.",
+  "campaign.factions.goal.value": "Goal: {goal}",
 } satisfies Record<string, string>;
