@@ -29,7 +29,7 @@ HEAD ветки перед созданием этой контрольной т
 - `src/app/workshop/storyboard/BoardAsides.tsx`
 - новый helper `src/app/workshop/storyboard/storyboard-i18n.ts`
 
-**Это заготовка, не завершённая локализация.** В словарях `src/lib/i18n/messages/en/campaignPanels.ts` и `src/lib/i18n/messages/ru/campaignPanels.ts` на момент проверки отсутствуют ключи `campaign.storyboard.*), на которые уже ссылаются эти компоненты и helper. До добавления словарей и проверки интерфейс нельзя считать готовым.
+**Это заготовка, не завершённая локализация.** В словарях `src/lib/i18n/messages/en/campaignPanels.ts` и `src/lib/i18n/messages/ru/campaignPanels.ts` на момент проверки отсутствуют ключи `campaign.storyboard.*`, на которые уже ссылаются эти компоненты и helper. До добавления словарей и проверки интерфейс нельзя считать готовым.
 
 ### Что осталось сделать по Storyboard
 
