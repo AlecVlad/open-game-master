@@ -38,7 +38,7 @@ export function hitPointsLine(input: {
   const firstFallback = "1st level is the d" + hitDie + "'s maximum plus Constitution";
   const first = messages?.t?.("builder.extra.buildMath.reason.hp.first", { die: hitDie }) ?? firstFallback;
   if (level <= 1) {
-    return { value: String(maxHp), reason: firstFallback + "." };
+    return { value: String(maxHp), reason: first + "." };
   }
   if (mixed) {
     const dice = [...new Set(input.dice ?? [])].map((die) => "d" + die).join(", ");
