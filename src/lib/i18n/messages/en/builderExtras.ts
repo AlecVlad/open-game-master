@@ -332,7 +332,7 @@ export const enBuilderExtras = {
   "builder.extra.buildMath.working.ability.race": "race {bonus}",
   "builder.extra.buildMath.working.ability.gain": "{source} {amount}",
   "builder.extra.buildMath.working.slotTable.multiclass": "multiclass table at caster level {level}",
-  "builder.extra.buildMath.working.slotTable.class": "{klass} table at {klass} level {level}",
+  "builder.extra.buildMath.working.slotTable.class": "Spellcasting table for {klass} at level {level}",
   "builder.extra.buildMath.working.slotTable.single": "{klass} table at level {level}",
   "builder.extra.buildMath.working.spellDc": "8, proficiency {proficiency}, {ability} modifier {modifier}",
   "builder.extra.buildMath.working.spellAttack": "proficiency {proficiency}, {ability} modifier {modifier}",
