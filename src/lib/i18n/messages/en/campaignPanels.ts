@@ -2306,4 +2306,7 @@ export const enCampaignPanels = {
   "campaign.marketEditor.priceLabel": "Line {number} price",
   "campaign.marketEditor.priceExample": "15 gp, 2 sp or 5 cp",
   "campaign.market.shopNamePlaceholder": "Marla\u2019s Sundries",
+  "campaign.market.detailsMeta": "{price} here, {qty} on the shelf",
+  "campaign.market.askSellerPrompt": "I offer my {item} to the keeper of {shop} and ask what they would pay.",
+  "campaign.market.tradeUnreachable": "The server could not be reached. The shelf is being reloaded; check it before trying again.",
 } satisfies Record<string, string>;
