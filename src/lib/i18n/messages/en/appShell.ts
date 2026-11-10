@@ -1,0 +1,21 @@
+// English, the source language: shared account and app navigation.
+export const enAppShell = {
+  "appShell.home.tooltip": "Back to the app's home screen",
+  "appShell.home": "App home",
+  "appShell.menu.tooltip": "Account and app menu",
+  "appShell.account": "Account",
+  "appShell.role.admin": "Server administrator",
+  "appShell.role.adventurer": "Adventurer",
+  "appShell.menu.campaigns": "All campaigns",
+  "appShell.menu.characters": "Characters",
+  "appShell.menu.rulebook": "Rulebook",
+  "appShell.menu.friends": "Friends",
+  "appShell.menu.settings": "Settings",
+  "appShell.menu.admin": "Admin panel",
+  "appShell.menu.help": "Help",
+  "appShell.menu.aboutServer": "About this server",
+  "appShell.menu.about": "About",
+  "appShell.appSettings": "App settings",
+  "appShell.appGuide": "App guide",
+  "appShell.menu.logout": "Log out",
+} satisfies Record<string, string>;
