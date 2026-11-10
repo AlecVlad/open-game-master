@@ -394,4 +394,8 @@ export const ruCampaignPanels: Partial<Record<keyof typeof enCampaignPanels, str
   "campaign.dmOdds.roundsToDrop": "Раундов до победы над целью",
   "campaign.dmOdds.unknown": "неизвестно",
   "campaign.dmOdds.never": "никогда",
+
+  "campaign.dmConsoleParts.clear.aria": "Очистить поле «{label}»",
+  "campaign.dmConsoleParts.clear.title": "Очистить: {emptyHint}",
+  "campaign.dmConsoleParts.close": "Закрыть",
 };
