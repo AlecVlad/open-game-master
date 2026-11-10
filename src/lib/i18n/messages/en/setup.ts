@@ -17,6 +17,7 @@ export const enSetup = {
   "setup.wizard.title": "Server setup",
   "setup.wizard.saving": "Saving",
   "setup.wizard.begin": "Begin",
+  "setup.wizard.continue": "Continue",
   "setup.wizard.startCampaign": "Start your first campaign",
   "setup.step.welcome.label": "Welcome",
   "setup.step.welcome.eyebrow": "Welcome",
