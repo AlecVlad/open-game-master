@@ -390,4 +390,10 @@ export const enCampaignPanels = {
   "campaign.dmConsoleParts.clear.aria": "Clear {label}",
   "campaign.dmConsoleParts.clear.title": "Clear: {emptyHint}",
   "campaign.dmConsoleParts.close": "Close",
+
+  "campaign.dmAction.error.refused": "The engine refused that.",
+  "campaign.dmAction.error.server": "Could not reach the server.",
+  "campaign.dmAction.blocked": "Needs a fight running. Start one first.",
+  "campaign.dmAction.confirm.run": "Run it",
+  "campaign.dmAction.run": "Run",
 } satisfies Record<string, string>;
