@@ -2,6 +2,7 @@
 
 import { EmptyState } from "@/components/EmptyState";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { Plus, Trash2 } from "lucide-react";
 import { GameIcon } from "@/components/ui/GameIcon";
 import { SectionHead } from "@/components/ui/SectionHead";
@@ -12,9 +13,7 @@ import { findLostCreate, readLoad, readWrite, useLoadStatus } from "@/lib/load-s
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui";
 import {
-  BEAT_HINTS,
   BEAT_KINDS,
-  BEAT_LABELS,
   TITLE_MAX,
   routeOf,
   type Beat,
@@ -28,6 +27,7 @@ import {
 import type { CompiledBoard, CompileSummary } from "@/lib/workshop/board-compile";
 import { Sheet } from "@/components/ui/Sheet";
 import { KIND_TONE } from "@/app/workshop/storyboard/beat-fields";
+import { beatHint, beatLabel, suggestionReason, suggestionTitle } from "@/app/workshop/storyboard/storyboard-i18n";
 import { BeatBoard } from "@/app/workshop/storyboard/BeatBoard";
 import { BeatEditor } from "@/app/workshop/storyboard/BeatEditor";
 import { CompileCard, SharedWorkshopCard, SuggestionsCard } from "@/app/workshop/storyboard/BoardAsides";
@@ -82,6 +82,7 @@ export function DmStoryboardPanel({
   campaignId: string;
   layout?: "list" | "board";
 }) {
+  const { t, tp } = useI18n();
   const [data, setData] = useState<Payload | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
   const [edit, setEdit] = useState<Beat | null>(null);
@@ -106,14 +107,14 @@ export function DmStoryboardPanel({
   const { loadError, settle } = useLoadStatus();
   const load = useCallback(
     () =>
-      readLoad<Payload>(fetch(`/api/campaigns/${campaignId}/dm/storyboard`), "The storyboard").then((outcome) => {
+      readLoad<Payload>(fetch(`/api/campaigns/${campaignId}/dm/storyboard`), t("campaign.storyboard.resource")).then((outcome) => {
         if (outcome.payload) {
           setData(outcome.payload);
         }
         settle(outcome);
         return outcome.payload;
       }),
-    [campaignId, settle],
+    [campaignId, settle, t],
   );
 
   useEffect(() => {
@@ -138,7 +139,7 @@ export function DmStoryboardPanel({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ kind, title }),
         }),
-        "That card could not be added.",
+        t("campaign.storyboard.error.add"),
       );
       if (sent.error !== null && sent.unanswered) {
         // As the server keeps it (src/lib/workshop/board.ts): trimmed, cut at TITLE_MAX.
@@ -150,13 +151,13 @@ export function DmStoryboardPanel({
         );
         if (found === "made") {
           setNewTitle("");
-          setNote("Added. The server's answer was lost on the way, so the board was read again to make sure.");
+          setNote(t("campaign.storyboard.note.addedAfterRetry"));
           return;
         }
         setError(
           found === "missing"
-            ? "The server did not answer and the card is not on the board, so it was not added. Add it again."
-            : "The server could not be reached, so it is not known yet whether the card was added. Look at the board before adding it again.",
+            ? t("campaign.storyboard.error.addMissing")
+            : t("campaign.storyboard.error.addUnknown"),
         );
         return;
       }
@@ -181,10 +182,10 @@ export function DmStoryboardPanel({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(beat),
         }),
-        "That card could not be saved.",
+        t("campaign.storyboard.error.save"),
       );
       if (sent.error !== null) {
-        setError(sent.unanswered ? `${sent.error} Your changes are kept here.` : sent.error);
+        setError(sent.unanswered ? t("campaign.storyboard.error.saveUnknown", { error: sent.error }) : sent.error);
         return;
       }
       await load();
@@ -197,7 +198,7 @@ export function DmStoryboardPanel({
     setBusy(true);
     setError("");
     try {
-      const sent = await readWrite(fetch(`/api/campaigns/${campaignId}/dm/storyboard/${id}`, { method: "DELETE" }), "That card could not be deleted.");
+      const sent = await readWrite(fetch(`/api/campaigns/${campaignId}/dm/storyboard/${id}`, { method: "DELETE" }), t("campaign.storyboard.error.delete"));
       if (sent.error !== null) {
         setError(sent.error);
         // No answer: it may be gone all the same, and the board says which.
@@ -223,7 +224,7 @@ export function DmStoryboardPanel({
     return loadError ? (
       <LoadFailed error={loadError} onRetry={() => void load()} />
     ) : (
-      <div className="skeleton-block h-24 rounded-xl" aria-busy="true" aria-label="Loading the storyboard" />
+      <div className="skeleton-block h-24 rounded-xl" aria-busy="true" aria-label={t("campaign.storyboard.loading")} />
     );
   }
 
