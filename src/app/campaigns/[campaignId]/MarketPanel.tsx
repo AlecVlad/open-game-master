@@ -374,7 +374,7 @@ export function MarketPanel({
       {canPrep ? (
         opening ? (
           <div className="panel reveal flex flex-wrap items-center gap-1.5 rounded-lg p-2.5">
-            <input ref={nameRef} value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} maxLength={80} placeholder={t("campaign.market.kind.general")} aria-label={t("campaign.marketEditor.shopName")} className={cn(panelField, "min-w-[9rem] flex-1")} />
+            <input ref={nameRef} value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} maxLength={80} placeholder={t("campaign.market.shopNamePlaceholder")} aria-label={t("campaign.marketEditor.shopName")} className={cn(panelField, "min-w-[9rem] flex-1")} />
             <Select size="sm" label={t("campaign.marketEditor.kindLabel")} value={draft.kind} options={kindOptions} onChange={(kind) => setDraft({ ...draft, kind })} className="pk-w-28" />
             <Select size="sm" label={t("campaign.marketEditor.sizeLabel")} value={draft.size} options={sizeOptions} onChange={(size) => setDraft({ ...draft, size })} className="pk-w-24" />
             {places.length ? (
