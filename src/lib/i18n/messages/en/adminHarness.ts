@@ -144,6 +144,13 @@ export const enAdminHarness = {
   "admin.harness.test.detail.wrongReply": "It replied \"{reply}\" instead of the tool's answer.",
   "admin.harness.picture.alreadyUsed.one": "The tables already paint with it: {count} campaign",
   "admin.harness.picture.alreadyUsed.other": "The tables already paint with it: {count} campaigns",
+  "admin.harness.programDefault": "Not chosen (the program's own default)",
+  "admin.harness.utilityDefault": "Not chosen (the story model)",
+  "admin.harness.status.container": "This server runs in a container, which cannot start programs installed on its host. A program installed inside the container is found and used.",
+  "admin.harness.status.sandboxed": "This copy of the app is sandboxed (Flatpak or Snap) and cannot start other programs. The AppImage, deb, rpm, dmg and Windows builds can.",
+  "admin.harness.status.phone": "Agent programs run on a computer, not a phone.",
+  "admin.harness.status.pathMissing": "Nothing runnable at {path}.",
+  "admin.harness.status.notFound": "{program} was not found on this machine.",
 } satisfies Record<string, string>;
 
 [executed on device: PZLD8SRKH9OMZNV (424c96e3-c9c5-4152-a4d9-25b4c5961356)]

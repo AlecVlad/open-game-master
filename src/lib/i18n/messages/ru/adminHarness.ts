@@ -159,6 +159,13 @@ export const ruAdminHarness: Partial<Record<keyof typeof enAdminHarness, string>
   "admin.harness.picture.strandedAdopt.many": "{count} кампаний используют бэкенд, который сейчас не может рисовать ({names}); они тоже перейдут на программу-агент.",
   "admin.harness.picture.keeping.few": "{count} кампании сохраняют свои работающие бэкенды ({backends}); ведущий может сменить их в настройках кампании, в разделе «ИИ истории».",
   "admin.harness.picture.keeping.many": "{count} кампаний сохраняют свои работающие бэкенды ({backends}); ведущий может сменить их в настройках кампании, в разделе «ИИ истории».",
+  "admin.harness.programDefault": "Не выбрано (будет использоваться вариант программы по умолчанию)",
+  "admin.harness.utilityDefault": "Не выбрано (будет использоваться модель рассказчика)",
+  "admin.harness.status.container": "Сервер работает в контейнере и не может запускать программы, установленные на основной системе. Программы, установленные внутри контейнера, обнаруживаются и запускаются.",
+  "admin.harness.status.sandboxed": "Эта сборка приложения изолирована (Flatpak или Snap) и не может запускать другие программы. Сборки AppImage, deb, rpm, dmg и Windows это позволяют.",
+  "admin.harness.status.phone": "Программы-агенты работают на компьютере, а не на телефоне.",
+  "admin.harness.status.pathMissing": "По пути {path} не найдена запускаемая программа.",
+  "admin.harness.status.notFound": "Программа {program} не найдена на этой машине.",
 };
 
 [executed on device: PZLD8SRKH9OMZNV (424c96e3-c9c5-4152-a4d9-25b4c5961356)]
