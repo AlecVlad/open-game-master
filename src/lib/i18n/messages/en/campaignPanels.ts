@@ -2504,7 +2504,7 @@ export const enCampaignPanels = {
   "campaign.dmWorkbench.budget.xpEntry.one": "{count} × {name} (CR {cr}) = {xp} XP",
   "campaign.dmWorkbench.budget.xpEntry.other": "{count} × {name} (CR {cr}) = {xp} XP",
   "campaign.dmWorkbench.budget.creaturesAgainstParty.one": "{count} creature against a party of {characters}. {note}",
-  "campaign.dmWorkbench.budget.creaturesAgainstParty.other": "{count} creatures against a party of {characters}. {note},
+  "campaign.dmWorkbench.budget.creaturesAgainstParty.other": "{count} creatures against a party of {characters}. {note}",
   "campaign.dmWorkbench.characters.one": "1 character",
   "campaign.dmWorkbench.characters.other": "{count} characters",
   "campaign.dmWorkbench.party.attackLine.one": "Level {level}: {count} attack with {damage} at +{bonus} = {expected} expected damage.",
