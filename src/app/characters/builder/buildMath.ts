@@ -143,7 +143,7 @@ export function buildMathSections({ derived, scores, klass, atTable }: BuildMath
     rows: [
       { id: "ac", label: "Armor class", value: acLine.value, working: acLine.reason },
       { id: "hp", label: "Hit points", value: hpLine.value, working: hpWorking },
-      { id: "initiative", label: "Initiative", value: formatModifier(sheet.initiative), working: workingOf(sheet.parts.initiative) },
+      { id: "initiative", label: "Initiative", value: formatModifier(sheet.initiative), working: workingOf(sheet.parts.initiative, messages) },
       {
         id: "proficiency",
         label: "Proficiency bonus",
@@ -154,7 +154,7 @@ export function buildMathSections({ derived, scores, klass, atTable }: BuildMath
         id: "passive-perception",
         label: "Passive Perception",
         value: String(sheet.passivePerception),
-        working: workingOf(sheet.parts.passivePerception),
+        working: workingOf(sheet.parts.passivePerception, messages),
       },
     ],
   });
@@ -187,7 +187,7 @@ export function buildMathSections({ derived, scores, klass, atTable }: BuildMath
       id: `save-${ability}`,
       label: `${ABILITY_NAMES[ability]} save`,
       value: formatModifier(sheet.saves[ability]),
-      working: workingOf(sheet.parts.saves[ability]),
+      working: workingOf(sheet.parts.saves[ability], messages),
     })),
   });
 
@@ -198,7 +198,7 @@ export function buildMathSections({ derived, scores, klass, atTable }: BuildMath
       id: `skill-${skill.id}`,
       label: skill.name,
       value: formatModifier(sheet.skills[skill.id] ?? 0),
-      working: workingOf(sheet.parts.skills[skill.id] ?? []),
+      working: workingOf(sheet.parts.skills[skill.id] ?? [], messages),
     })),
   });
 
@@ -258,10 +258,10 @@ export function buildMathSections({ derived, scores, klass, atTable }: BuildMath
       rows: [
         ...deskRows,
         ...(sheet.spellSaveDc !== null && !perClass
-          ? [{ id: "spell-dc", label: "Spell save DC", value: String(sheet.spellSaveDc), working: workingOf(sheet.parts.spellSaveDc) }]
+          ? [{ id: "spell-dc", label: "Spell save DC", value: String(sheet.spellSaveDc), working: workingOf(sheet.parts.spellSaveDc, messages) }]
           : []),
         ...(sheet.spellAttack !== null && !perClass
-          ? [{ id: "spell-attack", label: "Spell attack", value: formatModifier(sheet.spellAttack), working: workingOf(sheet.parts.spellAttack) }]
+          ? [{ id: "spell-attack", label: "Spell attack", value: formatModifier(sheet.spellAttack), working: workingOf(sheet.parts.spellAttack, messages) }]
           : []),
         ...slotRows,
       ],
@@ -276,7 +276,7 @@ export function buildMathSections({ derived, scores, klass, atTable }: BuildMath
             label: row.name,
             value: `${formatModifier(row.weapon.toHit)} to hit, ${row.weapon.damage} ${row.weapon.damageType}`,
             working: [
-              `to hit: ${workingOf(row.weapon.toHitParts)}`,
+              `to hit: ${workingOf(row.weapon.toHitParts, messages)}`,
               `damage adds ${row.weapon.ability} modifier`,
               ...row.weapon.notes,
             ].join("; "),
