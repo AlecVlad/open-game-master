@@ -9,6 +9,8 @@ import {
 } from "@/lib/srd/encounter-math";
 import { effectiveHp, crLabel } from "@/lib/bestiary/derive-cr";
 import type { EnemyStats } from "@/lib/bestiary/statblock";
+import { translate, translatePlural, type Lang } from "@/lib/i18n/core";
+import { DICTIONARIES } from "@/lib/i18n/messages/index";
 
 // The encounter workbench: what a roster costs, and what it is likely to do.
 //
@@ -25,6 +27,14 @@ import type { EnemyStats } from "@/lib/bestiary/statblock";
 //
 // Pure: no DB, no dice, no model. The rim that fetches the roster is the
 // workbench route.
+
+function msg(lang: Lang, key: string, params?: Record<string, string | number>): string {
+  return translate(DICTIONARIES, lang, key, params);
+}
+
+function countMsg(lang: Lang, key: string, count: number, params?: Record<string, string | number>): string {
+  return translatePlural(DICTIONARIES, lang, key, count, params);
+}
 
 export type WorkbenchPart = {
   label: string;
@@ -110,7 +120,7 @@ export type BudgetReadout = {
   parts: WorkbenchPart[];
 };
 
-function budget(input: WorkbenchInput): BudgetReadout {
+function budget(input: WorkbenchInput, lang: Lang): BudgetReadout {
   const crs = input.roster.flatMap((entry) =>
     Array.from({ length: entry.count }, () => entry.stats.cr),
   );
@@ -119,9 +129,9 @@ function budget(input: WorkbenchInput): BudgetReadout {
   const thresholds = thresholdsForParty(input.partyLevels);
   const sizeNote =
     input.partyLevels.length < 3
-      ? " A party of one or two feels a pack one band harder, so the multiplier is a step up."
+      ? msg(lang, "campaign.dmWorkbench.budget.smallParty")
       : input.partyLevels.length > 5
-        ? " A party of six or more feels a pack one band easier, so the multiplier is a step down."
+        ? msg(lang, "campaign.dmWorkbench.budget.largeParty")
         : "";
   return {
     totalXp: evaluation.totalXp,
@@ -133,28 +143,41 @@ function budget(input: WorkbenchInput): BudgetReadout {
     overCeiling: input.ceiling !== undefined && evaluation.adjustedXp > input.ceiling,
     parts: [
       {
-        label: "Raw XP",
+        label: msg(lang, "campaign.dmWorkbench.budget.rawXp"),
         value: String(evaluation.totalXp),
         detail: input.roster
-          .map(
-            (entry) =>
-              `${entry.count} x ${entry.name} at CR ${crLabel(entry.stats.cr)} is ${
-                entry.count * xpForCr(entry.stats.cr)
-              }`,
+          .map((entry) =>
+            countMsg(lang, "campaign.dmWorkbench.budget.xpEntry", entry.count, {
+              name: entry.name,
+              cr: crLabel(entry.stats.cr),
+              xp: entry.count * xpForCr(entry.stats.cr),
+            }),
           )
           .join("; "),
       },
       {
-        label: "Group multiplier",
+        label: msg(lang, "campaign.dmWorkbench.budget.multiplier"),
         value: `x${multiplier}`,
-        detail: `${crs.length} creature${crs.length === 1 ? "" : "s"} against ${
-          input.partyLevels.length
-        } character${input.partyLevels.length === 1 ? "" : "s"}.${sizeNote}`,
+        detail: countMsg(lang, "campaign.dmWorkbench.budget.creaturesAgainstParty", crs.length, {
+          characters: countMsg(lang, "campaign.dmWorkbench.characters", input.partyLevels.length),
+          note: sizeNote,
+        }),
       },
       {
-        label: "Adjusted XP",
+        label: msg(lang, "campaign.dmWorkbench.budget.adjustedXp"),
         value: String(evaluation.adjustedXp),
-        detail: `${evaluation.totalXp} x ${multiplier}. The thresholds for this party are ${thresholds.easy} easy, ${thresholds.medium} medium, ${thresholds.hard} hard, ${thresholds.deadly} deadly.`,
+        detail: msg(lang, "campaign.dmWorkbench.budget.thresholds", {
+          totalXp: evaluation.totalXp,
+          multiplier,
+          easy: thresholds.easy,
+          medium: thresholds.medium,
+          hard: thresholds.hard,
+          deadly: thresholds.deadly,
+          easyLabel: msg(lang, "campaign.dmWorkbench.difficulty.easy"),
+          mediumLabel: msg(lang, "campaign.dmWorkbench.difficulty.medium"),
+          hardLabel: msg(lang, "campaign.dmWorkbench.difficulty.hard"),
+          deadlyLabel: msg(lang, "campaign.dmWorkbench.difficulty.deadly"),
+        }),
       },
     ],
   };
@@ -187,6 +210,7 @@ function partySide(
   input: WorkbenchInput,
   monsterAc: number,
   monsterHp: number,
+  lang: Lang,
 ): SideForecast {
   const rules = input.variantRules ?? {};
   let damagePerRound = 0;
@@ -202,9 +226,12 @@ function partySide(
     const perCharacter = forecast.perAttack * baseline.attacks;
     damagePerRound += perCharacter;
     lines.push(
-      `level ${level}: ${baseline.attacks} x ${baseline.damage} at +${
-        baseline.attackBonus
-      } is ${perCharacter.toFixed(1)}`,
+      countMsg(lang, "campaign.dmWorkbench.party.attackLine", baseline.attacks, {
+        level,
+        damage: baseline.damage,
+        bonus: baseline.attackBonus,
+        expected: perCharacter.toFixed(1),
+      }),
     );
   }
   const hitPoints = input.partyLevels.reduce((total, level) => total + baselineFor(level).hp, 0);
@@ -214,16 +241,20 @@ function partySide(
     rounds: roundsToDrop(monsterHp, damagePerRound),
     parts: [
       {
-        label: "Party output",
-        value: `${damagePerRound.toFixed(1)} a round`,
-        detail: `${lines.join("; ")}. Misses and crits are already counted, against the roster's average AC ${monsterAc}.`,
+        label: msg(lang, "campaign.dmWorkbench.party.output"),
+        value: msg(lang, "campaign.dmWorkbench.perRound", { damage: damagePerRound.toFixed(1) }),
+        detail: msg(lang, "campaign.dmWorkbench.party.outputDetail", {
+          lines: lines.join("; "),
+          ac: monsterAc,
+        }),
       },
       {
-        label: "Party hit points",
+        label: msg(lang, "campaign.dmWorkbench.party.hitPoints"),
         value: String(hitPoints),
-        detail: `The baseline for ${input.partyLevels.length} character${
-          input.partyLevels.length === 1 ? "" : "s"
-        } at ${[...new Set(input.partyLevels)].sort((a, b) => a - b).join(", ")}.`,
+        detail: msg(lang, "campaign.dmWorkbench.party.baseline", {
+          characters: countMsg(lang, "campaign.dmWorkbench.characters", input.partyLevels.length),
+          levels: [...new Set(input.partyLevels)].sort((a, b) => a - b).join(", "),
+        }),
       },
     ],
   };
