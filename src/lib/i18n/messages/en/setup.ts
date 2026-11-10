@@ -95,6 +95,7 @@ export const enSetup = {
   "setup.story.apiKey": "API key",
   "setup.story.keyStorageNote": "The key is stored on this server and is never shown again. Every table uses it for the AI storyteller, so the Players step can keep strangers out.",
   "setup.story.openaiKeyCoversMedia": "One OpenAI key also paints the pictures, reads the story aloud and takes dictation. The next two steps can use it without asking you to paste anything else.",
+  "setup.story.windowNeeds": "The storyteller needs a context window of at least {narration} tokens to narrate and {combat} to run fights; {recommended} or more is recommended.",
   "setup.welcome.serverName": "Name your server",
   "setup.welcome.serverNameHelp": "Shown on the sign-in page and in the apps' server lists.",
   "setup.welcome.whatWeSetUp": "What we will set up",
