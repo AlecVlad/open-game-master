@@ -75,12 +75,16 @@ export function ListTally({
   noun,
   sort,
   onSort,
+  formatCount,
+  sortLabels,
 }: {
   shown: number;
   total: number;
   noun: [one: string, many: string];
   sort: RowSort;
   onSort: (sort: RowSort) => void;
+  formatCount?: (shown: number, total: number) => string;
+  sortLabels?: { made: string; name: string };
 }) {
   if (total < LIST_HEAD_MIN) {
     return null;
@@ -99,11 +103,11 @@ export function ListTally({
   return (
     <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-stone-500">
       <span aria-live="polite">
-        {shown === total ? `${total} ${total === 1 ? noun[0] : noun[1]}` : `${shown} of ${total} ${noun[1]}`}
+        {formatCount ? formatCount(shown, total) : shown === total ? `${total} ${total === 1 ? noun[0] : noun[1]}` : `${shown} of ${total} ${noun[1]}`}
       </span>
       <span data-pill-group="" className="ml-auto flex items-center gap-1">
-        {button("made", "As made")}
-        {button("name", "By name")}
+        {button("made", sortLabels?.made ?? "As made")}
+        {button("name", sortLabels?.name ?? "By name")}
       </span>
     </div>
   );
