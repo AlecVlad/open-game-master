@@ -1960,7 +1960,6 @@ export const ruCampaignPanels: Partial<Record<keyof typeof enCampaignPanels, str
   "campaign.dmCatalog.play_sting.label": "Воспроизвести звуковой эффект",
   "campaign.dmCatalog.play_sting.summary": "Один раз воспроизводит короткий звук поверх текущего аудио. Остальные звуки не меняются.",
   "campaign.dmCatalog.play_sting.field.cue.label": "Звуковой эффект",
-  "campaign.dmCatalog.shared.option.none": "Тишина",
   // Поля звукового движка: названия cue привязаны к конкретному слою, чтобы не конфликтовать с другими терминами.
   "campaign.dmCatalog.set_ambience.field.bed.option.none": "Тишина",
   "campaign.dmCatalog.set_ambience.field.bed.option.dungeon": "Подземелье",
