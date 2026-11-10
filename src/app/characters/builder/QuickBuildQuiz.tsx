@@ -2,11 +2,12 @@
 
 import { ArrowLeft } from "lucide-react";
 import { useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages";
 import { GameIcon } from "@/components/ui/GameIcon";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui";
 import { classRoles } from "@/lib/srd/class-roles";
-import { ABILITY_LABELS } from "./AbilityEditor";
 import { abilityPriority } from "./classAbilities";
 import {
   QUIZ_METHODS,
@@ -35,21 +36,43 @@ type Question = {
   options: ReadonlyArray<{ id: string; label: string; tag?: string }>;
 };
 
-function questions(voice: QuizVoice, method: QuizAnswers["method"] | undefined): Question[] {
+function questions(voice: QuizVoice, method: QuizAnswers["method"] | undefined, t: (key: MessageKey) => string): Question[] {
+  const voiceKey = voice === "party" ? "party" : "player";
   return [
     {
       key: "role",
-      title: voice === "party" ? "What does the party need?" : "In a fight, what's your job?",
-      options: QUIZ_ROLES,
+      title: t(`builder.extra.quick.question.role.${voiceKey}` as MessageKey),
+      options: QUIZ_ROLES.map((option) => ({
+        ...option,
+        label: t(`builder.extra.playstyle.${option.id}.label` as MessageKey),
+        tag: t(`builder.extra.playstyle.${option.id}.tag` as MessageKey),
+      })),
     },
-    { key: "method", title: voice === "party" ? "How do they do it?" : "How do you do it?", options: QUIZ_METHODS },
+    {
+      key: "method",
+      title: t(`builder.extra.quick.question.method.${voiceKey}` as MessageKey),
+      options: QUIZ_METHODS.map((option) => ({
+        ...option,
+        label: t(`builder.extra.quick.method.${option.id}` as MessageKey),
+      })),
+    },
     ...(asksSource(method)
-      ? [{ key: "source" as const, title: voice === "party" ? "Where does their power come from?" : "Where does your power come from?", options: QUIZ_SOURCES }]
+      ? [{
+          key: "source" as const,
+          title: t(`builder.extra.quick.question.source.${voiceKey}` as MessageKey),
+          options: QUIZ_SOURCES.map((option) => ({
+            ...option,
+            label: t(`builder.extra.quick.source.${option.id}` as MessageKey),
+          })),
+        }]
       : []),
     {
       key: "outside",
-      title: voice === "party" ? "Outside a fight, they're the one who…" : "Outside a fight, you're the one who…",
-      options: QUIZ_OUTSIDE,
+      title: t(`builder.extra.quick.question.outside.${voiceKey}` as MessageKey),
+      options: QUIZ_OUTSIDE.map((option) => ({
+        ...option,
+        label: t(`builder.extra.quick.outside.${option.id}` as MessageKey),
+      })),
     },
   ];
 }
@@ -75,9 +98,10 @@ export function QuickBuildQuiz({
   onChoose: (seed: BuildSeed, answers: QuizAnswers) => void;
   onCancel: () => void;
 }) {
+  const { t } = useI18n();
   const [answers, setAnswers] = useState<Partial<QuizAnswers>>(initial ?? {});
   const [page, setPage] = useState(initial?.role ? 1 : 0);
-  const asked = questions(voice, answers.method);
+  const asked = questions(voice, answers.method, t);
   const done = page >= asked.length;
   // The source question counts until the second answer rules it out, so
   // the count never grows partway through.
@@ -103,17 +127,17 @@ export function QuickBuildQuiz({
         <button
           type="button"
           onClick={() => (page > 0 ? setPage(page - 1) : onCancel())}
-          aria-label={page > 0 ? "Back to the last question" : "Back to building"}
+          aria-label={t(page > 0 ? "builder.extra.quick.back.last" : "builder.extra.quick.back.builder")}
           className="-m-2 p-2 text-stone-500 hover:text-stone-300"
         >
           <ArrowLeft className="size-4" aria-hidden="true" />
         </button>
         <h2 className="font-display text-lg tracking-wide text-amber-50">
-          {done ? (voice === "party" ? "A companion for your party" : "Your character") : "Help me build"}
+          {done ? t(voice === "party" ? "builder.extra.quick.title.party" : "builder.extra.quick.title.player") : t("builder.extra.quick.title.help")}
         </h2>
         {!done ? (
           <span className="ml-auto text-xs text-stone-500">
-            Question {page + 1} of {total}
+            {t("builder.extra.quick.questionCount", { current: page + 1, total })}
           </span>
         ) : null}
       </div>
@@ -149,14 +173,14 @@ export function QuickBuildQuiz({
           {seeds.length ? (
             <>
               <p className="text-xs text-stone-400">
-                Pick one to start from. Everything else is filled in for you, and you can change any part before you save.
+                {t("builder.extra.quick.result.intro")}
               </p>
               <ul className="grid gap-3 sm:grid-cols-2">
                 {seeds.map((seed, index) => (
                   <li key={seed.classId}>
                     <SeedCard
                       seed={seed}
-                      title={index === 0 ? "Suggested" : "Second choice"}
+                      title={t(index === 0 ? "builder.extra.quick.result.suggested" : "builder.extra.quick.result.second")}
                       klass={classes.find((entry) => entry.id === seed.classId)}
                       race={races.find((entry) => entry.id === seed.raceId)}
                       background={backgrounds.find((entry) => entry.id === seed.backgroundId)}
@@ -167,7 +191,7 @@ export function QuickBuildQuiz({
               </ul>
             </>
           ) : (
-            <p className="text-xs text-stone-400">Nothing this table offers fits those answers. Every class is still in the builder.</p>
+            <p className="text-xs text-stone-400">{t("builder.extra.quick.result.none")}</p>
           )}
           <div className="flex flex-wrap gap-2">
             <button
@@ -178,10 +202,10 @@ export function QuickBuildQuiz({
               }}
               className={ui.btnSmall}
             >
-              Answer again
+              {t("builder.extra.quick.answerAgain")}
             </button>
             <button type="button" onClick={onCancel} className={cn(ui.btnSmall, "text-stone-400")}>
-              Choose everything myself
+              {t("builder.extra.quick.chooseMyself")}
             </button>
           </div>
         </div>
@@ -205,6 +229,7 @@ function SeedCard({
   background: BackgroundOption | undefined;
   onChoose: () => void;
 }) {
+  const { t } = useI18n();
   if (!klass) {
     return null;
   }
@@ -219,22 +244,26 @@ function SeedCard({
         <div className="min-w-0">
           <p className="font-display text-base tracking-wide text-amber-50">{name}</p>
           <p className="text-sm text-stone-500">
-            {reading.roles.join(" / ")} · plays like {reading.playsLike}
+            {reading.roles.map((role) => {
+              const key = `builder.extra.playstyle.classRole.${role.toLowerCase()}` as MessageKey;
+              const translated = t(key);
+              return translated === key ? role : translated;
+            }).join(" / ")} · {t("builder.extra.quick.playsLike", { value: reading.playsLike })}
           </p>
         </div>
       </div>
       <dl className="grid grid-cols-[auto_1fr] gap-x-2 gap-y-0.5 text-xs">
-        <dt className="text-stone-500">Race</dt>
+        <dt className="text-stone-500">{t("builder.extra.quick.race")}</dt>
         <dd className="text-stone-200">{race?.name ?? seed.raceId}</dd>
-        <dt className="text-stone-500">Background</dt>
+        <dt className="text-stone-500">{t("builder.extra.quick.background")}</dt>
         <dd className="text-stone-200">{background?.name ?? seed.backgroundId}</dd>
-        <dt className="text-stone-500">Best at</dt>
+        <dt className="text-stone-500">{t("builder.extra.quick.bestAt")}</dt>
         <dd className="text-stone-200">
-          {ABILITY_LABELS[first]}, then {ABILITY_LABELS[second]}
+          {t(`builder.extra.ability.${first}` as MessageKey)}, затем {t(`builder.extra.ability.${second}` as MessageKey)}
         </dd>
       </dl>
-      <button type="button" onClick={onChoose} className={cn(ui.btnPrimary, "mt-auto")} aria-label={`Build the ${name}`}>
-        Build this one
+      <button type="button" onClick={onChoose} className={cn(ui.btnPrimary, "mt-auto")} aria-label={t("builder.extra.quick.buildAria", { name })}>
+        {t("builder.extra.quick.build")}
       </button>
     </div>
   );
