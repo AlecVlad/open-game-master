@@ -26,6 +26,7 @@ import { appendLine } from "@/lib/workshop/pickers";
 import { RefPicker } from "@/app/workshop/tables/RefPicker";
 import { inputClass, StatblockFinder } from "@/app/workshop/tables/StatblockFinder";
 import { TableRows, type RollResult } from "@/app/workshop/tables/TableRows";
+import { useI18n } from "@/lib/i18n/provider";
 
 // The DM's random tables, and the monster lookup beside them. Both are the
 // DM's own reference: rolling a table writes an ordinary roll everyone can
@@ -50,6 +51,7 @@ export function DmTablesPanel({
   campaignId: string;
   layout?: "list" | "rows";
 }) {
+  const { t, tp } = useI18n();
   const [tables, setTables] = useState<RollTable[]>([]);
   // Loaded only once the server has answered yes; a no is kept in its own
   // words (issue 140), so "No tables yet" is never drawn over a refusal.
@@ -74,7 +76,7 @@ export function DmTablesPanel({
 
   const load = useCallback(
     () =>
-      readLoad<{ tables?: RollTable[] }>(fetch(`/api/campaigns/${campaignId}/dm/roll-tables`), "The tables").then((outcome) => {
+      readLoad<{ tables?: RollTable[] }>(fetch(`/api/campaigns/${campaignId}/dm/roll-tables`), t("campaign.dmTables.resource")).then((outcome) => {
         if (outcome.payload) {
           setTables(outcome.payload.tables ?? []);
         }
@@ -104,7 +106,7 @@ export function DmTablesPanel({
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError(data.error || "Could not draft that.");
+        setError(data.error || t("campaign.dmTables.error.draft"));
         return;
       }
       setText(data.text ?? "");
@@ -112,7 +114,7 @@ export function DmTablesPanel({
         setName(prompt.trim().slice(0, TABLE_NAME_MAX));
       }
     } catch {
-      setError("Could not reach the server.");
+      setError(t("campaign.dmTables.error.server"));
     } finally {
       setBusy("");
     }
@@ -139,7 +141,7 @@ export function DmTablesPanel({
       );
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        setError(data.error || "Could not save that.");
+        setError(data.error || t("campaign.dmTables.error.save"));
         return;
       }
       setName("");
@@ -150,7 +152,7 @@ export function DmTablesPanel({
       setEditorOpen(false);
       await load();
     } catch {
-      setError("Could not reach the server.");
+      setError(t("campaign.dmTables.error.server"));
     } finally {
       setBusy("");
     }
@@ -170,13 +172,13 @@ export function DmTablesPanel({
       );
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError(data.error || "Could not roll that.");
+        setError(data.error || t("campaign.dmTables.error.roll"));
         return;
       }
       setResult({
         tableId: table.id,
         total: data.total,
-        text: data.final?.text ?? data.entry?.text ?? "Nothing. That result is not on the table.",
+        text: data.final?.text ?? data.entry?.text ?? t("campaign.dmTables.result.empty"),
         chain: Array.isArray(data.chain) && data.chain.length > 1 ? data.chain : [],
         remaining: typeof data.remaining === "number" ? data.remaining : null,
       });
@@ -185,7 +187,7 @@ export function DmTablesPanel({
         await load();
       }
     } catch {
-      setError("Could not reach the server.");
+      setError(t("campaign.dmTables.error.server"));
     } finally {
       setBusy("");
     }
@@ -201,18 +203,18 @@ export function DmTablesPanel({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: `${table.name} (copy)`.slice(0, TABLE_NAME_MAX),
+          name: `${table.name}${t("campaign.dmTables.copySuffix")}`.slice(0, TABLE_NAME_MAX),
           text: formatRollTable(table.entries),
         }),
       });
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        setError(data.error || "Could not copy that.");
+        setError(data.error || t("campaign.dmTables.error.copy"));
         return;
       }
       await load();
     } catch {
-      setError("Could not reach the server.");
+      setError(t("campaign.dmTables.error.server"));
     } finally {
       setBusy("");
     }
@@ -260,7 +262,7 @@ export function DmTablesPanel({
       after();
       await load();
     } catch {
-      setError("Could not reach the server.");
+      setError(t("campaign.dmTables.error.server"));
     } finally {
       setBusy("");
     }
@@ -269,7 +271,7 @@ export function DmTablesPanel({
   // Forget every result dealt so far, so the deck is whole again.
   function reset(table: RollTable) {
     const init = { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ reset: true }) };
-    return ask(table, init, "Could not reset that.", () => setResult(null));
+    return ask(table, init, t("campaign.dmTables.error.reset"), () => setResult(null));
   }
 
   // A save after a delete would otherwise PATCH a table that is gone.
@@ -288,8 +290,8 @@ export function DmTablesPanel({
       <input
         value={name}
         onChange={(event) => setName(event.target.value.slice(0, TABLE_NAME_MAX))}
-        placeholder="Rumours in the Salt Wharf"
-        aria-label="Table name"
+        placeholder={t("campaign.dmTables.name.placeholder")}
+        aria-label={t("campaign.dmTables.name.aria")}
         data-tour="tables-name"
         className={inputClass}
       />
@@ -298,15 +300,15 @@ export function DmTablesPanel({
           <input
             value={prompt}
             onChange={(event) => setPrompt(event.target.value.slice(0, 300))}
-            placeholder="what the dockhands are whispering about"
-            aria-label="What the table is about"
+            placeholder={t("campaign.dmTables.prompt.placeholder")}
+            aria-label={t("campaign.dmTables.prompt.aria")}
             className={inputClass}
           />
           <button
             type="button"
             onClick={draft}
             disabled={busy === "draft" || !prompt.trim()}
-            title="Drafts rows for you to edit. Nothing is saved until you save it."
+            title={t("campaign.dmTables.draft.title")}
             aria-busy={busy === "draft"}
             className={cn(ui.btnSmall, "shrink-0 text-xs")}
           >
@@ -315,7 +317,7 @@ export function DmTablesPanel({
             ) : (
               <Sparkles className="size-3.5" />
             )}
-            Draft
+            {t("campaign.dmTables.draft.button")}
           </button>
         </div>
       ) : null}
@@ -323,8 +325,8 @@ export function DmTablesPanel({
         value={text}
         onChange={(event) => setText(event.target.value)}
         rows={rows ? 10 : 5}
-        placeholder={"1-3 A press gang is working the taproom.\n4. The harbourmaster has not been seen in a week.\nOr just paste a table straight out of a book."}
-        aria-label="Table rows"
+        placeholder={t("campaign.dmTables.rows.placeholder")}
+        aria-label={t("campaign.dmTables.rows.aria")}
         data-tour="tables-body"
         className={cn(inputClass, "mt-1.5 resize-y font-mono text-xs")}
       />
@@ -338,19 +340,19 @@ export function DmTablesPanel({
       </div>
       {draftEntries.length ? (
         <p className="reveal mt-1 text-[11px] text-stone-500">
-          {draftEntries.length} rows, rolled on a d{dieForTable(draftEntries)}.
+          {tp("campaign.dmTables.coverage.rows", draftEntries.length, { die: dieForTable(draftEntries) })}.
           {gaps?.uncovered.length
-            ? ` Nothing on ${gaps.uncovered.join(", ")}.`
+            ? ` ${t("campaign.dmTables.coverage.uncovered", { faces: gaps.uncovered.join(", ") })}`
             : ""}
           {gaps?.overlapping.length
-            ? ` Two rows both cover ${gaps.overlapping.join(", ")}.`
+            ? ` ${t("campaign.dmTables.coverage.overlapping", { faces: gaps.overlapping.join(", ") })}`
             : ""}
         </p>
       ) : null}
       <div className="mt-1.5 flex flex-wrap items-center gap-2">
         <span className="flex min-h-10 items-center gap-2 text-xs text-stone-300">
-          <Switch on={noReplacement} onChange={setNoReplacement} label="Draw without replacement" />
-          Draw without replacement
+          <Switch on={noReplacement} onChange={setNoReplacement} label={t("campaign.dmTables.noReplacement")} />
+          {t("campaign.dmTables.noReplacement")}
         </span>
         {editing?.noReplacement && editing.drawn.length ? (
           <button
@@ -358,14 +360,12 @@ export function DmTablesPanel({
             onClick={() => void reset(editing)}
             className={cn(ui.btnSmall, "px-2 py-1 text-[11px]")}
           >
-            Reset ({editing.drawn.length} dealt)
+            {t("campaign.dmTables.resetDealt", { count: editing.drawn.length })}
           </button>
         ) : null}
       </div>
       <p className="mt-1 text-[10px] leading-snug text-stone-500">
-        Bare rows can carry a weight (x3 A goblin patrol). A row can be a thing: @table: Gems rolls
-        that table too; @monster: wolf, @item: Potion of Healing, @npc: Marla name what they are.
-        The picker above writes those rows for you.
+        {t("campaign.dmTables.rows.help")}
       </p>
       {error ? <p role="alert" className="motion-shake mt-1 text-xs text-red-400">{error}</p> : null}
       <button
@@ -376,7 +376,7 @@ export function DmTablesPanel({
         data-tour="tables-save"
         className={cn(ui.btnPrimary, "mt-2")}
       >
-        {busy === "save" ? "Saving..." : "Save table"}
+        {busy === "save" ? t("campaign.dmTables.saving") : t("campaign.dmTables.save")}
       </button>
     </>
   );
@@ -405,7 +405,7 @@ export function DmTablesPanel({
         <Sheet
           open={editorOpen}
           onOpenChange={setEditorOpen}
-          title={editing ? editing.name : "New table"}
+          title={editing ? editing.name : t("campaign.dmTables.newTable")}
           className="lg:w-[min(92vw,40rem)]"
         >
           {editor}
@@ -418,7 +418,7 @@ export function DmTablesPanel({
     <div className="space-y-3">
       <DeskCard
         glyph="system-tables"
-        title="Your tables"
+        title={t("campaign.dmTables.yourTables")}
         aside={tables.length ? <span key={tables.length} className="count-pop">{tables.length}</span> : undefined}
       >
         {tables.length ? (
@@ -428,9 +428,9 @@ export function DmTablesPanel({
               // Roll stays the row's visible button. The two that were icons
               // live in the row's menu under the words they always carried.
               const items: ContextMenuItem[] = [
-                { id: "roll", label: "Roll", glyph: dieGlyph(sides), disabled: busy === table.id, onSelect: () => void roll(table) },
-                { id: "duplicate", label: `Duplicate ${table.name}`, glyph: "ui-duplicate", disabled: busy === `copy-${table.id}`, onSelect: () => void duplicate(table) },
-                { id: "delete", label: "Delete this table", glyph: "ui-delete", tone: "danger", separated: true, onSelect: () => void remove(table) },
+                { id: "roll", label: t("campaign.dmTables.roll"), glyph: dieGlyph(sides), disabled: busy === table.id, onSelect: () => void roll(table) },
+                { id: "duplicate", label: t("campaign.dmTables.duplicate", { name: table.name }), glyph: "ui-duplicate", disabled: busy === `copy-${table.id}`, onSelect: () => void duplicate(table) },
+                { id: "delete", label: t("campaign.dmTables.deleteNamed", { name: table.name }), glyph: "ui-delete", tone: "danger", separated: true, onSelect: () => void remove(table) },
               ];
               return (
                 <ContextMenu key={table.id} as="li" items={items} label={table.name} className={panelRow}>
@@ -448,7 +448,7 @@ export function DmTablesPanel({
                         aria-busy={busy === table.id}
                         className={cn(ui.btnPrimary, "h-9 px-3 text-[11px]")}
                       >
-                        {busy === table.id ? <Loader2 className="size-3.5 animate-spin" /> : "Roll"}
+                        {busy === table.id ? <Loader2 className="size-3.5 animate-spin" /> : t("campaign.dmTables.roll")}
                       </button>
                       <RowMenu items={items} label={table.name} />
                     </span>
@@ -470,16 +470,16 @@ export function DmTablesPanel({
             })}
           </ul>
         ) : loaded ? (
-          <EmptyState size="sm" art="scrolls" title="No tables yet. Paste one in below." />
+          <EmptyState size="sm" art="scrolls" title={t("campaign.dmTables.empty")} />
         ) : loadError ? (
           <LoadFailed error={loadError} onRetry={() => void load()} />
         ) : (
-          <PanelLoading label="Loading..." rows={2} />
+          <PanelLoading label={t("campaign.dmTables.loading")} rows={2} />
         )}
         {loaded && loadError ? <LoadFailed error={loadError} onRetry={() => void load()} /> : null}
       </DeskCard>
 
-      <DeskCard glyph="system-homebrew" title="New table">
+      <DeskCard glyph="system-homebrew" title={t("campaign.dmTables.newTable")}>
         {editor}
       </DeskCard>
 
