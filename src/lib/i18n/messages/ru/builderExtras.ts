@@ -187,4 +187,12 @@ export const ruBuilderExtras: Partial<Record<keyof typeof enBuilderExtras, strin
   "builder.extra.lineage.trait.skill.other": "На этом шаге выберите {count} навыка{among}.",
   "builder.extra.lineage.trait.tool": "На этом шаге выберите один из наборов инструментов: {tools}.",
 
+  "builder.extra.catalog.filter.placeholder": "Фильтр списка...",
+  "builder.extra.catalog.filter.aria": "Фильтровать список каталога",
+  "builder.extra.catalog.error.retry": "Не удалось загрузить список с сервера. Закройте этот раздел и откройте его снова, чтобы повторить попытку.",
+  "builder.extra.catalog.error.noPack": "На сервере не установлен пакет контента, поэтому список пуст. Администратор может установить его командой: node scripts/import-open5e.mjs",
+  "builder.extra.catalog.empty": "Список пуст.",
+  "builder.extra.catalog.homebrew": "Авторский контент",
+  "builder.extra.catalog.truncated": "Показаны первые {count} записей. Остальные можно найти по названию выше.",
+
 };
