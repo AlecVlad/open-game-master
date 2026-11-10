@@ -1952,7 +1952,6 @@ export const enCampaignPanels = {
   "campaign.dmCatalog.play_sting.label": "Play a sound effect",
   "campaign.dmCatalog.play_sting.summary": "Plays one short sound once over the current audio. It does not change any other sound.",
   "campaign.dmCatalog.play_sting.field.cue.label": "Sound effect",
-  "campaign.dmCatalog.shared.option.none": "Silence",
   // Поля звукового движка: названия cue привязаны к конкретному слою, чтобы не конфликтовать с другими терминами.
   "campaign.dmCatalog.set_ambience.field.bed.option.none": "Silence",
   "campaign.dmCatalog.set_ambience.field.bed.option.dungeon": "Dungeon",
