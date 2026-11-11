@@ -15,9 +15,8 @@ export function localizeStoryboardError(error: string, lang: Lang): string {
   }
 
   const overflow = error.match(
-    /^This card's text is ([\\d,]+) characters; the limit is ([\\d,]+)\\. The last ([\\d,]+) would be lost(?:: "([\\s\\S]*)")?\\.$/,
-  );
-  if (overflow) {
+    /^This card's text is ([\d,]+) characters; the limit is ([\d,]+)\. The last ([\d,]+) would be lost(?:: "([\s\S]*)")?\.$/,
+  );  if (overflow) {
     const number = (value: string) => Number(value.replace(/,/g, ""));
     return t("campaign.storyboard.error.bodyOverflow", {
       length: number(overflow[1]),
