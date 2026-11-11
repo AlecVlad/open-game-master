@@ -2,6 +2,8 @@
 
 import { Copy, EyeOff, Flag, Scale, VenetianMask } from "lucide-react";
 import { useId } from "react";
+import { useI18n } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages/index";
 import { GameIcon } from "@/components/ui/GameIcon";
 import { ContextMenu } from "@/components/ui/ContextMenu";
 import { SectionHead } from "@/components/ui/SectionHead";
@@ -27,12 +29,12 @@ import { CardReturnedNote } from "@/app/campaigns/[campaignId]/CardReturnedNote"
 // The transcript's smaller voices: the table's own notices and what the
 // players say. The DM's passage, the hero of the screen, is MessageItem.tsx.
 
-export function copyAction(message: CampaignMessage): MessageAction {
+export function copyAction(message: CampaignMessage, t: (key: MessageKey) => string): MessageAction {
   return {
     id: "copy",
-    name: "Copy text",
-    label: "Copy this message's text",
-    hint: "Copy: put this message's words on the clipboard",
+    name: t("campaign.session.messages.copy"),
+    label: t("campaign.session.messages.copyLabel"),
+    hint: t("campaign.session.messages.copyHint"),
     glyph: "ui-duplicate",
     icon: <Copy className="size-3.5" />,
     onSelect: () => {
@@ -43,26 +45,26 @@ export function copyAction(message: CampaignMessage): MessageAction {
 
 // A player's objection to a narrated ruling (DisputeDialog.tsx): the
 // steerer upholds or overrules it, or the table votes.
-export function disputeAction(message: CampaignMessage, onDispute: (message: CampaignMessage) => void): MessageAction {
+export function disputeAction(message: CampaignMessage, onDispute: (message: CampaignMessage) => void, t: (key: MessageKey) => string): MessageAction {
   return {
     id: "dispute",
-    name: "Dispute",
-    label: "Dispute this ruling",
-    hint: "Dispute: object to what the narrator ruled here; whoever steers the story settles it, or the table votes",
+    name: t("campaign.session.messages.dispute"),
+    label: t("campaign.session.messages.disputeLabel"),
+    hint: t("campaign.session.messages.disputeHint"),
     glyph: "system-rules",
     icon: <Scale className="size-3.5" />,
     onSelect: () => onDispute(message),
   };
 }
 
-export function reportAction(message: CampaignMessage, onReport: (message: CampaignMessage) => void, dm: boolean): MessageAction {
+export function reportAction(message: CampaignMessage, onReport: (message: CampaignMessage) => void, dm: boolean, t: (key: MessageKey) => string): MessageAction {
   return {
     id: "report",
-    name: "Report",
-    label: dm ? "Report this passage" : "Report this message",
+    name: t("campaign.session.messages.report"),
+    label: dm ? t("campaign.session.messages.reportPassage") : t("campaign.session.messages.reportMessage"),
     hint: dm
-      ? "Report: flag this passage to the admins of this server"
-      : "Report: flag this message to the admins of this server, or block the player",
+      ? t("campaign.session.messages.reportPassageHint")
+      : t("campaign.session.messages.reportMessageHint"),
     glyph: "system-rules",
     icon: <Flag className="size-3.5" />,
     tone: "danger",
@@ -74,10 +76,11 @@ export function reportAction(message: CampaignMessage, onReport: (message: Campa
 // a joiner, or a plain line with the painting its writer stored (a line
 // written before the icon was stored draws the neutral bell).
 export function SystemMessage({ content, glyph }: { content: string; glyph?: SystemGlyph }) {
+  const { t } = useI18n();
   if (content.startsWith(LEAD_NOTE_PREFIX)) {
     return (
       <div data-tone="ember" className="panel session-banner-card rounded-xl border-ember-500/40">
-        <SectionHead title="Party Lead" glyph="tab-lead" level="h4" className="mb-1" />
+        <SectionHead title={t("campaign.session.messages.partyLead")} glyph="tab-lead" level="h4" className="mb-1" />
         <p className="text-sm text-amber-100/90">{content.slice(LEAD_NOTE_PREFIX.length)}</p>
       </div>
     );
@@ -89,7 +92,7 @@ export function SystemMessage({ content, glyph }: { content: string; glyph?: Sys
       <div className="pact-reveal panel rounded-xl border-violet-500/45 px-3 py-2" data-pact-reveal="">
         <p className="eyebrow flex items-center gap-1.5 text-[10px] text-violet-300">
           <VenetianMask className="size-3.5" aria-hidden="true" />
-          Revealed
+          {t("campaign.session.messages.revealed")}
         </p>
         <p className="mt-0.5 text-sm leading-snug text-violet-50">{content.slice(PACT_REVEAL_PREFIX.length)}</p>
       </div>
@@ -100,8 +103,8 @@ export function SystemMessage({ content, glyph }: { content: string; glyph?: Sys
   // (issue 668).
   if (content.startsWith(RECAP_PREFIX)) {
     return (
-      <section aria-label="Previously" className="panel session-banner-card session-recap rounded-xl">
-        <SectionHead title="Previously" glyph="cue-bell" level="h4" className="mb-1" />
+      <section aria-label={t("campaign.session.messages.previously")} className="panel session-banner-card session-recap rounded-xl">
+        <SectionHead title={t("campaign.session.messages.previously")} glyph="cue-bell" level="h4" className="mb-1" />
         <p className="session-recap-text">{content.slice(RECAP_PREFIX.length)}</p>
       </section>
     );
@@ -121,6 +124,7 @@ export function SystemMessage({ content, glyph }: { content: string; glyph?: Sys
 // (src/lib/dm/shop-tools.ts announceShop), with the way to its shelf: the
 // prices live in the Market, never in the narration. Every seat sees it.
 export function ShopOpenLine({ content, onBrowse }: { content: string; onBrowse?: () => void }) {
+  const { t } = useI18n();
   const lineId = useId();
   return (
     <p className="session-sysline">
@@ -129,7 +133,7 @@ export function ShopOpenLine({ content, onBrowse }: { content: string; onBrowse?
       {onBrowse ? (
         <button type="button" onClick={onBrowse} aria-describedby={lineId} data-browse-wares="" className={kitButtonClass("small", "shrink-0 not-italic text-amber-100")}>
           <GameIcon icon={{ kind: "glyph", key: "tab-market" }} size="size-5" />
-          Browse wares
+          {t("campaign.session.messages.browseWares")}
         </button>
       ) : null}
     </p>
@@ -137,10 +141,11 @@ export function ShopOpenLine({ content, onBrowse }: { content: string; onBrowse?
 }
 
 export function BlockedMessage() {
+  const { t } = useI18n();
   return (
     <p className="ml-auto flex max-w-[92%] items-center justify-end gap-1.5 text-right text-xs italic text-stone-600 sm:max-w-2xl">
       <EyeOff className="size-3.5 shrink-0" />
-      A message from a player you blocked
+      {t("campaign.session.messages.blocked")}
     </p>
   );
 }
@@ -160,6 +165,7 @@ export function PlayerMessage({
   membersById: Map<string, CampaignMember>;
   onReport?: (message: CampaignMessage) => void;
 }) {
+  const { t } = useI18n();
   // Older messages predate characterId, so fall back to the author's
   // sheet in this campaign before giving up on a character identity. A line
   // that names its character never borrows the author's: a card the player
@@ -175,9 +181,9 @@ export function PlayerMessage({
   const [portraitUrl, onFaceError] = useFaceChain(
     playerFaces({ sheet, avatarUrl: message.userId ? membersById.get(message.userId)?.avatar?.url : undefined, userId: message.userId }),
   );
-  const actions: MessageAction[] = [copyAction(message)];
+  const actions: MessageAction[] = [copyAction(message, t)];
   if (onReport && !mine && message.userId) {
-    actions.push(reportAction(message, onReport, false));
+    actions.push(reportAction(message, onReport, false, t));
   }
   // eslint-disable-next-line @next/next/no-img-element
   const face = portraitUrl ? <img src={portraitUrl} alt="" onError={onFaceError} /> : null;
@@ -187,7 +193,7 @@ export function PlayerMessage({
   return (
     <ContextMenu
       items={toContextItems(actions)}
-      label={sheet?.name ?? "Player"}
+      label={sheet?.name ?? t("campaign.session.messages.player")}
       className="session-player group ml-auto max-w-[92%] animate-fade-up sm:max-w-2xl"
     >
       {face ? (
@@ -203,13 +209,13 @@ export function PlayerMessage({
       ) : null}
       <div ref={textColumn} className="min-w-0">
         <p className="mb-1 flex items-center justify-end gap-1.5 text-right">
-          <MessageActions actions={actions} menuLabel={`${sheet?.name ?? "Player"}: message actions`} quiet />
-          <span className="session-speaker truncate">{sheet?.name ?? "Player"}</span>
+          <MessageActions actions={actions} menuLabel={`${sheet?.name ?? t("campaign.session.messages.player")}: ${t("campaign.session.messages.messageActions")}`} quiet />
+          <span className="session-speaker truncate">{sheet?.name ?? t("campaign.session.messages.player")}</span>
         </p>
         <div className={cn("session-bubble", ooc && "session-bubble-ooc")}>
           <p className="whitespace-pre-wrap text-pretty">{message.content}</p>
         </div>
-        {message.cardReturned ? <CardReturnedNote message={message} mine={mine} name={sheet?.name ?? "the player"} /> : null}
+        {message.cardReturned ? <CardReturnedNote message={message} mine={mine} name={sheet?.name ?? t("campaign.session.messages.player")} /> : null}
       </div>
     </ContextMenu>
   );
