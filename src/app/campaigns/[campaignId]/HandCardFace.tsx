@@ -53,7 +53,7 @@ export function typeLabel(type: HandCardType, t: Translator): string {
   return t(TYPE_LABEL_KEY[type]);
 }
 
-function costLabel(cost: HandCost, t: Translator): string {
+export function costLabel(cost: HandCost, t: Translator): string {
   return t(COST_SHORT_KEY[cost]);
 }
 
