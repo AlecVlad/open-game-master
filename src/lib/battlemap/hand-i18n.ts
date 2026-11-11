@@ -18,3 +18,10 @@ export function handShareUnit(
 ): string {
   return translatePlural(SHARE_UNIT_KEYS[unit], count);
 }
+
+export function handShareUnitCollective(
+  unit: HandShares["unit"],
+  translate: (key: string) => string,
+): string {
+  return translate(`${SHARE_UNIT_KEYS[unit]}.collective`);
+}
