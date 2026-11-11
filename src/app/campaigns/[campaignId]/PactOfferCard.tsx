@@ -11,6 +11,20 @@ import { useSettlingCards } from "./AdvanceOfferCard";
 import type { ItemProposal } from "@/app/campaigns/[campaignId]/useCampaignStream";
 import type { CharacterSheet } from "@/lib/schemas/sheet";
 
+const PACT_CHOICE_LABEL_KEYS: Record<string, string> = {
+  join: "campaign.session.pact.choice.join.label",
+  play_along: "campaign.session.pact.choice.playAlong.label",
+  report: "campaign.session.pact.choice.report.label",
+  refuse: "campaign.session.pact.choice.refuse.label",
+};
+
+const PACT_CHOICE_HINT_KEYS: Record<string, string> = {
+  join: "campaign.session.pact.choice.join.hint",
+  play_along: "campaign.session.pact.choice.playAlong.hint",
+  report: "campaign.session.pact.choice.report.hint",
+  refuse: "campaign.session.pact.choice.refuse.hint",
+};
+
 // A pact's approach (issue 503 Phase 7) as an owner-only offer card in the
 // chat column: who takes the character aside, their words, and the answers
 // (join, play along, tell the party, refuse) for that character's player
@@ -116,7 +130,7 @@ function PactOfferCard({
           <div className="min-w-0 flex-1">
             <p className="flex items-center gap-1.5 text-[13px] font-medium text-violet-100">
               <VenetianMask className="size-3.5 shrink-0 text-violet-300" aria-hidden="true" />
-              <span className="min-w-0">{proposal.summary}</span>
+              <span className="min-w-0">{proposal.toolName === "pact_approach" ? t("campaign.session.pact.summary", { character: characterName }) : proposal.summary}</span>
             </p>
             {proposal.reason ? <p className="mt-1 text-sm italic leading-snug text-stone-200">&ldquo;{proposal.reason}&rdquo;</p> : null}
             {mine ? (
@@ -136,9 +150,9 @@ function PactOfferCard({
                 aria-describedby={`${hintBase}-${index}`}
                 data-pact-choice={choice.id}
               >
-                <span className="text-[12px] font-medium">{choice.label}</span>
+                <span className="text-[12px] font-medium">{PACT_CHOICE_LABEL_KEYS[choice.id] ? t(PACT_CHOICE_LABEL_KEYS[choice.id] as never) : choice.label}</span>
                 <span id={`${hintBase}-${index}`} className="text-[11px] font-normal leading-snug opacity-80">
-                  {choice.hint}
+                  {PACT_CHOICE_HINT_KEYS[choice.id] ? t(PACT_CHOICE_HINT_KEYS[choice.id] as never) : choice.hint}
                 </span>
               </KitButton>
             ))}
