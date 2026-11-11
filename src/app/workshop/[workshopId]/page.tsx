@@ -52,7 +52,7 @@ import type { CreateStep } from "@/lib/workshop/create-choices";
 // panel that owns the editor in question answers it.
 
 function WorkshopPageInner({ workshopId }: { workshopId: string }) {
-  const { t } = useI18n();
+  const { t, tp } = useI18n();
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
@@ -380,8 +380,9 @@ function WorkshopPageInner({ workshopId }: { workshopId: string }) {
               title={t("workshop.hub.commands.title")}
               placeholder={t("workshop.hub.commands.placeholder")}
               commands={workshopCommands({
+                t,
                 current: system,
-                phrase: (id) => systemCount(id, workshop, bestiary, homebrew, pregens, plugin, world).phrase,
+                phrase: (id) => systemCount(id, workshop, bestiary, homebrew, pregens, plugin, world, { t, tp }).phrase,
                 onJump: openSystem,
                 onCreate: createIn,
                 onHub: () => void go(pathname),
