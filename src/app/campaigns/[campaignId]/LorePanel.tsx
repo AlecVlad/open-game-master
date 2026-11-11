@@ -3,6 +3,7 @@
 import { EmptyState } from "@/components/EmptyState";
 import { Plus, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { useTourPrepare } from "@/lib/tours/prepare";
 import { collectTags } from "@/lib/workshop/pickers";
 import { LORE_TITLE_MAX, WORLD_LORE_CATEGORIES, type LoreLinkTarget } from "@/lib/dm/world-lore-logic";
@@ -17,7 +18,7 @@ import { LoreEditorForm } from "@/app/workshop/lore/LoreEditorForm";
 import { LoreEntryRow, MentionedIn } from "@/app/workshop/lore/LoreEntryRow";
 import { LoreBody } from "@/app/workshop/lore/LoreFields";
 import { LoreRows } from "@/app/workshop/lore/LoreRows";
-import { blankLoreDraft, CATEGORY_LABELS, draftFromEntry, type LoreDraft, type LoreEntryView } from "@/app/workshop/lore/types";
+import { blankLoreDraft, draftFromEntry, type LoreDraft, type LoreEntryView } from "@/app/workshop/lore/types";
 
 // World lore builder: the lead's world bible. Entries feed the DM prompt
 // (pinned always, the rest retrieved by relevance) and the search_lore
@@ -53,6 +54,7 @@ export function LorePanel({
   openId?: string | null;
   onWorldEntry?: (id: string) => void;
 }) {
+  const { t } = useI18n();
   const [loading, setLoading] = useState(true);
   // Whether a load has landed and what the last one said (issue 140): a
   // refused list is shown in the server's words, never as "no lore yet".
@@ -77,11 +79,11 @@ export function LorePanel({
 
   useEffect(() => {
     let cancelled = false;
-    readLoad<{ entries?: LoreEntryView[] }>(fetch(`/api/campaigns/${campaignId}/lore`), "The lore").then((outcome) => {
+    readLoad<{ entries?: LoreEntryView[] }>(fetch(`/api/campaigns/${campaignId}/lore`), t("campaign.lore.title")).then((outcome) => {
       if (cancelled) {
         return;
       }
-      settle(outcome);
+      settle(outcome.error ? { payload: null, error: t("campaign.lore.errors.load") } : outcome);
       if (outcome.payload && Array.isArray(outcome.payload.entries)) {
         setEntries(outcome.payload.entries);
       }
@@ -90,7 +92,7 @@ export function LorePanel({
     return () => {
       cancelled = true;
     };
-  }, [campaignId, reload, refreshKey, settle]);
+  }, [campaignId, reload, refreshKey, settle, t]);
   const retry = () => {
     setLoading(true);
     setReload((current) => current + 1);
@@ -178,7 +180,7 @@ export function LorePanel({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         }),
-        "That entry could not be saved.",
+        t("campaign.lore.errors.save"),
       );
       if (sent.error !== null) {
         // A new entry whose answer was lost is looked for before anything is
@@ -193,12 +195,12 @@ export function LorePanel({
           }
           setSaveError(
             found === "missing"
-              ? "The server did not answer and the entry is not in the list, so it was not added. Your words are kept; press Add again."
-              : "The server could not be reached, so it is not known yet whether the entry was added. Your words are kept. Check the list before adding it again.",
+              ? t("campaign.lore.errors.lostCreate.missing")
+              : t("campaign.lore.errors.lostCreate.unknown"),
           );
           return;
         }
-        setSaveError(sent.unanswered ? `${sent.error} Your words are kept here.` : sent.error);
+        setSaveError(t("campaign.lore.errors.save"));
         return;
       }
       const saved = sent.payload.entry;
@@ -217,7 +219,7 @@ export function LorePanel({
   // The list read again outside the load effect, for a create whose answer
   // was lost: the entries it found, or null when it could not read them.
   const reread = () =>
-    readLoad<{ entries?: LoreEntryView[] }>(fetch(`/api/campaigns/${campaignId}/lore`), "The lore").then((outcome) => {
+    readLoad<{ entries?: LoreEntryView[] }>(fetch(`/api/campaigns/${campaignId}/lore`), t("campaign.lore.title")).then((outcome) => {
       if (!outcome.payload || !Array.isArray(outcome.payload.entries)) {
         return null;
       }
@@ -235,10 +237,10 @@ export function LorePanel({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ pinned: !entry.pinned }),
       }),
-      "That entry could not be pinned.",
+      t("campaign.lore.errors.pin"),
     );
     if (sent.error !== null) {
-      setSaveError(sent.error);
+      setSaveError(t("campaign.lore.errors.pin"));
       if (sent.unanswered) void reread();
       return;
     }
@@ -250,9 +252,9 @@ export function LorePanel({
 
   async function remove(entryId: string): Promise<boolean> {
     setSaveError("");
-    const sent = await readWrite(fetch(`/api/campaigns/${campaignId}/lore/${entryId}`, { method: "DELETE" }), "That entry could not be deleted.");
+    const sent = await readWrite(fetch(`/api/campaigns/${campaignId}/lore/${entryId}`, { method: "DELETE" }), t("campaign.lore.errors.delete"));
     if (sent.error !== null) {
-      setSaveError(sent.error);
+      setSaveError(t("campaign.lore.errors.delete"));
       if (sent.unanswered) void reread();
       return false;
     }
@@ -266,7 +268,7 @@ export function LorePanel({
     setBusy(true);
     setSaveError("");
     try {
-      const title = `${entry.title} (copy)`;
+      const title = `${entry.title} (${t("campaign.lore.copySuffix")})`;
       const sent = await readWrite<{ entry?: LoreEntryView }>(
         fetch(`/api/campaigns/${campaignId}/lore`, {
           method: "POST",
@@ -283,7 +285,7 @@ export function LorePanel({
             style: entry.style ?? "plain",
           }),
         }),
-        "That entry could not be copied.",
+        t("campaign.lore.errors.duplicate"),
       );
       if (sent.error !== null) {
         if (sent.unanswered) {
@@ -291,13 +293,13 @@ export function LorePanel({
           if (found !== "made") {
             setSaveError(
               found === "missing"
-                ? "The server did not answer and the copy is not in the list, so it was not made. Duplicate it again."
-                : "The server could not be reached, so it is not known yet whether the copy was made. Check the list before duplicating it again.",
+                ? t("campaign.lore.errors.lostCopy.missing")
+                : t("campaign.lore.errors.lostCopy.unknown"),
             );
           }
           return;
         }
-        setSaveError(sent.error);
+        setSaveError(t("campaign.lore.errors.duplicate"));
         return;
       }
       const copy = sent.payload.entry;
@@ -349,9 +351,9 @@ export function LorePanel({
   const linkable = [
     ...entries
       .filter((entry) => entry.id !== editingId)
-      .map((entry) => ({ value: entry.title, label: `Lore: ${entry.title}` })),
-    ...(linkTargets?.cast ?? []).map((name) => ({ value: name, label: `Cast: ${name}` })),
-    ...(linkTargets?.monsters ?? []).map((name) => ({ value: name, label: `Monster: ${name}` })),
+      .map((entry) => ({ value: entry.title, label: t("campaign.lore.link.lore", { title: entry.title }) })),
+    ...(linkTargets?.cast ?? []).map((name) => ({ value: name, label: t("campaign.lore.link.cast", { name }) })),
+    ...(linkTargets?.monsters ?? []).map((name) => ({ value: name, label: t("campaign.lore.link.monster", { name }) })),
   ];
   const knownTags = collectTags(entries);
 
@@ -365,10 +367,10 @@ export function LorePanel({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: "show_handout", args: { lore: entry.id } }),
       }),
-      "That handout could not be shown.",
+      t("campaign.lore.errors.show"),
     );
     if (sent.error !== null) {
-      setSaveError(sent.unanswered ? `${sent.error} The party may have it already; look at the table before showing it again.` : sent.error);
+      setSaveError(t("campaign.lore.errors.show"));
     }
   }
 
@@ -388,7 +390,7 @@ export function LorePanel({
       {saveError ? <PanelError className="text-[11px]">{saveError}</PanelError> : null}
       <div className="flex gap-1.5" data-tour="lore-save">
         <KitButton tone="primary" onClick={submitDraft} disabled={busy || !draft.title.trim() || !draft.body.trim()} busy={busy}>
-          {editingId ? "Save" : "Add"}
+          {editingId ? t("campaign.lore.editor.save") : t("campaign.lore.editor.add")}
         </KitButton>
         <KitButton
           onClick={() => {
@@ -396,7 +398,7 @@ export function LorePanel({
             setEditingId(null);
           }}
         >
-          <X className="size-3.5" /> Cancel
+          <X className="size-3.5" /> {t("campaign.lore.editor.cancel")}
         </KitButton>
       </div>
     </>
@@ -410,7 +412,7 @@ export function LorePanel({
         {loaded && loadError ? <LoadFailed error={loadError} onRetry={retry} /> : null}
         {saveError && !editorOpen ? <PanelError>{saveError}</PanelError> : null}
         {loading ? (
-          <PanelLoading label="Loading..." />
+          <PanelLoading label={t("campaign.lore.loading")} />
         ) : !loaded && loadError ? (
           <LoadFailed error={loadError} onRetry={retry} />
         ) : (
@@ -428,7 +430,7 @@ export function LorePanel({
               closeEditor();
             }
           }}
-          title={editing?.title || reading?.title || "New entry"}
+          title={editing?.title || reading?.title || t("campaign.lore.newEntry")}
           className="lg:w-[min(92vw,40rem)]"
         >
           {editorOpen ? (
@@ -461,12 +463,12 @@ export function LorePanel({
   return (
     <div className="panel rounded-lg p-3">
       <SectionHead
-        title="World lore"
+        title={t("campaign.lore.title")}
         glyph="system-lore"
         aside={
           steersStory && !editorOpen ? (
             <KitButton onClick={startAdd}>
-              <Plus className="size-3.5" /> Add entry
+              <Plus className="size-3.5" /> {t("campaign.lore.addEntry")}
             </KitButton>
           ) : null
         }
@@ -477,7 +479,7 @@ export function LorePanel({
       {!loading && loadError ? <LoadFailed error={loadError} onRetry={retry} /> : null}
       {saveError && !editorOpen ? <PanelError className="mb-2">{saveError}</PanelError> : null}
       {!loading && loaded && !entries.length && !editorOpen ? (
-        <EmptyState size="sm" art="scrolls" title={steersStory ? "No lore yet. Write your world's places, factions, and history; the GM treats it as canon." : "The party lead has not written any world lore yet."} />
+        <EmptyState size="sm" art="scrolls" title={t(steersStory ? "campaign.lore.empty.lead" : "campaign.lore.empty.party")} />
       ) : null}
       {editorOpen ? (
         <div className="reveal mb-2 space-y-1.5 rounded-lg border border-amber-500/20 bg-stone-950/60 p-2.5">
@@ -486,7 +488,7 @@ export function LorePanel({
       ) : null}
       {categories.map((category) => (
         <div key={category} className="mb-2">
-          <SectionHead title={CATEGORY_LABELS[category]} glyph="tab-journal" level="h4" aside={entries.filter((entry) => entry.category === category).length} />
+          <SectionHead title={t(`campaign.lore.category.${category}` as never)} glyph="tab-journal" level="h4" aside={entries.filter((entry) => entry.category === category).length} />
           <ul className="stagger space-y-1">
             {entries
               .filter((entry) => entry.category === category)
