@@ -174,5 +174,12 @@ Continue the Atlas audit with `AtlasRegion.tsx`, `AtlasEdit.tsx`, `AtlasParty.ts
 - The broader Homebrew editor translation now covers the shelf, shared editor shell, item and magic-item mechanics, spells and spell mechanics, species/ancestries, backgrounds, classes/subclasses and hazard UI. The remaining localized display strings in copy-source field summaries still need a focused pass.
 - No TypeScript check, lint, tests, build, visual test, or broad English-string audit was run. Keep all such checks deferred until Remote Desktop access is available. Workshop block remains open.
 
+## Atlas — structured review notices — 12 November 2026
+- `AtlasRegion.tsx`: replaced the remaining hardcoded “Release from the Region” action with its i18n key; Region review notes and skipped-pin reasons now render structured localized details first, with legacy text fallback.
+- `AtlasEdit.tsx` and `AtlasParty.tsx`: map-frame, delete-impact and party-visibility review notes use structured message codes; legacy `notes` strings remain available as fallback.
+- `atlas-region.ts`, `atlas-edit.ts` and `party-atlas.ts`: added optional `noteDetails` / `reasonDetail` fields for generated system notices. Existing `notes` and `reason` fields are retained for older consumers and API compatibility.
+- Added 9 EN/RU messages in `workshop.ts` for picture-only semantics, party visibility, skipped pin reasons, fixed map-frame positions and Region-map deletion. Corrected the two remaining English plural messages in the Russian Atlas dictionary.
+- Static checks: all 9 new keys are present in both dictionaries; placeholders match; no duplicate new keys; all direct translation references in the four Atlas subcomponents resolve. TypeScript, lint, tests, production build and visual checks were not run.
+
 ## Resume
 The WorldForge component pass is complete across all 29 files in `src/app/workshop/world/`: core views, Atlas, timeline, secrets, wiki, Ask, outline generation, paint queue, relationship graph/editor, type manager, bound records, play fields and shared pickers. Continue with the broader app-level localization audit outside this folder and fix any remaining visible English UI. Verify branch HEAD before editing. Do not run TypeScript/build/lint/tests until Remote Desktop access is available. Block 1 remains formally open; do not merge, open a PR or create its DONE flag.
