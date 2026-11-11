@@ -2648,6 +2648,9 @@ export const ruCampaignPanels: Partial<Record<keyof typeof enCampaignPanels, str
   "campaign.relationship.pact.form.networkError": "Не удалось связаться с сервером.",
   "campaign.relationship.pact.form.caught": "Ваше действие раскрыто.",
   "campaign.relationship.pact.form.done": "Ваше действие осталось тайным.",
+
+  "campaign.relationship.pact.nobody": "пока никто",
+  "campaign.relationship.private.storyteller": "Это видит только ведущий.",
 }; группа: {characters}. {note}",
   "campaign.dmWorkbench.budget.creaturesAgainstParty.few": "Состав противников: {count}; группа: {characters}. {note}",
   "campaign.dmWorkbench.budget.creaturesAgainstParty.many": "Состав противников: {count}; группа: {characters}. {note}",
