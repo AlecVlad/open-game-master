@@ -166,6 +166,7 @@ export function WebView({ world, focus, onOpen }: { world: WorldState; focus: st
                 {count}
               </button>
             ))}
+            {t("workshop.world.web.links")}
             <button type="button" onClick={() => setCenter("")} className="ml-1 underline decoration-stone-600 underline-offset-2 hover:text-stone-200">
               {t("workshop.world.web.wholeWorld")}
             </button>
