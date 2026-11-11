@@ -33,7 +33,7 @@ export function ItemProposalBar({
   meUserId: string;
   steersStory: boolean;
 }) {
-  const { t } = useI18n();
+  const { t, tp } = useI18n();
   const [busyId, setBusyId] = useState("");
   const [error, setError] = useState("");
   const advances = proposals.filter((proposal) => proposal.toolName === "romance_advance");
@@ -90,7 +90,7 @@ export function ItemProposalBar({
         return t("campaign.session.proposals.summary.heal", { character: data.characterName, amount: data.amount });
       case "set_condition":
         return data.rounds > 0
-          ? t("campaign.session.proposals.summary.conditionRounds", { character: data.characterName, condition: data.condition, rounds: data.rounds })
+          ? tp("campaign.session.proposals.summary.conditionRounds", data.rounds, { character: data.characterName, condition: data.condition })
           : t("campaign.session.proposals.summary.condition", { character: data.characterName, condition: data.condition });
       case "clear_condition":
         return t("campaign.session.proposals.summary.clearCondition", { character: data.characterName, condition: data.condition });
