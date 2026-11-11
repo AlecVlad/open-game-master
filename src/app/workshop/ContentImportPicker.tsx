@@ -56,11 +56,14 @@ function importNoticeText(
 ): string {
   if (!notice.code) return notice.message;
   const params: Record<string, string | number> = { ...notice.params };
-  const kindParam = (value: string) =>
-    Object.prototype.hasOwnProperty.call(IMPORT_KIND_KEYS, value)
-      ? importKindLabel(value as ImportKind, t)
-      : value;
-  for (const key of ["kind", "otherKind", "linkKind", "from", "to"]) {
+  const kindParam = (value: string) => {
+    if (Object.prototype.hasOwnProperty.call(IMPORT_KIND_KEYS, value)) {
+      return importKindLabel(value as ImportKind, t);
+    }
+    if (WORLD_SLICE_KEYS[value]) return t(WORLD_SLICE_KEYS[value] as never);
+    return value;
+  };
+  for (const key of ["kind", "otherKind", "linkKind"]) {
     const value = params[key];
     if (typeof value === "string") params[key] = kindParam(value);
   }
@@ -646,11 +649,18 @@ function worldConflictText(notice: WorldConflictNotice, t: ImportMessages["t"]):
     params.slice = t(WORLD_SLICE_KEYS[params.slice]);
   }
   if (typeof params.field === "string") {
-    const key = params.field.startsWith("fields.") ? "fields" : params.field;
-    if (WORLD_FIELD_KEYS[key]) params.field = t(WORLD_FIELD_KEYS[key]);
+    if (params.field.startsWith("fields.")) {
+      params.field = `${t("workshop.contentImport.worldField.custom" as never)}: ${params.field.slice("fields.".length)}`;
+    } else if (WORLD_FIELD_KEYS[params.field]) {
+      params.field = t(WORLD_FIELD_KEYS[params.field] as never);
+    }
   }
-  if (typeof params.label === "string" && WORLD_LINK_LABEL_KEYS[params.label]) {
-    params.label = t(WORLD_LINK_LABEL_KEYS[params.label]);
+  if (
+    (notice.code.endsWith(".linkChanged") || notice.code.endsWith(".linkRemoved")) &&
+    typeof params.label === "string" &&
+    WORLD_LINK_LABEL_KEYS[params.label]
+  ) {
+    params.label = t(WORLD_LINK_LABEL_KEYS[params.label] as never);
   }
   return t(notice.code, params);
 }
@@ -686,8 +696,9 @@ function importNote(data: Record<string, unknown>, messages?: ImportMessages): s
         name: string; resolution: "campaign" | "missing"; message: string;
       } => Boolean(value && typeof value === "object" &&
         typeof (value as Record<string, unknown>).tableName === "string" &&
-        typeof (value as Record<string, unknown>).kind === "string" &&
+        ["tables", "npcs", "lore", "locations"].includes(String((value as Record<string, unknown>).kind)) &&
         typeof (value as Record<string, unknown>).name === "string" &&
+        typeof (value as Record<string, unknown>).message === "string" &&
         ((value as Record<string, unknown>).resolution === "campaign" || (value as Record<string, unknown>).resolution === "missing"))
     : [];
   if (!messages) {
