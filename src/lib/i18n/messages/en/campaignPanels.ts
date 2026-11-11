@@ -3288,4 +3288,6 @@ export const enCampaignPanels = {
   "campaign.session.hand.board.yourSpell": "your spell",
 
   "campaign.session.hand.heading.anotherHero": "Another hero",
+
+  "campaign.session.hand.more": "more",
 } satisfies Record<string, string>;
