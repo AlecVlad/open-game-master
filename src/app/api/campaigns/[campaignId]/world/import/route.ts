@@ -3,7 +3,7 @@ import { isErrorResponse, requireStoryAuthority } from "@/lib/campaign-api";
 import { applyWorldImport, worldSource } from "@/lib/db/world-forge-io";
 import { scenesWithoutRoom } from "@/lib/db/world-forge-scenes";
 import { MAX_BEATS } from "@/lib/workshop/board";
-import { readWorldForge } from "@/lib/worldforge/format";
+import { readWorldForge, type WorldNoticeDetail } from "@/lib/worldforge/format";
 import { publishEphemeral } from "@/lib/events";
 import { uploadRefusalResponse } from "@/lib/upload-budget";
 import { MAX_BUNDLE_BYTES } from "@/lib/workshop/bundle";
@@ -49,8 +49,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ cam
   // the file's, so they are counted here where the board is known.
   const over = scenesWithoutRoom(campaignId, worldSource(read), read.beats);
   const losses = over ? [...read.losses, `${over.toLocaleString("en")} of the file's scenes do not fit: a storyboard holds ${MAX_BEATS} cards.`] : read.losses;
+  const lossDetails: WorldNoticeDetail[] = [...read.lossDetails];
+  if (over) lossDetails.push({ code: "workshop.world.import.loss.scenesOverCapacity", params: { count: over, limit: MAX_BEATS } });
   if ((losses.length || read.sceneLosses.length) && !parsed.data.accept) {
-    return Response.json({ preview: true, losses, scenes: read.sceneLosses, notes: read.notes });
+    return Response.json({ preview: true, losses, lossDetails, scenes: read.sceneLosses, notes: read.notes, noteDetails: read.noteDetails });
   }
   const result = applyWorldImport(campaignId, { id: context.user.id, isAdmin: context.user.isAdmin }, read);
   if ("error" in result) {
