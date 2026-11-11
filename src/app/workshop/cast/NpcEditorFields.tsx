@@ -99,21 +99,21 @@ export function NpcEditorFields({
         className="panel space-y-2 rounded-xl p-3"
         data-tour="cast-fields"
       >
-        <SectionHead title="On the surface" glyph="system-cast" className="mb-0" />
+        <SectionHead title={t("campaign.npcEditor.surface")} glyph="system-cast" className="mb-0" />
         <div className="flex flex-wrap items-center gap-1.5">
           <input
             value={draft.name}
             onChange={(event) => onChange({ ...draft, name: event.target.value })}
-            placeholder="Their name"
+            placeholder={t("campaign.npcEditor.name.placeholder")}
             className={cn(ui.input, "min-w-32 flex-1")}
           />
           <input
             list={roleListId}
             value={draft.role}
             onChange={(event) => onChange({ ...draft, role: event.target.value })}
-            placeholder="What they do"
-            aria-label="Role: pick one or type your own"
-            title="Pick a role or type your own. It chooses their stand-in face until a portrait exists."
+            placeholder={t("campaign.npcEditor.role.placeholder")}
+            aria-label={t("campaign.npcEditor.role.aria")}
+            title={t("campaign.npcEditor.role.title")}
             className={cn(ui.input, "w-full sm:w-40")}
           />
           <datalist id={roleListId}>
@@ -125,17 +125,17 @@ export function NpcEditorFields({
           </datalist>
           <span className="w-full sm:w-60">
           <Select<NpcDraft["attitude"]>
-            label="Attitude to the party"
+            label={t("campaign.npcEditor.attitude.label")}
             value={draft.attitude}
             onChange={(attitude) => onChange({ ...draft, attitude })}
             options={ATTITUDES.map((attitude) => ({
               value: attitude,
               label:
                 attitude === "hostile"
-                  ? "Hostile to the party"
+                  ? t("campaign.npcEditor.attitude.hostile")
                   : attitude === "friendly"
-                    ? "Friendly to the party"
-                    : "Indifferent",
+                    ? t("campaign.npcEditor.attitude.friendly")
+                    : t("campaign.npcEditor.attitude.indifferent"),
               icon: {
                 kind: "glyph" as const,
                 key: attitude === "hostile" ? "attitude-hostile" : attitude === "friendly" ? "attitude-friendly" : "attitude-neutral",
@@ -145,10 +145,10 @@ export function NpcEditorFields({
           </span>
           <span className="w-full sm:w-40">
           <Select<Gender>
-            label="Gender"
+            label={t("campaign.npcEditor.gender.label")}
             value={draft.gender}
             onChange={(gender) => onChange({ ...draft, gender })}
-            options={[{ value: "", label: "Unspecified" }, ...GENDERS.map((gender) => ({ value: gender, label: gender }))]}
+            options={[{ value: "", label: t("campaign.npcEditor.unspecified") }, ...GENDERS.map((gender) => ({ value: gender, label: t(gender === "Female" ? "campaign.npcEditor.gender.female" : gender === "Male" ? "campaign.npcEditor.gender.male" : "campaign.npcEditor.gender.nonbinary") }))]}
           />
           </span>
           {/* Beside the gender because the two pick the stand-in face
@@ -158,10 +158,10 @@ export function NpcEditorFields({
           {keepsRace ? (
             <span className="w-full sm:w-48">
             <Select<string>
-              label="Race"
+              label={t("campaign.npcEditor.race.label")}
               value={draft.race ?? ""}
               onChange={(race) => onChange({ ...draft, race })}
-              options={[{ value: "", label: "Unspecified" }, ...NPC_RACE_OPTIONS]}
+              options={[{ value: "", label: t("campaign.npcEditor.unspecified") }, ...NPC_RACE_OPTIONS]}
             />
             </span>
           ) : null}
@@ -172,7 +172,7 @@ export function NpcEditorFields({
         <AttractionPicker
           value={draft.attraction ?? { genders: [], note: "" }}
           onChange={(attraction) => onChange({ ...draft, attraction })}
-          hint={NPC_ATTRACTION_HINT}
+          hint={t("campaign.npcEditor.attraction.hint")}
           className="sm:max-w-md"
         />
 
@@ -180,8 +180,8 @@ export function NpcEditorFields({
           value={draft.location}
           list={places.length ? placeListId : undefined}
           onChange={(event) => onChange({ ...draft, location: event.target.value })}
-          placeholder="Where they are usually found"
-          aria-label="Location: pick a place on the map or type your own"
+          placeholder={t("campaign.npcEditor.location.placeholder")}
+          aria-label={t("campaign.npcEditor.location.aria")}
           className={ui.input}
         />
         {places.length ? (
@@ -200,13 +200,13 @@ export function NpcEditorFields({
               aliases: event.target.value.split(",").map((alias) => alias.trim()).filter(Boolean),
             })
           }
-          placeholder="Other names they answer to, separated by commas"
+          placeholder={t("campaign.npcEditor.aliases.placeholder")}
           className={ui.input}
         />
 
         <div className="flex items-start gap-1.5">
           <DictateField
-            label="What a player notices first"
+            label={t("campaign.npcEditor.trait.label")}
             className="min-w-0 flex-1"
             onTranscript={(text) => onChange({ ...draft, trait: appendDictation(draft.trait, text) })}
           >
@@ -214,7 +214,7 @@ export function NpcEditorFields({
               value={draft.trait}
               onChange={(event) => onChange({ ...draft, trait: event.target.value })}
               rows={2}
-              placeholder="What a player notices about them first"
+              placeholder={t("campaign.npcEditor.trait.placeholder")}
               className={ui.input}
             />
           </DictateField>
@@ -223,11 +223,11 @@ export function NpcEditorFields({
 
         {factions.length ? (
           <Select
-            label="Faction"
+            label={t("campaign.npcEditor.faction.label")}
             value={draft.factionId}
             onChange={(factionId) => onChange({ ...draft, factionId })}
             options={[
-              { value: "", label: "No faction" },
+              { value: "", label: t("campaign.npcEditor.faction.none") },
               ...factions.map((faction) => ({ value: faction.id, label: faction.name, icon: { kind: "glyph" as const, key: "system-factions" } })),
             ]}
           />
@@ -237,13 +237,13 @@ export function NpcEditorFields({
             brings them in as it, under their own name. */}
         <div className="flex flex-wrap items-center gap-1.5">
           <GameIcon icon={{ kind: "glyph", key: "system-bestiary" }} size="size-7" />
-          <span className="text-xs text-stone-400">Fights as</span>
+          <span className="text-xs text-stone-400">{t("campaign.npcEditor.statBlock.fightsAs")}</span>
           {draft.statBlock ? (
             <span className="pop-in inline-flex items-center gap-1 rounded-full border border-amber-500/25 bg-stone-900/60 py-0.5 pl-2.5 pr-1 text-xs text-stone-200">
-              {draft.statBlock.startsWith("homebrew:") ? "your own stat block" : draft.statBlock.replace(/-/g, " ")}
+              {draft.statBlock.startsWith("homebrew:") ? t("campaign.npcEditor.statBlock.own") : draft.statBlock.replace(/-/g, " ")}
               <button
                 type="button"
-                aria-label="Clear the stat block"
+                aria-label={t("campaign.npcEditor.statBlock.clear")}
                 onClick={() => onChange({ ...draft, statBlock: "" })}
                 className={cn(ui.iconAction, "rounded-full p-1 opacity-100 hover:text-red-300")}
               >
@@ -253,8 +253,8 @@ export function NpcEditorFields({
           ) : null}
           <ContentPick
             kind="monsters"
-            label="Pick the stat block they fight with"
-            placeholder={draft.statBlock ? "Another stat block..." : "Veteran, Bandit Captain, Priest..."}
+            label={t("campaign.npcEditor.statBlock.label")}
+            placeholder={draft.statBlock ? t("campaign.npcEditor.statBlock.another") : t("campaign.npcEditor.statBlock.placeholder")}
             className="min-w-48 flex-1"
             onPick={(entry) => onChange({ ...draft, statBlock: entry.slug ?? entry.name })}
           />
