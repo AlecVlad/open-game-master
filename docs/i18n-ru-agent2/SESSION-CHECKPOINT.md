@@ -186,5 +186,10 @@ Continue the Atlas audit with `AtlasRegion.tsx`, `AtlasEdit.tsx`, `AtlasParty.ts
 - Added 42 EN/RU messages under `workshop.homebrew.copy.field.*` for spell, item, feat, species, class and related fields. Source entries, custom data and field IDs are not translated.
 - Static verification: all 42 keys exist in both dictionaries, none are duplicated, and every Russian label is non-empty. TypeScript, lint, tests, production build and visual checks were not run.
 
+## App entry and setup — 12 November 2026
+- `src/app/setup/page.tsx`: replaced the final hardcoded “Open the admin panel” link label with the existing `setup.page.openAdmin` message key.
+- Performed a focused top-level screen scan of `AuthForm.tsx`, `ChangePasswordForm.tsx`, `CreateCampaignDialog.tsx`, `WorldSetupFields.tsx`, `page.tsx`, `settings/page.tsx` and `setup/page.tsx`. No further fixed English labels were found in the inspected candidates; product name and input-code masks are intentionally unchanged.
+- TypeScript, lint, tests, production build and visual checks were not run.
+
 ## Resume
 The WorldForge component pass is complete across all 29 files in `src/app/workshop/world/`: core views, Atlas, timeline, secrets, wiki, Ask, outline generation, paint queue, relationship graph/editor, type manager, bound records, play fields and shared pickers. Continue with the broader app-level localization audit outside this folder and fix any remaining visible English UI. Verify branch HEAD before editing. Do not run TypeScript/build/lint/tests until Remote Desktop access is available. Block 1 remains formally open; do not merge, open a PR or create its DONE flag.
