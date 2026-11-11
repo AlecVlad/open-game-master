@@ -12,21 +12,19 @@ import {
   filterCards,
   filterChips,
   filtering,
-  groupSummary,
-  sectionLine,
   type FilterChip,
   type HandFilter,
   type HandGroup,
 } from "@/lib/battlemap/hand-groups";
 import type { HandAim } from "@/lib/battlemap/hand-play";
-import { HandCardFace } from "@/app/campaigns/[campaignId]/HandCardFace";
+import { HandCardFace, costLabel } from "@/app/campaigns/[campaignId]/HandCardFace";
+import { useI18n } from "@/lib/i18n/provider";
+import { handGroupLeft, handGroupNoun, handGroupSummary, handGroupTitle, handSectionLabel, handSectionLine, handSlotNote } from "@/lib/battlemap/hand-i18n";
 
 // The Hand's groups (issue 528, src/lib/battlemap/hand-groups.ts): the card
 // that stands for every spell, every ki technique, the items or the basic
 // actions, and the group opened as a hand of its own, with a Back spine to
 // the main hand. Styles in src/app/styles/hand-groups.css.
-
-const costWord: Record<string, string> = { action: "action", bonus: "bonus action", reaction: "reaction" };
 
 // The fan's lean for this many cards, as the main hand works it out.
 export function fanStep(count: number): number {
@@ -62,10 +60,12 @@ function HandGroupFaceInner({
   onOpen: (group: HandGroup) => void;
   genre?: string | null;
 }) {
+  const { t, tp } = useI18n();
+  const groupName = handGroupTitle(group, t);
   const quiet = Boolean(group.disabled) && !waiting;
   const names = group.cards.map((card) => card.name);
-  const open = group.costs.filter((entry) => entry.open).map((entry) => costWord[entry.cost]);
-  const label = `${group.name}: ${groupSummary(group)}.${open.length ? ` Has ${open.join(", ")} cards ready.` : ""} Open`;
+  const open = group.costs.filter((entry) => entry.open).map((entry) => costLabel(entry.cost, t));
+  const label = t("campaign.session.hand.group.aria", { name: groupName, summary: handGroupSummary(group, t, tp), ready: open.length ? t("campaign.session.hand.group.hasReady", { costs: open.join(", ") }) : "", open: t("campaign.session.hand.group.open") });
   return (
     <div className="hand-slot" style={slotStyle(index, offset, step)}>
       <button
@@ -85,7 +85,7 @@ function HandGroupFaceInner({
         <span className="hand-card-foil" />
         <span className="hand-card-sheen" />
         <span className="hand-card-ribbon">
-          {group.cards.length} {group.cards.length === 1 ? group.noun[0] : group.noun[1]}
+          {handGroupNoun(group, group.cards.length, tp)}
         </span>
         <span className="hand-card-corner" data-at="tl" />
         <span className="hand-card-corner" data-at="br" />
@@ -96,7 +96,7 @@ function HandGroupFaceInner({
                 <span key={entry.cost} className="hand-cost-dot" data-cost={entry.cost} data-open={entry.open ? "true" : undefined} />
               ))}
             </span>
-            {fresh ? <span className="hand-group-new">New</span> : <span className="hand-range">Open</span>}
+            {fresh ? <span className="hand-group-new">{t("campaign.session.hand.new")}</span> : <span className="hand-range">{t("campaign.session.hand.group.open")}</span>}
           </span>
           <span className="hand-art hand-group-art" aria-hidden="true">
             {group.icons.map((icon, at) => {
@@ -108,27 +108,27 @@ function HandGroupFaceInner({
               );
             })}
           </span>
-          <span className="hand-name">{group.name}</span>
+          <span className="hand-name">{groupName}</span>
           <span className="hand-numbers">
-            <span className="hand-roll">{sectionLine(group) || names.slice(0, 3).join(" · ")}</span>
+            <span className="hand-roll">{handSectionLine(group, t) || names.slice(0, 3).join(" · ")}</span>
           </span>
-          <span className="hand-rules">{sectionLine(group) ? names.slice(0, 4).join(", ") : names.slice(3, 9).join(", ")}</span>
+          <span className="hand-rules">{handSectionLine(group, t) ? names.slice(0, 4).join(", ") : names.slice(3, 9).join(", ")}</span>
           <span className="hand-foot">
-            <span className="hand-resource">{group.left}</span>
+            <span className="hand-resource">{handGroupLeft(group, t)}</span>
           </span>
         </span>
       </button>
       {/* What it holds, section by section, over the card on hover. */}
       <span className="hand-preview" aria-hidden="true">
         <span className="hand-preview-head">
-          <span className="hand-preview-name">{group.name}</span>
+          <span className="hand-preview-name">{groupName}</span>
         </span>
         <span className="hand-rows">
           {group.sections.map((section, at) => (
             <span key={section.id} className="hand-row" style={{ "--i": at } as CSSProperties}>
-              <span className="hand-row-key">{group.sections.length > 1 ? section.label : `${section.cards.length} ${group.noun[1]}`}</span>
+              <span className="hand-row-key">{group.sections.length > 1 ? handSectionLabel(section.label, t) : handGroupNoun(group, section.cards.length, tp)}</span>
               <span className="hand-row-value" data-tone={section.note ? "cost" : "muted"}>
-                {group.sections.length > 1 ? [section.cards.length, section.note].filter(Boolean).join(" · ") : section.note || "Open to choose"}
+                {group.sections.length > 1 ? [section.cards.length, handSlotNote(section.note, t)].filter(Boolean).join(" · ") : handSlotNote(section.note, t) || t("campaign.session.hand.group.openToChoose")}
               </span>
             </span>
           ))}
@@ -159,6 +159,7 @@ export function HandFindTools({
   label: string;
   className?: string;
 }) {
+  const { t } = useI18n();
   if (!chips.length && !search) return null;
   const toggle = (chip: FilterChip) => {
     if (chip.id === "concentration") {
@@ -171,7 +172,7 @@ export function HandFindTools({
   return (
     <div className={`hand-find ${className ?? ""}`}>
       {chips.length ? (
-        <span className="hand-find-chips" role="group" aria-label={`Filter ${label}`}>
+        <span className="hand-find-chips" role="group" aria-label={t("campaign.session.hand.group.filter", { label })}>
           {chips.map((chip) => {
             const on = chip.id === "concentration" ? filter.concentration : filter.costs.includes(chip.id);
             return (
@@ -181,10 +182,10 @@ export function HandFindTools({
                 className="hand-chip"
                 data-cost={chip.id}
                 aria-pressed={on}
-                aria-label={`${chip.label}: ${chip.count}`}
+                aria-label={t("campaign.session.hand.group.filterChip", { label: chip.id === "concentration" ? t("campaign.session.hand.group.filterConcentration") : costLabel(chip.id, t), count: chip.count })}
                 onClick={() => toggle(chip)}
               >
-                {chip.short}
+                {chip.id === "concentration" ? t("campaign.session.hand.group.filterConcentration") : costLabel(chip.id, t)}
                 <span className="hand-chip-count" aria-hidden="true">{chip.count}</span>
               </button>
             );
@@ -198,8 +199,8 @@ export function HandFindTools({
             type="search"
             value={filter.query}
             onChange={(event) => onFilter({ ...filter, query: event.target.value })}
-            placeholder="Find by name or damage"
-            aria-label={`Search ${label}`}
+            placeholder={t("campaign.session.hand.group.searchPlaceholder")}
+            aria-label={t("campaign.session.hand.group.search", { label })}
             maxLength={60}
             enterKeyHint="search"
             autoComplete="off"
@@ -249,6 +250,9 @@ export function HandGroupView({
   onBack: () => void;
   genre?: string | null;
 }) {
+  const { t, tp } = useI18n();
+  const groupName = handGroupTitle(group, t);
+  const groupLeft = handGroupLeft(group, t);
   const [sectionId, setSectionId] = useState(() => openingSection(group));
   const [filter, setFilter] = useState<HandFilter>(NO_FILTER);
   const backRef = useRef<HTMLButtonElement>(null);
@@ -276,23 +280,23 @@ export function HandGroupView({
 
   const middle = shown.length / 2;
   const step = fanStep(shown.length);
-  const panelLabel = searching ? `${group.name} found` : tabs ? `${group.name}, ${section?.label}` : group.name;
+  const panelLabel = searching ? t("campaign.session.hand.group.found", { name: groupName }) : tabs ? `${groupName}, ${section ? handSectionLabel(section.label, t) : ""}` : groupName;
   return (
     <div className="hand-group" data-group-key={group.key}>
       <div className="hand-group-bar">
         <span className="hand-group-title">
-          <span className="font-display">{group.name}</span>
-          {group.left ? <span className="hand-group-left">{group.left}</span> : null}
+          <span className="font-display">{groupName}</span>
+          {groupLeft ? <span className="hand-group-left">{groupLeft}</span> : null}
         </span>
         {searching ? (
           <p className="hand-group-found" role="status">
-            {shown.length ? `${shown.length} of ${group.cards.length} ${group.noun[1]}` : `No ${group.noun[1]} match`}
+            {shown.length ? t("campaign.session.hand.group.searchCount", { found: shown.length, items: handGroupNoun(group, group.cards.length, tp) }) : t("campaign.session.hand.group.noMatches")}
             <button type="button" className="hand-group-clear" onClick={() => setFilter(NO_FILTER)}>
-              <X aria-hidden="true" className="size-3" /> Clear
+              <X aria-hidden="true" className="size-3" /> {t("campaign.session.hand.group.clear")}
             </button>
           </p>
         ) : tabs ? (
-          <div role="tablist" aria-label={`${group.name} by level`} className="hand-group-tabs">
+          <div role="tablist" aria-label={t("campaign.session.hand.group.tablist", { name: groupName })} className="hand-group-tabs">
             {group.sections.map((entry, at) => {
               const chosen = entry.id === section?.id;
               return (
@@ -309,8 +313,8 @@ export function HandGroupView({
                   onClick={() => setSectionId(entry.id)}
                   onKeyDown={(event) => onTabKey(event, at)}
                 >
-                  <span className="hand-group-tab-label">{entry.label}</span>
-                  <span className="hand-group-tab-note">{entry.note || `${entry.cards.length} ${entry.cards.length === 1 ? group.noun[0] : group.noun[1]}`}</span>
+                  <span className="hand-group-tab-label">{handSectionLabel(entry.label, t)}</span>
+                  <span className="hand-group-tab-note">{handSlotNote(entry.note, t) || handGroupNoun(group, entry.cards.length, tp)}</span>
                 </button>
               );
             })}
@@ -321,7 +325,7 @@ export function HandGroupView({
           filter={filter}
           onFilter={setFilter}
           search={group.cards.length > GROUP_SEARCH_OVER}
-          label={group.name}
+          label={groupName}
         />
       </div>
       <div
@@ -339,10 +343,10 @@ export function HandGroupView({
           type="button"
           className="hand-back"
           onClick={onBack}
-          aria-label={`Back to your hand from ${group.name}`}
+          aria-label={t("campaign.session.hand.group.backToHand", { name: groupName })}
         >
           <ArrowLeft aria-hidden="true" className="hand-back-arrow" />
-          <span className="hand-back-word">Your hand</span>
+          <span className="hand-back-word">{t("campaign.session.hand.group.yourHand")}</span>
         </button>
         {shown.map((card, index) => (
           <HandCardFace
