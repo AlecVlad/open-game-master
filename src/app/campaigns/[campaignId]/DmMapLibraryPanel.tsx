@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { ChevronDown, ChevronRight, Plus } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { encodeImageForUpload } from "@/lib/image-encode";
@@ -56,6 +57,7 @@ export function DmMapLibraryPanel({
   only?: boolean;
   onClose?: () => void;
 }) {
+  const { t } = useI18n();
   const [state, setState] = useState<LibraryState>({
     maps: [],
     board: null,
@@ -81,13 +83,13 @@ export function DmMapLibraryPanel({
   const { loaded, loadError, settle } = useLoadStatus();
   const load = useCallback(
     () =>
-      readLoad<LibraryState>(fetch(`/api/campaigns/${campaignId}/dm/maps`), "The maps").then((outcome) => {
+      readLoad<LibraryState>(fetch(`/api/campaigns/${campaignId}/dm/maps`), t("campaign.dmMapLibrary.resource")).then((outcome) => {
         if (outcome.payload) {
           setState(outcome.payload);
         }
         settle(outcome);
       }),
-    [campaignId, settle],
+    [campaignId, settle, t],
   );
 
   useEffect(() => {
@@ -153,10 +155,10 @@ export function DmMapLibraryPanel({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
         }),
-        "That did not work.",
+        t("campaign.dmMapLibrary.error.request"),
       );
       if (sent.error !== null) {
-        setError(sent.unanswered ? `${sent.error} The library was read again; look for the map there before making it again.` : sent.error);
+        setError(sent.unanswered ? t("campaign.dmMapLibrary.error.retryRead", { error: sent.error }) : sent.error);
         if (sent.unanswered) await load();
         return null;
       }
@@ -195,7 +197,7 @@ export function DmMapLibraryPanel({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
         }),
-        "That change was not saved.",
+        t("campaign.dmMapLibrary.error.notSaved"),
       );
       if (sent.error !== null) {
         // The server's own sentence, over the canvas where the eyes are.
@@ -205,7 +207,7 @@ export function DmMapLibraryPanel({
       await load();
       return true;
     },
-    [campaignId, load, push],
+    [campaignId, load, push, t],
   );
 
   async function act(action: "deploy" | "open-scene") {
@@ -222,7 +224,7 @@ export function DmMapLibraryPanel({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ do: action }),
         }),
-        "That did not work.",
+        t("campaign.dmMapLibrary.error.request"),
       );
       if (sent.error !== null) {
         // With no answer it may be on the table already; a second press
@@ -230,7 +232,7 @@ export function DmMapLibraryPanel({
         push(sent.unanswered ? `${sent.error} It may have gone through; look at the table before trying again.` : sent.error);
         return;
       }
-      push(action === "deploy" ? "It is on the table." : "The scene is open.", "done");
+      push(action === "deploy" ? t("campaign.dmMapLibrary.done.deployed") : t("campaign.dmMapLibrary.done.sceneOpen"), "done");
       await load();
     } finally {
       setBusy(false);
@@ -285,7 +287,7 @@ export function DmMapLibraryPanel({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(carry),
         }),
-        "The copy could not be painted.",
+        t("campaign.dmMapLibrary.error.copy"),
       );
       if (sent.error !== null) {
         setError(sent.error);
@@ -310,7 +312,7 @@ export function DmMapLibraryPanel({
       // A refusal, or a request that never arrived, is said and the map
       // stays open (WA-05); with no answer it may be gone all the same, so
       // the library is read again.
-      const sent = await readWrite(fetch(`/api/campaigns/${campaignId}/dm/maps/${selected.id}`, { method: "DELETE" }), "That map could not be deleted.");
+      const sent = await readWrite(fetch(`/api/campaigns/${campaignId}/dm/maps/${selected.id}`, { method: "DELETE" }), t("campaign.dmMapLibrary.error.delete"));
       if (sent.error !== null) {
         setError(sent.error);
         if (sent.unanswered) await load();
@@ -349,7 +351,7 @@ export function DmMapLibraryPanel({
         if (upload.ok) {
           backdropPath = payload.url;
         } else {
-          pictureRefused = `The picture did not come along: ${payload.error || "it would not upload."}`;
+          pictureRefused = t("campaign.dmMapLibrary.import.pictureFailed", { error: payload.error || t("campaign.dmMapLibrary.import.uploadFailed") });
         }
         // A picture that will not upload is not a reason to lose the walls:
         // the geometry is the part the rules need, but the DM is told.
@@ -366,10 +368,10 @@ export function DmMapLibraryPanel({
       });
       if (result?.map) {
         select(result.map.id);
-        setNote([result.notes?.[0] ?? "Imported.", pictureRefused].filter(Boolean).join(" "));
+        setNote([result.notes?.[0] ?? t("campaign.dmMapLibrary.import.done"), pictureRefused].filter(Boolean).join(" "));
       }
     } catch {
-      setError("That file is not a Universal VTT export this can read.");
+      setError(t("campaign.dmMapLibrary.import.invalid"));
     } finally {
       setBusy(false);
     }
@@ -405,7 +407,7 @@ export function DmMapLibraryPanel({
     <Sheet
       open={editorOpen && selected !== null}
       onOpenChange={showEditor}
-      title={selected?.name ?? "Map"}
+      title={selected?.name ?? t("campaign.dmMapLibrary.map")}
       // The editor brings its own top bar, with the map's name in it.
       hideTitle
       className="top-0 h-dvh max-h-none rounded-none px-0 pb-0 pt-[env(safe-area-inset-top)] lg:top-1/2 lg:h-[94vh] lg:max-h-[94vh] lg:w-[min(98vw,110rem)] lg:rounded-xl lg:p-0"
@@ -430,7 +432,7 @@ export function DmMapLibraryPanel({
             className="flex w-full items-center gap-2 text-left font-display text-sm tracking-wide text-amber-100"
           >
             <Plus className="size-4 text-amber-300" />
-            New map
+            {t("campaign.dmMapLibrary.newMap")}
             {creating ? (
               <ChevronDown className="ml-auto size-4 text-stone-500" />
             ) : (
@@ -454,7 +456,7 @@ export function DmMapLibraryPanel({
         </section>
 
         <div data-tour="maps-gallery">
-          <Listed loaded={loaded} error={loadError} onRetry={() => void load()} loading="Opening the drawer...">
+          <Listed loaded={loaded} error={loadError} onRetry={() => void load()} loading={t("campaign.dmMapLibrary.loading")}>
             <MapGallery maps={state.maps} selectedId={selectedId} genre={state.genre} onOpen={(map) => select(map.id)} />
           </Listed>
         </div>
@@ -499,7 +501,7 @@ export function DmMapLibraryPanel({
         </div>
       ) : (
         <p className="text-xs text-stone-500">
-          Nothing in the drawer yet. Roll one, start from blank rock, or import a drawing.
+          {t("campaign.dmMapLibrary.empty")}
         </p>
       )}
       </Listed>
