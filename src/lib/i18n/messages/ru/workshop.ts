@@ -147,4 +147,8 @@ export const ruWorkshop: Partial<Record<keyof typeof enWorkshop, string>> = {
   "workshop.contentImport.note.itemsCopied": "Добавлены в домашние материалы кампании: {names}.",
   "workshop.contentImport.note.itemsReused": "Уже есть в домашних материалах кампании: {names}.",
   "workshop.contentImport.note.pregensOffered": "Предложены игрокам за этим столом: {names}.",
+  "workshop.addonFields.required": "обязательно",
+  "workshop.addonFields.secret.saved": "Сохранено. Оставьте поле пустым, чтобы не менять значение.",
+  "workshop.addonFields.secret.notSet": "Не задано",
+  "workshop.addonFields.path.blank": "Если оставить поле пустым, файл будет искаться на этом компьютере.",
 };
