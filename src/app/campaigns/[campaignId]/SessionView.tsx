@@ -662,8 +662,8 @@ export function SessionView({
   const ended = campaign?.status === "ended";
   const silenced = muted || ended;
   const silencedPlaceholder = ended
-    ? "This campaign has ended. The story stays here to read."
-    : "The party lead has muted you at this table.";
+    ? t("campaign.session.composer.endedPlaceholder")
+    : t("campaign.session.composer.mutedPlaceholder");
   const enemyTurns = state.encounter?.enemyTurns === true;
   const gate = useMemo(
     () =>
