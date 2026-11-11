@@ -273,4 +273,13 @@ export const ruCampaignSession: Partial<Record<keyof typeof enCampaignSession, s
   "campaign.joinConfirm.cancel": "Отмена",
   "campaign.joinConfirm.action.switch": "Сменить персонажа на «{name}»",
   "campaign.joinConfirm.action.takeSeat": "Присоединиться к игре",
+  "campaign.nameMenu.list.aria": "Имена, известные за этим игровым столом",
+  "campaign.nameMenu.group.party": "Группа",
+  "campaign.nameMenu.group.people": "Персонажи мира",
+  "campaign.nameMenu.group.places": "Места",
+  "campaign.nameMenu.empty": "Подходящих известных имён нет.",
+  "campaign.nameMenu.keyboard.choose": "выбрать",
+  "campaign.nameMenu.keyboard.insert": "вставить",
+  "campaign.nameMenu.keyboard.close": "закрыть",
+  "campaign.nameMenu.unmet": "Ещё не представлен группе",
 };
