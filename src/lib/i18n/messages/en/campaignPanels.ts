@@ -3284,4 +3284,6 @@ export const enCampaignPanels = {
   "campaign.session.hand.aim.laidArea": "Laid: {area}.",
 
   "campaign.session.hand.board.pickTargetArea": "Choose a target or an area first.",
+
+  "campaign.session.hand.board.yourSpell": "your spell",
 } satisfies Record<string, string>;
