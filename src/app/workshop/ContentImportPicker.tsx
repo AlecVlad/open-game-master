@@ -663,7 +663,7 @@ function importNote(data: Record<string, unknown>, messages?: ImportMessages): s
   const names = (value: unknown) => (Array.isArray(value) ? value.map(String) : []);
   const unresolved = names(data.unresolved);
   const offered = names(data.pregensOffered);
-  const worldConflictDetails = Array.isArray(data.worldConflictDetails)
+  const parsedWorldConflictDetails = Array.isArray(data.worldConflictDetails)
     ? data.worldConflictDetails.filter((value): value is WorldConflictNotice => Boolean(
         value && typeof value === "object" &&
         typeof (value as Record<string, unknown>).code === "string" &&
@@ -674,6 +674,9 @@ function importNote(data: Record<string, unknown>, messages?: ImportMessages): s
         ),
       ))
     : [];
+  const worldConflictDetails = [...new Map(
+    parsedWorldConflictDetails.map((detail) => [detail.message, detail]),
+  ).values()];
   const legacyWorldConflicts = names(data.worldConflicts).filter(
     (message) => !worldConflictDetails.some((detail) => detail.message === message),
   );
