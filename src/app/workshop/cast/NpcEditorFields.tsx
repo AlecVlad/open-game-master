@@ -161,7 +161,7 @@ export function NpcEditorFields({
               label={t("campaign.npcEditor.race.label")}
               value={draft.race ?? ""}
               onChange={(race) => onChange({ ...draft, race })}
-              options={[{ value: "", label: t("campaign.npcEditor.unspecified") }, ...NPC_RACE_OPTIONS]}
+              options={[{ value: "", label: t("campaign.npcEditor.unspecified") }, ...NPC_RACE_OPTIONS.map(({ value }) => ({ value, label: t((`campaign.npcEditor.raceOption.${value}`) as never) }))]}
             />
             </span>
           ) : null}
