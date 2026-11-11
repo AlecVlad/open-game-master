@@ -181,5 +181,10 @@ Continue the Atlas audit with `AtlasRegion.tsx`, `AtlasEdit.tsx`, `AtlasParty.ts
 - Added 9 EN/RU messages in `workshop.ts` for picture-only semantics, party visibility, skipped pin reasons, fixed map-frame positions and Region-map deletion. Corrected the two remaining English plural messages in the Russian Atlas dictionary.
 - Static checks: all 9 new keys are present in both dictionaries; placeholders match; no duplicate new keys; all direct translation references in the four Atlas subcomponents resolve. TypeScript, lint, tests, production build and visual checks were not run.
 
+## Homebrew — copied-source field summaries — 12 November 2026
+- `CopySource.tsx`: changed-field summaries now resolve known data-field IDs through i18n instead of displaying the English field labels. The translator is optional in the exported helper, so callers without it retain the existing English fallback; unknown field IDs remain untouched.
+- Added 42 EN/RU messages under `workshop.homebrew.copy.field.*` for spell, item, feat, species, class and related fields. Source entries, custom data and field IDs are not translated.
+- Static verification: all 42 keys exist in both dictionaries, none are duplicated, and every Russian label is non-empty. TypeScript, lint, tests, production build and visual checks were not run.
+
 ## Resume
 The WorldForge component pass is complete across all 29 files in `src/app/workshop/world/`: core views, Atlas, timeline, secrets, wiki, Ask, outline generation, paint queue, relationship graph/editor, type manager, bound records, play fields and shared pickers. Continue with the broader app-level localization audit outside this folder and fix any remaining visible English UI. Verify branch HEAD before editing. Do not run TypeScript/build/lint/tests until Remote Desktop access is available. Block 1 remains formally open; do not merge, open a PR or create its DONE flag.
