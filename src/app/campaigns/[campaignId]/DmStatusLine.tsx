@@ -5,17 +5,28 @@ import { useEffect, useState } from "react";
 import { D20Spinner } from "@/components/ui/D20Spinner";
 import { Tooltip } from "@/components/ui/Tooltip";
 import { formatElapsed } from "@/lib/dm/call-tracker-logic";
-import { describeStage } from "@/lib/dm/job-stage-logic";
 import type { CampaignState } from "@/app/campaigns/[campaignId]/useCampaignStream";
+import { useI18n } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages/index";
+import type { DmJobStage } from "@/lib/dm/job-stage-logic";
 
-const STATUS_WORDS: Record<Exclude<CampaignState["dmStatus"], "idle">, string> = {
-  thinking: "GM at work...",
-  rolling: "GM rolling dice...",
+const STATUS_WORDS: Record<Exclude<CampaignState["dmStatus"], "idle">, MessageKey> = {
+  thinking: "campaign.session.dmStatus.thinking",
+  rolling: "campaign.session.dmStatus.rolling",
   // Real dice, a held roll, or a player deciding on their thrown d20.
-  awaiting_rolls: "Waiting on a roll...",
-  narrating: "GM narrating...",
-  writing_chapter: "GM writing the chapter...",
-  plotting_arc: "GM plotting the story arc...",
+  awaiting_rolls: "campaign.session.dmStatus.awaitingRolls",
+  narrating: "campaign.session.dmStatus.narrating",
+  writing_chapter: "campaign.session.dmStatus.writingChapter",
+  plotting_arc: "campaign.session.dmStatus.plottingArc",
+};
+
+const STAGE_WORDS: Record<DmJobStage, MessageKey> = {
+  starting: "campaign.session.dmStatus.stage.starting",
+  setting_scene: "campaign.session.dmStatus.stage.settingScene",
+  searching_lore: "campaign.session.dmStatus.stage.searchingLore",
+  waiting_model: "campaign.session.dmStatus.stage.waitingModel",
+  resolving: "campaign.session.dmStatus.stage.resolving",
+  closing_chapter: "campaign.session.dmStatus.stage.closingChapter",
 };
 
 // The DM's status beside the composer (issue #383): what it is doing, the
@@ -34,6 +45,7 @@ export function DmStatusLine({
   dmJob: CampaignState["dmJob"];
   canStop: boolean;
 }) {
+  const { t } = useI18n();
   // Zero until mounted, so the server render and the first client render
   // agree; the clock only ticks while a job runs.
   const [now, setNow] = useState(0);
@@ -58,10 +70,10 @@ export function DmStatusLine({
   const job = dmStatus === "awaiting_rolls" ? null : dmJob;
   const stopping = Boolean(job && (job.stopping || asked === job.id));
   const phrase = stopping
-    ? "Stopping..."
+    ? t("campaign.session.dmStatus.stopping")
     : dmStatus === "thinking" && job && job.stage !== "starting"
-      ? `${describeStage(job.stage)}...`
-      : STATUS_WORDS[dmStatus];
+      ? `${t(STAGE_WORDS[job.stage])}...`
+      : t(STATUS_WORDS[dmStatus]);
   const elapsed = job && now ? formatElapsed(job.since, now) : "";
 
   async function stop() {
@@ -86,15 +98,15 @@ export function DmStatusLine({
       </span>
       {elapsed ? <span className="tabular-nums text-stone-500">{elapsed}</span> : null}
       {canStop && job && !stopping ? (
-        <Tooltip content="Stop what the GM is doing now. A stopped turn can be retried.">
+        <Tooltip content={t("campaign.session.dmStatus.stopTooltip")}>
           <button
             type="button"
             onClick={() => void stop()}
             className="-my-0.5 ml-0.5 inline-flex items-center gap-1 rounded-full border border-red-900/60 px-1.5 py-0.5 text-[11px] text-red-200 transition-colors hover:bg-red-950/60"
-            aria-label="Stop the GM"
+            aria-label={t("campaign.session.dmStatus.stopAria")}
           >
             <Square className="size-2.5 fill-current" />
-            Stop
+            {t("campaign.session.dmStatus.stop")}
           </button>
         </Tooltip>
       ) : null}
