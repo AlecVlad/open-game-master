@@ -64,6 +64,24 @@ export const WORKSHOP_SYSTEMS = [
 
 export type SystemId = (typeof WORKSHOP_SYSTEMS)[number]["id"];
 
+export const SYSTEM_I18N_KEYS = {
+  world: { label: "workshop.system.world.label", blurb: "workshop.system.world.blurb" },
+  storyboard: { label: "workshop.system.storyboard.label", blurb: "workshop.system.storyboard.blurb" },
+  party: { label: "workshop.system.party.label", blurb: "workshop.system.party.blurb" },
+  maps: { label: "workshop.system.maps.label", blurb: "workshop.system.maps.blurb" },
+  region: { label: "workshop.system.region.label", blurb: "workshop.system.region.blurb" },
+  encounters: { label: "workshop.system.encounters.label", blurb: "workshop.system.encounters.blurb" },
+  cast: { label: "workshop.system.cast.label", blurb: "workshop.system.cast.blurb" },
+  factions: { label: "workshop.system.factions.label", blurb: "workshop.system.factions.blurb" },
+  bestiary: { label: "workshop.system.bestiary.label", blurb: "workshop.system.bestiary.blurb" },
+  homebrew: { label: "workshop.system.homebrew.label", blurb: "workshop.system.homebrew.blurb" },
+  lore: { label: "workshop.system.lore.label", blurb: "workshop.system.lore.blurb" },
+  tables: { label: "workshop.system.tables.label", blurb: "workshop.system.tables.blurb" },
+  rules: { label: "workshop.system.rules.label", blurb: "workshop.system.rules.blurb" },
+  plugin: { label: "workshop.system.plugin.label", blurb: "workshop.system.plugin.blurb" },
+  share: { label: "workshop.system.share.label", blurb: "workshop.system.share.blurb" },
+} as const;
+
 export function isSystemId(value: string | null): value is SystemId {
   return WORKSHOP_SYSTEMS.some((system) => system.id === value);
 }
