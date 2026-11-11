@@ -19,9 +19,13 @@ export function localizeStoryboardError(error: string, lang: Lang): string {
   );
   if (overflow) {
     const number = (value: string) => Number(value.replace(/,/g, ""));
+    const characters = (value: number) =>
+      translatePlural(DICTIONARIES, lang, "campaign.storyboard.characters", value, {
+        count: value.toLocaleString(lang),
+      });
     return t("campaign.storyboard.error.bodyOverflow", {
-      length: number(overflow[1]),
-      max: number(overflow[2]),
+      length: characters(number(overflow[1])),
+      max: characters(number(overflow[2])),
       lostCount: translatePlural(DICTIONARIES, lang, "campaign.storyboard.error.lostCharacters", number(overflow[3])),
       lost: overflow[4] ? `: «${overflow[4]}»` : "",
     });
