@@ -238,7 +238,7 @@ export function NameMenu({ menu, anchor }: { menu: NameMenuState; anchor: RefObj
         {matches.length ? (
           <p className="hidden flex-wrap items-center gap-x-3 gap-y-1 border-t border-amber-400/10 px-3 py-1.5 text-[11px] text-stone-500 [@media(pointer:fine)]:flex">
             <span><span className="kbd-key">↑</span> <span className="kbd-key">↓</span> {t("campaign.nameMenu.keyboard.choose")}</span>
-            <span><span className="kbd-key">Enter</span> или <span className="kbd-key">Tab</span> {t("campaign.nameMenu.keyboard.insert")}</span>
+            <span><span className="kbd-key">Enter</span> {t("campaign.nameMenu.keyboard.or")} <span className="kbd-key">Tab</span> {t("campaign.nameMenu.keyboard.insert")}</span>
             <span><span className="kbd-key">Esc</span> {t("campaign.nameMenu.keyboard.close")}</span>
           </p>
         ) : null}
