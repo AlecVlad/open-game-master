@@ -58,7 +58,7 @@ import type { Floor } from "@/lib/db/campaigns";
 import type { PublicEncounter } from "@/lib/db/encounter-view";
 import type { CharacterSheet } from "@/lib/schemas/sheet";
 import { useI18n } from "@/lib/i18n/provider";
-import { handShareUnit } from "@/lib/battlemap/hand-i18n";
+import { handShareUnit, handShareUnitCollective } from "@/lib/battlemap/hand-i18n";
 type Translator = ReturnType<typeof useI18n>["t"];
 type PluralTranslator = ReturnType<typeof useI18n>["tp"];
 
@@ -120,7 +120,7 @@ function shareControl(card: HandCard, aim: HandAim, offered: HandTargetChip[], s
         const taken = count(target.id) > 0;
         return { value: `${target.id}:${taken ? "-" : "+"}`, label: `${taken ? "✓ " : ""}${target.name}`, disabled: taken || left > 0 ? null : t("campaign.session.hand.share.everyPlaceTaken") };
       });
-  return { id: "hand-share", label: rule.stack ? t("campaign.session.hand.share.distribute", { unit: handShareUnit(rule.unit, 5, tp) }) : t("campaign.session.hand.share.whoElse", { count: rule.count }), disabled: null, options };
+  return { id: "hand-share", label: rule.stack ? t("campaign.session.hand.share.distribute", { unit: handShareUnitCollective(rule.unit, t) }) : t("campaign.session.hand.share.whoElse", { count: rule.count }), disabled: null, options };
 }
 
 // No reaction waits on the GM: the same empty list each render, so the memos
