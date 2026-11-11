@@ -558,7 +558,7 @@ export function FileTools({
           onChange={setSizeId}
           label={t("campaign.overworld.file.gridSize")}
           options={[
-            { value: "current", label: t("campaign.overworld.file.currentSize", mapSize) },
+            { value: "current", label: t("campaign.overworld.file.currentSize", { width: mapSize.width, height: mapSize.height }) },
             ...OVERWORLD_SIZES.map((entry) => ({ value: entry.id as string, label: `${t(`campaign.overworld.size.${entry.id}` as never)} (${entry.width} × ${entry.height})` })),
           ]}
           className="min-w-0 max-w-full"
