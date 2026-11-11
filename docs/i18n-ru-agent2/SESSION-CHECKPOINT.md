@@ -7,7 +7,7 @@ Single restore point for Russian localization. After a chat interruption, read o
 - Branch: `i18n-ru-agent2` — verify current HEAD on resume; do not trust a stored SHA.
 - Active scope: **Block 1 — game session**.
 - Block 1 is still open. Do not create its DONE flag, merge branches, or open a PR.
-- `STATUS.md` is the detailed history, not required for routine recovery.
+- `STATUS.md` is an older detailed log and may lag this checkpoint. This checkpoint is authoritative for the current state.
 - `PLAN.md` contains block boundaries and completion criteria; consult only when scope is unclear.
 
 ## Completed in the current pass
