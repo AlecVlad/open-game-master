@@ -53,6 +53,8 @@ export function planBoard(
     if (lost) {
       warnings.push({
         kind: "storyboard",
+        code: "workshop.contentImport.plan.board.linksLost",
+        params: { count: lost, linkKind: kind },
         message: `${lost} of the board's ${LINK_WORDS[kind]} ${lost === 1 ? "is" : "are"} not coming along, so the cards that pick ${lost === 1 ? "it" : "them"} arrive without ${lost === 1 ? "it" : "them"}. Tick ${IMPORT_KIND_LABELS[kind]} to keep those links.`,
       });
     }
@@ -60,12 +62,16 @@ export function planBoard(
   if (missing) {
     warnings.push({
       kind: "storyboard",
+      code: "workshop.contentImport.plan.board.linksMissing",
+      params: { count: missing },
       message: `${missing} card link${missing === 1 ? " points" : "s point"} at something that is no longer in the workshop and ${missing === 1 ? "is" : "are"} dropped.`,
     });
   }
   if (fightsAlong) {
     notes.push({
       kind: "storyboard",
+      code: "workshop.contentImport.plan.board.fightsComeAlong",
+      params: { count: fightsAlong },
       message: `${fightsAlong} fight card${fightsAlong === 1 ? " brings the prepared fight it picks" : "s bring the prepared fights they pick"} (roster, map settings, rewards) even though Prepared encounters is not ticked.`,
     });
   }
@@ -85,6 +91,8 @@ export function planBoard(
     if (reused || copied) {
       notes.push({
         kind: "storyboard",
+        code: "workshop.contentImport.plan.board.sharedWorkshop",
+        params: { title: board.common.title, copied, reused },
         message: `From the shared workshop "${board.common.title}": ${[
           copied ? `${copied} record${copied === 1 ? "" : "s"} copied in` : "",
           reused ? `${reused} already in this campaign and reused` : "",
@@ -97,6 +105,8 @@ export function planBoard(
   if (board.moments) {
     notes.push({
       kind: "storyboard",
+      code: "workshop.contentImport.plan.board.optionalMoments",
+      params: { count: board.moments },
       message: `${board.moments} scene${board.moments === 1 ? " sits" : "s sit"} on an alternative or optional route. ${board.moments === 1 ? "It arrives" : "They arrive"} as planned moments the storyteller fires or drops when the party gets there, not as beats the party must play.`,
     });
   }
@@ -108,12 +118,15 @@ export function planBoard(
     const titles = board.momentTitles ?? [];
     warnings.push({
       kind: "storyboard",
+      code: "workshop.contentImport.plan.board.momentsOverEventRoom",
+      params: { room: eventRoom, capacity: ARC_LIMITS.events, excluded: board.moments - eventRoom, titles: nameCards(titles.slice(eventRoom)) },
       message: `The arc has room for ${eventRoom} more planned event${eventRoom === 1 ? "" : "s"} (it holds ${ARC_LIMITS.events}); ${board.moments - eventRoom} of the board's ${board.moments} scenes on routes cannot join it${nameCards(titles.slice(eventRoom))}. ${board.moments - eventRoom === 1 ? "It keeps" : "They keep"} ${board.moments - eventRoom === 1 ? "its" : "their"} full text as a prep card the storyteller can open and search, but the arc will not offer ${board.moments - eventRoom === 1 ? "it" : "them"} as a planned event.`,
     });
   }
   if (board.beats.length || board.moments) {
     notes.push({
       kind: "storyboard",
+      code: "workshop.contentImport.plan.board.cardsKeptWhole",
       message:
         "Every card is kept whole as a prep card the storyteller can open with read_card and find with search_lore; the arc's own lines are each card's first line.",
     });
@@ -141,6 +154,8 @@ export function planBoard(
       plan.newBeats = ARC_LIMITS.beats;
       warnings.push({
         kind: "storyboard",
+        code: "workshop.contentImport.plan.board.beatsOverArcLimit",
+        params: { capacity: ARC_LIMITS.beats, excluded: over, titles: nameCards((board.beatTitles ?? []).slice(ARC_LIMITS.beats)) },
         message: `An arc holds ${ARC_LIMITS.beats} beats; the board's last ${over} cannot join it${nameCards((board.beatTitles ?? []).slice(ARC_LIMITS.beats))}. ${over === 1 ? "It keeps its" : "They keep their"} full text as a prep card, but the party will not be steered to ${over === 1 ? "it" : "them"}.`,
       });
     }
@@ -149,6 +164,8 @@ export function planBoard(
   if (mode === "leave") {
     warnings.push({
       kind: "storyboard",
+      code: board.beats.length ? "workshop.contentImport.plan.board.arcExistsWithBeats" : "workshop.contentImport.plan.board.arcExists",
+      params: { beats: board.beats.length },
       message: `This campaign already has a story arc. The board's places, quests, fights and notes still land; its beats do not overwrite the spine the table has been playing.${board.beats.length ? " Add them as the next act to keep them." : ""}`,
     });
     plan.newBeats = 0;
@@ -157,6 +174,7 @@ export function planBoard(
   if (!arc.actRoom || !arc.room) {
     warnings.push({
       kind: "storyboard",
+      code: "workshop.contentImport.plan.board.arcAtCapacity",
       message: "This arc is already as long as an arc gets, so the board's beats cannot join it.",
     });
     plan.newBeats = 0;
@@ -166,6 +184,8 @@ export function planBoard(
   if (repeated) {
     notes.push({
       kind: "storyboard",
+      code: "workshop.contentImport.plan.board.beatsAlreadyPresent",
+      params: { count: repeated },
       message: `${repeated} of the board's beats ${repeated === 1 ? "is" : "are"} already in the arc, so ${repeated === 1 ? "it is" : "they are"} not added twice.`,
     });
   }
@@ -173,12 +193,16 @@ export function planBoard(
     const freshTitles = (board.beatTitles ?? []).filter((_, index) => !known.has(textKey(board.beats[index] ?? "")));
     warnings.push({
       kind: "storyboard",
+      code: "workshop.contentImport.plan.board.beatsOverArcRoom",
+      params: { room: arc.room, capacity: ARC_LIMITS.beats, excluded: fresh.length - arc.room, titles: nameCards(freshTitles.slice(arc.room)) },
       message: `The arc has room for ${arc.room} more beat${arc.room === 1 ? "" : "s"} (it holds ${ARC_LIMITS.beats}); the last ${fresh.length - arc.room} of the board's cannot join it${nameCards(freshTitles.slice(arc.room))}. ${fresh.length - arc.room === 1 ? "It keeps its" : "They keep their"} full text as a prep card, but the party will not be steered to ${fresh.length - arc.room === 1 ? "it" : "them"}.`,
     });
   }
   if (plan.newBeats) {
     notes.push({
       kind: "storyboard",
+      code: "workshop.contentImport.plan.board.beatsAdded",
+      params: { count: plan.newBeats, act: plan.act, existing: arc.beats.length },
       message: `${plan.newBeats} beat${plan.newBeats === 1 ? "" : "s"} arrive${plan.newBeats === 1 ? "s" : ""} as act ${plan.act}, after the ${arc.beats.length} already in the arc. Played and skipped beats, and the acts already recapped, are untouched.`,
     });
   }
