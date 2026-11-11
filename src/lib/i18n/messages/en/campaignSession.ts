@@ -279,5 +279,6 @@ export const enCampaignSession = {
   "campaign.nameMenu.keyboard.choose": "choose",
   "campaign.nameMenu.keyboard.insert": "insert",
   "campaign.nameMenu.keyboard.close": "close",
+  "campaign.nameMenu.keyboard.or": "or",
   "campaign.nameMenu.unmet": "Not introduced yet",
 } satisfies Record<string, string>;
