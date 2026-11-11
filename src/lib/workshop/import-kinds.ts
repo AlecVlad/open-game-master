@@ -160,7 +160,14 @@ export type ImportPlanItem = {
   kept?: boolean;
 };
 
-export type ImportWarning = { kind: ImportKind; message: string };
+export type ImportWarning = {
+  kind: ImportKind;
+  // Stable translation key and data-only parameters for the preview UI.
+  // `message` remains the English fallback for scripts and older callers.
+  code?: string;
+  params?: Record<string, string | number>;
+  message: string;
+};
 
 export type ImportPlan = {
   items: ImportPlanItem[];
