@@ -3282,4 +3282,6 @@ export const enCampaignPanels = {
   "campaign.session.halted.leadCanRetry": "The party lead can send the GM back in from here.",
 
   "campaign.session.hand.aim.laidArea": "Laid: {area}.",
+
+  "campaign.session.hand.board.pickTargetArea": "Choose a target or an area first.",
 } satisfies Record<string, string>;
