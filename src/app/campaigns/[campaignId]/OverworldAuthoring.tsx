@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { Loader2, Sparkles, Wand2 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { Select } from "@/components/ui/Select";
@@ -43,6 +44,7 @@ export function OverworldAuthoring({
   data: OverworldData;
   onData: (next: OverworldData) => void;
 }) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [description, setDescription] = useState("");
   const [plan, setPlan] = useState<Plan | null>(null);
@@ -168,13 +170,13 @@ export function OverworldAuthoring({
 
           {(Object.keys(OVERWORLD_PARAM_LABELS) as Array<keyof OverworldParams>).map((key) => (
             <label key={key} className="flex items-center gap-2 text-[11px] text-stone-500">
-              <span className="w-20 shrink-0">{OVERWORLD_PARAM_LABELS[key]}</span>
+              <span className="w-20 shrink-0">{t(`campaign.overworld.param.${key}` as never)}</span>
               <Slider
                 min={0}
                 max={100}
                 value={Math.round(params[key] * 100)}
                 onChange={(next) => setParams({ ...params, [key]: next / 100 })}
-                label={OVERWORLD_PARAM_LABELS[key]}
+                label={t(`campaign.overworld.param.${key}` as never)}
                 bubble={(percent) => `${percent}%`}
                 className="min-w-0 flex-1"
               />
