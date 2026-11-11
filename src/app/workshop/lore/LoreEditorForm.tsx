@@ -2,6 +2,7 @@
 
 import { AlertTriangle, Eye, EyeOff, FileText, Loader2, Trash2, Users, X } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui";
 import { GameIcon } from "@/components/ui/GameIcon";
@@ -13,7 +14,7 @@ import { Markdown } from "@/components/ui/Markdown";
 import { LORE_BODY_MAX, LORE_STYLES, WORLD_LORE_CATEGORIES, loreBodyOverflow, type LoreLinkTarget, type LoreStyle, type WorldLoreCategory } from "@/lib/dm/world-lore-logic";
 import { checkProse } from "@/lib/workshop/prose-check";
 import { LoreImageField, VisibilitySelect } from "@/app/workshop/lore/LoreFields";
-import { CATEGORY_LABELS, type LoreDraft } from "@/app/workshop/lore/types";
+import type { LoreDraft } from "@/app/workshop/lore/types";
 import { DictateField } from "@/components/DictateField";
 import { appendDictation } from "@/lib/dictation";
 import { textKey } from "@/lib/language/text-logic";
@@ -27,13 +28,11 @@ import { textKey } from "@/lib/language/text-logic";
 // who reads the entry, so they stay per choice.
 // The rows that hold them carry text-xs: a button inherits its font here.
 const chip = cn(ui.btnSmall, "px-2.5 py-1.5");
-const CATEGORY_OPTIONS = WORLD_LORE_CATEGORIES.map((category) => ({
-  value: category,
-  label: CATEGORY_LABELS[category],
-  icon: { kind: "glyph" as const, key: "system-lore" },
-}));
-
-const STYLE_LABELS: Record<LoreStyle, string> = { plain: "Plain page", parchment: "Parchment", notice: "Notice" };
+const STYLE_KEYS: Record<LoreStyle, string> = {
+  plain: "campaign.lore.style.plain",
+  parchment: "campaign.lore.style.parchment",
+  notice: "campaign.lore.style.notice",
+};
 
 export function LoreEditorForm({
   draft,
@@ -53,6 +52,12 @@ export function LoreEditorForm({
   targets: LoreLinkTarget[];
   rows: boolean;
 }) {
+  const { t } = useI18n();
+  const categoryOptions = WORLD_LORE_CATEGORIES.map((category) => ({
+    value: category,
+    label: t(`campaign.lore.category.${category}` as never),
+    icon: { kind: "glyph" as const, key: "system-lore" },
+  }));
   const bodyRef = useRef<HTMLTextAreaElement>(null);
   const [preview, setPreview] = useState<"write" | "preview">("write");
   const [complete, setComplete] = useState<{ at: number; query: string } | null>(null);
@@ -62,7 +67,28 @@ export function LoreEditorForm({
   // The cap, said beside the text with what would be lost (issue #302);
   // the routes refuse the same way. The readability note is a heuristic
   // the author may dismiss.
-  const overflow = loreBodyOverflow(draft.body);
+  const overflow = Boolean(loreBodyOverflow(draft.body));
+  const lostText = draft.body.slice(LORE_BODY_MAX).trim();
+  const shownLostText = lostText.length > 60 ? `${lostText.slice(0, 60).trimEnd()}...` : lostText;
+  const overflowMessage = t("campaign.lore.editor.overflow", {
+    length: draft.body.length.toLocaleString(),
+    max: LORE_BODY_MAX.toLocaleString(),
+    lost: (draft.body.length - LORE_BODY_MAX).toLocaleString(),
+    excerpt: shownLostText ? `: “${shownLostText}”` : "",
+  });
+  const proseMessages = prose.map((warning) => {
+    const count = Number(warning.message.match(/^\\d+/)?.[0] ?? 0);
+    if (warning.kind === "joined-sentences") return t("campaign.lore.editor.prose.joined", { count });
+    if (warning.kind === "long-run") {
+      const minimum = Number(warning.message.match(/of (\\d+) or more/)?.[1] ?? 28);
+      return t("campaign.lore.editor.prose.longRun", { count, minimum });
+    }
+    return t("campaign.lore.editor.prose.fewSpaces");
+  });
+  const proseWarning = t("campaign.lore.editor.prose.warning", {
+    warnings: proseMessages.join(" "),
+    example: prose[0]?.samples[0] ? t("campaign.lore.editor.prose.example", { sample: prose[0].samples[0] }) : "",
+  });
   const prose = checkProse(draft.body);
   const proseKey = prose.map((warning) => warning.kind).join(",");
   const [dismissed, setDismissed] = useState("");
@@ -117,12 +143,12 @@ export function LoreEditorForm({
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setPdfError(payload.error || "That PDF would not upload.");
+        setPdfError(t("campaign.lore.errors.pdf"));
         return;
       }
       onChange({ ...draft, attachmentPath: payload.url });
     } catch {
-      setPdfError("That PDF would not upload.");
+      setPdfError(t("campaign.lore.errors.pdf"));
     } finally {
       setPdfBusy(false);
     }
@@ -131,7 +157,7 @@ export function LoreEditorForm({
   const textarea = (
     <div className="relative text-sm">
       <DictateField
-        label="Lore entry"
+        label={t("campaign.lore.editor.bodyLabel")}
         onTranscript={(text) => {
           const next = appendDictation(draft.body, text, LORE_BODY_MAX);
           onBodyChange(next, next.length);
@@ -154,7 +180,7 @@ export function LoreEditorForm({
           }}
           rows={rows ? 10 : 5}
           maxLength={LORE_BODY_MAX}
-          placeholder={"What is established about it...\n\n# Headings, **bold**, - lists, [[The Mill]] to link, [[1d6]] to roll, and :::secret ... ::: for what only you read."}
+          placeholder={t("campaign.lore.editor.bodyPlaceholder")}
           data-tour="lore-body"
           className={cn(ui.input, "leading-5")}
         />
@@ -165,17 +191,16 @@ export function LoreEditorForm({
         </span>
         {overflow ? (
           <span className="motion-shake w-full text-red-400" role="alert">
-            {overflow} Shorten it to save.
+            {overflowMessage}
           </span>
         ) : null}
         {prose.length && dismissed !== proseKey ? (
           <span className="reveal flex w-full items-start gap-1.5 text-amber-300/90" data-testid="prose-warning">
             <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
             <span>
-              This may read oddly: {prose.map((warning) => warning.message).join(" ")}
-              {prose[0].samples[0] ? ` For example: ${prose[0].samples[0]}` : ""} It may have been written this way; nothing is changed.{" "}
+              {proseWarning}{" "}
               <button type="button" onClick={() => setDismissed(proseKey)} className="underline">
-                Dismiss
+                {t("campaign.lore.editor.dismiss")}
               </button>
             </span>
           </span>
@@ -204,28 +229,28 @@ export function LoreEditorForm({
       {draft.body.trim() ? (
         <Markdown source={draft.body} targets={targets} style={draft.style} dmView />
       ) : (
-        <p className="text-xs italic text-stone-500">Nothing to show yet.</p>
+        <p className="text-xs italic text-stone-500">{t("campaign.lore.editor.nothingPreview")}</p>
       )}
     </div>
   );
 
   return (
     <>
-      <SectionHead title="The entry" glyph="system-lore" className="mb-0" />
+      <SectionHead title={t("campaign.lore.editor.entry")} glyph="system-lore" className="mb-0" />
       <div className="flex flex-wrap gap-1.5 sm:flex-nowrap" data-tour="lore-title">
         <span className="w-full sm:w-48 sm:shrink-0">
           <Select<WorldLoreCategory>
-            label="Category"
+            label={t("campaign.lore.editor.category")}
             value={draft.category}
             onChange={(category) => onChange({ ...draft, category })}
-            options={CATEGORY_OPTIONS}
+            options={categoryOptions}
           />
         </span>
         <input
           value={draft.title}
           onChange={(event) => onChange({ ...draft, title: event.target.value })}
           maxLength={120}
-          placeholder="Title (The Ashen League, The Sundering...)"
+          placeholder={t("campaign.lore.editor.titlePlaceholder")}
           className={cn(ui.input, "min-w-0 flex-1")}
         />
       </div>
@@ -238,7 +263,7 @@ export function LoreEditorForm({
             onClick={() => setPreview(tab)}
             className={cn(chip, preview === tab ? "border-amber-700 bg-amber-950/40 text-amber-100" : "")}
           >
-            {tab === "write" ? "Write" : "Preview"}
+            {tab === "write" ? t("campaign.lore.editor.write") : t("campaign.lore.editor.preview")}
           </button>
         ))}
       </div>
@@ -248,11 +273,11 @@ export function LoreEditorForm({
       </div>
       {linkable.length ? (
         <div className="reveal flex flex-wrap items-center gap-1.5" data-tour="lore-link">
-          <AddFromList prompt="Link another entry" options={linkable} onPick={insertLink} />
-          <span className="text-[11px] text-stone-500">Or type [[ and the first letters.</span>
+          <AddFromList prompt={t("campaign.lore.editor.linkPrompt")} options={linkable} onPick={insertLink} />
+          <span className="text-[11px] text-stone-500">{t("campaign.lore.editor.linkHint")}</span>
         </div>
       ) : null}
-      <SectionHead title="Who reads it" glyph="tab-party" className="mb-0 pt-1" />
+      <SectionHead title={t("campaign.lore.editor.visibility")} glyph="tab-party" className="mb-0 pt-1" />
       <VisibilitySelect value={draft.visibility} onChange={(visibility) => onChange({ ...draft, visibility })} />
       {draft.visibility === "party" && members?.length ? (
         <AudienceSelect
@@ -261,7 +286,7 @@ export function LoreEditorForm({
           onChange={(audience) => onChange({ ...draft, audience })}
         />
       ) : null}
-      <SectionHead title="How it is dressed" glyph="tab-handout" className="mb-0 pt-1" />
+      <SectionHead title={t("campaign.lore.editor.style")} glyph="tab-handout" className="mb-0 pt-1" />
       <div data-pill-group="" className="flex flex-wrap items-center gap-1.5 text-xs">
         {LORE_STYLES.map((style) => (
           <button data-on={draft.style === style ? "" : undefined}
@@ -271,10 +296,10 @@ export function LoreEditorForm({
             onClick={() => onChange({ ...draft, style })}
             className={cn(chip, draft.style === style ? "border-amber-700 bg-amber-950/40 text-amber-100" : "")}
           >
-            {STYLE_LABELS[style]}
+            {t(STYLE_KEYS[style] as never)}
           </button>
         ))}
-        <span className="text-[11px] text-stone-500">How it reads when shown.</span>
+        <span className="text-[11px] text-stone-500">{t("campaign.lore.editor.styleHint")}</span>
       </div>
       <LoreImageField imagePath={draft.imagePath} onChange={(imagePath) => onChange({ ...draft, imagePath })} />
       <div className="flex flex-wrap items-center gap-1.5 text-xs">
@@ -298,7 +323,7 @@ export function LoreEditorForm({
           className={chip}
         >
           {pdfBusy ? <Loader2 className="size-3 animate-spin" /> : <FileText className="size-3" />}
-          {draft.attachmentPath ? "Replace the PDF" : "Attach a PDF"}
+          {draft.attachmentPath ? t("campaign.lore.editor.replacePdf") : t("campaign.lore.editor.attachPdf")}
         </button>
         {draft.attachmentPath ? (
           <>
@@ -310,7 +335,7 @@ export function LoreEditorForm({
                 onClick={() => void window.odm?.openDocument?.(draft.attachmentPath ?? "")}
                 className="text-[11px] text-amber-200 underline"
               >
-                Open it
+                {t("campaign.lore.editor.openPdf")}
               </button>
             ) : (
               <a href={draft.attachmentPath} target="_blank" rel="noreferrer" className="text-[11px] text-amber-200 underline">
@@ -318,22 +343,22 @@ export function LoreEditorForm({
               </a>
             )}
             <button type="button" onClick={() => onChange({ ...draft, attachmentPath: "" })} className={chip}>
-              <Trash2 className="size-3" /> Take it away
+              <Trash2 className="size-3" /> {t("campaign.lore.editor.removePdf")}
             </button>
           </>
         ) : null}
-        <span className="text-[11px] text-stone-500">Tag it &quot;rules&quot; and the GM can quote it.</span>
+        <span className="text-[11px] text-stone-500">{t("campaign.lore.editor.rulesHint")}</span>
         {pdfError ? <span className="motion-shake inline-block text-[11px] text-red-400">{pdfError}</span> : null}
       </div>
-      <SectionHead title="Tags" glyph="tab-facts" className="mb-0 pt-1" />
+      <SectionHead title={t("campaign.lore.editor.tags")} glyph="tab-facts" className="mb-0 pt-1" />
       <div className="flex flex-wrap items-center gap-1.5">
         <input
           value={draft.tags}
           onChange={(event) => onChange({ ...draft, tags: event.target.value })}
-          placeholder="Tags, comma separated (optional)"
+          placeholder={t("campaign.lore.editor.tagsPlaceholder")}
           className={cn(ui.input, "min-w-40 flex-1")}
         />
-        <AddFromList prompt="Add a tag you already use" options={knownTags} onPick={(tag) => onChange({ ...draft, tags: appendTerm(draft.tags, tag) })} />
+        <AddFromList prompt={t("campaign.lore.editor.addTag")} options={knownTags} onPick={(tag) => onChange({ ...draft, tags: appendTerm(draft.tags, tag) })} />
       </div>
     </>
   );
@@ -349,6 +374,7 @@ function AudienceSelect({
   members: Array<{ userId: string; username: string }>;
   onChange: (audience: string[] | null) => void;
 }) {
+  const { t } = useI18n();
   const some = audience !== null;
   return (
     <div className="flex flex-wrap items-center gap-1.5 text-xs">
@@ -358,7 +384,7 @@ function AudienceSelect({
         onClick={() => onChange(null)}
         className={cn(chip, !some ? "border-emerald-700 bg-emerald-950/40 text-emerald-200" : "")}
       >
-        <Users className="size-3" /> Everyone
+        <Users className="size-3" /> {t("campaign.lore.editor.everyone")}
       </button>
       <button
         type="button"
@@ -366,7 +392,7 @@ function AudienceSelect({
         onClick={() => onChange(some ? audience : [])}
         className={cn(chip, some ? "border-sky-700 bg-sky-950/40 text-sky-200" : "")}
       >
-        <Eye className="size-3" /> Some players
+        <Eye className="size-3" /> {t("campaign.lore.editor.somePlayers")}
       </button>
       {some
         ? members.map((member) => {
@@ -387,7 +413,7 @@ function AudienceSelect({
         : null}
       {some && audience.length === 0 ? (
         <span className="flex items-center gap-1 text-[11px] text-amber-300">
-          <X className="size-3" /> Pick at least one, or it reads as everyone.
+          <X className="size-3" /> {t("campaign.lore.editor.pickAudience")}
         </span>
       ) : null}
     </div>
