@@ -103,42 +103,45 @@ export function ArmorRidersBlock({ data, set }: Props) {
 }
 
 export function ChargesBlock({ data, set }: Props) {
+  const t = useT();
   const charges = sub(data.charges);
   const put = (patch: Mech) => set({ charges: clean({ ...charges, ...patch }) });
   const regain = String(charges.regain ?? "");
+  const summary = !charges.max ? t("workshop.homebrew.itemMagic.charges.none") : regain ? t("workshop.homebrew.itemMagic.charges.summary.regain", { count: String(charges.max), regain: regain === "all" ? t("workshop.homebrew.itemMagic.charges.all") : regain, time: t(charges.regainAtDusk === true ? "workshop.homebrew.itemMagic.charges.dusk" : "workshop.homebrew.itemMagic.charges.dawn") }) : t("workshop.homebrew.itemMagic.charges.summary.never", { count: String(charges.max) });
   return (
-    <MechGroup title="Charges" summary={charges.max ? `${String(charges.max)}${regain ? `, ${regain === "all" ? "all" : regain} back at ${charges.regainAtDusk === true ? "dusk" : "dawn"}` : ", never refill"}` : "none"} open={Boolean(charges.max)}>
-      <TextField label="Most it holds" value={String(charges.max ?? "")} onChange={(max) => (max ? put({ max: /^\d+$/.test(max) ? Number(max) : max }) : set({ charges: undefined }))} placeholder="7 or 1d4-1" maxLength={20} hint="A number, or dice rolled the first time it is used." />
-      <SelectField label="At dawn" value={regain === "all" ? "all" : regain ? "dice" : ""} options={[{ value: "", label: "nothing comes back" }, { value: "all", label: "every charge" }, { value: "dice", label: "dice of charges" }]} onChange={(next) => put({ regain: next === "all" ? "all" : next === "dice" ? "1d6+1" : undefined })} />
-      {regain && regain !== "all" ? <TextField label="Regains" value={regain} onChange={(dice) => put({ regain: dice || undefined })} maxLength={20} /> : null}
+    <MechGroup title={t("workshop.homebrew.itemMagic.charges.title")} summary={summary} open={Boolean(charges.max)}>
+      <TextField label={t("workshop.homebrew.itemMagic.charges.most")} value={String(charges.max ?? "")} onChange={(max) => (max ? put({ max: /^\d+$/.test(max) ? Number(max) : max }) : set({ charges: undefined }))} placeholder={t("workshop.homebrew.itemMagic.charges.most.placeholder")} maxLength={20} hint={t("workshop.homebrew.itemMagic.charges.most.hint")} />
+      <SelectField label={t("workshop.homebrew.itemMagic.charges.atDawn")} value={regain === "all" ? "all" : regain ? "dice" : ""} options={[{ value: "", label: t("workshop.homebrew.itemMagic.charges.noneRegain") }, { value: "all", label: t("workshop.homebrew.itemMagic.charges.everyCharge") }, { value: "dice", label: t("workshop.homebrew.itemMagic.charges.diceCharges") }]} onChange={(next) => put({ regain: next === "all" ? "all" : next === "dice" ? "1d6+1" : undefined })} />
+      {regain && regain !== "all" ? <TextField label={t("workshop.homebrew.itemMagic.charges.regains")} value={regain} onChange={(dice) => put({ regain: dice || undefined })} maxLength={20} /> : null}
       <div className="col-span-2 flex flex-wrap items-end gap-3 pb-1">
-        <CheckField label="Last charge: d20, a 1 destroys it" checked={charges.lastChargeD20 === true} onChange={(on) => put({ lastChargeD20: on || undefined })} />
-        <CheckField label="Gone when the last is spent" checked={charges.spentAway === true} onChange={(on) => put({ spentAway: on || undefined })} />
-        {regain ? <CheckField label="Comes back at dusk, not dawn" checked={charges.regainAtDusk === true} onChange={(on) => put({ regainAtDusk: on || undefined })} /> : null}
+        <CheckField label={t("workshop.homebrew.itemMagic.charges.lastD20")} checked={charges.lastChargeD20 === true} onChange={(on) => put({ lastChargeD20: on || undefined })} />
+        <CheckField label={t("workshop.homebrew.itemMagic.charges.spentAway")} checked={charges.spentAway === true} onChange={(on) => put({ spentAway: on || undefined })} />
+        {regain ? <CheckField label={t("workshop.homebrew.itemMagic.charges.duskToggle")} checked={charges.regainAtDusk === true} onChange={(on) => put({ regainAtDusk: on || undefined })} /> : null}
       </div>
       {/* The staffs' last-charge d20 (SRD 5.1): a 1 can leave a plain item, a 20 refill it. */}
-      <TextField label="Last charge, on a 1 it becomes" value={String(charges.lastChargeBecomes ?? "")} onChange={(item) => put({ lastChargeBecomes: item || undefined })} placeholder="Quarterstaff" maxLength={60} hint="The plain item left when the last charge's d20 shows 1. Leave empty if a 1 destroys it or does nothing." />
-      <TextField label="Last charge, on a 20 it regains" value={String(charges.lastChargeRegain ?? "")} onChange={(dice) => put({ lastChargeRegain: dice || undefined })} placeholder="1d8+2" maxLength={20} hint="Dice of charges back when the last charge's d20 shows 20." />
-      <TextField label="Once a day it can" value={String(charges.daily ?? "")} onChange={(daily) => put({ daily: daily || undefined })} placeholder="turn resistance into immunity for 10 minutes" maxLength={200} className="col-span-2 sm:col-span-4" />
+      <TextField label={t("workshop.homebrew.itemMagic.charges.lastOneBecomes")} value={String(charges.lastChargeBecomes ?? "")} onChange={(item) => put({ lastChargeBecomes: item || undefined })} placeholder={t("workshop.homebrew.itemMagic.charges.lastOneBecomes.placeholder")} maxLength={60} hint={t("workshop.homebrew.itemMagic.charges.lastOneBecomes.hint")} />
+      <TextField label={t("workshop.homebrew.itemMagic.charges.lastOneRegains")} value={String(charges.lastChargeRegain ?? "")} onChange={(dice) => put({ lastChargeRegain: dice || undefined })} placeholder={t("workshop.homebrew.itemMagic.charges.lastOneRegains.placeholder")} maxLength={20} hint={t("workshop.homebrew.itemMagic.charges.lastOneRegains.hint")} />
+      <TextField label={t("workshop.homebrew.itemMagic.charges.daily")} value={String(charges.daily ?? "")} onChange={(daily) => put({ daily: daily || undefined })} placeholder={t("workshop.homebrew.itemMagic.charges.daily.placeholder")} maxLength={200} className="col-span-2 sm:col-span-4" />
     </MechGroup>
   );
 }
 
 export function ItemSpellsBlock({ data, set }: Props) {
+  const t = useT();
   const spells = Array.isArray(data.spells) ? (data.spells as Mech[]) : [];
   const put = (next: Mech[]) => set({ spells: next.length ? next : undefined });
   return (
-    <MechGroup title="Spells its charges cast" summary={spells.length ? spells.map((row) => String(row.spell)).join(", ") : "none"} open={spells.length > 0}>
+    <MechGroup title={t("workshop.homebrew.itemMagic.spells.title")} summary={spells.length ? spells.map((row) => String(row.spell)).join(", ") : t("workshop.homebrew.itemMagic.spells.none")} open={spells.length > 0}>
       {spells.map((row, index) => (
         <div key={index} className="live-in col-span-2 flex flex-wrap items-end gap-2 sm:col-span-4">
           <span className="min-w-32 pb-2 text-xs text-stone-200">{String(row.spell)}</span>
-          <NumberField label="Charges" value={num(row.charges, 1)} min={0} max={50} onChange={(charges) => put(spells.map((entry, at) => (at === index ? { ...entry, charges: charges === "" ? 1 : charges } : entry)))} className="w-24" />
-          <NumberField label="Cast at level" value={num(row.level, 1)} min={0} max={9} onChange={(level) => put(spells.map((entry, at) => (at === index ? { ...entry, level: level === "" ? 1 : level } : entry)))} className="w-24" />
-          <CheckField label="Each charge more, a level up" checked={row.perCharge === true} onChange={(perCharge) => put(spells.map((entry, at) => (at === index ? { ...entry, perCharge: perCharge || undefined } : entry)))} />
+          <NumberField label={t("workshop.homebrew.itemMagic.spells.charges")} value={num(row.charges, 1)} min={0} max={50} onChange={(charges) => put(spells.map((entry, at) => (at === index ? { ...entry, charges: charges === "" ? 1 : charges } : entry)))} className="w-24" />
+          <NumberField label={t("workshop.homebrew.itemMagic.spells.castLevel")} value={num(row.level, 1)} min={0} max={9} onChange={(level) => put(spells.map((entry, at) => (at === index ? { ...entry, level: level === "" ? 1 : level } : entry)))} className="w-24" />
+          <CheckField label={t("workshop.homebrew.itemMagic.spells.perCharge")} checked={row.perCharge === true} onChange={(perCharge) => put(spells.map((entry, at) => (at === index ? { ...entry, perCharge: perCharge || undefined } : entry)))} />
           {/* A row with no DC of its own (a copied Staff of Healing's) shows
               empty, as its hint reads, not the 0 the number's fallback made. */}
-          <NumberField label="Save DC" value={num(row.dc) >= 1 ? num(row.dc) : ""} min={1} max={30} onChange={(dc) => put(spells.map((entry, at) => (at === index ? { ...entry, dc: optional(dc) } : entry)))} hint="Empty: the wielder's own." className="w-28" />
-          <button type="button" aria-label={`Remove ${String(row.spell)}`} onClick={() => put(spells.filter((_, at) => at !== index))} className={cn(ui.iconAction, rowIcon, "hover:text-red-300")}>
+          <NumberField label={t("workshop.homebrew.itemMagic.spells.saveDC")} value={num(row.dc) >= 1 ? num(row.dc) : ""} min={1} max={30} onChange={(dc) => put(spells.map((entry, at) => (at === index ? { ...entry, dc: optional(dc) } : entry)))} hint={t("workshop.homebrew.itemMagic.spells.saveDC.empty")} className="w-28" />
+          <button type="button" aria-label={t("workshop.homebrew.itemMagic.spells.remove", { name: String(row.spell) })} onClick={() => put(spells.filter((_, at) => at !== index))} className={cn(ui.iconAction, rowIcon, "hover:text-red-300")}>
             <Trash2 className="size-3.5" />
           </button>
         </div>
@@ -146,8 +149,8 @@ export function ItemSpellsBlock({ data, set }: Props) {
       <div className="col-span-2 sm:col-span-4">
         <ContentPick
           kind="spells"
-          label="Find a spell the item casts"
-          placeholder="Add a spell it casts..."
+          label={t("workshop.homebrew.itemMagic.spells.find")}
+          placeholder={t("workshop.homebrew.itemMagic.spells.addPlaceholder")}
           onPick={(entry) => {
             if (spells.some((row) => textKey(String(row.spell)) === textKey(entry.name))) return;
             put([...spells, { spell: entry.name, charges: 1, level: typeof entry.level === "number" ? entry.level : 1 }]);
@@ -159,22 +162,23 @@ export function ItemSpellsBlock({ data, set }: Props) {
 }
 
 export function ChecksBlock({ data, set }: Props) {
+  const t = useT();
   const checks = sub(data.checks);
   const skillBonus = sub(checks.skillBonus) as Record<string, number>;
   const put = (patch: Mech) => set({ checks: clean({ ...checks, ...patch }) });
   const bonused = Object.keys(skillBonus);
   return (
-    <MechGroup title="What it adds to checks" summary={[num(checks.bonus) ? `+${num(checks.bonus)} to every check` : "", ...bonused.map((skill) => `+${skillBonus[skill]} ${skill.replace(/_/g, " ")}`), list(checks.advantage).length ? `advantage on ${list(checks.advantage).join(", ").replace(/_/g, " ")}` : ""].filter(Boolean).join(", ") || "nothing"} open={Object.keys(checks).length > 0}>
-      <NumberField label="Every ability check" value={num(checks.bonus)} min={-5} max={5} onChange={(bonus) => put({ bonus: optional(bonus) })} />
+    <MechGroup title={t("workshop.homebrew.itemMagic.checks.title")} summary={[num(checks.bonus) ? `+${num(checks.bonus)} ${t("workshop.homebrew.itemMagic.checks.every")}` : "", ...bonused.map((skill) => `+${skillBonus[skill]} ${skill.replace(/_/g, " ")}`), list(checks.advantage).length ? `${t("workshop.homebrew.itemMagic.checks.advantage")}: ${list(checks.advantage).join(", ").replace(/_/g, " ")}` : ""].filter(Boolean).join(", ") || t("workshop.homebrew.itemMagic.checks.nothing")} open={Object.keys(checks).length > 0}>
+      <NumberField label={t("workshop.homebrew.itemMagic.checks.every")} value={num(checks.bonus)} min={-5} max={5} onChange={(bonus) => put({ bonus: optional(bonus) })} />
       <div className="col-span-2 sm:col-span-4">
-        <span className="text-[11px] text-stone-400">A bonus to these skills</span>
+        <span className="text-[11px] text-stone-400">{t("workshop.homebrew.itemMagic.checks.skillBonus")}</span>
         <ToggleChips options={SKILL_IDS} labels={SKILL_LABELS} selected={bonused} onChange={(next) => put({ skillBonus: clean(Object.fromEntries(next.map((skill) => [skill, skillBonus[skill] ?? 2]))) })} />
       </div>
       {bonused.map((skill) => (
         <NumberField key={skill} label={skill.replace(/_/g, " ")} value={skillBonus[skill]} min={-10} max={10} onChange={(value) => put({ skillBonus: clean({ ...skillBonus, [skill]: value === "" ? undefined : value }) })} />
       ))}
       <div className="col-span-2 sm:col-span-4">
-        <span className="text-[11px] text-stone-400">Advantage on</span>
+        <span className="text-[11px] text-stone-400">{t("workshop.homebrew.itemMagic.checks.advantage")}</span>
         <ToggleChips options={SKILL_IDS} labels={SKILL_LABELS} selected={list(checks.advantage)} onChange={(next) => put({ advantage: next.length ? next : undefined })} />
       </div>
     </MechGroup>
@@ -182,6 +186,7 @@ export function ChecksBlock({ data, set }: Props) {
 }
 
 export function AttunementBlock({ data, set }: Props) {
+  const t = useT();
   const rule = sub(data.attunedBy);
   const classes = list(rule.classes);
   const put = (patch: Mech) => {
@@ -195,19 +200,19 @@ export function AttunementBlock({ data, set }: Props) {
     set({ attunedBy: who.length ? clean({ ...next, text: who.join(" or ") }) : undefined });
   };
   return (
-    <MechGroup title="Who may attune, and a curse" summary={[String(rule.text ?? ""), data.cursed ? "cursed" : "", data.carried ? "works from the pack" : ""].filter(Boolean).join(", ") || "anyone"} open={Boolean(data.attunedBy || data.cursed || data.carried)}>
+    <MechGroup title={t("workshop.homebrew.itemMagic.attunement.title")} summary={[String(rule.text ?? ""), data.cursed ? t("workshop.homebrew.itemMagic.attunement.cursed") : "", data.carried ? t("workshop.homebrew.itemMagic.attunement.worksPack") : ""].filter(Boolean).join(", ") || t("workshop.homebrew.itemMagic.attunement.anyone")} open={Boolean(data.attunedBy || data.cursed || data.carried)}>
       <div className="col-span-2 sm:col-span-4">
-        <span className="text-[11px] text-stone-400">Only these classes</span>
+        <span className="text-[11px] text-stone-400">{t("workshop.homebrew.itemMagic.attunement.onlyClasses")}</span>
         <ToggleChips options={CLASS_WORDS} selected={classes} onChange={(next) => put({ classes: next.length ? next : undefined })} />
       </div>
       <div className="flex items-end pb-1">
-        <CheckField label="Any spellcaster" checked={rule.spellcaster === true} onChange={(on) => put({ spellcaster: on || undefined })} />
+        <CheckField label={t("workshop.homebrew.itemMagic.attunement.spellcaster")} checked={rule.spellcaster === true} onChange={(on) => put({ spellcaster: on || undefined })} />
       </div>
-      <TextField label="Only a (race)" value={String(rule.race ?? "")} onChange={(race) => put({ race: race || undefined })} placeholder="dwarf" maxLength={40} />
-      <TextField label="Only of alignment" value={String(rule.alignment ?? "")} onChange={(alignment) => put({ alignment: alignment || undefined })} placeholder="good" maxLength={40} />
+      <TextField label={t("workshop.homebrew.itemMagic.attunement.race")} value={String(rule.race ?? "")} onChange={(race) => put({ race: race || undefined })} placeholder="dwarf" maxLength={40} />
+      <TextField label={t("workshop.homebrew.itemMagic.attunement.alignment")} value={String(rule.alignment ?? "")} onChange={(alignment) => put({ alignment: alignment || undefined })} placeholder="good" maxLength={40} />
       <div className="col-span-2 flex flex-wrap items-end gap-3 pb-1 sm:col-span-4">
-        <CheckField label="Cursed: the attunement holds until remove curse" checked={data.cursed === true} onChange={(on) => set({ cursed: on || undefined })} />
-        <CheckField label="Works from the pack, worn or not" checked={data.carried === true} onChange={(on) => set({ carried: on || undefined })} />
+        <CheckField label={t("workshop.homebrew.itemMagic.attunement.cursed.hint")} checked={data.cursed === true} onChange={(on) => set({ cursed: on || undefined })} />
+        <CheckField label={t("workshop.homebrew.itemMagic.attunement.carried")} checked={data.carried === true} onChange={(on) => set({ carried: on || undefined })} />
       </div>
     </MechGroup>
   );
