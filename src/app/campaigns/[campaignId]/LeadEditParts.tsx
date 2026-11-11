@@ -1,6 +1,7 @@
 "use client";
 
 import { X } from "lucide-react";
+import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/cn";
 import { NumberStepper } from "@/components/ui/NumberStepper";
 import { KitButton } from "./PanelKit";
@@ -23,11 +24,12 @@ export {
 // What the row holds besides its name, as small chips: the state the save
 // now keeps.
 export function ItemFlags({ item }: { item: EquipmentItem }) {
+  const { t } = useI18n();
   const flags = [
-    item.equipped ? (item.layered ? "worn beside another (GM's call)" : "worn") : null,
-    item.attuned ? "attuned" : item.attuning ? "attunes at the next rest" : null,
-    item.identified === false ? "unidentified" : null,
-    item.charges !== undefined ? `${item.charges} charges` : null,
+    item.equipped ? (item.layered ? t("campaign.session.leadEdit.gear.flag.layered") : t("campaign.session.leadEdit.gear.flag.worn")) : null,
+    item.attuned ? t("campaign.session.leadEdit.gear.flag.attuned") : item.attuning ? t("campaign.session.leadEdit.gear.flag.attuning") : null,
+    item.identified === false ? t("campaign.session.leadEdit.gear.flag.unidentified") : null,
+    item.charges !== undefined ? t("campaign.session.leadEdit.gear.flag.charges", { count: item.charges }) : null,
   ].filter((flag): flag is string => Boolean(flag));
   if (!flags.length) {
     return null;
@@ -46,6 +48,7 @@ export function ItemFlags({ item }: { item: EquipmentItem }) {
 // Removable name chips backing the spell and feat lists; adding goes
 // through the searchable multi-select pickers below each list.
 export function ChipList({ values, onRemove }: { values: string[]; onRemove: (value: string) => void }) {
+  const { t } = useI18n();
   if (!values.length) {
     return null;
   }
@@ -54,7 +57,7 @@ export function ChipList({ values, onRemove }: { values: string[]; onRemove: (va
       {values.map((value) => (
         <span key={value} className={cn("pk-chip gap-0.5 py-0 pl-2 pr-0.5 text-xs text-stone-200")}>
           {value}
-          <KitButton tone="iconDanger" always onClick={() => onRemove(value)} aria-label={`Remove ${value}`} className="p-1">
+          <KitButton tone="iconDanger" always onClick={() => onRemove(value)} aria-label={t("campaign.session.leadEdit.remove", { value })} className="p-1">
             <X className="size-3" />
           </KitButton>
         </span>
@@ -99,8 +102,11 @@ export function syncCasterLists(
   return withCasterViews(after, views);
 }
 
-export function levelMeta(entry: { level?: number }): string {
-  return entry.level !== undefined ? (entry.level === 0 ? "cantrip" : `level ${entry.level}`) : "";
+export function levelMeta(
+  entry: { level?: number },
+  words: { cantrip: string; level: (value: number) => string },
+): string {
+  return entry.level !== undefined ? (entry.level === 0 ? words.cantrip : words.level(entry.level)) : "";
 }
 
 export type SlotEdits = Record<string, { max: string; used: string }>;
@@ -116,6 +122,7 @@ export function SlotSteppers({
   slots: SlotEdits;
   onChange: (update: (previous: SlotEdits) => SlotEdits) => void;
 }) {
+  const { t } = useI18n();
   const set = (level: string, key: "max" | "used", value: number) =>
     onChange((previous) => ({
       ...previous,
@@ -124,15 +131,15 @@ export function SlotSteppers({
   return (
     <div className="stagger-pop flex flex-wrap gap-2">
       {levels.map((level) => {
-        const title = level === "pact" ? "Pact" : `L${level}`;
-        const named = level === "pact" ? "Pact" : `Level ${level}`;
+        const title = level === "pact" ? t("campaign.session.leadEdit.slots.pactShort") : t("campaign.session.leadEdit.slots.levelShort", { level });
+        const named = level === "pact" ? t("campaign.session.leadEdit.slots.pact") : t("campaign.session.leadEdit.slots.level", { level });
         return (
           <div key={level} className="space-y-1">
-            <span className="text-stone-400">{title} used/max</span>
+            <span className="text-stone-400">{t("campaign.session.leadEdit.slots.usedMax", { title })}</span>
             <div className="flex items-center gap-1">
-              <NumberStepper size="sm" min={0} value={Number(slots[level]?.used ?? "0") || 0} label={`${named} slots used`} onChange={(next) => set(level, "used", next)} />
+              <NumberStepper size="sm" min={0} value={Number(slots[level]?.used ?? "0") || 0} label={t("campaign.session.leadEdit.slots.usedLabel", { name: named })} onChange={(next) => set(level, "used", next)} />
               <span className="text-stone-500">/</span>
-              <NumberStepper size="sm" min={0} value={Number(slots[level]?.max ?? "0") || 0} label={`${named} slots max`} onChange={(next) => set(level, "max", next)} />
+              <NumberStepper size="sm" min={0} value={Number(slots[level]?.max ?? "0") || 0} label={t("campaign.session.leadEdit.slots.maxLabel", { name: named })} onChange={(next) => set(level, "max", next)} />
             </div>
           </div>
         );
