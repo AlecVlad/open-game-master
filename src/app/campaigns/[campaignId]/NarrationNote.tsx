@@ -1,6 +1,7 @@
 "use client";
 
 import { useCapabilities } from "@/lib/use-capabilities";
+import { useI18n } from "@/lib/i18n/provider";
 import type { ImageBackend } from "@/lib/types";
 
 // Where a campaign's narration and pictures are actually made (issue 89).
@@ -15,6 +16,7 @@ const noteClass = "reveal text-[11px] leading-4 text-stone-500";
 const warnClass = "reveal text-[11px] leading-4 text-amber-400/90";
 
 export function NarrationNote() {
+  const { t } = useI18n();
   const capabilities = useCapabilities();
   const tts = capabilities?.tts;
   // No answer yet, or a server older than these fields: say nothing rather
@@ -25,60 +27,54 @@ export function NarrationNote() {
   if (tts.provider === "off") {
     return (
       <p className={warnClass}>
-        Narration is switched off on this server, so nothing will be read aloud. An admin turns it on in
-        Admin &gt; Speech.
+        {t("campaign.narrationNote.off")}
       </p>
     );
   }
-  const server = tts.provider === "kokoro" ? "the Kokoro speech server" : "an OpenAI-compatible speech server";
-  const where = tts.place === "local" || !tts.place ? "on this server's own network" : `at ${tts.place}`;
+  const server = tts.provider === "kokoro" ? t("campaign.narrationNote.server.kokoro") : t("campaign.narrationNote.server.compatible");
+  const where = tts.place === "local" || !tts.place ? t("campaign.narrationNote.where.local") : t("campaign.narrationNote.where.remote", { place: tts.place });
   // The server answers but has no model to ask for (an older server sends
   // no such field and says nothing here).
   if (tts.needsModel) {
     return (
       <p className={warnClass}>
-        Narration is on, but {server} {where} has no model picked, so nothing is read aloud until an admin picks
-        one in Admin &gt; Speech.
+        {t("campaign.narrationNote.needsModel", { server, where })}
       </p>
     );
   }
   if (!tts.reachable) {
     return (
       <p className={warnClass}>
-        Narration is on, but {server} {where} is not answering, so passages will stay silent until it does. An
-        admin can test it in Admin &gt; Speech.
+        {t("campaign.narrationNote.unreachable", { server, where })}
       </p>
     );
   }
   return (
     <p className={noteClass}>
-      Each passage is sent as text to {server} {where} and comes back as audio.
-      {tts.place === "local" || !tts.place ? " Nothing leaves it." : ""} The address, model and key are the
-      server&apos;s, set in Admin &gt; Speech.
+      {t("campaign.narrationNote.sent", { server, where, privacy: tts.place === "local" || !tts.place ? t("campaign.narrationNote.privacy.local") : "" })}
     </p>
   );
 }
 
 const PAINTERS: Record<ImageBackend, string> = {
-  comfyui: "the ComfyUI install this server is set up with",
-  "mflux-hs": "the FLUX worker (mflux) on this server",
-  "sdnq-hs": "the FLUX worker (sdnq) on this server",
-  openai: "an OpenAI-compatible images API",
-  harness: "the server's agent program",
+  comfyui: "campaign.imagesNote.backend.comfyui",
+  "mflux-hs": "campaign.imagesNote.backend.mflux",
+  "sdnq-hs": "campaign.imagesNote.backend.sdnq",
+  openai: "campaign.imagesNote.backend.openai",
+  harness: "campaign.imagesNote.backend.harness",
 };
 
 export function ImagesNote({ backend }: { backend: ImageBackend }) {
+  const { t } = useI18n();
   const capabilities = useCapabilities();
   if (!capabilities) {
     return null;
   }
   const place = capabilities.images.openaiPlace;
-  const where = backend !== "openai" || !place ? "" : place === "local" ? " on this server's own network" : ` at ${place}`;
+  const where = backend !== "openai" || !place ? "" : place === "local" ? t("campaign.imagesNote.where.local") : t("campaign.imagesNote.where.remote", { place });
   return (
     <p className={noteClass}>
-      Pictures are painted by {PAINTERS[backend]}
-      {where}. Its address, model and key are the server&apos;s, set in Admin &gt; Image generation, so every
-      campaign here shares them.
+      {t("campaign.imagesNote.description", { backend: t(PAINTERS[backend] as never), where })}
     </p>
   );
 }
