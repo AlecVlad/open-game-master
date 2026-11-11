@@ -7,6 +7,7 @@ import { GameTerm } from "@/components/ui/GameTerm";
 import { InfoChipList } from "@/components/ui/InfoDialog";
 import { CountPop } from "@/components/ui/Reveal";
 import { cn } from "@/lib/cn";
+import { useI18n } from "@/lib/i18n/provider";
 import { conditionIconKey } from "@/lib/battlemap/condition-glyphs";
 import { describeConditionDuration } from "@/lib/dm/condition-logic";
 import { contentSlug, describeFeature } from "@/lib/help";
@@ -25,15 +26,6 @@ import { rowName, srdNameWithBonus } from "@/lib/srd/item-row";
 // Styles are in src/app/styles/sheet.css.
 
 type Ability = (typeof ABILITIES)[number];
-
-const ABILITY_NAMES: Record<Ability, string> = {
-  str: "Strength",
-  dex: "Dexterity",
-  con: "Constitution",
-  int: "Intelligence",
-  wis: "Wisdom",
-  cha: "Charisma",
-};
 
 // How a score reads at a glance: a weakness is dim, an ordinary score plain,
 // a strength gold, and an exceptional one lit.
@@ -110,6 +102,15 @@ export function AbilityTiles({
   saveProficiencies?: string[];
   explainSave?: (ability: Ability) => string;
 }) {
+  const { t } = useI18n();
+  const abilityNames: Record<Ability, string> = {
+    str: t("charSheet.ability.str"), dex: t("charSheet.ability.dex"), con: t("charSheet.ability.con"),
+    int: t("charSheet.ability.int"), wis: t("charSheet.ability.wis"), cha: t("charSheet.ability.cha"),
+  };
+  const abilityShortNames: Record<Ability, string> = {
+    str: t("charSheet.ability.short.str"), dex: t("charSheet.ability.short.dex"), con: t("charSheet.ability.short.con"),
+    int: t("charSheet.ability.short.int"), wis: t("charSheet.ability.short.wis"), cha: t("charSheet.ability.short.cha"),
+  };
   return (
     <div className="stagger-up grid grid-cols-3 gap-2 sm:grid-cols-6">
       {ABILITIES.map((ability, index) => {
@@ -120,10 +121,10 @@ export function AbilityTiles({
             className="sheet-ability motion-card"
             data-tier={scoreTier(abilities[ability])}
             style={{ animationDelay: `${index * 45}ms` }}
-            title={ABILITY_NAMES[ability]}
+            title={abilityNames[ability]}
           >
             <GameIcon icon={{ kind: "glyph", key: `ability-${ability}` }} size="size-9" className="mx-auto" />
-            <p className="eyebrow mt-1 text-[10px] text-stone-400">{ability}</p>
+            <p className="eyebrow mt-1 text-[10px] text-stone-400">{abilityShortNames[ability]}</p>
             <p className="sheet-ability-mod">{formatModifier(mods[ability])}</p>
             <p className="sheet-ability-score">{abilities[ability]}</p>
             {saves ? (
@@ -132,7 +133,7 @@ export function AbilityTiles({
                 title={explainSave ? explainSave(ability) : undefined}
               >
                 <span className={cn("sheet-pip", proficient && "sheet-pip-on")} aria-hidden="true" />
-                Save {formatModifier(saves[ability])}
+                {t("charSheet.save.short")} {formatModifier(saves[ability])}
               </p>
             ) : null}
           </div>
@@ -210,10 +211,11 @@ export function HpBar({
   // Why the maximum is not the sheet's own (exhaustion, an item).
   note?: string | null;
 }) {
+  const { t } = useI18n();
   const span = Math.max(1, max + temp);
   const width = (value: number) => `${Math.max(0, Math.min(100, (value / span) * 100))}%`;
   return (
-    <div className="sheet-hp" title={`${current}${temp ? ` +${temp} temporary` : ""} of ${max} hit points${note ? `. ${note}` : ""}`}>
+    <div className="sheet-hp" title={t("charSheet.hpBar.title", { current, temporary: temp ? " +" + temp + " " + t("charSheet.hp.temporary") : "", max, note: note ? ". " + note : "" })}>
       <GameIcon icon={{ kind: "glyph", key: "rest-hp" }} size="size-7" />
       <div className="min-w-0 grow">
         <div className="flex items-baseline justify-between gap-2">
