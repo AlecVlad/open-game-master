@@ -4808,4 +4808,7 @@ export const ruCampaignPanels: Partial<Record<keyof typeof enCampaignPanels, str
   "campaign.session.pact.choice.refuse.label": "Отказаться",
   "campaign.session.pact.choice.refuse.hint": "Откажитесь и сохраните предложение в тайне.",
 
+  "campaign.session.arrival.line": "{name} занимает место за столом",
+  "campaign.session.arrival.dismiss": "Скрыть",
+
 };
