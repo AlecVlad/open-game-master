@@ -2496,25 +2496,7 @@ export const ruCampaignPanels: Partial<Record<keyof typeof enCampaignPanels, str
   "campaign.dmWorkbench.monster.resistance": " (эффективные хиты ×{multiplier} с учётом сопротивлений и иммунитетов)",
   "campaign.dmWorkbench.outcome.partyCannotWin": "При этих показателях группа не сможет одолеть противников.",
   "campaign.dmWorkbench.outcome.noDamage": "Группа победит примерно за {rounds}, не получив урона.",
-  "campaign.dmWorkbench.outcome.withMargin": "Группа победит примерно за {rounds
-  "campaign.session.hand.aim.laidArea": "Область размещена: {area}.",
-
-  "campaign.session.hand.board.pickTargetArea": "Сначала выберите цель или область.",
-
-  "campaign.session.hand.board.yourSpell": "ваше заклинание",
-
-  "campaign.session.hand.heading.anotherHero": "Другой герой",
-
-  "campaign.session.hand.more": "ещё",
-
-  "campaign.session.encounter.groupStanding": "В строю: {current} из {total}",
-
-  "campaign.session.encounter.forceEndConfirm": "Вместо этого завершить бой принудительно без опыта?",
-
-  "campaign.session.roll.and": "и",
-
-  "campaign.session.roll.rollDigital": "Бросить виртуально",
-}; запас составит около {margin}.",
+  "campaign.dmWorkbench.outcome.withMargin": "Группа победит примерно за {rounds}, с запасом около {margin}.",
   "campaign.dmWorkbench.outcome.monstersWin": "При этих показателях противники одолеют группу первыми: примерно за {monsterRounds}, тогда как группе потребуется {partyRounds}.",
   "campaign.dmWorkbench.warning.noHealing": "В расчёте обе стороны атакуют каждый раунд, никто не лечится, не прячется и не отступает. Реальный бой такого типа обычно длится на один-два раунда дольше.",
   "campaign.dmWorkbench.warning.oneRound": "Один раунд — это ещё не бой. Этот состав исчезнет прежде, чем успеет сходить дважды.",
@@ -3371,4 +3353,15 @@ export const ruCampaignPanels: Partial<Record<keyof typeof enCampaignPanels, str
   "campaign.session.halted.retrying": "Продолжаем с того же места…",
   "campaign.session.halted.retry": "Повторить ход",
   "campaign.session.halted.leadCanRetry": "Ведущий группы может перезапустить ход отсюда.",
+  // Дополнительные подписи руки, боя и панели бросков.
+  "campaign.session.hand.aim.laidArea": "Область размещена: {area}.",
+  "campaign.session.hand.board.pickTargetArea": "Сначала выберите цель или область.",
+  "campaign.session.hand.board.yourSpell": "ваше заклинание",
+  "campaign.session.hand.heading.anotherHero": "Другой герой",
+  "campaign.session.hand.more": "ещё",
+  "campaign.session.encounter.groupStanding": "В строю: {current} из {total}",
+  "campaign.session.encounter.forceEndConfirm": "Вместо этого завершить бой принудительно без опыта?",
+  "campaign.session.roll.and": "и",
+  "campaign.session.roll.rollDigital": "Бросить виртуально",
+
 };
