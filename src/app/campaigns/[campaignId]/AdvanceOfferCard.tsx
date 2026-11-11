@@ -2,6 +2,7 @@
 
 import { Heart, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/cn";
 import { unquoted } from "@/lib/language/text-logic";
 import { CharacterPortrait } from "@/lib/ui";
@@ -97,15 +98,16 @@ function AdvanceOfferCard({
   leaving: boolean;
   onError: (message: string) => void;
 }) {
+  const { t } = useI18n();
   const [busy, setBusy] = useState<"" | "approve" | "decline" | "cancel">("");
-  const suitor = proposal.advance?.suitor || "Someone";
+  const suitor = proposal.advance?.suitor || t("campaign.session.advance.unknownSuitor");
   const look = proposal.advance?.look;
   // A companion's look carries a class and draws as the character they are;
   // an NPC's carries a role, and their race and gender pick its plate.
   const face = look?.class
     ? characterPlaceholder({ race: look.race, class: look.class, gender: look.gender })
     : npcPlaceholder(look?.role, suitor, { race: look?.race, gender: look?.gender });
-  const characterName = character?.name ?? "a character";
+  const characterName = character?.name ?? t("campaign.session.advance.unknownCharacter");
 
   async function answer(action: "approve" | "decline" | "cancel") {
     setBusy(action);
@@ -117,10 +119,10 @@ function AdvanceOfferCard({
       });
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        onError(String(data.error ?? "That did not work."));
+        onError(String(data.error ?? t("campaign.session.advance.error")));
       }
     } catch {
-      onError("Could not reach the server.");
+      onError(t("campaign.session.advance.network"));
     } finally {
       setBusy("");
     }
@@ -129,7 +131,7 @@ function AdvanceOfferCard({
   return (
     <div className="advance-shell" data-leaving={leaving ? "" : undefined}>
       <section
-        aria-label={`${suitor} makes a romantic advance toward ${characterName}`}
+        aria-label={t("campaign.session.advance.aria", { suitor, character: characterName })}
         data-advance-card={proposal.id}
         data-offer-card={proposal.id}
         className={cn(
@@ -156,7 +158,7 @@ function AdvanceOfferCard({
             ) : null}
             {mine ? (
               <p className="mt-1 text-[11px] text-stone-400">
-                Only you answer this. Say how {characterName} takes it in the scene too, if you like.
+                {t("campaign.session.advance.onlyYou", { character: characterName })}
               </p>
             ) : null}
           </div>
@@ -171,7 +173,7 @@ function AdvanceOfferCard({
               busy={busy === "approve"}
             >
               {busy === "approve" ? null : <Heart className="size-3.5" aria-hidden="true" />}
-              Accept
+              {t("campaign.session.advance.accept")}
             </KitButton>
             <KitButton
               className="min-h-10 px-4"
@@ -180,12 +182,12 @@ function AdvanceOfferCard({
               busy={busy === "decline"}
             >
               {busy === "decline" ? null : <X className="size-3.5" aria-hidden="true" />}
-              Decline
+              {t("campaign.session.advance.decline")}
             </KitButton>
           </div>
         ) : (
           <div className="mt-1.5 flex flex-wrap items-center justify-end gap-1.5">
-            <span className="text-[11px] italic text-stone-500">waiting on {characterName}&apos;s player</span>
+            <span className="text-[11px] italic text-stone-500">{t("campaign.session.advance.waiting", { character: characterName })}</span>
             {steersStory ? (
               <KitButton
                 className="min-h-10"
@@ -194,7 +196,7 @@ function AdvanceOfferCard({
                 busy={busy === "cancel"}
               >
                 {busy === "cancel" ? null : <X className="size-3.5" aria-hidden="true" />}
-                Withdraw
+                {t("campaign.session.advance.withdraw")}
               </KitButton>
             ) : null}
           </div>
