@@ -164,6 +164,14 @@ export function CharacterSheetDialog({
   onClose: () => void;
 }) {
   const { t } = useI18n();
+  const abilityLabels: Record<string, string> = {
+    str: t("charSheet.ability.str"),
+    dex: t("charSheet.ability.dex"),
+    con: t("charSheet.ability.con"),
+    int: t("charSheet.ability.int"),
+    wis: t("charSheet.ability.wis"),
+    cha: t("charSheet.ability.cha"),
+  };
   const derived = computeSheetDerived(sheet);
   const armor = acBreakdownFor(sheet);
   const attunedCount = sheet.equipment.filter((item) => item.attuned).length;
@@ -635,7 +643,7 @@ export function CharacterSheetDialog({
                         magic.acBonus ? t("charSheet.gear.acBonus", { bonus: magic.acBonus }) : null,
                         magic.saveBonus ? t("charSheet.gear.saveBonus", { bonus: magic.saveBonus }) : null,
                         ...Object.entries(magic.abilitySet).map(
-                          ([ability, score]) => t("charSheet.gear.abilitySet", { ability: t(`charSheet.ability.${ability}` as never), score }),
+                          ([ability, score]) => t("charSheet.gear.abilitySet", { ability: (abilityLabels[ability] ?? ability.toUpperCase()), score }),
                         ),
                         magic.resistances.length ? t("charSheet.gear.resistances", { types: magic.resistances.join(", ") }) : null,
                       ]
