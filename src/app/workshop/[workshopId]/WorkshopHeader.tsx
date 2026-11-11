@@ -7,6 +7,7 @@ import { appConfirm } from "@/components/ui/ConfirmDialog";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { ui } from "@/lib/ui";
 import { ImportBundleButton } from "@/app/workshop/ImportBundleButton";
 import { AddonImportButton } from "@/app/workshop/AddonImportButton";
@@ -30,6 +31,7 @@ export function WorkshopHeader({
   // The Create chooser (CreateChooser.tsx).
   onCreate: () => void;
 }) {
+  const { t } = useI18n();
   const router = useRouter();
   const [renaming, setRenaming] = useState(false);
   const [titleDraft, setTitleDraft] = useState("");
@@ -73,7 +75,7 @@ export function WorkshopHeader({
   async function remove() {
     if (
       !await appConfirm(
-        `Delete "${workshop.title}"? Every map, NPC, table and note in it is lost. Anything already imported into a campaign stays there.`,
+        t("workshop.header.delete.confirm", { name: workshop.title }),
       )
     ) {
       return;
@@ -90,7 +92,7 @@ export function WorkshopHeader({
         href="/workshop"
         className="inline-flex items-center gap-1.5 text-sm text-stone-500 hover:text-amber-200"
       >
-        <ArrowLeft className="size-4" /> All workshops
+        <ArrowLeft className="size-4" /> {t("workshop.header.allWorkshops")}
       </Link>
       <div className="flex flex-wrap items-center gap-2">
         {renaming ? (
@@ -108,7 +110,7 @@ export function WorkshopHeader({
                 setRenaming(false);
               }
             }}
-            aria-label="Workshop name"
+            aria-label={t("workshop.header.name")}
             className={cn(ui.input, "max-w-md font-display text-xl tracking-wide text-amber-50")}
           />
         ) : (
@@ -116,7 +118,7 @@ export function WorkshopHeader({
             <h1 className="gold-title font-display text-xl tracking-wide">{workshop.title}</h1>
             <button
               type="button"
-              aria-label="Rename this workshop"
+              aria-label={t("workshop.header.rename")}
               onClick={() => {
                 setTitleDraft(workshop.title);
                 setRenaming(true);
@@ -130,8 +132,8 @@ export function WorkshopHeader({
         <div className="ml-auto flex items-center gap-1" data-tour="hub-actions">
           <button
             type="button"
-            aria-label="How workshops work"
-            title="Guides and tours"
+            aria-label={t("workshop.header.help.aria")}
+            title={t("workshop.header.help.title")}
             onClick={onHelp}
             data-tour="hub-help"
             className={cn(ui.iconAction, headIcon)}
@@ -142,8 +144,8 @@ export function WorkshopHeader({
             type="button"
             disabled={cloning}
             onClick={() => void clone()}
-            aria-label={`Duplicate ${workshop.title}`}
-            title="Duplicate this workshop and everything in it"
+            aria-label={t("workshop.header.duplicate.aria", { name: workshop.title })}
+            title={t("workshop.header.duplicate.title")}
             className={cn(ui.iconAction, headIcon, "disabled:opacity-50")}
           >
             {cloning ? <Loader2 className="size-4 animate-spin" /> : <Copy className="size-4" />}
@@ -151,8 +153,8 @@ export function WorkshopHeader({
           <button
             type="button"
             onClick={() => void remove()}
-            aria-label={`Delete ${workshop.title}`}
-            title="Delete this workshop"
+            aria-label={t("workshop.header.delete.aria", { name: workshop.title })}
+            title={t("workshop.header.delete.title")}
             className={cn(ui.iconAction, headIcon, "hover:text-red-300")}
           >
             <Trash2 className="size-4" />
@@ -162,7 +164,7 @@ export function WorkshopHeader({
       <div className="flex flex-wrap gap-2">
         <CreateButton onClick={onCreate} />
         <div data-tour="hub-import" className="flex w-fit flex-wrap items-start gap-2">
-          <ImportBundleButton label="Import a bundle" className={ui.btnSmall} />
+          <ImportBundleButton label={t("workshop.header.importBundle")} className={ui.btnSmall} />
           <AddonImportButton className={ui.btnSmall} />
         </div>
       </div>
