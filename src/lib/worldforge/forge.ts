@@ -217,9 +217,9 @@ export type ForgeApplied = {
   stubs: number;
   skipped: string[];
   made: Array<{ key: string; name: string; ref: string }>;
-  failed: Array<{ key: string; name: string; error: string }>;
-  linksLeft: Array<{ from: string; to: string; label: string; why: string }>;
-  stubsLeft: Array<{ name: string; why: string }>;
+  failed: Array<{ key: string; name: string; error: string; errorCode?: string; errorParams?: Record<string, string | number> }>;
+  linksLeft: Array<{ from: string; to: string; label: string; why: string; whyCode?: string; whyParams?: Record<string, string | number> }>;
+  stubsLeft: Array<{ name: string; why: string; whyCode?: string; whyParams?: Record<string, string | number> }>;
 };
 
 const counted = (count: number, one: string, many: string) => `${count} ${count === 1 ? one : many}`;
