@@ -199,5 +199,12 @@ Continue the Atlas audit with `AtlasRegion.tsx`, `AtlasEdit.tsx`, `AtlasParty.ts
 - Added 69 EN/RU dictionary entries under `campaign.lobby.*` and `campaign.ended.*`. English and Russian plural categories are present; placeholders match; no duplicate added keys. A focused scan found no remaining raw English UI labels in the three lobby components.
 - TypeScript, lint, unit/integration tests, production build and browser visual checks were not run.
 
+## Lobby actions and invitation card — 12 November 2026
+- `LobbyActions.tsx`: localized character edit/switch/remove actions, ready/start controls, DM guidance, deletion action, dynamic “what happens next” messages, and the four known start blockers. Name lists are adapted to Russian conjunction/“ещё N” wording only when `lang === "ru"`; the English names remain unchanged.
+- `LobbyRoomCode.tsx`: localized room-code heading, QR instruction, copy/code/link/share buttons and screen-reader copy confirmations.
+- `InviteShareDialog.tsx`: removed a duplicated hardcoded sentence from the room-code collision warning; the complete message was already present in the EN/RU `invite.codeHeld.*` dictionary entries.
+- Added 34 EN/RU keys under `campaign.lobby.*` for action labels, next-step guidance, blockers and invite-card labels. Static key checks: all direct references in `LobbyActions.tsx`, `LobbyRoomCode.tsx` and `InviteShareDialog.tsx` resolve in their respective EN/RU dictionaries; placeholders are paired; no duplicate new keys. The invitation warning is no longer duplicated.
+- Latest branch commit at checkpoint update: see branch HEAD. No TypeScript, lint, tests, production build or browser visual checks were run. Preserve the existing instruction below not to run them until Remote Desktop access is available.
+
 ## Resume
 The WorldForge component pass is complete across all 29 files in `src/app/workshop/world/`: core views, Atlas, timeline, secrets, wiki, Ask, outline generation, paint queue, relationship graph/editor, type manager, bound records, play fields and shared pickers. Continue with the broader app-level localization audit outside this folder and fix any remaining visible English UI. Verify branch HEAD before editing. Do not run TypeScript/build/lint/tests until Remote Desktop access is available. Block 1 remains formally open; do not merge, open a PR or create its DONE flag.
