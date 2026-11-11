@@ -499,3 +499,6 @@ export const ruCharSheet: Partial<Record<keyof typeof enCharSheet, string>> & Re
   "charSheet.levelUp.options.title": "Новые умения",
   "charSheet.levelUp.spells.title": "Заклинания",
 };
+  "charSheet.levelUp.class.advance": "{name} достигает {level}-го уровня{classLine}.",
+  "charSheet.levelUp.multiclass.grants": "Даёт: {grant}",
+  "charSheet.levelUp.multiclass.requires": "Требуется: {requirement}",
