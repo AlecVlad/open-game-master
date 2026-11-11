@@ -1019,9 +1019,12 @@ export function LevelUpDialog({
                   {hpMethod === "rolled" ? (
                     <>
                       <p className="text-stone-300">
-                        Hit points: this table rolls them. The server rolls the d{hitDie} when you
-                        confirm{conMod ? `, and adds ${conMod > 0 ? "+" : ""}${conMod} for Constitution` : ""}; every level adds at least 1.
-                      </p>
+                        {t("charSheet.levelUp.hp.intro", {
+                          die: hitDie,
+                          constitution: conMod
+                            ? t("charSheet.levelUp.hp.constitution", { modifier: `${conMod > 0 ? "+" : ""}${conMod}` })
+                            : "",
+                        })}</p>
                       <div className="stagger space-y-1.5" role="radiogroup" aria-label={t("charSheet.levelUp.hp.aria")}>
                         {(
                           [
@@ -1057,7 +1060,13 @@ export function LevelUpDialog({
                         {hpMethod === "max"
                           ? `Hit points: the d${hitDie}'s highest face, as this table plays`
                           : `Hit points: the d${hitDie}'s average, ${fixedDieValue(hitDie)}, as this table plays`}
-                        {conMod ? `, ${conMod > 0 ? "+" : ""}${conMod} Constitution` : ""}
+                        {conMod ? `, ${conMod > 
+                        {hpMethod === "max"
+                          ? t("charSheet.levelUp.hp.fixedMax", { die: hitDie })
+                          : t("charSheet.levelUp.hp.fixedAverage", { die: hitDie, average: fixedDieValue(hitDie) })}
+                        {conMod
+                          ? t("charSheet.levelUp.hp.constitution", { modifier: `${conMod > 0 ? "+" : ""}${conMod}` })
+                          : ""}
                       </span>
                       <span className="font-mono text-amber-400">+{fixedGain} HP</span>
                     </div>
@@ -1079,8 +1088,7 @@ export function LevelUpDialog({
               {step === "class" ? (
                 <>
                   <p className="text-stone-300">
-                    Which class takes level {targetLevel}? Advance one {sheet.name} already has,
-                    or multiclass into a new one.
+                    {t("charSheet.levelUp.class.which", { level: targetLevel, name: sheet.name })}
                   </p>
                   <div className="stagger space-y-1.5">
                     {classList.map((entry) => {
@@ -1104,7 +1112,7 @@ export function LevelUpDialog({
                           )}
                         >
                           <span>
-                            {held?.name ?? entry.id}
+                            {classLabel(entry.id, held?.name ?? entry.id, t)}
                             {entry.subclass ? (
                               <span className="text-xs text-stone-500"> · {entry.subclass}</span>
                             ) : null}
@@ -1119,11 +1127,10 @@ export function LevelUpDialog({
                   {newClassOptions.length ? (
                     <>
                       <p className="text-xs uppercase tracking-wide text-amber-200/80">
-                        Multiclass into a new class
+                        {t("charSheet.levelUp.class.new")}
                       </p>
                       <p className="text-xs text-stone-500">
-                        A new class starts at level 1 with SOME of its training: no saving
-                        throws, and only the proficiencies the multiclass rules grant.
+                        {t("charSheet.levelUp.class.newHelp")}
                       </p>
                       <label className="relative block">
                         <Search className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-stone-500" aria-hidden="true" />
@@ -1131,8 +1138,8 @@ export function LevelUpDialog({
                           type="search"
                           value={classQuery}
                           onChange={(event) => setClassQuery(event.target.value)}
-                          placeholder={`Search ${newClassOptions.length} classes`}
-                          aria-label="Search classes"
+                          placeholder={t("charSheet.levelUp.class.searchPlaceholder", { count: newClassOptions.length })}
+                          aria-label={t("charSheet.levelUp.class.searchAria")}
                           aria-describedby={`${classListId}-hint`}
                           className={cn(ui.input, "pl-8")}
                         />
@@ -1162,7 +1169,7 @@ export function LevelUpDialog({
                           classGroups.query || !classGroups.setting.length ? (
                             <>
                               {classGroups.setting.length ? (
-                                <p className="pt-1 text-[11px] uppercase tracking-wide text-stone-500">Other settings</p>
+                                <p className="pt-1 text-[11px] uppercase tracking-wide text-stone-500">{t("charSheet.levelUp.class.otherSettings")}</p>
                               ) : null}
                               {classGroups.other.map(({ option, check }) => (
                                 <NewClassButton
@@ -1186,7 +1193,7 @@ export function LevelUpDialog({
                                 onClick={() => setOtherOpen((open) => !open)}
                                 className="flex min-h-10 w-full items-center justify-between rounded-lg border border-dashed border-stone-700 px-3 text-left text-xs text-stone-400 hover:border-amber-800 hover:text-stone-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-400"
                               >
-                                <span>Other settings ({classGroups.other.length})</span>
+                                <span>{t("charSheet.levelUp.class.otherSettingsCount", { count: classGroups.other.length })}</span>
                                 <ChevronDown className={cn("size-3.5 transition-transform duration-200", otherOpen && "rotate-180")} aria-hidden="true" />
                               </button>
                               {otherOpen ? (
@@ -1209,7 +1216,7 @@ export function LevelUpDialog({
                           )
                         ) : null}
                         {classGroups.query && !classGroups.setting.length && !classGroups.other.length ? (
-                          <p className="reveal text-xs text-stone-500">No class by that name.</p>
+                          <p className="reveal text-xs text-stone-500">{t("charSheet.levelUp.class.noMatch")}</p>
                         ) : null}
                       </div>
                     </>
@@ -1217,7 +1224,7 @@ export function LevelUpDialog({
                   {needsSkillPick ? (
                     <>
                       <p className="text-stone-300">
-                        {chosenKlass?.name ?? classChoice} grants one new skill. Pick it:
+                        {t("charSheet.levelUp.class.skill", { className: classLabel(classChoice, chosenKlass?.name ?? classChoice, t) })}
                       </p>
                       <div className="stagger-pop flex flex-wrap gap-1.5">
                         {skillOptions.map((skillId) => {
