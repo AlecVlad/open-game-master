@@ -950,4 +950,9 @@ export const enWorkshop = {
   "workshop.world.import.note.secretsKnowledge": "New secrets start unknown to the party. Secrets brought in before keep what the party has learned, and each one's in-world knowers are preserved.",
   "workshop.world.import.kind.types": "types",
   "workshop.world.import.kind.scenes": "scenes",
+  "workshop.world.import.note.regionRootWithPicture": "{name} is now the Region map and provides its picture; the places pinned on it have been placed there.",
+  "workshop.world.import.note.regionRootWithoutPicture": "{name} is now the Region map; the places pinned on it have been placed there.",
+  "workshop.world.import.note.regionPinsKept": "{count} places already on {map} kept their Region positions. Place them from the Atlas to line the two maps up.",
+  "workshop.world.import.note.regionAlreadyHasPicture": "The Region map already has its own picture, so the new places pinned on {map} were not placed from it. Use that map as the Region backdrop to place them.",
+  "workshop.world.export.note.storyboardOrder": "The storyboard is exported as a sequence of scenes. Where cards sit on the board is not kept, and cards from other branches return as part of one line.",
 } satisfies Record<string, string>;
