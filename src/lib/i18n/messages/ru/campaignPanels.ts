@@ -4189,4 +4189,9 @@ export const ruCampaignPanels: Partial<Record<keyof typeof enCampaignPanels, str
   "campaign.overworld.map.tiles": "клеток",
   "campaign.overworld.map.pinsMoved": "метки перемещены",
   "campaign.overworld.map.atlasMoved": "Атлас перемещён",
+  "campaign.overworld.param.seaLevel": "Уровень моря",
+  "campaign.overworld.param.mountains": "Горы",
+  "campaign.overworld.param.forests": "Forests",
+  "campaign.overworld.param.aridity": "Aridity",
+  "campaign.overworld.param.coastline": "Береговая линия",
 };
