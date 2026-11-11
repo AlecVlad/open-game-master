@@ -5,8 +5,8 @@ Single restore point for Russian localization. After a chat interruption, read o
 ## State
 - Repository: `AlecVlad/open-game-master`
 - Branch: `i18n-ru-agent2` — verify current HEAD on resume; do not trust a stored SHA.
-- Active scope: **Block 1 — game session**.
-- Block 1 is still open. Do not create its DONE flag, merge branches, or open a PR.
+- Active work: **Block 2 — Workshop import flows**.
+- Block 1 — game session — remains formally open; do not create its DONE flag, merge branches, or open a PR.
 - `STATUS.md` is an older detailed log and may lag this checkpoint. This checkpoint is authoritative for the current state.
 - `PLAN.md` contains block boundaries and completion criteria; consult only when scope is unclear.
 
@@ -40,8 +40,17 @@ Single restore point for Russian localization. After a chat interruption, read o
 - The existing `campaignSession.ts` EN/RU pair was extended: dice dialogs added 40 keys, context trace has 80 keys, report dialog added 31 keys, voice controls added 20 keys. Voice dictionaries are 20 EN / 20 RU, no missing pairs, duplicates or placeholder differences. The two plural base keys are `tp()` groups with `.one/.few/.many/.other` variants in both dictionaries; validate their suffixed forms rather than treating the base key as missing.
 - Do not repeat these components unless a targeted defect is found.
 
+## Latest progress — 11 November 2026
+- NPC authoring: `DmNpcForgePanel.tsx`, `NpcFields.tsx`, `workshop/cast/NpcEditorFields.tsx` and `AttractionPicker.tsx` are wired to i18n. Fixed labels, sliders, goals, relationships, attraction help, voice controls and the 32 standard race labels are translated. Race/gender IDs, NPC names and user-authored content are unchanged.
+- NPC dictionary cleanup: duplicate `campaign.dmNpcForge.*` and `campaign.npcEditor.*` entries were removed. The NPC duplication suffix remains literal `(copy)` because it becomes part of the stored NPC name.
+- Workshop bundle import: `ImportBundleButton.tsx`, `AddonImportButton.tsx` and `BundlePreview.tsx` are localized. Bundle-kind labels are mapped at the UI boundary; kinds, plugin IDs, importer data, filenames and API values remain unchanged. 54 EN/RU keys added.
+- Workshop-to-campaign import: `ContentImportPicker.tsx` now localizes source selection, content kinds, WorldForge inclusion markers, house-rule and story-arc choices, reimport behavior, empty/error states, party pregen offer, and the import summary. 53 EN/RU keys added, including English one/other and Russian one/few/many/other summary forms.
+- Static verification: direct keys used by the import picker are present in EN/RU; plural base keys have the expected forms; changed workshop and campaign dictionaries have no duplicate keys; placeholders match. Fixed English JSX labels were not found in the three import-flow components.
+- Remaining in this flow: planner-generated `plan.warnings` / `plan.notes`, `worldConflicts` and `referenceNotes` are server-authored text and may still be English. They need stable reason codes and a dedicated localized renderer; do not translate them by fragile phrase matching. Unknown raw API errors also remain server data.
+- TypeScript, lint, tests, production build and visual checks were not run. Keep those deferred and do not claim they passed.
+
 ## Next work
-Audit `src/app/campaigns/[campaignId]/DmNpcForgePanel.tsx` and `DmSharePanel.tsx` for fixed UI strings. `DmNpcForgePanel` has two visible tooltip labels and may have other translated controls hidden in the full component; `DmSharePanel` still lacked `useI18n()` and shows the workshop bundle-sharing form. Translate fixed labels/placeholders/actions/errors only; preserve NPC names, map data, sharing IDs and API values.
+Continue the Workshop import audit. First inspect the shared `AddonFields.tsx` option renderer used by plugin import; then give planner warnings and notes stable reason codes and render them through i18n. Preserve warning facts, names, counts and API contracts. Do not sync upstream or merge branches during translation.
 
 ## Low-token work protocol
 - Read this file, then only the next target source file(s) and exact dictionary sections needed.
@@ -53,4 +62,4 @@ Audit `src/app/campaigns/[campaignId]/DmNpcForgePanel.tsx` and `DmSharePanel.tsx
 - TypeScript, lint, production build and visual checks remain deferred to Block 1.1 on the user's local machine. Do not claim these checks unless actually run.
 
 ## Resume
-Start by verifying the branch HEAD, then continue with the next uncovered Block 1 component. No questions about project, branch, scope or workflow are needed.
+Start by verifying the branch HEAD, then continue the Workshop import audit from the next-work section. Block 1 remains formally open; its local technical checks are still deferred. No questions about project, branch, scope or workflow are needed.
