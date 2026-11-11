@@ -2,6 +2,7 @@
 
 import { Check, Lock, Sparkles, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui";
 import { Select } from "@/components/ui/Select";
@@ -24,7 +25,12 @@ import { KeptValueText } from "./ImportKept";
 // editor opened with, so another author's change elsewhere survives and a
 // clash on the same field is shown here with the draft kept.
 
-const CANON_WORDS: Record<Canon, string> = { canon: "Canon", draft: "Draft", alternate: "Alternate", retired: "Retired" };
+const CANON_WORD_KEYS: Record<Canon, string> = {
+  canon: "workshop.world.entityEditor.canon.canon",
+  draft: "workshop.world.entityEditor.canon.draft",
+  alternate: "workshop.world.entityEditor.canon.alternate",
+  retired: "workshop.world.entityEditor.canon.retired",
+};
 const LINE_LIMIT = { npc: 200, faction: 400 } as const;
 // What each record's own row holds (src/lib/worldforge/account.ts).
 const TEXT_LIMIT = ROW_TEXT;
@@ -87,6 +93,7 @@ export function EntityEditor({
   // model (the button is then not offered at all).
   onDraft: ((hint: string) => Promise<string | null>) | null;
 }) {
+  const { t } = useI18n();
   const [drafting, setDrafting] = useState(false);
   const [draftHint, setDraftHint] = useState("");
   const type = typeOf(doc, entity);
