@@ -144,5 +144,10 @@ Continue the Atlas audit with `AtlasRegion.tsx`, `AtlasEdit.tsx`, `AtlasParty.ts
 - User-created map/region/pin names, aliases, custom fields, record/article content and IDs remain data. Server-authored plan notes and raw API error details remain unchanged.
 - Static dictionary audit: 191 direct source keys covered in EN/RU; all 7 plural groups have the required EN and RU suffixes; the 5 conditional delete keys exist in both dictionaries; no duplicate keys or missing placeholders. File tails restored to their normal TypeScript closings. TypeScript, lint, tests, build and visual checks remain deferred.
 
+## WorldForge — Timeline — 12 November 2026
+- `TimelineView.tsx`: localized calendar management, shared year-line explanation, event count/list, event forms, era/canon controls, linked people/places and calendar deletion confirmation. Lifespan warnings (event before birth / after death) now use locale-aware plural messages rather than English strings from the UI helper.
+- Added 52 EN/RU messages in `workshop.ts`, including four dynamic canon-state labels and three plural groups (event count, years before birth, years after death). Static audit: 37 direct source keys covered; all 3 plural groups have the required EN `.one/.other` and RU `.one/.few/.many/.other` forms; dynamic canon keys present; no duplicate keys or placeholder mismatches. User-authored calendar/event names, era labels, event text, entity names, abbreviations and numeric values remain data.
+- TypeScript, lint, tests, production build and visual checks remain deferred.
+
 ## Resume
-Continue with `TimelineView.tsx`, then `SecretsView.tsx` and `WikiView.tsx`. Verify the branch HEAD before editing. Import/export reports, `EntityEditor.tsx`, `EntityPage.tsx` and all six Atlas components are localized. Block 1 remains formally open; do not merge, open a PR or create its DONE flag.
+Continue with `SecretsView.tsx`, then `WikiView.tsx`. Verify the branch HEAD before editing. Import/export reports, `EntityEditor.tsx`, `EntityPage.tsx`, all six Atlas components and `TimelineView.tsx` are localized. Block 1 remains formally open; do not merge, open a PR or create its DONE flag.
