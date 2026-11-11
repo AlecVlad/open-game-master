@@ -4198,4 +4198,5 @@ export const enCampaignPanels = {
   "campaign.overworld.authoring.regionNotesPlaceholder": "What lies past the edge. Which roads are watched.",
   "campaign.overworld.authoring.privateNote": "Yours alone; players never see this.",
   "campaign.overworld.errors.modelDescription": "The model had nothing for that.",
+  "campaign.overworld.paint.dragHint": "Press and drag to paint; the tiles land when you let go.",
 } satisfies Record<string, string>;
