@@ -87,8 +87,15 @@ Single restore point for Russian localization. After a chat interruption, read o
 - Added 67 EN entries and 93 RU entries (including the required `.few/.many` forms). Static check covered 52 referenced keys, duplicate keys and placeholder parity; all passed.
 - TypeScript, lint, tests, production build and visual checks were not run.
 
+## Workshop guided tours — 11 November 2026
+- `GuidedTour.tsx`: added optional translation scope for shelf, hub and per-system tours; shared rail/help steps use shared keys. Navigation, timing, anchors, `prepare` actions and account completion tracking are unchanged.
+- `WorkshopHelpDialog.tsx`: localized fixed section headings.
+- Added 142 EN/RU key pairs for 71 tool-tour steps: 58 in `workshop.ts` and 13 in `worldforge-tour.ts`. Existing shelf/hub/common tours and GuidedTour controls already have their own keys.
+- Static verification: 71 steps / 142 keys; no missing EN/RU keys, duplicate dictionary keys or placeholder mismatches. Source tour files were not changed, so IDs, anchors and `prepare` values are preserved.
+- Text translated through DeepL EN→RU and proofread for game context. Glossary access is unavailable on the connected DeepL Free plan, so no glossary was applied. TypeScript, lint, tests, build and visual checks were not run.
+
 ## Next work
-Continue with the guided-tour copy in `src/lib/tours/workshop.ts` and the shared tour/dialog components. Then review the remaining Workshop editors and their import feedback. Preserve server values, plugin-supplied text and user-authored content. Planner-generated import warnings/notes still need stable reason codes and a localized renderer. Do not sync upstream or merge branches during translation.
+Audit `src/lib/workshop/import-board.ts` and the UI rendering `plan.warnings`, `plan.notes`, `worldConflicts` and `referenceNotes`. Where these are planner-generated messages, replace English prose with stable reason codes and structured parameters, then localize through an explicit renderer. Preserve conflict data, import decisions and user-authored text. Do not sync upstream or merge branches during translation.
 
 ## Low-token work protocol
 - Read this file, then only the next target source file(s) and exact dictionary sections needed.
