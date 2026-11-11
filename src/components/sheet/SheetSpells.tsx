@@ -48,7 +48,6 @@ export function SheetSpells({
   // The owner, in a campaign: may change prepared spells.
   editable?: boolean;
 }) {
-  const { t } = useI18n();
   // A character whose class casts nothing may still hold a feat's spells
   // (Fey Touched's misty step, Ritual Caster's book, src/lib/srd/feat-spells.ts):
   // one book, read as spells known, with no slots to prepare from.
