@@ -120,7 +120,7 @@ export function TradeDialog({ campaignId, me, them, onClose }: { campaignId: str
         body: JSON.stringify({ toCharacterId: them.id, give: lines(give), giveCp, want: lines(want), wantCp }),
       });
       if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
+        await response.json().catch(() => ({}));
         setError(t("campaign.trade.errors.offer"));
         return;
       }
