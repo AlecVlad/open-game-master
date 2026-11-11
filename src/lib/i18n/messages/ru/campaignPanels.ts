@@ -4194,4 +4194,9 @@ export const ruCampaignPanels: Partial<Record<keyof typeof enCampaignPanels, str
   "campaign.overworld.param.forests": "Forests",
   "campaign.overworld.param.aridity": "Aridity",
   "campaign.overworld.param.coastline": "Береговая линия",
+  "campaign.overworld.party.hereCapital": "Группа находится здесь",
+  "campaign.overworld.place.visitedCapital": "Посещено",
+  "campaign.overworld.place.unvisitedCapital": "Ещё не посещено",
+  "campaign.overworld.map.dragHelp": "Перетаскивайте карту, чтобы перемещать её",
+  "campaign.overworld.map.tapHintShort": "Нажмите на место",
 };
