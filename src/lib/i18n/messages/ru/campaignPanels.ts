@@ -2769,6 +2769,7 @@ export const ruCampaignPanels: Partial<Record<keyof typeof enCampaignPanels, str
   "campaign.lore.editor.cancel": "Отмена",
   "campaign.lore.editor.save": "Сохранить",
   "campaign.lore.editor.add": "Добавить",
+  "campaign.lore.copySuffix": "копия",
 }; группа: {characters}. {note}",
   "campaign.dmWorkbench.budget.creaturesAgainstParty.few": "Состав противников: {count}; группа: {characters}. {note}",
   "campaign.dmWorkbench.budget.creaturesAgainstParty.many": "Состав противников: {count}; группа: {characters}. {note}",
