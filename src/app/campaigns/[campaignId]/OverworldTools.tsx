@@ -47,6 +47,7 @@ import {
 type Translator = ReturnType<typeof useI18n>["t"];
 
 const OVERWORLD_ERROR_KEYS: Record<string, string> = {
+  "Describe the region first.": "campaign.overworld.errors.modelDescription",
   "A workshop has no party to place. The party is placed at the table, as it travels.": "campaign.overworld.errors.workshopParty",
   "That is not an uploaded image.": "campaign.overworld.errors.invalidImage",
   "That name is already taken here.": "campaign.overworld.errors.nameTaken",
