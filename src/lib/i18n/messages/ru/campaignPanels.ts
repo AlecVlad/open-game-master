@@ -2599,7 +2599,7 @@ export const ruCampaignPanels: Partial<Record<keyof typeof enCampaignPanels, str
   "campaign.relationship.consent.advances": "Разрешить НИП проявлять инициативу",
   "campaign.relationship.consent.advancesInfo": "НИП, которым уже нравится {name}, могут сделать первый шаг. Вы всегда сами решаете, как ответить. Отключение настройки сразу прекращает такие попытки. Её видите только вы.",
   "campaign.relationship.consent.pacts": "Разрешить вступать со мной в тайные союзы",
-  "campaign.relationship.consent.pactsInfo": "Спутники, настроенные против группы, могут тайно предложить {name} присоединиться к ним. Вы сами решаете, как ответить: вступить, притвориться согласным, рассказать группе или отказаться. Если настройка выключена, такие предложения не поступают. Её видите только вы.",
+  "campaign.relationship.consent.pactsInfo": "Спутники, настроенные против группы, могут тайно предложить {name} присоединиться к ним. Вы сами решаете, как ответить: вступить, притвориться согласным, рассказать группе или отказаться. Если настройка выключена, спутники больше не будут обращаться к {name} с такими предложениями. Эту настройку видите только вы.",
   "campaign.relationship.consent.aria": "{label} для персонажа {name}",
   "campaign.relationship.consent.saveError": "Не удалось сохранить настройку.",
   "campaign.relationship.consent.networkError": "Не удалось связаться с сервером.",
