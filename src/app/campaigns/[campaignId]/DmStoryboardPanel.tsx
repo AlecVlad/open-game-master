@@ -27,7 +27,7 @@ import {
 import type { CompiledBoard, CompileSummary } from "@/lib/workshop/board-compile";
 import { Sheet } from "@/components/ui/Sheet";
 import { KIND_TONE } from "@/app/workshop/storyboard/beat-fields";
-import { beatHint, beatLabel, suggestionReason, suggestionTitle } from "@/app/workshop/storyboard/storyboard-i18n";
+import { beatHint, beatLabel, routeTag, suggestionReason, suggestionTitle } from "@/app/workshop/storyboard/storyboard-i18n";
 import { BeatBoard } from "@/app/workshop/storyboard/BeatBoard";
 import { BeatEditor } from "@/app/workshop/storyboard/BeatEditor";
 import { CompileCard, SharedWorkshopCard, SuggestionsCard } from "@/app/workshop/storyboard/BoardAsides";
@@ -426,7 +426,7 @@ export function DmStoryboardPanel({
                         .map((target) => {
                           const name = nameOf(target);
                           const route = routeOf(node, target);
-                          return name ? `${name}${route === "choice" ? " (one route)" : route === "optional" ? " (only if)" : ""}` : "";
+                          return name ? `${name}${route === "choice" || route === "optional" ? ` (${routeTag(t, route)})` : ""}` : "";
                         })
                         .filter(Boolean)
                         .join(", ")}
@@ -458,19 +458,7 @@ export function DmStoryboardPanel({
         })}
       </div>
 
-      {nodes.length ? (
-        <div className={cn(ui.card, "dm-card reveal flex flex-col gap-1 p-3")}>
-          <SectionHead title={t("campaign.storyboard.compile.title")} glyph="system-lore" />
-          <p className="text-[11px] leading-snug text-stone-400">
-            {data.compiled.summary.lines.length
-              ? t("campaign.storyboard.compile.description", { items: data.compiled.summary.lines.join(", ") })
-              : t("campaign.storyboard.compile.empty")}
-          </p>
-          {data.compiled.summary.arcRefusal ? (
-            <p className="reveal text-[10px] text-amber-300/70">{!data.compiled.premise ? t("campaign.storyboard.compile.refusal.noPremise") : t("campaign.storyboard.compile.refusal.tooFew", { count: data.compiled.arcBeats.length, min: 2 })}</p>
-          ) : null}
-        </div>
-      ) : null}
+      {nodes.length ? <CompileCard summary={data.compiled.summary} compiled={data.compiled} /> : null}
     </div>
   );
 }
