@@ -4589,4 +4589,14 @@ export const enCampaignPanels = {
   "campaign.trade.offer": "Offer the trade",
   "campaign.trade.errors.offer": "The offer could not be made.",
   "campaign.trade.errors.network": "Could not reach the server. Try again.",
+
+  "campaign.trade.errors.empty": "Offer something, or ask for something.",
+  "campaign.trade.errors.noCharacter": "You have no character to trade with.",
+  "campaign.trade.errors.pickCharacter": "Pick another character at this table.",
+  "campaign.trade.errors.missingFrom": "{name} no longer carries {item}.",
+  "campaign.trade.errors.missingTo": "{name} does not carry {item}.",
+  "campaign.trade.errors.coinsFrom": "{name} no longer has {price}.",
+  "campaign.trade.errors.coinsTo": "{name} does not have {price}.",
+  "campaign.trade.errors.break": "The table is paused: {name} called a break. Use OOC for table talk until it resumes.",
+  "campaign.trade.errors.session": "Session {number} is over. Use OOC for table talk until the next session starts.",
 } satisfies Record<string, string>;
