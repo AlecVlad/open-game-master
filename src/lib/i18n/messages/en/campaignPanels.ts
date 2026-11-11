@@ -4199,4 +4199,16 @@ export const enCampaignPanels = {
   "campaign.overworld.authoring.privateNote": "Yours alone; players never see this.",
   "campaign.overworld.errors.modelDescription": "The model had nothing for that.",
   "campaign.overworld.paint.dragHint": "Press and drag to paint; the tiles land when you let go.",
+
+  "campaign.overworld.errors.workshopParty": "A workshop has no party marker. Place the party at the campaign table.",
+  "campaign.overworld.errors.invalidImage": "That is not an uploaded image.",
+  "campaign.overworld.errors.nameTaken": "That name is already taken here.",
+  "campaign.overworld.errors.paint.wrongSize": "This map has the wrong size for painting.",
+  "campaign.overworld.errors.paint.empty": "Nothing was painted.",
+  "campaign.overworld.errors.paint.tooMany": "That is too much to paint in one go.",
+  "campaign.overworld.errors.paint.unknownTerrain": "This map does not know that terrain type.",
+  "campaign.overworld.errors.paint.missedStroke": "The brush stroke did not land on the map.",
+  "campaign.overworld.errors.paint.unchanged": "The map already looks that way.",
+  "campaign.overworld.errors.paint.noSettlement": "The map needs at least one area where a settlement can stand. Leave some ground that is not sea or peak.",
+  "campaign.overworld.errors.mapRender": "The map could not be rendered.",
 } satisfies Record<string, string>;
