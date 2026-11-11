@@ -3,6 +3,8 @@
 import { ChevronLeft, ChevronRight, EyeOff, X } from "lucide-react";
 import { litOrderRows, pointerOrderIndex } from "@/lib/battlemap/initiative-rows";
 import { useEffect, useRef, useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages/index";
 import { createPortal } from "react-dom";
 import { cn } from "@/lib/cn";
 import { formatFeet, type MeasurementSystem } from "@/lib/measurement-system";
@@ -10,7 +12,7 @@ import { GameIcon } from "@/components/ui/GameIcon";
 import { conditionIconKey } from "@/lib/battlemap/condition-glyphs";
 import { conditionRule } from "@/lib/battlemap/condition-rules";
 import { placePlate } from "@/lib/battlemap/plate-place";
-import { HEALTH_LABEL, HEALTH_RING, type HealthWord } from "@/lib/battlemap/health-words";
+import { HEALTH_RING, type HealthWord } from "@/lib/battlemap/health-words";
 import type { StageToken } from "@/app/campaigns/[campaignId]/BoardStage";
 import type { PublicEncounter } from "@/lib/db/encounter-view";
 import { offSide, SidePlateBand, sidesLine, SideSr } from "@/app/campaigns/[campaignId]/SideBadge";
@@ -95,6 +97,7 @@ export function InitiativeRail({
   namesOnly?: boolean;
   above?: boolean;
 }) {
+  const { t } = useI18n();
   if (!encounter.orderReady || !encounter.order.length) {
     return null;
   }
@@ -106,10 +109,10 @@ export function InitiativeRail({
   if (namesOnly) {
     return (
       <div className="board-initiative-names" data-tour="battle-initiative">
-        <button type="button" onClick={onOpen} disabled={!onOpen} aria-label={`Round ${round}, open initiative order`}>
-          Round {round} · initiative
+        <button type="button" onClick={onOpen} disabled={!onOpen} aria-label={t("campaign.session.board.initiative.openRound", { round })}>
+          {t("campaign.session.board.initiative.round", { round })} · {t("campaign.session.board.initiative.label")}
         </button>
-        <ol tabIndex={0} aria-label="Initiative order">
+        <ol tabIndex={0} aria-label={t("campaign.session.board.initiative.order")}>
           {encounter.order.map((entry, at) => (
             <li key={`${entry.id}-${at}`} aria-current={lit.includes(at) ? "step" : undefined} title={entry.name}>
               {entry.name}
@@ -143,15 +146,15 @@ export function InitiativeRail({
       // On the board, the resting view keeps the tiles out from under it
       // (useBoardCamera.ts, camera-fit.ts).
       data-fit-clear={above || namesOnly ? undefined : ""}
-      aria-label={`Round ${round}, initiative order. ${encounter.acting?.name ?? order[up]?.name ?? ""} is up. ${sidesLine(encounter)}Open the order.`}
+      aria-label={t("campaign.session.board.initiative.current", { round, name: encounter.acting?.name ?? order[up]?.name ?? "", sides: sidesLine(encounter, t) })}
       className={cn(
         "flex text-left outline-none focus-visible:ring-2 focus-visible:ring-amber-400/60",
         above ? "min-h-10 max-w-full items-center gap-2" : "absolute left-2 top-2 z-10 flex-col items-start gap-1 @md:left-3.5 @md:top-3.5 @md:gap-1.5",
       )}
     >
       <span className="board-eyebrow">
-        Round {round}
-        <span className="hidden @md:inline"> · initiative</span>
+        {t("campaign.session.board.initiative.round", { round })}
+        <span className="hidden @md:inline"> · {t("campaign.session.board.initiative.label")}</span>
       </span>
       <span className="flex gap-[3px] @md:gap-[5px]">
         {shown.map(({ entry, at }, index) => {
@@ -215,11 +218,20 @@ export function InitiativeRail({
 // turnHudBudget): the pips are drawn only for a seat that was sent one.
 export type TurnHudBudget = { action: boolean; bonus: boolean; reaction: boolean };
 
-const PIPS: Array<{ key: keyof TurnHudBudget; label: string }> = [
-  { key: "action", label: "ACTION" },
-  { key: "bonus", label: "BONUS" },
-  { key: "reaction", label: "REACTION" },
+const PIPS: Array<{ key: keyof TurnHudBudget; message: MessageKey }> = [
+  { key: "action", message: "campaign.session.board.turn.action" },
+  { key: "bonus", message: "campaign.session.board.turn.bonus" },
+  { key: "reaction", message: "campaign.session.board.turn.reaction" },
 ];
+
+const HEALTH_LABEL_KEYS: Record<HealthWord, MessageKey> = {
+  unharmed: "campaign.session.board.health.unharmed",
+  scratched: "campaign.session.board.health.scratched",
+  bloodied: "campaign.session.board.health.bloodied",
+  critical: "campaign.session.board.health.critical",
+  down: "campaign.session.board.health.down",
+  dead: "campaign.session.board.health.dead",
+};
 
 // Top-right: whose turn, and on your own turn what you have left.
 export function TurnHud({
@@ -244,17 +256,18 @@ export function TurnHud({
   ac?: number | null;
   hp?: { current: number; max: number } | null;
 }) {
+  const { t } = useI18n();
   if (!actorName) {
     return null;
   }
   const stats = [
-    typeof speedLeftFeet === "number" ? formatFeet(speedLeftFeet, measurementSystem, tableLanguage) + " left" : null,
-    typeof ac === "number" ? `AC ${ac}` : null,
+    typeof speedLeftFeet === "number" ? t("campaign.session.board.turn.speedLeft", { speed: formatFeet(speedLeftFeet, measurementSystem, tableLanguage) }) : null,
+    typeof ac === "number" ? t("campaign.session.board.turn.armorClass", { ac }) : null,
     hp ? `${hp.current}/${hp.max}` : null,
   ].filter(Boolean);
   return (
     <div className="pointer-events-none absolute right-2 top-2 z-10 flex max-w-[58%] flex-col items-end gap-1 @md:right-3.5 @md:top-3.5 @md:gap-[7px]">
-      <span className="board-eyebrow block max-w-full truncate text-right">{mine ? `${actorName} · ${commanded ? "your orders" : "your turn"}` : `${actorName}'s turn`}</span>
+      <span className="board-eyebrow block max-w-full truncate text-right">{mine ? commanded ? t("campaign.session.board.turn.yourOrders", { name: actorName }) : t("campaign.session.board.turn.yourTurn", { name: actorName }) : t("campaign.session.board.turn.other", { name: actorName })}</span>
       {mine && budget ? (
         // On a narrow board the pips and the stats sit under the rail's
         // plates instead of beside them, where there is no room.
@@ -272,7 +285,7 @@ export function TurnHud({
                 className="turn-pip flex items-center gap-[5px] rounded-full border px-2 py-[3px] font-mono text-[9px] tracking-[0.04em] @md:text-[10px]"
               >
                 <span className="turn-pip-shape" aria-hidden="true" />
-                {pip.label}
+                {t(pip.message)}
               </span>
             );
           })}
@@ -316,22 +329,24 @@ export function TurnBanner({ text, mine }: { text: string; mine: boolean }) {
 }
 
 function HealthWordChip({ word }: { word: HealthWord }) {
+  const { t } = useI18n();
   return (
     <span
       className="rounded-full border px-1.5 py-px text-[10px] font-medium"
       style={{ borderColor: `${HEALTH_RING[word]}99`, color: HEALTH_RING[word], background: "rgba(8,6,18,0.6)" }}
     >
-      {HEALTH_LABEL[word] ?? word}
+      {t(HEALTH_LABEL_KEYS[word])}
     </span>
   );
 }
 
 export function ConditionChip({ label, rounds, note }: { label: string; rounds?: number; note?: string }) {
+  const { tp } = useI18n();
   return (
     <span className="fx-pop inline-flex max-w-full items-center gap-1 rounded-full border border-amber-900/60 bg-amber-950/30 py-px pl-px pr-1.5 text-[10px] text-amber-300">
       <GameIcon icon={{ kind: "condition", key: conditionIconKey(label) }} size="size-4" />
       <span className="capitalize">{label}</span>
-      {rounds ? ` (${rounds} rd)` : ""}
+      {rounds ? ` (${tp("campaign.session.board.conditions.rounds", rounds, { count: rounds })})` : ""}
       {/* What the engine's metadata says: until whose turn, the save that
           ends it, who laid it (src/lib/battlemap/condition-notes.ts). */}
       {note ? <span className="truncate text-amber-200/70">{note}</span> : null}
@@ -343,10 +358,11 @@ export function ConditionChip({ label, rounds, note }: { label: string; rounds?:
 // plate: the board's own verdict (view-tactics.ts), the one the hit preview
 // and pc_attack read.
 function EdgeChips({ edge }: { edge: TargetEdge }) {
+  const { t } = useI18n();
   const chips = [
-    edge.blocked ? "No line of sight" : edge.cover === 5 ? "Three-quarters cover (+5 AC)" : edge.cover === 2 ? "Half cover (+2 AC)" : null,
-    edge.flanking ? "Flanked: advantage in melee" : null,
-    edge.hostileBeside && !edge.adjacent ? "Enemy beside you: ranged at disadvantage" : null,
+    edge.blocked ? t("campaign.session.board.edge.noLineOfSight") : edge.cover === 5 ? t("campaign.session.board.edge.threeQuartersCover") : edge.cover === 2 ? t("campaign.session.board.edge.halfCover") : null,
+    edge.flanking ? t("campaign.session.board.edge.flanked") : null,
+    edge.hostileBeside && !edge.adjacent ? t("campaign.session.board.edge.enemyBeside") : null,
   ].filter((chip): chip is string => Boolean(chip));
   if (!chips.length) return null;
   return (
@@ -364,7 +380,8 @@ function EdgeChips({ edge }: { edge: TargetEdge }) {
 // name, what it does (condition-rules.ts for the SRD's own; every other
 // condition's note leads with its summary), and how long it lasts.
 function ConditionRow({ id, label, rounds, note }: { id: string; label: string; rounds?: number; note?: string }) {
-  const rule = conditionRule(id);
+  const { t, tp } = useI18n();
+  const rule = conditionRule(id, t);
   return (
     <li className="fx-pop flex items-start gap-2 text-left">
       {/* A fixed box, so a condition with no painting keeps its text in line. */}
@@ -377,7 +394,7 @@ function ConditionRow({ id, label, rounds, note }: { id: string; label: string; 
       <span className="min-w-0 flex-1">
         <span className="block text-[11px] font-semibold text-[#ecd287]">
           <span className="capitalize">{label}</span>
-          {rounds ? <span className="font-normal text-[rgba(244,224,166,0.8)]">{` (${rounds} rd)`}</span> : null}
+          {rounds ? <span className="font-normal text-[rgba(244,224,166,0.8)]">{` (${tp("campaign.session.board.conditions.rounds", rounds, { count: rounds })})`}</span> : null}
         </span>
         {rule ? <span className="block text-[10px] leading-snug text-[#d8d3ea]">{rule}</span> : null}
         {note ? <span className="block text-[10px] leading-snug text-[rgba(244,224,166,0.75)]">{note}</span> : null}
@@ -431,6 +448,7 @@ export function TokenPlate({
   pinned?: boolean;
   onClose?: () => void;
 }) {
+  const { t } = useI18n();
   const pin = useRef<HTMLSpanElement>(null);
   const plateRef = useRef<HTMLDivElement>(null);
   const [spot, setSpot] = useState<{ left: number; top: number; below: boolean } | null>(null);
@@ -520,7 +538,7 @@ export function TokenPlate({
     <div
       ref={plateRef}
       role={pinned ? "dialog" : "tooltip"}
-      aria-label={pinned ? `${token.name}: details` : undefined}
+      aria-label={pinned ? t("campaign.session.board.plate.details", { name: token.name }) : undefined}
       tabIndex={pinned ? -1 : undefined}
       data-pinned={pinned ? "true" : undefined}
       className={cn(
@@ -537,7 +555,7 @@ export function TokenPlate({
       style={spot ? { left: spot.left, top: spot.top, ...(paged && floor ? { minHeight: floor } : {}) } : undefined}
     >
       {pinned ? (
-        <button type="button" onClick={() => onClose?.()} aria-label="Close" className={cn(pagerButton, "absolute right-1 top-1")}>
+        <button type="button" onClick={() => onClose?.()} aria-label={t("campaign.session.board.close")} className={cn(pagerButton, "absolute right-1 top-1")}>
           <X className="size-3.5" />
         </button>
       ) : null}
@@ -570,19 +588,19 @@ export function TokenPlate({
               out from under the pointer. */}
           {pinned && pages > 1 ? (
             <div className="flex items-center gap-2 text-[11px] text-[#d8d3ea]">
-              <button type="button" onClick={() => setPage(at - 1)} disabled={at === 0} aria-label="Previous conditions" className={pagerButton}>
+              <button type="button" onClick={() => setPage(at - 1)} disabled={at === 0} aria-label={t("campaign.session.board.conditions.previous")} className={pagerButton}>
                 <ChevronLeft className="size-4" />
               </button>
               {/* Even digits and a set width: the next arrow holds still. */}
-              <span aria-live="polite" className="min-w-[5.5rem] text-center tabular-nums">{`Page ${at + 1} of ${pages}`}</span>
-              <button type="button" onClick={() => setPage(at + 1)} disabled={at === pages - 1} aria-label="Next conditions" className={pagerButton}>
+              <span aria-live="polite" className="min-w-[5.5rem] text-center tabular-nums">{t("campaign.session.board.conditions.page", { page: at + 1, pages })}</span>
+              <button type="button" onClick={() => setPage(at + 1)} disabled={at === pages - 1} aria-label={t("campaign.session.board.conditions.next")} className={pagerButton}>
                 <ChevronRight className="size-4" />
               </button>
             </div>
           ) : null}
           <ul
             className={cn("min-w-0 gap-1.5", crowded ? "grid w-full grid-cols-1 sm:grid-cols-2 sm:gap-x-3" : "flex flex-col")}
-            aria-label="Conditions"
+            aria-label={t("campaign.session.board.conditions.label")}
           >
             {onPage.map((condition, index) => (
               <ConditionRow key={`${condition.id}-${at * size + index}`} {...condition} />
@@ -591,7 +609,7 @@ export function TokenPlate({
           {/* Hovered, the rest are named: a click opens the plate to page them. */}
           {rest.length ? (
             <p className="text-[10px] leading-snug text-[#aeaac6]" data-plate-more>
-              <span className="font-semibold text-[#ecd287]">{`+${rest.length} more: `}</span>
+              <span className="font-semibold text-[#ecd287]">{t("campaign.session.board.conditions.more", { count: rest.length })}</span>
               <span className="capitalize">{rest.map((condition) => condition.label).join(", ")}</span>
             </p>
           ) : null}
@@ -633,11 +651,12 @@ export function TargetChips({
   measurementSystem?: MeasurementSystem;
   tableLanguage?: string;
 }) {
+  const { t } = useI18n();
   if (!targets.length) {
-    return <p className="text-[11px] text-stone-500">Nobody here to aim at.</p>;
+    return <p className="text-[11px] text-stone-500">{t("campaign.session.board.targets.none")}</p>;
   }
   return (
-    <div className="flex gap-1.5 overflow-x-auto pb-1" role="group" aria-label="Targets">
+    <div className="flex gap-1.5 overflow-x-auto pb-1" role="group" aria-label={t("campaign.session.board.targets.label")}>
       {targets.map(({ token, face, health, feet }, index) => (
         <button
           key={token.id}
