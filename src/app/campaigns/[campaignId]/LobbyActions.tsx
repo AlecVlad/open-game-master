@@ -144,14 +144,24 @@ export function LobbyActions({
       "Next: choose your hero. A ready-made one has you playing in a minute.": t("campaign.lobby.next.choose"),
       "Next: ready up when the table is set. The adventure is yours to open.": t("campaign.lobby.next.dmReady"),
       "Next: ready up when you are set.": t("campaign.lobby.next.ready"),
-      "Everyone is ready. {t("campaign.lobby.start.begin")}.": t("campaign.lobby.next.begin"),
+      "Everyone is ready. Begin the adventure.": t("campaign.lobby.next.begin"),
       "Everyone is ready. The owner or the GM opens the adventure.": t("campaign.lobby.next.waitForHost"),
+      "The table is empty.": t("campaign.lobby.blocker.empty"),
+      "Waiting for a player to join.": t("campaign.lobby.blocker.player"),
+      "Every player needs a character before the adventure starts.": t("campaign.lobby.blocker.character"),
+      "Waiting for everyone to ready up.": t("campaign.lobby.blocker.ready"),
     };
     if (fixed[next.text]) return fixed[next.text];
     const waitingForHero = /^Waiting for (.+) to choose a hero\.$/.exec(next.text);
-    if (waitingForHero) return t("campaign.lobby.next.waitingForHero", { names: waitingForHero[1] });
+    if (waitingForHero) {
+      const names = waitingForHero[1].replace(/ and /g, " и ").replace(/(\\d+) more/g, "ещё $1");
+      return t("campaign.lobby.next.waitingForHero", { names });
+    }
     const waitingToReady = /^Waiting for (.+) to ready up\.$/.exec(next.text);
-    if (waitingToReady) return t("campaign.lobby.next.waitingToReady", { names: waitingToReady[1] });
+    if (waitingToReady) {
+      const names = waitingToReady[1].replace(/ and /g, " и ").replace(/(\\d+) more/g, "ещё $1");
+      return t("campaign.lobby.next.waitingToReady", { names });
+    }
     return next.text;
   })();
   const blockerText = ({
