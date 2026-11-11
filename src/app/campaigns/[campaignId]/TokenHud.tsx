@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { useLayoutEffect, useRef, useState } from "react";
 import { cn } from "@/lib/cn";
+import type { MessageKey } from "@/lib/i18n/messages/index";
 import { DIAL_CENTRE, DIAL_RADIUS, fitDial, type DialSide } from "@/lib/battlemap/dial-side";
 import type { StageToken } from "@/app/campaigns/[campaignId]/BoardStage";
 import type { HudGateId } from "@/lib/battlemap/hand-hud";
@@ -56,18 +57,20 @@ export function playerActions(
   // the casting state, asked the way the Hand asks them.
   gates?: Partial<Record<HudGateId, string | null>>,
   refuse?: (reason: string) => void,
+  t?: (key: MessageKey) => string,
 ): HudAction[] {
   const gate = (id: HudGateId, action: Omit<HudAction, "disabled">): HudAction => {
     const reason = gates?.[id] ?? null;
     return reason ? { ...action, disabled: reason, onPick: () => refuse?.(reason) } : action;
   };
+  const tr = t ?? ((key: MessageKey) => key);
   return [
-    gate("attack", { id: "attack", label: "Attack", icon: Crosshair, tone: "ember", onPick: () => pickTarget("attack") }),
-    gate("cast", { id: "cast", label: "Cast", icon: Wand2, tone: "gold", onPick: () => pickTarget("cast") }),
-    gate("dodge", { id: "dodge", label: "Dodge", icon: Shield, onPick: () => compose("I take the Dodge action.") }),
-    gate("dash", { id: "dash", label: "Dash", icon: Wind, onPick: () => compose("I Dash.") }),
-    gate("disengage", { id: "disengage", label: "Disengage", icon: ArrowRightLeft, onPick: () => compose("I Disengage and step away.") }),
-    gate("help", { id: "help", label: "Help", icon: HandHelping, onPick: () => compose("I take the Help action for ") }),
+    gate("attack", { id: "attack", label: tr("campaign.session.battle.attack"), icon: Crosshair, tone: "ember", onPick: () => pickTarget("attack") }),
+    gate("cast", { id: "cast", label: tr("campaign.session.battle.cast"), icon: Wand2, tone: "gold", onPick: () => pickTarget("cast") }),
+    gate("dodge", { id: "dodge", label: tr("campaign.session.battle.dodge"), icon: Shield, onPick: () => compose(tr("campaign.session.battle.composeDodge") as string) }),
+    gate("dash", { id: "dash", label: tr("campaign.session.battle.dash"), icon: Wind, onPick: () => compose(tr("campaign.session.battle.composeDash") as string) }),
+    gate("disengage", { id: "disengage", label: tr("campaign.session.battle.disengage"), icon: ArrowRightLeft, onPick: () => compose(tr("campaign.session.battle.composeDisengage") as string) }),
+    gate("help", { id: "help", label: tr("campaign.session.battle.help"), icon: HandHelping, onPick: () => compose(tr("campaign.session.battle.composeHelp") as string) }),
   ];
 }
 
@@ -82,32 +85,34 @@ export function dmActions(
     condition: () => void;
     remove: () => void;
   },
+  t?: (key: MessageKey) => string,
 ): HudAction[] {
+  const tr = t ?? ((key: MessageKey) => key);
   const adhoc = token.kind === "npc" || token.kind === "prop";
   const combatant = token.kind === "pc" || token.kind === "enemy";
   const actions: HudAction[] = [
-    { id: "hold", label: "Pick up", icon: Hand, tone: "gold", onPick: handlers.hold },
-    { id: "teleport", label: "Teleport", icon: Sparkles, onPick: handlers.teleport },
+    { id: "hold", label: tr("campaign.session.battle.pickUp"), icon: Hand, tone: "gold", onPick: handlers.hold },
+    { id: "teleport", label: tr("campaign.session.battle.teleport"), icon: Sparkles, onPick: handlers.teleport },
   ];
   if (token.kind !== "pc") {
     actions.push({
       id: "visibility",
-      label: token.hidden ? "Reveal" : "Hide",
+      label: token.hidden ? tr("campaign.session.battle.reveal") : tr("campaign.session.battle.hide"),
       icon: token.hidden ? Eye : EyeOff,
       onPick: () => handlers.visibility(!token.hidden),
     });
   }
   if (combatant) {
     actions.push(
-      { id: "damage", label: "Damage", icon: HeartCrack, tone: "ember", onPick: handlers.damage },
-      { id: "condition", label: "Condition", icon: Tag, onPick: handlers.condition },
+      { id: "damage", label: tr("campaign.session.battle.damage"), icon: HeartCrack, tone: "ember", onPick: handlers.damage },
+      { id: "condition", label: tr("campaign.session.battle.condition"), icon: Tag, onPick: handlers.condition },
     );
   }
   if (token.kind === "pc") {
-    actions.push({ id: "heal", label: "Heal", icon: Heart, onPick: handlers.heal });
+    actions.push({ id: "heal", label: tr("campaign.session.battle.heal"), icon: Heart, onPick: handlers.heal });
   }
   if (adhoc) {
-    actions.push({ id: "remove", label: "Take off", icon: Trash2, tone: "ember", onPick: handlers.remove });
+    actions.push({ id: "remove", label: tr("campaign.session.battle.removeToken"), icon: Trash2, tone: "ember", onPick: handlers.remove });
   }
   return actions.slice(0, 7);
 }
