@@ -1,6 +1,7 @@
 "use client";
 
 import { isOocAnswer } from "@/lib/dm/ooc-question";
+import { useI18n } from "@/lib/i18n/provider";
 import { CardReturnedNote } from "@/app/campaigns/[campaignId]/CardReturnedNote";
 import { extraTurnTag, litOrderRows, pointerOrderIndex } from "@/lib/battlemap/initiative-rows";
 import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent, type ReactNode } from "react";
@@ -22,7 +23,7 @@ import { classLevelWords } from "@/lib/characters/class-words";
 import { TokenFace } from "@/app/campaigns/[campaignId]/BoardChrome";
 import { DictateField } from "@/components/DictateField";
 import { appendDictation } from "@/lib/dictation";
-import { ROLL_KIND_LABELS, rollChronicleLead, rollToastLead } from "@/lib/roll-labels";
+import { rollChronicleLead, rollToastLead } from "@/lib/roll-labels";
 import { LengthNote } from "@/components/ui/LengthNote";
 import { atBottom, chronicleSignature, chronicleSystemLine, chronicleWindow } from "@/lib/chronicle-logic";
 import { textLength } from "@/lib/text-limits";
@@ -125,6 +126,7 @@ export function InitiativeRibbon({
   genre: string | null | undefined;
   onOpen?: () => void;
 }) {
+  const { t } = useI18n();
   const orderRef = useRef<HTMLOListElement>(null);
   const ready = encounter.orderReady && encounter.order.length > 0;
   const shown = ready ? encounter.order.filter((entry) => !entry.hidden) : [];
@@ -148,8 +150,8 @@ export function InitiativeRibbon({
     return null;
   }
   return (
-    <div className="cine-ribbon" role="group" aria-label={`Round ${encounter.round}, turn order`} data-tour="initiative-ribbon">
-      <span className="cine-ribbon-round">Round {encounter.round}</span>
+    <div className="cine-ribbon" role="group" aria-label={t("campaign.session.cine.turnOrder", { round: encounter.round })} data-tour="initiative-ribbon">
+      <span className="cine-ribbon-round">{t("campaign.session.cine.round", { round: encounter.round })}</span>
       <ol
         ref={orderRef}
         className="cine-ribbon-order"
@@ -167,7 +169,7 @@ export function InitiativeRibbon({
               data-done={!current && index < pointerAt ? "true" : undefined}
               data-foe={entry.kind === "enemy" ? "true" : undefined}
             >
-              <button type="button" className="cine-ribbon-face" onClick={onOpen} aria-label={`${entry.name}${current ? ", their turn" : ""}`} aria-current={current ? "step" : undefined} data-no-motion>
+              <button type="button" className="cine-ribbon-face" onClick={onOpen} aria-label={current ? t("campaign.session.cine.personTurn", { name: entry.name }) : entry.name} aria-current={current ? "step" : undefined} data-no-motion>
                 <TokenFace candidates={facesFor(entry, sheets, encounter.enemies, genre)} name={entry.name} enemy={entry.kind === "enemy"} className="cine-ribbon-img" />
               </button>
               <span className="cine-ribbon-name">{shortName(entry.name)}</span>
@@ -205,6 +207,7 @@ export function PartyRail({
   genre: string | null | undefined;
   onOpen: () => void;
 }) {
+  const { t } = useI18n();
   // The last hit points seen per hero, so a change plays as a beat: an
   // ember pulse and a lingering ghost bar for damage, a green pulse for
   // healing. State from props during render; a reload simply starts quiet.
@@ -236,7 +239,7 @@ export function PartyRail({
         : encounter.order[encounter.turnIndex]?.id
       : undefined;
   return (
-    <aside className="cine-party" aria-label="The party" data-tour="party-rail">
+    <aside className="cine-party" aria-label={t("campaign.session.cine.party")} data-tour="party-rail">
       {party.map((sheet, index) => {
         const max = Math.max(1, effectiveMaxHp(sheet));
         const hp = Math.max(0, Math.min(max, sheet.currentHp ?? max));
@@ -253,7 +256,7 @@ export function PartyRail({
             data-mine={sheet.userId === meUserId ? "true" : undefined}
             data-down={hp === 0 ? "true" : undefined}
             style={{ animationDelay: `${120 + index * 70}ms` }}
-            aria-label={`${sheet.name}, ${hp} of ${max} hit points. Open the party.`}
+            aria-label={t("campaign.session.cine.partyHealth", { name: sheet.name, hp, max })}
             data-no-motion
           >
             <span key={`pulse-${hp}`} className="cine-party-pulse" data-dir={dir} aria-hidden="true" />
@@ -297,6 +300,7 @@ export function RollToast({
   latestRoll: { roll: StoredRoll; seq: number } | null;
   sheets: ReadonlyArray<CharacterSheet>;
 }) {
+  const { t } = useI18n();
   const [shown, setShown] = useState<{ roll: StoredRoll; seq: number } | null>(null);
   // Each roll is judged once, during the render it arrives in (state from
   // props). The roll the snapshot arrived with is history, not news, so the
@@ -331,15 +335,15 @@ export function RollToast({
           {roll.expression} = {roll.total}
         </span>
       </span>
-      {crit ? <span className="cine-roll-crit">{crit === "nat20" ? "Natural 20" : "Natural 1"}</span> : null}
+      {crit ? <span className="cine-roll-crit">{crit === "nat20" ? t("campaign.session.cine.roll.natural20") : t("campaign.session.cine.roll.natural1")}</span> : null}
       {secret ? (
         <span className="cine-roll-secret">
           <EyeOff className="size-3.5" aria-hidden="true" />
-          Secret
+          {t("campaign.session.cine.roll.secret")}
         </span>
       ) : null}
       {roll.dc !== null && roll.success !== null && !crit ? (
-        <span className="cine-roll-crit" data-quiet="true">{roll.success ? "Success" : "Miss"}</span>
+        <span className="cine-roll-crit" data-quiet="true">{roll.success ? t("campaign.session.cine.roll.success") : t("campaign.session.cine.roll.miss")}</span>
       ) : null}
     </div>
   );
@@ -399,6 +403,7 @@ export function QuestGlance({
   initial: ReadonlyArray<string>;
   onOpen: () => void;
 }) {
+  const { t } = useI18n();
   const glance = useQuestGlance(campaignId, refreshKey, initial);
   // The quest that just ended, with nothing after it, lifts away rather
   // than blinking out.
@@ -426,12 +431,12 @@ export function QuestGlance({
       type="button"
       onClick={onOpen}
       className="cine-quest"
-      aria-label={`Quest: ${eyebrow ? `${eyebrow}, ` : ""}${line}. Open the quests.`}
+      aria-label={t("campaign.session.cine.quest.aria", { line: eyebrow ? `${eyebrow}, ${line}` : line })}
       data-tour="quest-glance"
       data-leaving={glance ? undefined : ""}
       data-no-motion
     >
-      <span className="cine-quest-eyebrow">Quest{eyebrow ? ` · ${eyebrow}` : ""}</span>
+      <span className="cine-quest-eyebrow">{t("campaign.session.cine.quest.label")}{eyebrow ? ` · ${eyebrow}` : ""}</span>
       <span className="cine-quest-body">{line}</span>
     </button>
   );
@@ -448,20 +453,21 @@ export function TabletopOrder({
   faceOf: (entry: { id: string; kind: string; name: string }) => Array<string | null | undefined>;
   children?: ReactNode;
 }) {
+  const { t } = useI18n();
   if (!encounter?.orderReady || encounter.order.length === 0) {
     return null;
   }
   return (
-    <aside className="cine-order" aria-label={`Round ${encounter.round}, turn order`}>
-      <span className="cine-order-round">Round {encounter.round}</span>
+    <aside className="cine-order" aria-label={t("campaign.session.cine.turnOrder", { round: encounter.round })}>
+      <span className="cine-order-round">{t("campaign.session.cine.round", { round: encounter.round })}</span>
       <ol className="cine-order-list">
         {encounter.order.map((entry, index, order) => (
           <li key={`${entry.id}-${index}`} className="cine-order-row" data-current={litOrderRows(order, encounter.turnIndex, encounter.acting, encounter.enemiesUp).includes(index) ? "true" : undefined} data-foe={entry.kind === "enemy" ? "true" : undefined}>
             <TokenFace candidates={faceOf(entry)} name={entry.name} enemy={entry.kind === "enemy"} className="cine-order-face" />
             <span className="cine-order-name">
               {entry.name}
-              {entry.hidden ? " (hidden)" : ""}
-              {entry.reflex ? <sup className="motion-pop ml-0.5 text-[9px] text-amber-300" title={extraTurnTag(entry)?.title}>{extraTurnTag(entry)?.short}</sup> : null}
+              {entry.hidden ? ` (${t("campaign.session.cine.hidden")})` : ""}
+              {entry.reflex ? <sup className="motion-pop ml-0.5 text-[9px] text-amber-300" title={extraTurnTag(entry) ? (entry.extra ? t("campaign.session.cine.extraTurn.title", { feature: entry.extra }) : t("campaign.session.cine.reflexTurn.title")) : undefined}>{extraTurnTag(entry) ? (entry.extra ? t("campaign.session.cine.extraTurn.short") : t("campaign.session.cine.reflexTurn.short")) : null}</sup> : null}
             </span>
             {typeof entry.initiative === "number" ? <span className="cine-order-init">{entry.initiative}</span> : null}
           </li>
@@ -589,6 +595,7 @@ export function TabletopChronicle({
   // Who is reading: a card given back offers its own player to play it again.
   meUserId?: string;
 }) {
+  const { t, tp } = useI18n();
   const rollsById = useMemo(() => new Map(rolls.map((roll) => [roll.id, roll])), [rolls]);
   const { recent, earlier } = useMemo(() => chronicleWindow(messages), [messages]);
   const signature = useMemo(() => chronicleSignature(recent, rolls.length), [recent, rolls.length]);
@@ -600,35 +607,35 @@ export function TabletopChronicle({
     sheets.find((sheet) => sheet.id === message.characterId)?.name ??
     sheets.find((sheet) => sheet.userId === message.userId)?.name ??
     members.find((member) => member.userId === message.userId)?.username ??
-    "Someone";
+    t("campaign.session.cine.someone");
   const modes: InputKind[] = isDm ? ["narrate", "ooc"] : ["do", "say", "ooc", ...(steersStory ? (["lead"] as InputKind[]) : [])];
-  const modeLabel: Record<string, string> = { do: "Do", say: "Say", ooc: "OOC", lead: "Direct", narrate: "Narrate" };
+  const modeLabel: Record<string, string> = { do: t("campaign.session.cine.chronicle.mode.do"), say: t("campaign.session.cine.chronicle.mode.say"), ooc: t("campaign.session.cine.chronicle.mode.ooc"), lead: t("campaign.session.cine.chronicle.mode.lead"), narrate: t("campaign.session.cine.chronicle.mode.narrate") };
   // The drop cap goes to the first passage on the scroll, like a page.
   const firstPassageId = recent.find((message) => message.authorType === "dm" && !isOocAnswer(message.content))?.id;
   return (
-    <aside className="cine-chronicle" aria-label="The chronicle">
+    <aside className="cine-chronicle" aria-label={t("campaign.session.cine.chronicle.title")}>
       <span className="cine-chronicle-roller" aria-hidden="true" />
       <div className="cine-chronicle-page">
-        <span className="cine-chronicle-eyebrow">The chronicle</span>
+        <span className="cine-chronicle-eyebrow">{t("campaign.session.cine.chronicle.title")}</span>
         <div className="cine-chronicle-scroll">
         <div ref={logRef} onScroll={onScroll} className="cine-chronicle-log">
           <div ref={flowRef} className="cine-chronicle-flow">
           {earlier > 0 ? (
             onShowStory ? (
               <button type="button" onClick={onShowStory} className="cine-chronicle-earlier">
-                {earlier === 1 ? "1 earlier entry" : `${earlier} earlier entries`}: read them in the story
+                {tp("campaign.session.cine.chronicle.earlier", earlier)}
               </button>
             ) : (
-              <p className="cine-chronicle-earlier">The last {recent.length} entries; the story holds the rest.</p>
+              <p className="cine-chronicle-earlier">{t("campaign.session.cine.chronicle.lastEntries", { count: recent.length })}</p>
             )
           ) : null}
-          {recent.length === 0 ? <p className="cine-chronicle-quiet">The tale has not begun.</p> : null}
+          {recent.length === 0 ? <p className="cine-chronicle-quiet">{t("campaign.session.cine.chronicle.notBegun")}</p> : null}
           {recent.map((message) => {
             // The DM's out-of-character answer is a line, as table talk is.
             if (message.authorType === "dm" && isOocAnswer(message.content)) {
               return (
                 <p key={message.id} className="cine-chronicle-line">
-                  Game Master: &ldquo;{message.content.trim()}&rdquo;
+                  {t("campaign.session.cine.gameMaster")}: &ldquo;{message.content.trim()}&rdquo;
                 </p>
               );
             }
@@ -701,15 +708,15 @@ export function TabletopChronicle({
           data-unseen={unseen ? "" : undefined}
           aria-hidden={away ? undefined : true}
           tabIndex={away ? undefined : -1}
-          aria-label={unseen ? "New entries below: jump to the latest" : "Jump to the latest entry"}
+          aria-label={unseen ? t("campaign.session.cine.chronicle.jumpNewAria") : t("campaign.session.cine.chronicle.jumpAria")}
           className="cine-chronicle-latest"
         >
-          {unseen ? "New below" : "Latest"} <span aria-hidden="true">&#8595;</span>
+          {unseen ? t("campaign.session.cine.chronicle.newBelow") : t("campaign.session.cine.chronicle.latest")} <span aria-hidden="true">&#8595;</span>
         </button>
         </div>
         {composer ? (
         <form onSubmit={onSubmit} className="cine-chronicle-desk">
-          <div className="cine-chronicle-modes" data-pill-group="" role="group" aria-label="How you speak">
+          <div className="cine-chronicle-modes" data-pill-group="" role="group" aria-label={t("campaign.session.cine.chronicle.modes")}>
             {modes.map((option) => (
               <button
                 key={option}
@@ -726,7 +733,7 @@ export function TabletopChronicle({
           </div>
           <div className="cine-chronicle-well" data-over={tooLong ? "" : undefined}>
             <DictateField
-              label="Your move"
+              label={t("campaign.session.cine.chronicle.yourMove")}
               disabled={inputBlocked}
               className="min-w-0 flex-1"
               onTranscript={(text) => setInput(appendDictation(input, text))}
@@ -743,14 +750,14 @@ export function TabletopChronicle({
                 rows={2}
                 disabled={inputBlocked}
                 placeholder={placeholder}
-                aria-label="Your move"
+                aria-label={t("campaign.session.cine.chronicle.yourMove")}
                 aria-describedby={noteId}
                 aria-invalid={tooLong || undefined}
                 className="cine-chronicle-input"
               />
             </DictateField>
-            <button type="submit" disabled={sending || !input.trim() || inputBlocked || tooLong} className="cine-chronicle-send" aria-label="Send">
-              Send <span aria-hidden="true">&#10230;</span>
+            <button type="submit" disabled={sending || !input.trim() || inputBlocked || tooLong} className="cine-chronicle-send" aria-label={t("campaign.session.cine.chronicle.send")}>
+              {t("campaign.session.cine.chronicle.send")} <span aria-hidden="true">&#10230;</span>
             </button>
           </div>
           <LengthNote id={noteId} length={length} max={maxChars} from={0.8} />
@@ -763,12 +770,13 @@ export function TabletopChronicle({
 }
 
 function ChronicleRoll({ roll, sheets }: { roll: StoredRoll; sheets: ReadonlyArray<CharacterSheet> }) {
+  const { t } = useI18n();
   const sheetName = roll.characterId ? sheets.find((sheet) => sheet.id === roll.characterId)?.name : undefined;
   const crit = roll.breakdown?.crit;
-  const label = ROLL_KIND_LABELS[roll.kind] || "Roll";
-  const what = rollChronicleLead(roll, sheetName);
+  const label = t("campaign.session.roll.kind.roll");
+  const what = rollChronicleLead(roll, sheetName, t);
   const verdict =
-    crit === "nat20" ? "Natural 20" : crit === "nat1" ? "Natural 1" : roll.success === null ? label : roll.success ? (roll.kind === "attack" ? "Hit" : "Success") : roll.kind === "attack" ? "Miss" : "Failed";
+    crit === "nat20" ? t("campaign.session.cine.roll.natural20") : crit === "nat1" ? t("campaign.session.cine.roll.natural1") : roll.success === null ? label : roll.success ? (roll.kind === "attack" ? t("campaign.session.cine.roll.hit") : t("campaign.session.cine.roll.success")) : roll.kind === "attack" ? t("campaign.session.cine.roll.miss") : t("campaign.session.cine.roll.failed");
   return (
     <span className="cine-chronicle-roll" data-crit={crit ?? undefined}>
       <span className="cine-chronicle-roll-head">{verdict}</span>
