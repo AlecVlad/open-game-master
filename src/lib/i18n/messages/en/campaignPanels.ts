@@ -2667,4 +2667,5 @@ export const enCampaignPanels = {
   "campaign.storyboard.prose.joined.other": "{count} places look like a missing space after a sentence.",
   "campaign.storyboard.prose.longRun.one": "1 stretch contains {letters} or more letters with no spaces.",
   "campaign.storyboard.prose.longRun.other": "{count} stretches contain {letters} or more letters with no spaces.",
+  "campaign.storyboard.delete": "Delete",
 } satisfies Record<string, string>;
