@@ -4112,4 +4112,9 @@ export const enCampaignPanels = {
   "campaign.overworld.param.forests": "Forests",
   "campaign.overworld.param.aridity": "Aridity",
   "campaign.overworld.param.coastline": "Coastline",
+  "campaign.overworld.party.hereCapital": "The party is here",
+  "campaign.overworld.place.visitedCapital": "Visited",
+  "campaign.overworld.place.unvisitedCapital": "Not reached yet",
+  "campaign.overworld.map.dragHelp": "Drag to pan the map",
+  "campaign.overworld.map.tapHintShort": "Tap a place",
 } satisfies Record<string, string>;
