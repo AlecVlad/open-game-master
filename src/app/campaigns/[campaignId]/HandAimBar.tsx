@@ -13,7 +13,7 @@ import { describePick, hasPick, pickHint, type AreaPick } from "@/lib/battlemap/
 import { HandPreviewRows, typeLabel, typeTone } from "@/app/campaigns/[campaignId]/HandCardFace";
 import { HandSummonPick } from "@/app/campaigns/[campaignId]/HandSummonPick";
 import { useI18n } from "@/lib/i18n/provider";
-import { handShareUnit } from "@/lib/battlemap/hand-i18n";
+import { handShareUnit, handShareUnitCollective } from "@/lib/battlemap/hand-i18n";
 
 // What a target chip shows beside the name: a health word for an enemy, hit
 // points for one of the party (players already see each other's).
@@ -55,7 +55,7 @@ function HandShares({
       ? t("campaign.session.hand.aim.share.moreMayJoin", { count: left, name: who })
       : t("campaign.session.hand.aim.share.everyPlaceTaken");
   return (
-    <div className="hand-choice mt-2 flex flex-wrap items-center gap-1.5" role="group" aria-label={rule.stack ? t("campaign.session.hand.share.distribute", { unit: unit(5) }) : t("campaign.session.hand.share.whoElse", { count: rule.count })}>
+    <div className="hand-choice mt-2 flex flex-wrap items-center gap-1.5" role="group" aria-label={rule.stack ? t("campaign.session.hand.share.distribute", { unit: handShareUnitCollective(rule.unit, t) }) : t("campaign.session.hand.share.whoElse", { count: rule.count })}>
       <span className="text-[11px] uppercase tracking-wider text-stone-500">{rule.stack ? t("campaign.session.hand.share.distribute", { unit: rule.unit }) : t("campaign.session.hand.share.whoElse", { count: rule.count })}</span>
       <span key={summary} className="motion-pop text-xs text-stone-400">
         {summary}
