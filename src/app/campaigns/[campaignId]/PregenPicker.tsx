@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui";
 import { JoinConfirmDialog, type JoinHero } from "@/app/campaigns/[campaignId]/JoinConfirmDialog";
@@ -15,7 +16,7 @@ type Hero = { id: string; name: string; tagline: string; blurb: string };
 // who joined with a room code and ten minutes to spare is who it is for.
 export function PregenPicker({
   campaignId,
-  heading = "Or take a ready-made hero",
+  heading,
   onSeated,
 }: {
   campaignId: string;
@@ -24,6 +25,8 @@ export function PregenPicker({
   // Called once the hero has its seat (the join page goes back to the table).
   onSeated?: () => void;
 }) {
+  const { t } = useI18n();
+  const headingText = heading === undefined ? t("campaign.pregenPicker.heading") : heading;
   const [heroes, setHeroes] = useState<Hero[] | null>(null);
   const [picked, setPicked] = useState<JoinHero | null>(null);
 
@@ -39,7 +42,7 @@ export function PregenPicker({
   }
   return (
     <div className={cn(ui.card, "space-y-2 px-4 py-3")} data-tour="pregen-picker">
-      {heading ? <p className="text-xs uppercase tracking-wide text-stone-500">{heading}</p> : null}
+      {headingText ? <p className="text-xs uppercase tracking-wide text-stone-500">{headingText}</p> : null}
       <ul className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
         {heroes.map((hero) => (
           <li key={hero.id}>
