@@ -288,7 +288,7 @@ export function BeatEditor({
             aria-label={t("campaign.storyboard.deleteCard", { title: edit.title })}
             className={cn(ui.btnSmall, "ml-auto hover:border-red-500/50 hover:text-red-300")}
           >
-            <Trash2 className="size-3.5" /> {t("common.delete")}
+            <Trash2 className="size-3.5" /> {t("campaign.storyboard.delete")}
           </button>
         </div>
       ) : (
