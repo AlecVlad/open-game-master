@@ -46,6 +46,25 @@ import {
 
 type Translator = ReturnType<typeof useI18n>["t"];
 
+const OVERWORLD_ERROR_KEYS: Record<string, string> = {
+  "A workshop has no party to place. The party is placed at the table, as it travels.": "campaign.overworld.errors.workshopParty",
+  "That is not an uploaded image.": "campaign.overworld.errors.invalidImage",
+  "That name is already taken here.": "campaign.overworld.errors.nameTaken",
+  "That map is the wrong size to paint on.": "campaign.overworld.errors.paint.wrongSize",
+  "Nothing was painted.": "campaign.overworld.errors.paint.empty",
+  "That is too much to paint in one go.": "campaign.overworld.errors.paint.tooMany",
+  "That is not a terrain this map knows.": "campaign.overworld.errors.paint.unknownTerrain",
+  "A stroke landed nowhere.": "campaign.overworld.errors.paint.missedStroke",
+  "That was already what the map looked like.": "campaign.overworld.errors.paint.unchanged",
+  "That would leave nowhere on the map a settlement could stand. Leave some ground that is not sea or peak.": "campaign.overworld.errors.paint.noSettlement",
+  "The map would not render.": "campaign.overworld.errors.mapRender",
+};
+
+export function localizeOverworldError(error: string | undefined, t: Translator): string {
+  const key = error ? OVERWORLD_ERROR_KEYS[error] : undefined;
+  return key ? t(key as never) : t("campaign.overworld.errors.generic");
+}
+
 // What the panel's own dialog asks for, by what a tap meant.
 export type OverworldAsk =
   | { kind: "pin"; at: { x: number; y: number } }
