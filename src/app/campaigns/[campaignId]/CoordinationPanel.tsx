@@ -2,6 +2,7 @@
 
 import { Check, ListOrdered, Loader2, Minus } from "lucide-react";
 import { useState, type ReactNode } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/cn";
 import { SectionHead } from "@/components/ui/SectionHead";
 import { PanelError, kitButtonClass, panelField } from "./PanelKit";
@@ -9,7 +10,6 @@ import { SequenceEditor } from "./SequenceEditor";
 import {
   PLAN_MAX_CHARS,
   orderKey,
-  placeWords,
   sequenceOf,
   unconfirmedOrder,
   waitingOn,
@@ -28,13 +28,6 @@ import {
 // plan in order (issue 292) every seat sees it as numbered steps, and a
 // player whose Ready the new order took back is told where they stand now.
 
-const STATE_WORD: Record<CoordinationEntry["state"], string> = {
-  waiting: "Waiting",
-  drafting: "Drafting",
-  ready: "Ready",
-  pass: "Passed",
-};
-
 export function CoordinationPanel({
   campaignId,
   phase,
@@ -46,6 +39,7 @@ export function CoordinationPanel({
   meUserId: string;
   steersStory: boolean;
 }) {
+  const { t } = useI18n();
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -56,6 +50,62 @@ export function CoordinationPanel({
   const sequence = sequenceOf(phase);
   const unconfirmed = unconfirmedOrder(phase);
   const byId = new Map(phase.entries.map((entry) => [entry.characterId, entry]));
+  const stateWords: Record<CoordinationEntry["state"], string> = {
+    waiting: t("campaign.session.coordination.state.waiting"),
+    drafting: t("campaign.session.coordination.state.drafting"),
+    ready: t("campaign.session.coordination.state.ready"),
+    pass: t("campaign.session.coordination.state.pass"),
+  };
+  const joinNames = (names: string[]) =>
+    names.length < 2 ? (names[0] ?? "") : `${names.slice(0, -1).join(", ")} и ${names[names.length - 1]}`;
+  const placeDescription = (characterId: string) => {
+    if (!sequence) return t("campaign.session.coordination.position.everyone");
+    const at = sequence.findIndex((step) => step.includes(characterId));
+    if (at < 0) return "";
+    const before = sequence.slice(0, at).flat().map((id) => byId.get(id)?.name ?? id);
+    const alongside = sequence[at].filter((id) => id !== characterId).map((id) => byId.get(id)?.name ?? id);
+    const position = before.length
+      ? t("campaign.session.coordination.position.after", { names: joinNames(before) })
+      : t("campaign.session.coordination.position.first");
+    const together = alongside.length
+      ? t("campaign.session.coordination.position.alongside", { names: joinNames(alongside) })
+      : "";
+    return t("campaign.session.coordination.position.summary", { step: at + 1, steps: sequence.length, position, together });
+  };
+  const errorText = (message?: string) => {
+    if (!message) return t("campaign.session.coordination.error.generic");
+    const session = message.match(/^Session (\\d+) is over\\./);
+    if (session) return t("campaign.session.coordination.error.sessionOver", { number: session[1] });
+    const companion = message.match(/^(.+) is an AI companion; stage a request for them instead\\.$/);
+    if (companion) return t("campaign.session.coordination.error.companionRequest", { name: companion[1] });
+    const owner = message.match(/^Only (.+)'s player stages their part\\.$/);
+    if (owner) return t("campaign.session.coordination.error.onlyOwner", { name: owner[1] });
+    const describe = message.match(/^Say what (.+) does before marking it ready, or pass\\.$/);
+    if (describe) return t("campaign.session.coordination.error.mustDescribe", { name: describe[1] });
+    if (message.startsWith("The order changed after ")) {
+      return t("campaign.session.coordination.error.waitForChangedOrder", { names: joinNames(unconfirmed) });
+    }
+    const exact: Record<string, string> = {
+      "Invalid request.": t("campaign.session.coordination.error.invalidRequest"),
+      "Whoever steers the story opens a coordinated plan.": t("campaign.session.coordination.error.mustSteerOpen"),
+      "Whoever steers the story sets the plan's order.": t("campaign.session.coordination.error.mustSteerOrder"),
+      "Only the lead resolves the plan early.": t("campaign.session.coordination.error.onlyLeadResolve"),
+      "Only the lead sets the plan aside.": t("campaign.session.coordination.error.onlyLeadSetAside"),
+      "The party is not coordinating right now.": t("campaign.session.coordination.error.notCoordinating"),
+      "Coordinated actions are for a table the AI narrates; a GM in the seat already takes the party's moves together.": t("campaign.session.coordination.error.aiOnly"),
+      "The adventure has not started yet.": t("campaign.session.coordination.error.adventureNotStarted"),
+      "A fight is running; the initiative order takes the turns now.": t("campaign.session.coordination.error.fightRunning"),
+      "The party is already coordinating; resolve or set aside that plan first.": t("campaign.session.coordination.error.alreadyOpen"),
+      "Pick at least one player's character to coordinate.": t("campaign.session.coordination.error.pickPlayer"),
+      "The order must name each character in the plan once.": t("campaign.session.coordination.error.orderInvalid"),
+      "Only a player in the plan may ask a companion for something.": t("campaign.session.coordination.error.onlyPlayerRequest"),
+      "This plan has already been resolved or set aside.": t("campaign.session.coordination.error.planEnded"),
+      "The lead has just changed the order. Look at where your character stands now, then mark it Ready.": t("campaign.session.coordination.error.orderChanged"),
+      "That character is not part of this plan.": t("campaign.session.coordination.error.characterMissing"),
+      "Requests are for the AI companions in the plan.": t("campaign.session.coordination.error.requestsCompanions"),
+    };
+    return exact[message] ?? t("campaign.session.coordination.error.generic");
+  };
 
   async function send(body: Record<string, unknown>) {
     setBusy(true);
@@ -68,12 +118,12 @@ export function CoordinationPanel({
       });
       if (!response.ok) {
         const data = (await response.json().catch(() => ({}))) as { error?: string };
-        setError(data.error ?? "The plan did not change.");
+        setError(errorText(data.error));
         return false;
       }
       return true;
     } catch {
-      setError("Could not reach the table.");
+      setError(t("campaign.session.coordination.error.network"));
       return false;
     } finally {
       setBusy(false);
