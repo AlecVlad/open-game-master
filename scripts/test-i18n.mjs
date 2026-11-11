@@ -309,6 +309,9 @@ const storyboardPluralKeys = [
   "campaign.storyboard.compile.moments",
   "campaign.storyboard.compile.arc",
   "campaign.storyboard.error.lostCharacters",
+  "campaign.storyboard.characters",
+  "campaign.storyboard.prose.joined",
+  "campaign.storyboard.prose.longRun",
 ];
 for (const key of storyboardPluralKeys) {
   for (const suffix of ["one", "other"]) {
