@@ -4811,4 +4811,5 @@ export const ruCampaignPanels: Partial<Record<keyof typeof enCampaignPanels, str
   "campaign.session.arrival.line": "{name} занимает место за столом",
   "campaign.session.arrival.dismiss": "Скрыть",
 
+  "campaign.session.pact.cardAria": "{summary}, от {source}",
 };
