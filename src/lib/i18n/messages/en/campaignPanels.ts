@@ -3441,4 +3441,6 @@ export const enCampaignPanels = {
 
   "campaign.session.hand.summon.eachTargetFor": "Each target's form for {name}",
 
+  "campaign.session.floor.playerTurn": "{name}'s turn",
+
 } satisfies Record<string, string>;
