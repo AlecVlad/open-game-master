@@ -4828,7 +4828,10 @@ export const ruCampaignPanels: Partial<Record<keyof typeof enCampaignPanels, str
   "campaign.session.proposals.summary.healSpellAmount": "Исцелить персонажа {character} заклинанием «{spell}» ({amount})",
   "campaign.session.proposals.summary.heal": "Восстановить персонажу {character} хиты: {amount}",
   "campaign.session.proposals.summary.condition": "Наложить на персонажа {character} состояние «{condition}»",
-  "campaign.session.proposals.summary.conditionRounds": "Персонаж {character}: состояние «{condition}» на {rounds} раундов",
+  "campaign.session.proposals.summary.conditionRounds.one": "Наложить на персонажа {character} состояние «{condition}» на {count} раунд",
+  "campaign.session.proposals.summary.conditionRounds.few": "Наложить на персонажа {character} состояние «{condition}» на {count} раунда",
+  "campaign.session.proposals.summary.conditionRounds.many": "Наложить на персонажа {character} состояние «{condition}» на {count} раундов",
+  "campaign.session.proposals.summary.conditionRounds.other": "Наложить на персонажа {character} состояние «{condition}» на {count} раунда",
   "campaign.session.proposals.summary.clearCondition": "Снять с персонажа {character} состояние «{condition}»",
   "campaign.session.proposals.summary.trade": "{from} предлагает персонажу {to} обмен: {give} на {want}",
 
