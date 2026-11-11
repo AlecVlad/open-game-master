@@ -3,6 +3,7 @@
 import { Check, Loader2 } from "lucide-react";
 import { useId, useRef, useState, type CSSProperties } from "react";
 import { cn } from "@/lib/cn";
+import { useI18n } from "@/lib/i18n/provider";
 import { replayAnimation } from "@/lib/motion/replay";
 import { STANDARD_LANGUAGES } from "@/lib/content/mechanics";
 import type { CharacterSheet } from "@/lib/schemas/sheet";
@@ -27,6 +28,7 @@ import { textKey } from "@/lib/language/text-logic";
 // made here, on the player's own sheet, or at a level-up that offers them
 // on a host without the route (owed-choices.ts owedChoicesSentences).
 export function OwedPicks({ sheet, mine }: { sheet: CharacterSheet; mine: boolean }) {
+  const { t } = useI18n();
   const offered = hostOffers(useCapabilities(), "owedPicks");
   const owed = owedPickSlots(sheet);
   const where = !mine ? "owner" : offered ? "here" : "level-up";
@@ -95,7 +97,9 @@ function OwedPickers({ sheet, owed }: { sheet: CharacterSheet; owed: ReturnType<
   );
 }
 
-async function sendOwed(sheet: CharacterSheet, body: Record<string, unknown>): Promise<string | null> {
+type SheetTranslator = ReturnType<typeof useI18n>["t"];
+
+async function sendOwed(sheet: CharacterSheet, body: Record<string, unknown>, t: SheetTranslator): Promise<string | null> {
   try {
     const response = await fetch(`/api/campaigns/${sheet.campaignId}/sheet/owed`, {
       method: "POST",
@@ -104,12 +108,24 @@ async function sendOwed(sheet: CharacterSheet, body: Record<string, unknown>): P
     });
     if (!response.ok) {
       const data = (await response.json().catch(() => ({}))) as { error?: string };
-      return data.error || "The pick was refused.";
+      return data.error || t("charSheet.owed.refused");
     }
     return null;
   } catch {
-    return "Could not reach the server.";
+    return t("charSheet.owed.network");
   }
+}
+
+
+function remainingText(remaining: number, t: SheetTranslator): string {
+  const whole = Math.floor(remaining);
+  const half = remaining - whole >= 0.5;
+  return [
+    whole ? t("charSheet.owed.remaining.whole", { count: whole }) : "",
+    half
+      ? t(whole ? "charSheet.owed.remaining.halfWithWhole" : "charSheet.owed.remaining.half")
+      : "",
+  ].filter(Boolean).join(" ");
 }
 
 function SlotPicker({
@@ -121,6 +137,7 @@ function SlotPicker({
   slot: OptionSlot;
   featureOf?: (name: string) => string;
 }) {
+  const { t } = useI18n();
   const [picked, setPicked] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [refusal, setRefusal] = useState<string | null>(null);
@@ -149,7 +166,7 @@ function SlotPicker({
 
   async function keep() {
     setBusy(true);
-    const error = await sendOwed(sheet, { features: picked.map(featureOf) });
+    const error = await sendOwed(sheet, { features: picked.map(featureOf) }, t);
     setBusy(false);
     if (error) {
       setRefusal(error);
@@ -163,7 +180,7 @@ function SlotPicker({
     <div className="space-y-1.5 text-xs" role="group" aria-labelledby={labelId}>
       <p id={labelId} className="text-stone-300">
         <span className="font-medium text-amber-100">{slot.label}</span>{" "}
-        <span className="text-stone-400">({remainingWords(slot)})</span>
+        <span className="text-stone-400">({remainingText(slot.remaining, t)})</span>
       </p>
       <div className="flex flex-wrap gap-1.5" data-pill-group>
         {options.map((option, index) => {
@@ -205,7 +222,7 @@ function SlotPicker({
           className="motion-press inline-flex min-h-[40px] items-center gap-1.5 rounded-lg border border-amber-500/60 bg-amber-500/15 px-3 text-amber-100 hover:bg-amber-500/25 focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-400 sm:min-h-[32px]"
         >
           {busy ? <Loader2 className="size-3 animate-spin" aria-hidden /> : <Check className="size-3" aria-hidden />}
-          Keep {picked.join(" and ")}
+          {t("charSheet.owed.keep", { picks: picked.join(", ") })}
         </button>
       ) : null}
       {refusal ? (
@@ -220,6 +237,7 @@ function SlotPicker({
 // A language a class feature teaches and the sheet never recorded (a
 // ranger's Favored Enemy: one spoken by the favored enemy).
 function LanguagePicker({ sheet, grant }: { sheet: CharacterSheet; grant: string }) {
+  const { t } = useI18n();
   const [language, setLanguage] = useState("");
   const [busy, setBusy] = useState(false);
   const [refusal, setRefusal] = useState<string | null>(null);
@@ -229,7 +247,7 @@ function LanguagePicker({ sheet, grant }: { sheet: CharacterSheet; grant: string
 
   async function keep() {
     setBusy(true);
-    const error = await sendOwed(sheet, { featChoices: { [grant]: { languages: [language] } } });
+    const error = await sendOwed(sheet, { featChoices: { [grant]: { languages: [language] } } }, t);
     setBusy(false);
     setRefusal(error);
   }
@@ -237,7 +255,7 @@ function LanguagePicker({ sheet, grant }: { sheet: CharacterSheet; grant: string
   return (
     <div className="flex flex-wrap items-center gap-2 text-xs">
       <label htmlFor={selectId} className="text-stone-300">
-        {grant}: a language they speak
+        {t("charSheet.owed.languageLabel", { grant })}
       </label>
       <select
         id={selectId}
@@ -246,7 +264,7 @@ function LanguagePicker({ sheet, grant }: { sheet: CharacterSheet; grant: string
         disabled={busy}
         className="min-h-[40px] rounded-lg border border-stone-600 bg-stone-950 px-2 text-stone-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-400 sm:min-h-[32px]"
       >
-        <option value="">Choose a language</option>
+        <option value="">{t("charSheet.owed.chooseLanguage")}</option>
         {options.map((entry) => (
           <option key={entry} value={entry}>
             {entry}
@@ -261,7 +279,7 @@ function LanguagePicker({ sheet, grant }: { sheet: CharacterSheet; grant: string
           className="motion-press inline-flex min-h-[40px] items-center gap-1.5 rounded-lg border border-amber-500/60 bg-amber-500/15 px-3 text-amber-100 hover:bg-amber-500/25 focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-400 sm:min-h-[32px]"
         >
           {busy ? <Loader2 className="size-3 animate-spin" aria-hidden /> : <Check className="size-3" aria-hidden />}
-          Keep {language}
+          {t("charSheet.owed.keepLanguage", { language })}
         </button>
       ) : null}
       {refusal ? (
