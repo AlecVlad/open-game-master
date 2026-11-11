@@ -744,7 +744,7 @@ export const ruCampaignSession: Partial<Record<keyof typeof enCampaignSession, s
   "campaign.npcEditor.raceOption.air_genasi": "Воздушный генази",
   "campaign.npcEditor.raceOption.earth_genasi": "Земляной генази",
   "campaign.npcEditor.raceOption.changeling": "Чейнджлинг",
-  "campaign.npcEditor.raceOption.warforged": "Кованный",
+  "campaign.npcEditor.raceOption.warforged": "Кованый",
   "campaign.npcEditor.raceOption.goblin": "Гоблин",
   "campaign.npcEditor.raceOption.bugbear": "Багбир",
   "campaign.npcEditor.raceOption.lizardfolk": "Ящеролюд",
