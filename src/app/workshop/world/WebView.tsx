@@ -231,7 +231,7 @@ export function WebView({ world, focus, onOpen }: { world: WorldState; focus: st
                     className={cn(hidden || believed || edge.kind === "sibling" ? "wf-edge-dashed" : "wf-edge")}
                     markerEnd={edge.kind === "oneway" || mode === "chain" ? "url(#wf-arrow)" : undefined}
                   >
-                    <title>{t("workshop.world.web.edge.title", { from: byRef.get(edge.from)?.name ?? "", label: LINK_LABELS.includes(edge.label as (typeof LINK_LABELS)[number]) ? t(`workshop.world.link.words.${LINK_LABELS.indexOf(edge.label as (typeof LINK_LABELS)[number])}`) : edge.label, to: byRef.get(edge.to)?.name ?? "", status: hidden ? t("workshop.world.web.edge.hidden") : believed ? t("workshop.world.web.edge.believed") : "" })}</title>
+                    <title>{t("workshop.world.web.edge.title", { from: byRef.get(edge.from)?.name ?? "", label: edge.kind === "chain" ? t("workshop.world.web.edge.above") : LINK_LABELS.includes(edge.label as (typeof LINK_LABELS)[number]) ? t(`workshop.world.link.words.${LINK_LABELS.indexOf(edge.label as (typeof LINK_LABELS)[number])}`) : edge.label, to: byRef.get(edge.to)?.name ?? "", status: hidden ? t("workshop.world.web.edge.hidden") : believed ? t("workshop.world.web.edge.believed") : "" })}</title>
                   </path>
                   {labels && mode === "web" ? (
                     <text x={middle.x} y={middle.y - 4} textAnchor="middle" className="wf-edge-label fill-stone-500 text-[11px]">
