@@ -1780,4 +1780,9 @@ export const enWorkshop = {
   "workshop.world.web.openWiki": "Open in the wiki",
   "workshop.world.web.legend": "Red dashes are hidden truths, violet dashes false beliefs, arrows one-way links. Gold lines join spouses.",
 
+  "workshop.world.outline.asset.itemKind.weapon": "Weapon",
+  "workshop.world.outline.asset.itemKind.armor": "Armor",
+  "workshop.world.outline.asset.itemKind.gear": "Gear",
+  "workshop.world.outline.asset.itemKind.magic_item": "Magic item",
+
 } satisfies Record<string, string>;
