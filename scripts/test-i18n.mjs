@@ -296,6 +296,18 @@ for (const kind of storyboardKinds) {
     assert.notEqual(translate(DICTIONARIES, "ru", key), key, `Russian Storyboard message fell back to its key: ${key}`);
   }
 }
+const storyboardStaticMessages = [
+  "campaign.storyboard.delete",
+  "campaign.storyboard.route.tag.choice",
+  "campaign.storyboard.route.tag.optional",
+  "campaign.storyboard.link.missing",
+  "campaign.storyboard.suggestion.reason.generic",
+];
+for (const key of storyboardStaticMessages) {
+  assert.ok(key in DICTIONARIES.en, `English Storyboard message missing: ${key}`);
+  assert.ok(key in DICTIONARIES.ru, `Russian Storyboard message missing: ${key}`);
+}
+
 const storyboardPluralKeys = [
   "campaign.storyboard.missingPicks",
   "campaign.storyboard.leadsTo",
