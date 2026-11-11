@@ -79,8 +79,16 @@ Single restore point for Russian localization. After a chat interruption, read o
 - Added 11 EN/RU keys in `workshop.ts`; dynamic workshop names keep matching placeholders. API routes and workshop titles remain unchanged.
 - No TypeScript, lint, tests, build or visual checks were run.
 
+## Workshop system view and command palette — 11 November 2026
+- `systems.ts`: `systemCount` now accepts an optional i18n adapter; all system count phrases use stable keys and plural messages. Without the adapter it retains the old English fallback for non-UI callers.
+- `SystemView.tsx`: section heading, side rail labels, count phrase and help accessibility/title text are localized by system ID.
+- `page.tsx`: passes the active `t/tp` adapter to system count and command generation.
+- `palette-commands.ts`: jump/create/help/back labels, groups and hints are localized by stable system/action IDs. Search keywords, command IDs, `prepare` callbacks and navigation behavior are unchanged.
+- Added 67 EN entries and 93 RU entries (including the required `.few/.many` forms). Static check covered 52 referenced keys, duplicate keys and placeholder parity; all passed.
+- TypeScript, lint, tests, production build and visual checks were not run.
+
 ## Next work
-Continue with `SystemView.tsx` and the command-palette command data, including the dynamic system-count phrases. Then review the guided-tour copy and remaining Workshop editors. Preserve server values, plugin-supplied text and user-authored content. Planner-generated import warnings/notes still need stable reason codes and a localized renderer. Do not sync upstream or merge branches during translation.
+Continue with the guided-tour copy in `src/lib/tours/workshop.ts` and the shared tour/dialog components. Then review the remaining Workshop editors and their import feedback. Preserve server values, plugin-supplied text and user-authored content. Planner-generated import warnings/notes still need stable reason codes and a localized renderer. Do not sync upstream or merge branches during translation.
 
 ## Low-token work protocol
 - Read this file, then only the next target source file(s) and exact dictionary sections needed.
