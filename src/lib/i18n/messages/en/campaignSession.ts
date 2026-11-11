@@ -526,6 +526,8 @@ export const enCampaignSession = {
   "campaign.omissionReport.title": "What the pack leaves out",
   "campaign.omissionReport.entries.one": "{count} entry",
   "campaign.omissionReport.entries.other": "{count} entries",
+  "campaign.omissionReport.entries.few": "{count} entries",
+  "campaign.omissionReport.entries.many": "{count} entries",
   "campaign.omissionReport.description": "A table that installs the pack gets its names and lines, not these. The workshop bundle, from the Share tool, carries all of it.",
   "campaign.omissionReport.loading": "Reading the workshop…",
   "campaign.omissionReport.none": "Nothing: everything this workshop holds is in the pack.",
