@@ -274,6 +274,7 @@ export function MapSettings({ api, atlas, region, onClose }: { api: WorldApi; at
 export type DeleteAsk = { target: AtlasTarget; plan: DeletePlan };
 
 export function useAtlasDelete(api: WorldApi, region: AtlasRegion) {
+  const { t } = useI18n();
   const [ask, setAsk] = useState<DeleteAsk | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -296,7 +297,7 @@ export function useAtlasDelete(api: WorldApi, region: AtlasRegion) {
       if (!done?.applied) return false;
       const token = done.undo;
       region.setNotice({
-        text: `Deleted ${done.impact.name}.`,
+        text: t("workshop.world.atlas.edit.delete.deleted", { name: done.impact.name }),
         undo: token
           ? async () => {
               const back = (await api.atlasStep("restore", { undo: token })) as { skipped?: string[] } | null;
@@ -315,20 +316,21 @@ export function useAtlasDelete(api: WorldApi, region: AtlasRegion) {
 }
 
 export function DeleteReview({ remover, onDeleted }: { remover: ReturnType<typeof useAtlasDelete>; onDeleted: (target: AtlasTarget) => void }) {
+  const { t, tp } = useI18n();
   const { ask } = remover;
   if (!ask) return null;
   const { impact, notes } = ask.plan;
-  const what = impact.kind === "map" ? "the map" : impact.kind === "pin" ? "the pin" : "the region";
+  const what = t(impact.kind === "map" ? "workshop.world.atlas.edit.delete.what.map" : impact.kind === "pin" ? "workshop.world.atlas.edit.delete.what.pin" : "workshop.world.atlas.edit.delete.what.region");
   const lines: string[] = [];
-  if (impact.kind === "map") lines.push(impact.pins ? `Its ${impact.pins === 1 ? "pin goes" : `${impact.pins} pins go`} with it.` : "It has no pins.");
-  if (impact.openers.length) lines.push(`${impact.openers.length === 1 ? "A pin on another map opens" : `${impact.openers.length} pins on other maps open`} it and will open nothing: ${impact.openers.join(", ")}.`);
-  if (impact.nested.length) lines.push(`Drawn inside ${impact.kind === "pin" ? "this pin" : "its pins"}, and moving to the top of the list: ${impact.nested.join(", ")}.`);
-  if (impact.bound) lines.push(`${impact.bound === 1 ? "A pin that moves its place" : `${impact.bound} pins that move their places`} on the Region ${impact.bound === 1 ? "goes" : "go"}. The places stay where they are.`);
-  if (impact.kind === "pin" && !lines.length) lines.push("Nothing else is touched.");
+  if (impact.kind === "map") lines.push(impact.pins ? t("workshop.world.atlas.edit.delete.mapPins", { pins: tp("workshop.world.atlas.count.pins", impact.pins) }) : t("workshop.world.atlas.edit.delete.noPins"));
+  if (impact.openers.length) lines.push(t("workshop.world.atlas.edit.delete.openers", { pins: tp("workshop.world.atlas.count.pins", impact.openers.length), names: impact.openers.join(", ") }));
+  if (impact.nested.length) lines.push(t("workshop.world.atlas.edit.delete.nested", { owner: t(impact.kind === "pin" ? "workshop.world.atlas.edit.delete.thisPin" : "workshop.world.atlas.edit.delete.itsPins"), names: impact.nested.join(", ") }));
+  if (impact.bound) lines.push(t("workshop.world.atlas.edit.delete.boundPins", { pins: tp("workshop.world.atlas.count.pins", impact.bound) }));
+  if (impact.kind === "pin" && !lines.length) lines.push(t("workshop.world.atlas.edit.delete.nothingElse"));
   return (
-    <div className="panel motion-pop flex flex-col gap-2 rounded-lg border border-ember-700/40 p-3 text-xs text-stone-300" role="dialog" aria-label={`Delete ${what} ${impact.name}?`} data-testid="atlas-delete-review">
+    <div className="panel motion-pop flex flex-col gap-2 rounded-lg border border-ember-700/40 p-3 text-xs text-stone-300" role="dialog" aria-label={t("workshop.world.atlas.edit.delete.title", { what, name: impact.name })} data-testid="atlas-delete-review">
       <span className="text-sm text-amber-100">
-        Delete {what} {impact.name}?
+        {t("workshop.world.atlas.edit.delete.title", { what, name: impact.name })}
       </span>
       {lines.map((line) => (
         <p key={line}>{line}</p>
@@ -336,9 +338,9 @@ export function DeleteReview({ remover, onDeleted }: { remover: ReturnType<typeo
       {notes.map((note) => (
         <p key={note} className="text-stone-400">{note}</p>
       ))}
-      <p className="text-stone-500">You can undo it straight after.</p>
+      <p className="text-stone-500">{t("workshop.world.atlas.edit.delete.undoHint")}</p>
       <span className="flex justify-end gap-1.5">
-        <KitButton tone="small" onClick={remover.cancel}>Cancel</KitButton>
+        <KitButton tone="small" onClick={remover.cancel}>{t("workshop.cancel")}</KitButton>
         <KitButton
           tone="danger"
           busy={remover.busy}
@@ -349,7 +351,7 @@ export function DeleteReview({ remover, onDeleted }: { remover: ReturnType<typeo
             if (await remover.confirm()) onDeleted(target);
           }}
         >
-          {remover.busy ? null : <Trash2 className="size-3.5" />} Delete
+          {remover.busy ? null : <Trash2 className="size-3.5" />} {t("workshop.world.atlas.edit.delete.action")}
         </KitButton>
       </span>
     </div>
