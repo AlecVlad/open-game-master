@@ -16,6 +16,8 @@ import { ROW_TEXT, accountOf, leadOf } from "./account.ts";
 import { textKey } from "../language/text-logic.ts";
 import { readScenes, type ImportedBeat, type SceneLoss } from "./scenes.ts";
 
+export type WorldNoticeDetail = { code: string; params: Record<string, string | number> };
+
 // WorldForge's own file, both ways: its JSON export (format version 4) read
 // into a workshop with nothing dropped, and a workshop written back out as a
 // file WorldForge opens. Pure: the database half is src/lib/db/world-forge.ts.
@@ -97,12 +99,14 @@ export type WorldImport = {
   // is written: text cut to a limit, rows over a cap, pictures that are not
   // pictures. Empty when the file comes in whole.
   losses: string[];
+  lossDetails: WorldNoticeDetail[];
   // What each scene holds that a storyboard card does not carry, by scene
   // (src/lib/worldforge/scenes.ts). Named before anything is written, like
   // `losses`.
   sceneLosses: SceneLoss[];
   // What comes in on purpose differently, said so nobody is surprised.
   notes: string[];
+  noteDetails: WorldNoticeDetail[];
   worldName: string;
   // ODM's own extension: the workshop an ODM export came from, so a world
   // keeps one identity when it is renamed. "" for a file from elsewhere.
@@ -128,25 +132,37 @@ export function readWorldForge(raw: unknown): WorldImport | { error: string } {
   const worldName = str(world.worldName, 70) || "A WorldForge world";
   const worldId = str(world.odmWorldId, 80).replace(/[^\w:.-]/g, "");
   const losses: string[] = [];
+  const lossDetails: WorldNoticeDetail[] = [];
   const notes: string[] = [];
-  const plural = (count: number, one: string, many: string) => `${count.toLocaleString("en")} ${count === 1 ? one : many}`;
+  const noteDetails: WorldNoticeDetail[] = [];
+  const addLoss = (message: string, code: string, params: Record<string, string | number> = {}) => {
+    losses.push(message);
+    lossDetails.push({ code, params });
+  };
+  const addNote = (message: string, code: string, params: Record<string, string | number> = {}) => {
+    notes.push(message);
+    noteDetails.push({ code, params });
+  };
+  const plural = (count: number, one: string, many: string) => count.toLocaleString("en") + " " + (count === 1 ? one : many);
   // A list longer than its cap: only the first rows come in.
   const capped = (value: unknown, cap: number, words: string) => {
-    if (Array.isArray(value) && value.length > cap) losses.push(`Only the first ${cap.toLocaleString("en")} of ${value.length.toLocaleString("en")} ${words} come in.`);
+    if (Array.isArray(value) && value.length > cap) addLoss("Only the first " + cap.toLocaleString("en") + " of " + value.length.toLocaleString("en") + " " + words + " come in.", "workshop.world.import.loss.capped", { cap, count: value.length, kind: words });
     return list(value, cap);
   };
   // A text longer than its limit: cut, and said so.
-  const cut = (value: unknown, max: number, what: string) => {
-    if (typeof value === "string" && value.trim().length > max) losses.push(`${what} is cut to ${max.toLocaleString("en")} characters.`);
+  const cut = (value: unknown, max: number, name: string, field: string) => {
+    if (typeof value === "string" && value.trim().length > max) {
+      addLoss(name + ": " + field + " is cut to " + max.toLocaleString("en") + " characters.", "workshop.world.import.loss.cut", { field, limit: max, name });
+    }
     return str(value, max);
   };
-  if (str(world.worldName, 1_000).length > 70) losses.push(`The world's name is cut to 70 characters.`);
+  if (str(world.worldName, 1_000).length > 70) addLoss("The world's name is cut to 70 characters.", "workshop.world.import.loss.worldName", { limit: 70 });
 
   // Types first: every entity names one, and its fields are keyed to it.
   const fileTypes = capped(world.types, LIMITS.types, "types").map(rec);
   for (const type of fileTypes) {
     if (Array.isArray(type.fields) && type.fields.length > LIMITS.fieldsPerType) {
-      losses.push(`The ${str(type.name, 40) || "unnamed"} type keeps only its first ${LIMITS.fieldsPerType} of ${type.fields.length} fields.`);
+      addLoss("The " + (str(type.name, 40) || "unnamed") + " type keeps only its first " + LIMITS.fieldsPerType + " of " + type.fields.length + " fields.", "workshop.world.import.loss.typeFields", { count: type.fields.length, limit: LIMITS.fieldsPerType, name: str(type.name, 40) || "unnamed" });
     }
   }
   const types: WorldType[] = (fileTypes.length ? fileTypes : defaultTypes()).map((type) => {
@@ -188,7 +204,7 @@ export function readWorldForge(raw: unknown): WorldImport | { error: string } {
   const images = rec(rec(world.media).entityImages);
   const listed = capped(world.entities, LIMITS.entries, "entries").map(rec);
   const entities = listed.filter((entity) => wfKey(entity.id) && str(entity.name, 120));
-  if (listed.length > entities.length) losses.push(`${plural(listed.length - entities.length, "entry has", "entries have")} no name or no id, and ${listed.length - entities.length === 1 ? "is" : "are"} left out.`);
+  if (listed.length > entities.length) addLoss(plural(listed.length - entities.length, "entry has", "entries have") + " no name or no id, and " + (listed.length - entities.length === 1 ? "is" : "are") + " left out.", "workshop.world.import.loss.entriesUnnamed", { count: listed.length - entities.length });
   let repeated = 0;
   const refById = new Map<string, string>();
   const records: ImportedRecord[] = [];
@@ -200,14 +216,14 @@ export function readWorldForge(raw: unknown): WorldImport | { error: string } {
       continue;
     }
     const called = str(entity.name, 80);
-    if (str(entity.name, 1_000).length > 80) losses.push(`${called}: its name is cut to 80 characters.`);
+    if (str(entity.name, 1_000).length > 80) addLoss(called + ": its name is cut to 80 characters.", "workshop.world.import.loss.entryName", { limit: 80, name: called });
     const ref = refOf(type.shelf, `wf~${id}`);
     refById.set(id, ref);
-    const summary = cut(entity.summary, LIMITS.article, `${called}: its text`);
-    cut(entity.hiddenTruth, LIMITS.note, `${called}: its hidden truth`);
-    cut(entity.notes, LIMITS.note, `${called}: its notes`);
+    const summary = cut(entity.summary, LIMITS.article, called, "text");
+    cut(entity.hiddenTruth, LIMITS.note, called, "hiddenTruth");
+    cut(entity.notes, LIMITS.note, called, "notes");
     if (images[id] !== undefined && images[id] !== "" && !picture(images[id])) {
-      losses.push(`${called}: its picture is not a PNG, JPEG, WebP or GIF under 6 MB, so it is left out.`);
+      addLoss(called + ": its picture is not a PNG, JPEG, WebP or GIF under 6 MB, so it is left out.", "workshop.world.import.loss.entityPicture", { name: called });
     }
     // One text per job (src/lib/worldforge/account.ts). A lore entry's body
     // is its whole account, and WorldForge keeps no article beside it. A
@@ -246,7 +262,7 @@ export function readWorldForge(raw: unknown): WorldImport | { error: string } {
       ...(type.shelf === "lore" && entity.odmVisibility === "dm" ? { dmOnly: true } : {}),
     });
   }
-  if (repeated) losses.push(`${plural(repeated, "entry repeats", "entries repeat")} another's id, and ${repeated === 1 ? "is" : "are"} left out.`);
+  if (repeated) addLoss(plural(repeated, "entry repeats", "entries repeat") + " another's id, and " + (repeated === 1 ? "is" : "are") + " left out.", "workshop.world.import.loss.repeatedIds", { count: repeated });
   const refOfWf = (value: unknown) => refById.get(wfKey(value)) ?? "";
 
   const links = entities.flatMap((entity) =>
@@ -314,11 +330,12 @@ export function readWorldForge(raw: unknown): WorldImport | { error: string } {
   // Each scene as a card, and what each one loses (src/lib/worldforge/scenes.ts).
   const { beats, sceneLosses, leftOut } = readScenes({ scenes, bodies: rec(world.sceneBodies), stories, refOf: refOfWf, key: wfKey, nameOf: (ref) => nameOfRef.get(ref) });
   if (leftOut) {
-    losses.push(`${plural(leftOut, "scene has", "scenes have")} no title or no place in its story's order, and ${leftOut === 1 ? "is" : "are"} left out.`);
+    addLoss(plural(leftOut, "scene has", "scenes have") + " no title or no place in its story's order, and " + (leftOut === 1 ? "is" : "are") + " left out.", "workshop.world.import.loss.scenesUnplaced", { count: leftOut });
   }
   if (beats.length) {
-    notes.push(
+    addNote(
       "Each story's scenes come in as a row of “Something happens” cards on the storyboard, each leading to the next; the story's own name is not kept on the board. A scene brought in before is updated rather than added again.",
+      "workshop.world.import.note.storyboardScenes",
     );
   }
 
@@ -327,15 +344,15 @@ export function readWorldForge(raw: unknown): WorldImport | { error: string } {
   for (const atlas of doc.maps) {
     const image = picture(backgrounds[atlas.id]);
     if (image) mapImages[atlas.id] = image;
-    else if (backgrounds[atlas.id]) losses.push(`The ${atlas.name} map: its picture is not a PNG, JPEG, WebP or GIF under 6 MB, so it is left out.`);
+    else if (backgrounds[atlas.id]) addLoss("The " + atlas.name + " map: its picture is not a PNG, JPEG, WebP or GIF under 6 MB, so it is left out.", "workshop.world.import.loss.mapPicture", { name: atlas.name });
   }
   // An ODM export that ran out of room for pictures says whose it left out.
   const omitted = list(world.odmOmitted, 200).map((name) => str(name, 120)).filter(Boolean);
-  if (omitted.length) losses.push(`The file was saved without the pictures of ${omitted.join(", ")}: they were over the export's room for pictures.`);
+  if (omitted.length) addLoss("The file was saved without the pictures of " + omitted.join(", ") + ": they were over the export's room for pictures.", "workshop.world.import.loss.omittedPictures", { names: omitted.join(", ") });
   if (doc.secrets.length) {
-    notes.push("A secret new to this world comes in with the party knowing none of it yet; one brought in before keeps what the party has learned. Who in the world knows each one comes in as written.");
+    addNote("A secret new to this world comes in with the party knowing none of it yet; one brought in before keeps what the party has learned. Who in the world knows each one comes in as written.", "workshop.world.import.note.secretsKnowledge");
   }
-  return { losses, sceneLosses, notes, worldName, worldId, premise, records, doc, beats, mapImages };
+  return { losses, lossDetails, sceneLosses, notes, noteDetails, worldName, worldId, premise, records, doc, beats, mapImages };
 }
 
 // ---- out ----
