@@ -1558,55 +1558,54 @@ export function LevelUpDialog({
 
               {step === "spells" ? (
                 <>
-                  <p className="text-stone-300">New spells for {sheet.name} at level {classLevelAfter}:</p>
+                  <p className="text-stone-300">{t("charSheet.levelUp.spells.intro", { name: sheet.name, level: classLevelAfter })}</p>
                   <ul className="space-y-1 text-xs text-stone-400">
                     {remainingCantrips ? (
                       <li>
-                        <span className="text-amber-200">Cantrips: choose {remainingCantrips}.</span>{" "}
-                        Small spells you know for good and cast as often as you like.
+                        <span className="text-amber-200">{t("charSheet.levelUp.spells.cantripsTitle", { count: remainingCantrips })}</span>{" "}
+                        {t("charSheet.levelUp.spells.cantripsHelp")}
                       </li>
                     ) : null}
                     {remainingPicks ? (
                       <li>
                         {bookGain !== null ? (
                           <>
-                            <span className="text-amber-200">Spellbook: write {remainingPicks} new spells.</span>{" "}
-                            They are prepared right away while your limit has room; the rest you
-                            prepare from your sheet, ready after a long rest.
+                            <span className="text-amber-200">{t("charSheet.levelUp.spells.spellbookTitle", { count: remainingPicks })}</span>{" "}
+                            {t("charSheet.levelUp.spells.spellbookHelp")}
                           </>
                         ) : levelStyle === "known" ? (
                           <>
-                            <span className="text-amber-200">Spells known: choose up to {remainingPicks}.</span>{" "}
-                            You keep them for good and always have them ready.
+                            <span className="text-amber-200">{t("charSheet.levelUp.spells.knownTitle", { count: remainingPicks })}</span>{" "}
+                            {t("charSheet.levelUp.spells.knownHelp")}
                           </>
                         ) : (
                           <>
-                            <span className="text-amber-200">Prepared spells: prepare up to {remainingPicks} more.</span>{" "}
-                            They are ready now; after any long rest you can swap them from your sheet.
+                            <span className="text-amber-200">{t("charSheet.levelUp.spells.preparedTitle", { count: remainingPicks })}</span>{" "}
+                            {t("charSheet.levelUp.spells.preparedHelp")}
                           </>
                         )}
                       </li>
                     ) : null}
                     {anyGroup ? (
                       <li>
-                        <span className="text-amber-200">{anyGroup.title}.</span> They have their own list,
-                        below your {ownListName} spells.
+                        <span className="text-amber-200">{anyGroup.title}.</span>{" "}
+                        {t("charSheet.levelUp.spells.anyGroup", { title: "", list: ownListName }).trim()}
                       </li>
                     ) : null}
                     {learnedNew.length ? (
                       <li>
-                        <span className="text-amber-200">{spellGrants.learnedFrom}:</span> you learn{" "}
-                        {learnedNew.join(", ")}, free of your spells known, and can cast it as a ritual.
+                        <span className="text-amber-200">{spellGrants.learnedFrom}:</span>{" "}
+                        {t("charSheet.levelUp.spells.learned", { source: "", spells: learnedNew.join(", ") }).replace(/^: /, "")}
                       </li>
                     ) : null}
                     {!remainingCantrips && !remainingPicks && !anyGroup ? (
-                      <li>Nothing new to choose at this level: your spells stay as they are.</li>
+                      <li>{t("charSheet.levelUp.spells.none")}</li>
                     ) : null}
                   </ul>
                   {levelStyle === "known" && !isNewClass && knownList.length ? (
                     <div className="reveal">
                       <p className="mb-1 text-xs text-stone-400">
-                        Optional: give up one spell you know to learn another in its place.
+                        {t("charSheet.levelUp.spells.replaceKnown")}
                       </p>
                       <div className="stagger-pop flex flex-wrap gap-1.5">
                         {knownList
@@ -1645,12 +1644,12 @@ export function LevelUpDialog({
                     maxLevel={maxCastable ?? 0}
                     counters={[
                       ...(remainingCantrips
-                        ? [{ label: "Cantrips", value: cantripPicks.length, max: remainingCantrips }]
+                        ? [{ label: t("charSheet.levelUp.spells.cantrips"), value: cantripPicks.length, max: remainingCantrips }]
                         : []),
                       ...(remainingPicks !== 0
                         ? [
                             {
-                              label: bookGain !== null ? "Spellbook" : levelStyle === "known" ? "Known" : "Prepared",
+                              label: bookGain !== null ? t("charSheet.levelUp.spells.spellbook") : levelStyle === "known" ? t("charSheet.levelUp.spells.known") : t("charSheet.levelUp.spells.prepared"),
                               value: spellPicks.length,
                               max: remainingPicks,
                             },
@@ -1669,8 +1668,8 @@ export function LevelUpDialog({
                       toggleSpell(tile.name, tile.level ?? undefined);
                     }}
                     notice={spellNote || undefined}
-                    emptyText={poolLoading ? "Loading the spell list..." : "No new spells at this level."}
-                    searchLabel={anyGroup ? `Find a ${ownListName} spell` : undefined}
+                    emptyText={poolLoading ? t("charSheet.levelUp.spells.loading") : t("charSheet.levelUp.spells.empty")}
+                    searchLabel={anyGroup ? t("charSheet.levelUp.spells.search", { list: ownListName }) : undefined}
                   />
                   {anyGroup ? (
                     <AnyListSpellGroup
@@ -1685,7 +1684,7 @@ export function LevelUpDialog({
                   ) : null}
                   {spellPicks.length || cantripPicks.length || anyChosen.length ? (
                     <p className="reveal text-xs text-stone-400">
-                      Learning:{" "}
+                      {t("charSheet.levelUp.learning")}{" "}
                       <span className="text-amber-200">
                         {[
                           ...cantripPicks.map((name) => `${name} (cantrip)`),
@@ -1700,7 +1699,7 @@ export function LevelUpDialog({
 
               {stepOpen ? (
                 <p className="reveal text-xs text-stone-500">
-                  You can leave this open and take the level now; it stays open for a later level.
+                  {t("charSheet.levelUp.stepOpen")}
                 </p>
               ) : null}
               <div className="flex gap-2">
@@ -1710,7 +1709,7 @@ export function LevelUpDialog({
                   onClick={() => setStepIndex(Math.max(0, stepIndex - 1))}
                   className="rounded-md border border-stone-700 px-4 py-2.5 text-sm text-stone-300 hover:bg-stone-900 disabled:opacity-50"
                 >
-                  Back
+                  {t("charSheet.levelUp.back")}
                 </button>
                 <button
                   type="button"
@@ -1721,9 +1720,9 @@ export function LevelUpDialog({
                   {busy ? (
                     <Loader2 className="size-4 animate-spin" />
                   ) : lastStep ? (
-                    "Confirm level up"
+                    t("charSheet.levelUp.confirm")
                   ) : (
-                    "Next"
+                    t("charSheet.levelUp.next")
                   )}
                 </button>
               </div>
