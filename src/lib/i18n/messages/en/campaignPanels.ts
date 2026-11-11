@@ -3439,4 +3439,6 @@ export const enCampaignPanels = {
 
   "campaign.session.hand.react.promptWithoutReason": "React to the attack?",
 
+  "campaign.session.hand.summon.eachTargetFor": "Each target's form for {name}",
+
 } satisfies Record<string, string>;
