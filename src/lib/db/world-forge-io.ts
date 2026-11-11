@@ -10,7 +10,7 @@ import { decodeBundleImage, encodeBundleImage, type BundleImage } from "@/lib/wo
 import { isUploadedImagePath } from "@/lib/uploads";
 import { createRecord, getWorldDoc, nextEntry, saveWorldDoc, worldEntities, worldView, writeRecord, type WorldEntity } from "@/lib/db/world-forge";
 import type { ForgeApplied } from "@/lib/worldforge/forge";
-import { firstSentence, readWorldForge, writeWorldForge, type ExportRecord, type WorldImport } from "@/lib/worldforge/format";
+import { firstSentence, readWorldForge, writeWorldForge, type ExportRecord, type WorldImport, type WorldNoticeDetail } from "@/lib/worldforge/format";
 import { LIMITS, LINK_LABELS, isPlaceBinding, newId, parseRef, readEntry, refOf, remapDoc, type Binding, type Entry, type PlaceBindingKind, type WorldDoc, type WorldType } from "@/lib/worldforge/model";
 import {
   IMPORT_SLICES,
@@ -67,7 +67,10 @@ export type WorldImportResult =
       // What the file held that did not come in whole, and what came in
       // differently on purpose (src/lib/worldforge/format.ts).
       losses: string[];
+      lossDetails?: WorldNoticeDetail[];
+      sceneLosses?: SceneLoss[];
       notes: string[];
+      noteDetails?: WorldNoticeDetail[];
     }
   | { error: string; refusal?: UploadRefusal };
 
@@ -404,7 +407,10 @@ export function applyWorldImport(campaignId: string, account: UploadAccount, par
         beatsUpdated: scenes.updated,
         skipped: [...skipped, ...scenes.skipped],
         losses: [...parsed.losses, ...sceneLossLines(parsed.sceneLosses)],
+        lossDetails: parsed.lossDetails,
+        sceneLosses: parsed.sceneLosses,
         notes: [...parsed.notes, ...bridge.notes],
+        noteDetails: parsed.noteDetails,
       };
     })();
   } catch (error) {
