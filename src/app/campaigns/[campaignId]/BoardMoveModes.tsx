@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { cn } from "@/lib/cn";
+import { useI18n } from "@/lib/i18n/provider";
+import type { MessageKey, Params } from "@/lib/i18n/messages/index";
 import { formatMeasurementText, type MeasurementSystem } from "@/lib/measurement-system";
 import { dragReach } from "@/lib/battlemap/board-move";
 import type { PlayerMapView } from "@/lib/battlemap/view";
@@ -21,18 +23,18 @@ export function effectiveMoveMode(mode: MoveMode, moves: PlayerMapView["moves"])
   return mode;
 }
 
-export function moveModeHint(mode: MoveMode, moves: PlayerMapView["moves"]): string {
+export function moveModeHint(mode: MoveMode, moves: PlayerMapView["moves"], t: (key: MessageKey, params?: Params) => string): string {
   if (!moves || mode === "walk") return "";
   if (mode === "jump") {
     return moves.runningStart
-      ? `Long jump: up to ${moves.jumpFeet} feet in a straight line, each foot a foot of movement. Tap where you land.`
-      : `Standing long jump: up to ${moves.jumpFeet} feet (twice that after a 10-foot run this turn). Tap where you land.`;
+      ? t("campaign.session.battle.longJumpRunning", { feet: moves.jumpFeet })
+      : t("campaign.session.battle.longJumpStanding", { feet: moves.jumpFeet });
   }
   const drag = moves.drag;
   if (!drag) return "";
   return drag.factor > 1
-    ? `Dragging ${drag.names.join(" and ")}: every square costs double. Tap where you stop.`
-    : `Dragging ${drag.names.join(" and ")}: two sizes smaller, so it costs nothing extra. Tap where you stop.`;
+    ? t("campaign.session.battle.dragCostsDouble", { names: drag.names.join(", ") })
+    : t("campaign.session.battle.dragNoExtraCost", { names: drag.names.join(", ") });
 }
 
 export function BoardMoveModes({
@@ -48,15 +50,16 @@ export function BoardMoveModes({
   measurementSystem?: MeasurementSystem;
   tableLanguage?: string;
 }) {
+  const { t } = useI18n();
   if (!moves) return null;
   const options: Array<{ id: MoveMode; label: string; note: string }> = [
-    { id: "walk", label: "Walk", note: "Move square by square." },
-    { id: "jump", label: "Jump", note: `A long jump of up to ${moves.jumpFeet} feet; a high jump of ${moves.highJumpFeet}.` },
-    ...(moves.drag ? [{ id: "drag" as const, label: "Drag", note: `Take ${moves.drag.names.join(" and ")} with you.` }] : []),
+    { id: "walk", label: t("campaign.session.battle.walk"), note: t("campaign.session.battle.walkNote") },
+    { id: "jump", label: t("campaign.session.battle.jump"), note: t("campaign.session.battle.jumpNote", { long: moves.jumpFeet, high: moves.highJumpFeet }) },
+    ...(moves.drag ? [{ id: "drag" as const, label: t("campaign.session.battle.drag"), note: t("campaign.session.battle.dragNote", { names: moves.drag.names.join(", ") }) }] : []),
   ];
   return (
-    <div className="flex flex-wrap items-center gap-1.5" role="radiogroup" aria-label="How you move" data-pill-group="">
-      <span className="text-[10px] uppercase tracking-[0.18em] text-stone-500">Move</span>
+    <div className="flex flex-wrap items-center gap-1.5" role="radiogroup" aria-label={t("campaign.session.battle.howYouMove")} data-pill-group="">
+      <span className="text-[10px] uppercase tracking-[0.18em] text-stone-500">{t("campaign.session.battle.moveMode")}</span>
       {options.map((option, index) => {
         const on = option.id === mode;
         return (
@@ -171,12 +174,12 @@ export function BoardMoveHints({
   measurementSystem?: MeasurementSystem;
   tableLanguage?: string;
 }) {
+  const { t } = useI18n();
   return (
-    <>
-      {moves ? (
+    <>\n      {moves ? (
         <div className="space-y-1">
           <BoardMoveModes mode={moveMode} moves={moves} onMode={onMode} measurementSystem={measurementSystem} tableLanguage={tableLanguage} />
-          {moveModeHint(moveMode, moves) ? (
+          {moveModeHint(moveMode, moves, t) ? (
             <p key={moveMode} className="animate-fade-up text-[11px] leading-4 text-amber-200/80">
               {formatMeasurementText(moveModeHint(moveMode, moves), measurementSystem, tableLanguage)}
             </p>
@@ -186,7 +189,7 @@ export function BoardMoveHints({
       {areaHint ? (
         <p key={areaHint} className="animate-fade-up text-[11px] leading-4 text-amber-200/90">
           {formatMeasurementText(areaHint, measurementSystem, tableLanguage)}
-          {caught.length ? <span className="text-stone-400"> Catches {caught.join(", ")}.</span> : null}
+          {caught.length ? <span className="text-stone-400"> {t("campaign.session.battle.catches", { names: caught.join(", ") })}</span> : null}
         </p>
       ) : null}
     </>
