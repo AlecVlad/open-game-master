@@ -22,9 +22,9 @@ const DAMAGE = ["acid", "bludgeoning", "cold", "fire", "force", "lightning", "ne
 const DAMAGE_OPTIONS = DAMAGE.map((value) => ({ value, label: value }));
 const CONDITIONS = ["blinded", "charmed", "deafened", "frightened", "grappled", "incapacitated", "paralyzed", "petrified", "poisoned", "prone", "restrained", "stunned", "unconscious"];
 const KINDS = [
-  { value: "trap", label: {t("workshop.homebrew.hazard.trap")} },
-  { value: "poison", label: {t("workshop.homebrew.hazard.poison")} },
-  { value: "disease", label: {t("workshop.homebrew.hazard.disease")} },
+  { value: "trap", label: "Trap" },
+  { value: "poison", label: "Poison" },
+  { value: "disease", label: "Disease" },
 ];
 const optional = (value: number | "") => (value === "" ? undefined : value);
 // A block with its emptied fields dropped, so the stored row stays clean.
