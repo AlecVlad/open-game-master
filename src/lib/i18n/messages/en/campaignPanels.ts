@@ -3302,4 +3302,14 @@ export const enCampaignPanels = {
 
   "campaign.session.floor.nextTurn": "the next turn",
 
+  // Plural forms for shared attacks in the Hand.
+  "campaign.session.hand.share.unit.dart.one": "dart",
+  "campaign.session.hand.share.unit.dart.other": "darts",
+  "campaign.session.hand.share.unit.ray.one": "ray",
+  "campaign.session.hand.share.unit.ray.other": "rays",
+  "campaign.session.hand.share.unit.beam.one": "beam",
+  "campaign.session.hand.share.unit.beam.other": "beams",
+  "campaign.session.hand.share.unit.creature.one": "creature",
+  "campaign.session.hand.share.unit.creature.other": "creatures",
+
 } satisfies Record<string, string>;
