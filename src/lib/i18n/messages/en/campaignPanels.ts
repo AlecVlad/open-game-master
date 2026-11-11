@@ -3290,4 +3290,6 @@ export const enCampaignPanels = {
   "campaign.session.hand.heading.anotherHero": "Another hero",
 
   "campaign.session.hand.more": "more",
+
+  "campaign.session.encounter.groupStanding": "{current} of {total} standing",
 } satisfies Record<string, string>;
