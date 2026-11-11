@@ -62,8 +62,14 @@ Single restore point for Russian localization. After a chat interruption, read o
 - Added 9 EN keys and 11 RU entries in `workshop.ts`; extra RU entries are expected plural forms. Placeholder names match.
 - API payload, party size/level values and XP thresholds are unchanged. No build or runtime tests were run.
 
+## Workshop system cards — 11 November 2026
+- `systems.ts`: added stable translation-key mapping by system ID; the IDs, routes and underlying system metadata remain unchanged.
+- `SystemCards.tsx`: localized task shortcuts, section headings, system names/descriptions, total-prep count with Russian plural forms, explanatory copy and footer.
+- Added 40 EN keys and 42 RU entries in `workshop.ts`; two extra RU entries are plural variants. Static checks: all source key references resolve, no duplicate keys, missing pairs or placeholder mismatches.
+- TypeScript, lint, tests, production build and visual checks were not run.
+
 ## Next work
-Continue through the uncovered Workshop hub screens, starting with `SystemCards.tsx` and the localized system labels/count phrases; then handle the page shell and Create chooser. `TargetPartyBar.tsx` is now localized. The shared `AddonFields`, `RulesetLibrary`, list controls, bestiary/cast lists and map gallery are localized. Keep plugin-provided labels/help and user-authored data unchanged. Planner-generated import warnings/notes still need stable reason codes and a dedicated localized renderer. Do not sync upstream or merge branches during translation.
+Continue with the Workshop page shell and Create chooser, then `WorkshopHeader` and the command palette. `SystemCards.tsx` and `TargetPartyBar.tsx` are now localized. The shared `AddonFields`, `RulesetLibrary`, list controls, bestiary/cast lists and map gallery are localized. Keep plugin-provided labels/help and user-authored data unchanged. Planner-generated import warnings/notes still need stable reason codes and a dedicated localized renderer. Do not sync upstream or merge branches during translation.
 
 ## Low-token work protocol
 - Read this file, then only the next target source file(s) and exact dictionary sections needed.
