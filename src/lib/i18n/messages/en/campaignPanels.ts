@@ -3294,4 +3294,6 @@ export const enCampaignPanels = {
   "campaign.session.encounter.groupStanding": "{current} of {total} standing",
 
   "campaign.session.encounter.forceEndConfirm": "Force-end it without XP instead?",
+
+  "campaign.session.roll.and": "and",
 } satisfies Record<string, string>;
