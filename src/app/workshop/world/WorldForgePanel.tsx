@@ -3,6 +3,7 @@
 import { BookOpenText, Download, Hourglass, Lock, Map as MapIcon, MessageCircleQuestion, Network, PenLine, Shapes, Sparkles, Upload, Wand2 } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/cn";
 import { workshopHref } from "@/lib/workshop/links";
 import { mayLeaveDrafts } from "@/app/workshop/unsaved";
@@ -44,6 +45,19 @@ type View = "wiki" | "web" | "timeline" | "atlas" | "secrets" | "stubs" | "types
 // play table's.
 const AI_VIEWS: ReadonlySet<View> = new Set(["outline", "forge", "ask"]);
 const WORKSHOP_VIEWS: ReadonlySet<View> = new Set(["outline"]);
+const VIEW_LABEL_KEYS: Record<View, string> = {
+  wiki: "workshop.world.view.wiki",
+  outline: "workshop.world.view.outline",
+  forge: "workshop.world.view.forge",
+  ask: "workshop.world.view.ask",
+  web: "workshop.world.view.web",
+  timeline: "workshop.world.view.timeline",
+  atlas: "workshop.world.view.atlas",
+  secrets: "workshop.world.view.secrets",
+  stubs: "workshop.world.view.stubs",
+  types: "workshop.world.view.types",
+};
+
 const VIEWS: Array<{ value: View; label: string; icon: IconRailItem["icon"] }> = [
   { value: "wiki", label: "Wiki", icon: BookOpenText },
   { value: "outline", label: "Outline", icon: Wand2 },
@@ -133,6 +147,7 @@ export function WorldForgePanel({
   // Bumped when any record changed elsewhere (useWorkshopVersions).
   refreshKey?: number;
 }) {
+  const { t } = useI18n();
   const api = useWorld(campaignId);
   const capabilities = useCapabilities();
   const canWrite = offersStoryModel(capabilities);
@@ -247,11 +262,11 @@ export function WorldForgePanel({
     try {
       const response = await fetch(`${exportHref}?check=1`);
       const check = response.ok ? ((await response.json()) as ExportCheck) : null;
-      if (!check) setExportError("The file could not be checked. Try again.");
+      if (!check) setExportError(t("workshop.world.panel.export.checkFailed"));
       else if (check.scenes.length) setExportHeld(check);
       else download();
     } catch {
-      setExportError("The file could not be checked. Try again.");
+      setExportError(t("workshop.world.panel.export.checkFailed"));
     } finally {
       setChecking(false);
     }
@@ -271,23 +286,23 @@ export function WorldForgePanel({
   return (
     // A container: every view lays out by the width the panel has, not the
     // window's, so the table's side column gets the narrow layouts.
-    <section className="@container flex flex-col gap-3" aria-label="WorldForge" data-world-at={at}>
+    <section className="@container flex flex-col gap-3" aria-label={t("workshop.system.world.label")} data-world-at={at}>
       {atTable ? (
         <p className="text-xs text-stone-500" data-testid="world-table-note">
-          <span className="text-amber-200/90">This campaign&apos;s world.</span> What came in from a workshop is this campaign&apos;s own copy: a change here stays at this table and leaves the workshop as it was. Only whoever runs the story sees this tab.
+          {t("workshop.world.panel.tableNote")}
         </p>
       ) : (
       <div className="flex flex-wrap items-center gap-2">
         <p className="text-xs text-stone-500">
-          <span className="text-amber-200/90">WorldForge</span>, by Smoebo, built into the workshop. Every entry is a Cast member, place, faction or lore entry here.
+          {t("workshop.world.panel.description")}
         </p>
         <span className="ml-auto flex gap-1.5">
           <input ref={fileRef} type="file" accept="application/json,.json" className="hidden" onChange={(event) => event.target.files?.[0] && importFile(event.target.files[0])} />
-          <KitButton tone="small" busy={reading} disabled={reading} onClick={() => fileRef.current?.click()} title="Add a WorldForge export to this world" data-tour="world-import">
-            {reading ? null : <Upload className="size-3.5" />} Open a WorldForge file
+          <KitButton tone="small" busy={reading} disabled={reading} onClick={() => fileRef.current?.click()} title={t("workshop.world.panel.import.title")} data-tour="world-import">
+            {reading ? null : <Upload className="size-3.5" />} {t("workshop.world.panel.import.button")}
           </KitButton>
-          <KitButton tone="small" busy={checking} disabled={checking} onClick={saveFile} title="Save this world as a file WorldForge opens" data-tour="world-export">
-            {checking ? null : <Download className="size-3.5" />} Save as a WorldForge file
+          <KitButton tone="small" busy={checking} disabled={checking} onClick={saveFile} title={t("workshop.world.panel.export.title")} data-tour="world-export">
+            {checking ? null : <Download className="size-3.5" />} {t("workshop.world.panel.export.button")}
           </KitButton>
         </span>
       </div>
@@ -295,30 +310,30 @@ export function WorldForgePanel({
       {exportError ? <PanelError>{exportError}</PanelError> : null}
       {exportHeld ? (
         <div className="motion-pop flex flex-col gap-2 rounded-lg border border-amber-700/50 bg-amber-950/30 px-3 py-2 text-xs text-amber-100" role="alert" data-testid="world-export-losses">
-          <span>A WorldForge file holds scenes in a line, so it cannot carry all of this storyboard. Nothing has been saved yet.</span>
-          <SceneLosses scenes={exportHeld.scenes} label="What each storyboard card would lose" />
+          <span>{t("workshop.world.panel.export.lossWarning")}</span>
+          <SceneLosses scenes={exportHeld.scenes} label={t("workshop.world.panel.export.lossesLabel")} />
           {exportHeld.notes.map((note) => (
             <span key={note} className="text-stone-300">{note}</span>
           ))}
-          <span className="text-stone-300">A workshop bundle carries the whole adventure: every card, arrow and route, and what each card picked.</span>
+          <span className="text-stone-300">{t("workshop.world.panel.export.bundleNote")}</span>
           <span className="flex flex-wrap gap-2">
             <a href={exportHref} download onClick={() => setExportHeld(null)} className="pk-tap inline-flex items-center gap-1.5 rounded-lg border border-stone-600/60 bg-stone-900/50 px-2.5 py-1 text-xs text-stone-300 hover:border-amber-500/40 hover:text-amber-100 motion-press">
-              <Download className="size-3.5" /> Save the file anyway
+              <Download className="size-3.5" /> {t("workshop.world.panel.export.saveAnyway")}
             </a>
             {onOpenSystem ? (
               <KitButton tone="small" onClick={() => onOpenSystem("share")}>
-                Share as a bundle instead
+                {t("workshop.world.panel.export.shareInstead")}
               </KitButton>
             ) : null}
             <KitButton tone="small" onClick={() => setExportHeld(null)}>
-              Cancel
+              {t("workshop.world.panel.cancel")}
             </KitButton>
           </span>
         </div>
       ) : null}
       {held ? (
         <div className="motion-pop flex flex-col gap-2 rounded-lg border border-amber-700/50 bg-amber-950/30 px-3 py-2 text-xs text-amber-100" role="alert" data-testid="world-import-losses">
-          <span>This file would not come in whole. Nothing has been brought in yet.</span>
+          <span>{t("workshop.world.panel.import.lossWarning")}</span>
           {held.losses.length ? (
             <ul className="list-disc pl-4">
               {held.losses.map((loss) => (
@@ -326,16 +341,16 @@ export function WorldForgePanel({
               ))}
             </ul>
           ) : null}
-          <SceneLosses scenes={held.scenes} label="What each scene would lose as a storyboard card" />
+          <SceneLosses scenes={held.scenes} label={t("workshop.world.panel.import.lossesLabel")} />
           {held.notes.map((note) => (
             <span key={note} className="text-stone-300">{note}</span>
           ))}
           <span className="flex flex-wrap gap-2">
             <KitButton tone="small" busy={reading} disabled={reading} onClick={() => bringIn(held.text, true)}>
-              Bring it in anyway
+              {t("workshop.world.panel.import.bringAnyway")}
             </KitButton>
             <KitButton tone="small" onClick={() => setHeld(null)}>
-              Cancel
+              {t("workshop.world.panel.cancel")}
             </KitButton>
           </span>
         </div>
@@ -371,15 +386,15 @@ export function WorldForgePanel({
       {!canWrite || !canPaint ? (
         <p className="text-[11px] text-stone-500" data-tour="world-ai-note">
           {!canWrite && !canPaint
-            ? "Outline, Forge, Ask, Draft and Paint need AI (a text model, an image backend), which this server does not have set up. Everything else here works without it, and pictures can still be uploaded. An admin switches them on under Admin > Text model defaults and Admin > Image generation."
+            ? t("workshop.world.panel.capability.both")
             : !canWrite
-              ? "Outline, Forge, Ask and Draft need a text model, which this server does not have set up. Everything else here works without it. An admin switches them on under Admin > Text model defaults."
-              : "Paint needs an image backend, which this server does not have set up. Pictures can still be uploaded. An admin switches it on under Admin > Image generation."}
+              ? t("workshop.world.panel.capability.text")
+              : t("workshop.world.panel.capability.images")}
         </p>
       ) : null}
 
       <IconRail
-        items={VIEWS.filter((entry) => (canWrite || !AI_VIEWS.has(entry.value)) && !(atTable && WORKSHOP_VIEWS.has(entry.value))).map((entry) => ({ ...entry, badge: counts[entry.value] || undefined, tour: `world-view-${entry.value}` }))}
+        items={VIEWS.filter((entry) => (canWrite || !AI_VIEWS.has(entry.value)) && !(atTable && WORKSHOP_VIEWS.has(entry.value))).map((entry) => ({ ...entry, label: t(VIEW_LABEL_KEYS[entry.value] as never), badge: counts[entry.value] || undefined, tour: `world-view-${entry.value}` }))}
         value={view}
         onChange={setView}
         orientation="horizontal"
@@ -389,7 +404,7 @@ export function WorldForgePanel({
         className={cn("border-b border-stone-800/80 pb-1", atTable && "chip-rail flex-wrap")}
       />
 
-      <Listed loaded={api.loaded} error={api.loadError} onRetry={api.refresh} loading="Reading the world" rows={4}>
+      <Listed loaded={api.loaded} error={api.loadError} onRetry={api.refresh} loading={t("workshop.world.panel.loading")} rows={4}>
         {world ? (
           // Keyed by view so the incoming one rises in instead of cutting.
           <div key={view} className="motion-tab">
