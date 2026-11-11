@@ -229,7 +229,7 @@ export function ReportDialog({
           {error ? <p className="motion-shake text-sm text-red-400">{error}</p> : null}
           <div className="flex justify-end gap-2">
             <button type="button" onClick={close} className={ui.btnSmall} disabled={busy} aria-busy={busy}>
-              Cancel
+              {t("campaign.report.cancel")}
             </button>
             <button type="button" onClick={submit} disabled={busy} aria-busy={busy} className={ui.btnPrimary}>
               {busy ? <Loader2 className="size-4 animate-spin" /> : <Flag className="size-4" />}
