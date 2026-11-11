@@ -100,6 +100,7 @@ function localizeStateTag(tag: StateTag, sheet: CharacterSheet, t: SheetTranslat
         note: t("charSheet.state.inspiration.note"),
       };
   }
+  return tag;
 }
 
 export function StateTags({ sheet, className }: { sheet: CharacterSheet; className?: string }) {
