@@ -5,6 +5,7 @@ import { appConfirm } from "@/components/ui/ConfirmDialog";
 
 import { Check, Crown, Link as LinkIcon, Pencil, QrCode } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { copyText } from "@/lib/clipboard";
 import { buildShareLinks } from "@/lib/share-link";
 import { InviteShareDialog } from "@/components/InviteShareDialog";
@@ -89,6 +90,7 @@ function InvitesCard({
   midGameJoinOpen: boolean;
   steersStory: boolean;
 }) {
+  const { t } = useI18n();
   const [inviteCopied, setInviteCopied] = useState(false);
   const [inviteSharing, setInviteSharing] = useState(false);
   // The joining toggle has no optimistic state (midGameJoinOpen rides the
@@ -123,10 +125,10 @@ function InvitesCard({
       });
       if (!response.ok) {
         const data = (await response.json().catch(() => ({}))) as { error?: string };
-        setJoinToggleError(data.error ?? "That change was not saved.");
+        setJoinToggleError(data.error ?? t("campaign.session.leadPanel.invites.error.notSaved"));
       }
     } catch {
-      setJoinToggleError("Could not reach the table.");
+      setJoinToggleError(t("campaign.session.leadPanel.invites.error.network"));
     }
   }
 
@@ -140,28 +142,28 @@ function InvitesCard({
   }
 
   return (
-    <Card glyph="tab-friends" title="Invites">
+    <Card glyph="tab-friends" title={t("campaign.session.leadPanel.invites.title")}>
       <div className="flex flex-wrap items-center gap-1.5">
         {steersStory ? (
-          <span className="flex items-center gap-2 text-xs text-stone-300" title="Allow new players to join with the invite code mid-game">
-            <Switch on={midGameJoinOpen} onChange={() => void toggleMidGameJoin()} label="Allow new players to join with the invite code mid-game" />
-            Joining {midGameJoinOpen ? "open" : "closed"}
+          <span className="flex items-center gap-2 text-xs text-stone-300" title={t("campaign.session.leadPanel.invites.allowJoin")}>
+            <Switch on={midGameJoinOpen} onChange={() => void toggleMidGameJoin()} label={t("campaign.session.leadPanel.invites.allowJoin")} />
+            {t(midGameJoinOpen ? "campaign.session.leadPanel.invites.joining.open" : "campaign.session.leadPanel.invites.joining.closed")}
           </span>
         ) : (
           // A lead at a human-DM table shares the code but the setting is
           // the DM's, so the state shows without a control the server would
           // refuse.
           <span className="pk-chip px-2 text-xs text-stone-400">
-            Joining {midGameJoinOpen ? "open" : "closed"}
+            {t(midGameJoinOpen ? "campaign.session.leadPanel.invites.joining.open" : "campaign.session.leadPanel.invites.joining.closed")}
           </span>
         )}
         {midGameJoinOpen ? (
           <>
-            <KitButton onClick={copyInviteLink} title="Copy the invite link" className="font-mono">
+            <KitButton onClick={copyInviteLink} title={t("campaign.session.leadPanel.invites.copy.title")} className="font-mono">
               {inviteCopied ? <Check className="motion-pop size-3.5 text-emerald-400" /> : <LinkIcon className="size-3.5" />}
               {inviteCode}
             </KitButton>
-            <KitButton onClick={() => setInviteSharing(true)} title="Show the invite QR code and share options" aria-label="Show the invite QR code and share options">
+            <KitButton onClick={() => setInviteSharing(true)} title={t("campaign.session.leadPanel.invites.share.title")} aria-label={t("campaign.session.leadPanel.invites.share.aria")}>
               <QrCode className="size-3.5" />
             </KitButton>
           </>
@@ -195,6 +197,7 @@ function LeadSeatCard({
   leadUserId: string;
   dmUserIds: string[];
 }) {
+  const { t } = useI18n();
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
   const candidates = members.filter(
@@ -206,7 +209,7 @@ function LeadSeatCard({
       sheets.find((sheet) => sheet.userId === userId && !sheet.isCompanion))?.name;
 
   async function makeLead(member: CampaignMember) {
-    if (!await appConfirm(`Make ${member.username} the party lead? You will lose this tab.`)) {
+    if (!await appConfirm(t("campaign.session.leadPanel.seat.confirm", { name: member.username }))) {
       return;
     }
     setBusy(member.userId);
@@ -219,17 +222,17 @@ function LeadSeatCard({
       });
       if (!response.ok) {
         const data = (await response.json().catch(() => ({}))) as { error?: string };
-        setError(data.error ?? "The lead did not change.");
+        setError(data.error ?? t("campaign.session.leadPanel.seat.error.notChanged"));
       }
     } catch {
-      setError("Could not reach the table.");
+      setError(t("campaign.session.leadPanel.seat.error.network"));
     } finally {
       setBusy("");
     }
   }
 
   return (
-    <Card glyph="tab-lead" title="The lead seat">
+    <Card glyph="tab-lead" title={t("campaign.session.leadPanel.seat.title")}>
       {candidates.length ? (
         <ul className="stagger space-y-1">
           {candidates.map((member) => {
@@ -239,18 +242,18 @@ function LeadSeatCard({
                 <span className="min-w-0 flex-1 truncate text-stone-300">
                   {member.username}
                   {character ? (
-                    <span className="text-stone-500"> as {character}</span>
+                    <span className="text-stone-500"> {t("campaign.session.leadPanel.seat.characterAs", { name: character })}</span>
                   ) : null}
                 </span>
                 <KitButton disabled={busy !== ""} busy={busy === member.userId} onClick={() => makeLead(member)} className="shrink-0 disabled:opacity-40">
-                  Make lead
+                  {t("campaign.session.leadPanel.seat.makeLead")}
                 </KitButton>
               </li>
             );
           })}
         </ul>
       ) : (
-        <p className="text-xs text-stone-500">Nobody else at the table to hand it to.</p>
+        <p className="text-xs text-stone-500">{t("campaign.session.leadPanel.seat.empty")}</p>
       )}
       {error ? <PanelError className="mt-1.5">{error}</PanelError> : null}
     </Card>
@@ -297,6 +300,7 @@ export function LeadPanel({
   // the same beat as the one above the composer.
   directorArm?: Parameters<typeof DirectorArmedBanner>[0]["armed"];
 }) {
+  const { t } = useI18n();
   const [editing, setEditing] = useState(false);
   const [prepOpen, setPrepOpen] = useState(false);
   const pending = pendingCampaignNotes(notes);
@@ -317,9 +321,9 @@ export function LeadPanel({
       <div className="mb-3">
         <Ribbon tone="ember">
           <Crown className="mr-1 inline size-3" aria-hidden="true" />
-          Lead only
+          {t("campaign.session.leadPanel.ribbon")}
         </Ribbon>
-        <p className="mt-1.5 text-xs text-stone-400">You steer this table.</p>
+        <p className="mt-1.5 text-xs text-stone-400">{t("campaign.session.leadPanel.tagline")}</p>
       </div>
 
       {steersStory ? (
@@ -336,7 +340,7 @@ export function LeadPanel({
       {steersStory ? (
         <Card
           glyph="tab-notes"
-          title="Notes to approve"
+          title={t("campaign.session.leadPanel.notes.title")}
           aside={
             pending.length ? (
               <span key={pending.length} className="count-pop rounded-full bg-gradient-to-b from-amber-300 to-amber-500 px-1.5 text-[11px] font-semibold text-amber-950">
@@ -354,15 +358,15 @@ export function LeadPanel({
               refreshNotes={refreshNotes}
             />
           ) : (
-            <p className="text-xs text-stone-500">Nothing waiting for you.</p>
+            <p className="text-xs text-stone-500">{t("campaign.session.leadPanel.notes.empty")}</p>
           )}
         </Card>
       ) : null}
 
       {directsAi ? (
-        <Card glyph="system-cast" title="Direct the story">
+        <Card glyph="system-cast" title={t("campaign.session.leadPanel.direct.title")}>
           <p className="mb-2 text-xs text-stone-500">
-            Pick Direct in the composer, then Private for a note only the GM sees.
+            {t("campaign.session.leadPanel.direct.description")}
           </p>
           <DirectorArmedBanner campaignId={campaignId} steersStory armed={directorArm} />
           <div className="flex flex-wrap gap-1.5">
@@ -372,20 +376,18 @@ export function LeadPanel({
       ) : null}
 
       {steersStory && mode === "ai" ? (
-        <Card glyph="system-encounters" title="Prepared fights and maps">
+        <Card glyph="system-encounters" title={t("campaign.session.leadPanel.prepared.title")}>
           <p className="text-xs text-stone-500">
-            What came in from a workshop, yours to finish: rosters, maps, rewards. Cue a fight and
-            the storyteller runs it, map and plan included, when the scene reaches it. The players
-            never see this.
+            {t("campaign.session.leadPanel.prepared.description")}
           </p>
           {/* In the body, not the header: the panel is narrow and the title
               long, and an aside there was pushed past the card's edge. */}
           <KitButton
             onClick={() => setPrepOpen((open) => !open)}
-            title="The fights and maps this table was given"
+            title={t("campaign.session.leadPanel.prepared.tooltip")}
             className="mt-2"
           >
-            {prepOpen ? "Close the prep" : "Open the prep"}
+            {t(prepOpen ? "campaign.session.leadPanel.prepared.close" : "campaign.session.leadPanel.prepared.open")}
           </KitButton>
           {prepOpen ? (
             <div className="reveal mt-3 space-y-4">
@@ -418,17 +420,16 @@ export function LeadPanel({
       {isLead ? (
         <Card
           glyph="tab-campaigns"
-          title="Campaign details"
+          title={t("campaign.session.leadPanel.campaign.title")}
           aside={
-            <KitButton onClick={() => setEditing(true)} title="Edit title, premise, setting, difficulty, and player slots">
-              <Pencil className="size-3" /> Edit details
+            <KitButton onClick={() => setEditing(true)} title={t("campaign.session.leadPanel.campaign.editTooltip")}>
+              <Pencil className="size-3" /> {t("campaign.session.leadPanel.campaign.editButton")}
             </KitButton>
           }
         >
           <p className="gold-title truncate font-display">{campaign.title}</p>
           <p className="mt-1 text-xs text-stone-500">
-            Difficulty {campaign.difficulty} · Level {campaign.startingLevel} start · Up to{" "}
-            {campaign.maxPlayers} players
+            {t("campaign.session.leadPanel.campaign.summary", { difficulty: campaign.difficulty, level: campaign.startingLevel, players: campaign.maxPlayers })}
           </p>
         </Card>
       ) : null}
