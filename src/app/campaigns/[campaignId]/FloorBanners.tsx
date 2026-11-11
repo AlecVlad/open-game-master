@@ -7,7 +7,7 @@ import { cn } from "@/lib/cn";
 import { SessionBanner, bannerButtonClass } from "@/app/campaigns/[campaignId]/SessionBanner";
 import type { Floor } from "@/lib/db/campaigns";
 import type { PublicEncounter } from "@/lib/db/encounter-view";
-import { extraTurnTag, litOrderRows, orderRowKey } from "@/lib/battlemap/initiative-rows";
+import { litOrderRows, orderRowKey } from "@/lib/battlemap/initiative-rows";
 import { floorNoticeKey, liveNotice, type HandNotice } from "@/lib/battlemap/hand-table";
 import type { CharacterSheet } from "@/lib/schemas/sheet";
 
@@ -108,7 +108,7 @@ export function FloorBanners({
                     return (
                       <span
                         key={orderRowKey(entry, index)}
-                        title={extraTurnTag(entry)?.title}
+                        title={entry.reflex ? entry.extra ? t("campaign.session.initiative.row.extraTurnTitle", { name: entry.extra }) : t("campaign.session.initiative.row.secondTurnTitle") : undefined}
                         className={cn(
                           "transition-opacity duration-200",
                           current ? "font-semibold" : "opacity-60",
@@ -116,7 +116,7 @@ export function FloorBanners({
                       >
                         {index > 0 ? " > " : ""}
                         {entry.name}
-                        {entry.reflex ? <sup className="motion-pop ml-0.5 text-[9px] text-amber-300">{extraTurnTag(entry)?.short}</sup> : null}
+                        {entry.reflex ? <sup className="motion-pop ml-0.5 text-[9px] text-amber-300">{entry.extra ? t("campaign.session.initiative.row.extraTurnShort") : t("campaign.session.initiative.row.secondTurnShort")}</sup> : null}
                       </span>
                     );
                   })}
