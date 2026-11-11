@@ -115,6 +115,6 @@ export function suggestionReason(t: StoryboardT, suggestion: Suggestion): string
         return t(`campaign.storyboard.suggestion.reason.unused.${key}` as MessageKey, { name: suggestion.title });
       }
       if (kind === "link") return t("campaign.storyboard.suggestion.reason.unlinked", { name: suggestion.title });
-      return suggestion.reason;
+      return t("campaign.storyboard.suggestion.reason.generic", { name: suggestion.title });
   }
 }
