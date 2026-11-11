@@ -4,7 +4,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { ArrowRight } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui";
-import { BEAT_LABELS, routeOf, type BeatLinks, type Board, type BoardInventory, type BoardNode } from "@/lib/workshop/board";
+import { routeOf, type BeatLinks, type Board, type BoardInventory, type BoardNode } from "@/lib/workshop/board";
 import { GameIcon } from "@/components/ui/GameIcon";
 import { KIND_CHIP, KIND_GLYPH, LINK_FIELDS, LINK_GLYPH } from "@/app/workshop/storyboard/beat-fields";
 import { useI18n } from "@/lib/i18n/provider";
@@ -67,7 +67,7 @@ export function BeatBoard({
             return [{ field, short, name: entry.name, from: entry.from ?? "", missing: false }];
           }
           return (broken[node.id] ?? []).includes(field)
-            ? [{ field, short, name: "missing", from: "", missing: true }]
+            ? [{ field, short, name: t("campaign.storyboard.link.missing"), from: "", missing: true }]
             : [];
         });
         const choices = node.out.filter((target) => routeOf(node, target) === "choice").length;
