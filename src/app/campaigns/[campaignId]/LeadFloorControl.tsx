@@ -2,6 +2,7 @@
 
 import { Check, Loader2 } from "lucide-react";
 import { useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/cn";
 import { SectionHead } from "@/components/ui/SectionHead";
 import { Switch } from "@/components/ui/Switch";
@@ -10,7 +11,7 @@ import { SequenceEditor } from "./SequenceEditor";
 import { fitSequence, type PlanSequence } from "@/lib/dm/plan-order";
 import type { Floor } from "@/lib/db/campaigns";
 import type { PublicEncounter } from "@/lib/db/encounter-view";
-import { extraTurnTag, litOrderRows, orderRowKey } from "@/lib/battlemap/initiative-rows";
+import { litOrderRows, orderRowKey } from "@/lib/battlemap/initiative-rows";
 import type { CharacterSheet } from "@/lib/schemas/sheet";
 import { heroFell } from "@/lib/characters/fallen-logic";
 
@@ -34,16 +35,16 @@ const chip = kitButtonClass("small", "disabled:opacity-40");
 const chipOn = "border-amber-500/60 bg-amber-400/10 text-amber-100 disabled:opacity-100";
 const chipOff = "";
 
-function modeLabel(floor: Floor): string {
+function modeLabel(floor: Floor, t: ReturnType<typeof useI18n>["t"]): string {
   switch (floor.mode) {
     case "open":
-      return "Open: anyone may act.";
+      return t("campaign.session.leadFloor.mode.open");
     case "hold":
-      return "Held: nobody acts until you open it.";
+      return t("campaign.session.leadFloor.mode.hold");
     case "spotlight":
-      return "Spotlight: only the named players may act.";
+      return t("campaign.session.leadFloor.mode.spotlight");
     case "initiative":
-      return "The initiative order has the floor while the fight runs.";
+      return t("campaign.session.leadFloor.mode.initiative");
   }
 }
 
@@ -64,6 +65,7 @@ export function LeadFloorControl({
   aiNarrates?: boolean;
   coordinating?: boolean;
 }) {
+  const { t } = useI18n();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   // Character ids, which is what the route takes; it resolves them to the
@@ -103,12 +105,12 @@ export function LeadFloorControl({
       });
       if (!response.ok) {
         const data = (await response.json().catch(() => ({}))) as { error?: string };
-        setError(data.error ?? "The floor did not change.");
+        setError(data.error ?? t("campaign.session.leadFloor.error.floorNotChanged"));
         return false;
       }
       return true;
     } catch {
-      setError("Could not reach the table.");
+      setError(t("campaign.session.leadFloor.error.network"));
       return false;
     } finally {
       setBusy(false);
@@ -138,7 +140,7 @@ export function LeadFloorControl({
       });
       if (!response.ok) {
         const data = (await response.json().catch(() => ({}))) as { error?: string };
-        setError(data.error ?? "The plan did not open.");
+        setError(data.error ?? t("campaign.session.leadFloor.error.planNotOpened"));
         return;
       }
       setPlanned([]);
@@ -146,7 +148,7 @@ export function LeadFloorControl({
       setInOrder(false);
       setOrderDraft([]);
     } catch {
-      setError("Could not reach the table.");
+      setError(t("campaign.session.leadFloor.error.network"));
     } finally {
       setBusy(false);
     }
@@ -158,13 +160,13 @@ export function LeadFloorControl({
 
   return (
     <div className="panel mb-3 rounded-lg p-3">
-      <SectionHead title="The floor" glyph="rest-initiative" />
-      <p className="text-xs text-stone-300">{modeLabel(floor)}</p>
+      <SectionHead title={t("campaign.session.leadFloor.title")} glyph="rest-initiative" />
+      <p className="text-xs text-stone-300">{modeLabel(floor, t)}</p>
 
       {floor.mode === "initiative" ? (
         <div className="reveal mt-2 space-y-1.5">
           <p className="text-xs text-stone-500">
-            Round {floor.round}
+            {t("campaign.session.floor.round", { round: floor.round })}
             {encounter?.orderReady && encounter.order.length ? (
               <>
                 {" · "}
@@ -172,7 +174,7 @@ export function LeadFloorControl({
                   // Keyed by position: a thief's second round-1 turn repeats the id.
                   <span
                     key={orderRowKey(entry, index)}
-                    title={extraTurnTag(entry)?.title}
+                    title={entry.reflex ? t(entry.extra ? "campaign.session.initiative.row.extraTurnTitle" : "campaign.session.initiative.row.secondTurnTitle", { name: entry.extra ?? entry.name }) : undefined}
                     className={cn(
                       "transition-colors duration-200",
                       litOrderRows(order, encounter.turnIndex, encounter.acting, encounter.enemiesUp).includes(index) ? "font-medium text-amber-200" : undefined,
@@ -180,58 +182,58 @@ export function LeadFloorControl({
                   >
                     {index > 0 ? " > " : ""}
                     {entry.name}
-                    {entry.reflex ? <sup className="motion-pop ml-0.5 text-[9px] text-amber-300">{extraTurnTag(entry)?.short}</sup> : null}
+                    {entry.reflex ? <sup className="motion-pop ml-0.5 text-[9px] text-amber-300">{entry.reflex ? t(entry.extra ? "campaign.session.initiative.row.extraTurnShort" : "campaign.session.initiative.row.secondTurnShort") : null}</sup> : null}
                   </span>
                 ))}
               </>
             ) : (
-              <> · {floor.currentName}&apos;s turn</>
+              <> · {t("campaign.session.floor.playerTurn", { name: floor.currentName })}</>
             )}
           </p>
           <button
             type="button"
             disabled={busy} aria-busy={busy}
             onClick={() => post({})}
-            title="Skip the current player's turn"
+            title={t("campaign.session.floor.skipTurnHint")}
             className={cn(chip, chipOff)}
           >
-            Skip turn
+            {t("campaign.session.floor.skipTurn")}
           </button>
         </div>
       ) : (
         <>
-          <div data-pill-group="" role="group" aria-label="Floor mode" className="mt-2 flex flex-wrap gap-1.5">
+          <div data-pill-group="" role="group" aria-label={t("campaign.session.leadFloor.mode.aria")} className="mt-2 flex flex-wrap gap-1.5">
             <button data-on={floor.mode === "open" ? "" : undefined}
               type="button"
               disabled={busy || floor.mode === "open"}
               onClick={() => post({ set: "open" })}
-              title="Let anyone act"
+              title={t("campaign.session.leadFloor.mode.allowAnyone")}
               className={cn(chip, floor.mode === "open" ? chipOn : chipOff)}
             >
-              Open floor
+              {t("campaign.session.leadFloor.mode.openButton")}
             </button>
             <button data-on={floor.mode === "hold" ? "" : undefined}
               type="button"
               disabled={busy || floor.mode === "hold"}
               onClick={() => post({ set: "hold" })}
-              title="Hold every response while the table talks it over"
+              title={t("campaign.session.leadFloor.mode.holdTooltip")}
               className={cn(chip, floor.mode === "hold" ? chipOn : chipOff)}
             >
-              Hold for talk
+              {t("campaign.session.leadFloor.mode.holdButton")}
             </button>
           </div>
 
           {floor.mode === "hold" && floor.next.mode === "spotlight" ? (
             <p className="reveal mt-1.5 text-xs text-stone-500">
-              On release: spotlight on{" "}
-              {players
-                .filter(
-                  (sheet) =>
-                    floor.next.mode === "spotlight" && floor.next.userIds.includes(sheet.userId),
-                )
-                .map((sheet) => sheet.name)
-                .join(", ") || "someone"}
-              .
+              {t("campaign.session.leadFloor.nextSpotlight", {
+                names: players
+                  .filter(
+                    (sheet) =>
+                      floor.next.mode === "spotlight" && floor.next.userIds.includes(sheet.userId),
+                  )
+                  .map((sheet) => sheet.name)
+                  .join(", ") || t("campaign.session.floor.someone"),
+              })}
             </p>
           ) : null}
 
@@ -260,7 +262,7 @@ export function LeadFloorControl({
                       )}
                       {sheet.name}
                       <span className="text-[11px] text-stone-500">
-                        {answered ? "answered" : "waiting"}
+                        {t(answered ? "campaign.session.leadFloor.answered" : "campaign.session.leadFloor.waiting")}
                       </span>
                     </li>
                   );
@@ -270,15 +272,15 @@ export function LeadFloorControl({
                 type="button"
                 disabled={busy} aria-busy={busy}
                 onClick={() => post({})}
-                title="Open the floor now; whatever has been answered goes to the GM"
+                title={t("campaign.session.leadFloor.releaseTooltip")}
                 className={cn(chip, chipOff, "mt-1.5")}
               >
-                Release
+                {t("campaign.session.floor.release")}
               </button>
             </div>
           ) : null}
 
-          <SectionHead title="Give the floor" glyph="tab-party" level="h4" className="mt-3" aside={picked.length ? `${picked.length} picked` : null} />
+          <SectionHead title={t("campaign.session.leadFloor.giveFloor")} glyph="tab-party" level="h4" className="mt-3" aside={picked.length ? t("campaign.session.leadFloor.picked", { count: picked.length }) : null} />
           <div className="flex flex-wrap gap-1.5">
             {players.length ? (
               players.map((sheet) => {
@@ -310,7 +312,7 @@ export function LeadFloorControl({
                 );
               })
             ) : (
-              <span className="text-xs text-stone-500">No player characters yet.</span>
+              <span className="text-xs text-stone-500">{t("campaign.session.leadFloor.noPlayers")}</span>
             )}
           </div>
           <div className="mt-1.5 flex gap-1.5">
@@ -318,19 +320,19 @@ export function LeadFloorControl({
               value={prompt}
               onChange={(event) => setPrompt(event.target.value)}
               maxLength={300}
-              placeholder="What are you asking them? (optional)"
-              aria-label="What are you asking them? (optional)"
+              placeholder={t("campaign.session.leadFloor.spotlight.prompt")}
+              aria-label={t("campaign.session.leadFloor.spotlight.prompt")}
               className={cn(panelField, "w-auto min-w-0 flex-1")}
             />
             <button
               type="button"
               disabled={busy || !picked.length}
               onClick={spotlight}
-              title="Only the picked players may act until each has answered or you release"
+              title={t("campaign.session.leadFloor.spotlight.tooltip")}
               className={kitButtonClass("primary", "shrink-0")}
             >
               {busy ? <Loader2 className="size-3.5 animate-spin" /> : null}
-              Spotlight
+              {t("campaign.session.leadFloor.spotlight.button")}
             </button>
           </div>
         </>
@@ -339,15 +341,13 @@ export function LeadFloorControl({
       {aiNarrates && floor.mode !== "initiative" && !coordinating ? (
         <div className="mt-3" data-coordinate-open>
           <SectionHead
-            title="Coordinate actions"
+            title={t("campaign.session.leadFloor.coordinate.title")}
             glyph="tab-party"
             level="h4"
-            aside={planned.length ? `${planned.length} picked` : "whole party"}
+            aside={planned.length ? t("campaign.session.leadFloor.picked", { count: planned.length }) : t("campaign.session.leadFloor.wholeParty")}
           />
           <p className="mb-1.5 text-xs text-stone-500">
-            Each player stages what their characters do in the same moment, edits it until ready or passes, and the GM
-            resolves the whole plan as one beat. Companions join without holding it up. Set an order when one move has to
-            come before another.
+            {t("campaign.session.leadFloor.coordinate.description")}
           </p>
           <div className="flex flex-wrap gap-1.5">
             {sheets.map((sheet) => {
@@ -363,13 +363,13 @@ export function LeadFloorControl({
                   className="pk-pill pk-tap motion-press py-0.5"
                 >
                   {sheet.name}
-                  {sheet.isCompanion ? <span className="text-[10px] text-stone-500"> companion</span> : null}
+                  {sheet.isCompanion ? <span className="text-[10px] text-stone-500"> {t("campaign.session.leadFloor.companion")}</span> : null}
                 </button>
               );
             })}
           </div>
           <div className="mt-2 flex items-center justify-between gap-2 text-xs text-stone-300">
-            <span>In order{inOrder ? "" : ": off, everyone acts at once"}</span>
+            <span>{t(inOrder ? "campaign.session.leadFloor.order.on" : "campaign.session.leadFloor.order.off")}</span>
             <Switch
               on={inOrder}
               onChange={(on) => {
@@ -378,7 +378,7 @@ export function LeadFloorControl({
                   setOrderDraft(participants.map((sheet) => [sheet.id]));
                 }
               }}
-              label="Set the order they act in"
+              label={t("campaign.session.leadFloor.order.switch")}
             />
           </div>
           {inOrder && participants.length > 1 ? (
@@ -388,7 +388,7 @@ export function LeadFloorControl({
                 sequence={planSequence}
                 onChange={setOrderDraft}
                 disabled={busy}
-                label="The order the characters act in"
+                label={t("campaign.session.leadFloor.order.editor")}
               />
             </div>
           ) : null}
@@ -397,20 +397,20 @@ export function LeadFloorControl({
               value={planPrompt}
               onChange={(event) => setPlanPrompt(event.target.value)}
               maxLength={300}
-              placeholder="The moment you are planning (optional)"
-              aria-label="The moment you are planning (optional)"
+              placeholder={t("campaign.session.leadFloor.coordinate.prompt")}
+              aria-label={t("campaign.session.leadFloor.coordinate.prompt")}
               className={cn(panelField, "w-auto min-w-0 flex-1")}
             />
             <button
               type="button"
               disabled={busy || !sheets.some((sheet) => !sheet.isCompanion)}
               onClick={() => void coordinate()}
-              title="Open a shared plan; nothing reaches the GM until the players are ready"
+              title={t("campaign.session.leadFloor.coordinate.tooltip")}
               className={kitButtonClass("primary", "shrink-0")}
               data-coordinate-start
             >
               {busy ? <Loader2 className="size-3.5 animate-spin" /> : null}
-              Coordinate
+              {t("campaign.session.leadFloor.coordinate.button")}
             </button>
           </div>
         </div>
@@ -418,7 +418,7 @@ export function LeadFloorControl({
         // The plan itself is drawn above the composer for every seat; on a
         // phone that is the Table view, not this panel.
         <p className="motion-pop mt-3 rounded-md border border-amber-500/30 bg-amber-950/20 px-2.5 py-1.5 text-xs text-amber-100/90" data-coordinating-note>
-          The party is coordinating. The plan, with Resolve now and Set aside, is above the box where everyone types.
+          {t("campaign.session.leadFloor.coordinating")}
         </p>
       ) : null}
 
