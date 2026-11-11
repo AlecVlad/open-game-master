@@ -235,7 +235,7 @@ export function RegionReview({ region }: { region: AtlasRegion }) {
       <div className="flex items-center gap-2">
         <span className="eyebrow text-[10px] text-amber-400/80">{t("workshop.world.atlas.review.heading")}</span>
         <span className="text-sm text-amber-100">{title}</span>
-        <KitButton tone="icon" always className="ml-auto" aria-label="Cancel" onClick={region.cancel}>
+        <KitButton tone="icon" always className="ml-auto" aria-label={useI18n().t("workshop.cancel")} onClick={region.cancel}>
           <X className="size-4" />
         </KitButton>
       </div>
