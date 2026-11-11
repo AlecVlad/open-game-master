@@ -65,7 +65,7 @@ function localizedArcReason(reason: string, t: ReturnType<typeof useI18n>["t"]):
   const cause = body
     .replace(/, though it matches the scene \([^)]*\)/, "")
     .replace(/matches the scene \([^)]*\)/, "")
-    .replace(/^,\\s*/, "");
+    .replace(/^,\s*/, "");
   let causeText = "";
   const maxEvents = cause.match(/^(\d+) events already shown$/);
   const budget = cause.match(/^over the (\d+)-character event budget$/);
@@ -79,7 +79,7 @@ function localizedArcReason(reason: string, t: ReturnType<typeof useI18n>["t"]):
 
 function localizedLoreCause(reason: string, t: ReturnType<typeof useI18n>["t"]): string {
   return reason.split("; ").map((part) => {
-    const named = part.match(/^the ask names it \\("([^"]+)"\\)$/);
+    const named = part.match(/^the ask names it \("([^"]+)"\)$/);
     if (named) return t("campaign.contextTrace.loreReason.askNames", { word: named[1] });
     if (part === "the scene names it") return t("campaign.contextTrace.loreReason.sceneNames");
     if (part === "words match") return t("campaign.contextTrace.loreReason.wordsMatch");
@@ -91,13 +91,13 @@ function localizedLoreCause(reason: string, t: ReturnType<typeof useI18n>["t"]):
 function localizedLoreReason(reason: string, t: ReturnType<typeof useI18n>["t"]): string {
   if (reason === "pinned") return t("campaign.contextTrace.loreReason.pinned");
   if (reason === "pinned; held back: over the lore budget") return t("campaign.contextTrace.loreReason.pinnedHeld");
-  const budget = reason.match(/^held back: over the lore budget \\(rank (\\d+), (.+)\\)$/);
+  const budget = reason.match(/^held back: over the lore budget \(rank (\d+), (.+)\)$/);
   if (budget) return t("campaign.contextTrace.loreReason.overBudget", { rank: Number(budget[1]), reason: localizedLoreCause(budget[2], t) });
-  const cap = reason.match(/^held back: over the cap of (\\d+) entries a turn \\((.+)\\)$/);
+  const cap = reason.match(/^held back: over the cap of (\d+) entries a turn \((.+)\)$/);
   if (cap) return t("campaign.contextTrace.loreReason.overCap", { count: Number(cap[1]), reason: localizedLoreCause(cap[2], t) });
-  const near = reason.match(/^a near match \\(rank (\\d+)\\), not close enough to ride$/);
+  const near = reason.match(/^a near match \(rank (\d+)\), not close enough to ride$/);
   if (near) return t("campaign.contextTrace.loreReason.nearMatch", { rank: Number(near[1]) });
-  const ranked = reason.match(/^rank (\\d+): (.*?)(?:; excerpt (\\d+) characters)?$/);
+  const ranked = reason.match(/^rank (\d+): (.*?)(?:; excerpt (\d+) characters)?$/);
   if (ranked) {
     const base = t("campaign.contextTrace.loreReason.rank", { rank: Number(ranked[1]), reason: localizedLoreCause(ranked[2], t) });
     return ranked[3] ? t("campaign.contextTrace.loreReason.excerpt", { reason: base, count: Number(ranked[3]) }) : base;
