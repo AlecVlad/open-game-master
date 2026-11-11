@@ -168,7 +168,7 @@ function SecretActionForm({ campaignId, pact, sheets, meUserId, onDone }: { camp
         setError(t("campaign.relationship.pact.form.error"));
         return;
       }
-      setConfirmation(data.caught ? { text: t("campaign.relationship.pact.form.caught"), caught: true } : { text: String(data.confirmation ?? t("campaign.relationship.pact.form.done")), caught: false });
+      setConfirmation(data.caught ? { text: t("campaign.relationship.pact.form.caught"), caught: true } : { text: t("campaign.relationship.pact.form.done"), caught: false });
       setText("");
       setItem("");
       onDone();
