@@ -452,7 +452,7 @@ export const enCharSheet = {
   "charSheet.levelUp.block.maxLevel": "No character passes level 20.",
   "charSheet.levelUp.block.xp": "Level {level} takes {required} experience points and {name} has {current}. A level is earned in play, or granted by whoever runs the table.",
   "charSheet.levelUp.result.character": "{name} is level {level}{classLine}.",
-  "charSheet.levelUp.result.classLine": " ({className}, уровень класса {level})",
+  "charSheet.levelUp.result.classLine": " ({className}, class level {level})",
   "charSheet.levelUp.result.rolled": "The server rolled {rolled} on the d{die}",
   "charSheet.levelUp.result.max": "The highest face of the d{die}",
   "charSheet.levelUp.result.average": "The average of the d{die}: {average}",
