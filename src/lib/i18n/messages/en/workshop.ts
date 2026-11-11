@@ -924,4 +924,5 @@ export const enWorkshop = {
   "workshop.world.sceneLoss.beatKind.npcMoment": "Somebody's moment",
   "workshop.world.sceneLoss.routeKind.choice": "One route of several",
   "workshop.world.sceneLoss.routeKind.optional": "Only if…",
+  "workshop.world.sceneLoss.loses": "loses",
 } satisfies Record<string, string>;
