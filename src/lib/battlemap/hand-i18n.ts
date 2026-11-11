@@ -5,9 +5,9 @@ import type { Params } from "@/lib/i18n/core";
 import type { MessageKey } from "@/lib/i18n/messages/index";
 
 type Translator = (key: MessageKey, params?: Params) => string;
-type PluralTranslator = (key: MessageKey, count: number, params?: Params) => string;
+type PluralTranslator = (key: string, count: number, params?: Params) => string;
 
-const SHARE_UNIT_KEYS: Record<HandShares["unit"], MessageKey> = {
+const SHARE_UNIT_KEYS: Record<HandShares["unit"], string> = {
   dart: "campaign.session.hand.share.unit.dart",
   ray: "campaign.session.hand.share.unit.ray",
   beam: "campaign.session.hand.share.unit.beam",
@@ -32,7 +32,7 @@ const GROUP_TITLE_KEYS: Partial<Record<HandGroupKey, MessageKey>> = {
   "pool:sorcery_points": "campaign.session.hand.group.name.sorcery",
 };
 
-const GROUP_COUNT_KEYS: Partial<Record<HandGroupKey, MessageKey>> = {
+const GROUP_COUNT_KEYS: Partial<Record<HandGroupKey, string>> = {
   spells: "campaign.session.hand.group.count.spell",
   items: "campaign.session.hand.group.count.card",
   actions: "campaign.session.hand.group.count.action",
