@@ -50,7 +50,7 @@ Single restore point for Russian localization. After a chat interruption, read o
 - TypeScript, lint, tests, production build and visual checks were not run. Keep those deferred and do not claim they passed.
 
 ## Next work
-Continue the Workshop import audit. First inspect the shared `AddonFields.tsx` option renderer used by plugin import; then give planner warnings and notes stable reason codes and render them through i18n. Preserve warning facts, names, counts and API contracts. Do not sync upstream or merge branches during translation.
+Continue the Workshop UI audit from the root-level shelf and shared list controls. Check the remaining `ListHead` callers for English nouns/placeholders and localize them at the screen boundary; then proceed through the uncovered Workshop editors. The shared `AddonFields` fixed labels and `RulesetLibrary` are now translated. Keep plugin-provided labels/help and user-authored data unchanged. Planner-generated import warnings/notes still need stable reason codes and a dedicated localized renderer. Do not sync upstream or merge branches during translation.
 
 ## Low-token work protocol
 - Read this file, then only the next target source file(s) and exact dictionary sections needed.
