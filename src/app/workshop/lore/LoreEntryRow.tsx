@@ -56,7 +56,7 @@ export function MentionedIn({
           disabled={mention.kind !== "lore"}
           onClick={() => onOpen({ kind: "lore", id: mention.id, name: mention.name })}
           className={cn(ui.btnSmall, "px-2 py-1 disabled:cursor-default")}
-          title={mention.kind}
+          title={t(`campaign.lore.mention.kind.${mention.kind}` as never)}
         >
           {mention.name}
         </button>
