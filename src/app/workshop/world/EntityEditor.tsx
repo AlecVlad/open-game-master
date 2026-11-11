@@ -339,13 +339,13 @@ export function EntityEditor({
 
       <div className="grid gap-3 @lg:grid-cols-2">
         {field(t("workshop.world.entityEditor.aliases.label"), <input className={ui.input} placeholder={t("workshop.world.entityEditor.aliases.placeholder")} value={draft.aliases} onChange={(event) => set("aliases", event.target.value)} />, t("workshop.world.entityEditor.list.separated"))}
-        {field(t("workshop.world.entityEditor.tags.label"), <input className={ui.input} placeholder={t("workshop.world.entityEditor.tags.placeholder")} value={draft.tags} onChange={(event) => set("tags", event.target.value)} />, "Separated by commas.")}
+        {field(t("workshop.world.entityEditor.tags.label"), <input className={ui.input} placeholder={t("workshop.world.entityEditor.tags.placeholder")} value={draft.tags} onChange={(event) => set("tags", event.target.value)} />, t("workshop.world.entityEditor.list.separated"))}
       </div>
 
       {chosenType.fields.length ? (
         <div className="grid gap-3 @lg:grid-cols-2">
           {chosenType.fields.map((def) => (
-            <FieldInput key={def.id} def={def} doc={doc} value={draft.fields[def.id]} onChange={(value) => setField(def, value)} />
+            <FieldInput key={def.id} def={def} doc={doc} value={draft.fields[def.id]} onChange={(value) => setField(def, value)} t={t} />
           ))}
         </div>
       ) : null}
@@ -378,18 +378,18 @@ export function EntityEditor({
   );
 }
 
-function FieldInput({ def, doc, value, onChange }: { def: FieldDef; doc: WorldDoc; value: FieldValue | undefined; onChange: (value: FieldValue | undefined) => void }) {
+function FieldInput({ def, doc, value, onChange, t }: { def: FieldDef; doc: WorldDoc; value: FieldValue | undefined; onChange: (value: FieldValue | undefined) => void; t: ReturnType<typeof useI18n>["t"] }) {
   const label = (
     <span className="eyebrow flex items-center gap-1 text-[10px] text-stone-500">
       {def.name}
-      {def.authorOnly ? <Lock className="size-3 text-red-400" aria-label="Author only" /> : null}
+      {def.authorOnly ? <Lock className="size-3 text-red-400" aria-label={t("workshop.world.entityEditor.field.authorOnly")} /> : null}
     </span>
   );
   if (def.kind === "select") {
     return (
       <div className="flex flex-col gap-1">
         {label}
-        <Select label={def.name} value={(value as string) ?? ""} placeholder="Not set" onChange={(next) => onChange(next === "__none" ? undefined : next)} options={[{ value: "__none", label: "Not set" }, ...def.options.map((option) => ({ value: option, label: option }))]} />
+        <Select label={def.name} value={(value as string) ?? ""} placeholder={t("workshop.world.entityEditor.field.notSet")} onChange={(next) => onChange(next === "__none" ? undefined : next)} options={[{ value: "__none", label: t("workshop.world.entityEditor.field.notSet") }, ...def.options.map((option) => ({ value: option, label: option }))]} />
       </div>
     );
   }
@@ -402,14 +402,14 @@ function FieldInput({ def, doc, value, onChange }: { def: FieldDef; doc: WorldDo
           <input
             className={cn(ui.input, "w-24")}
             type="number"
-            aria-label={`${def.name}, year`}
+            aria-label={t("workshop.world.entityEditor.field.yearAria" as never, { name: def.name })}
             value={year.yearNum ?? ""}
             onChange={(event) => onChange(event.target.value === "" ? undefined : { ...year, yearNum: Math.round(Number(event.target.value)) })}
           />
           {doc.calendars.length ? (
-            <Select label={`${def.name}, calendar`} size="sm" className="flex-1" value={year.calendarId} onChange={(calendarId) => onChange({ ...year, calendarId })} options={doc.calendars.map((calendar) => ({ value: calendar.id, label: calendar.abbrev || calendar.name, hint: calendar.name }))} />
+            <Select label={t("workshop.world.entityEditor.field.calendarAria" as never, { name: def.name })} size="sm" className="flex-1" value={year.calendarId} onChange={(calendarId) => onChange({ ...year, calendarId })} options={doc.calendars.map((calendar) => ({ value: calendar.id, label: calendar.abbrev || calendar.name, hint: calendar.name }))} />
           ) : (
-            <span className="self-center text-[11px] text-stone-500">Add a calendar in Timeline to name the reckoning.</span>
+            <span className="self-center text-[11px] text-stone-500">{t("workshop.world.entityEditor.field.noCalendar")}</span>
           )}
         </div>
       </div>
