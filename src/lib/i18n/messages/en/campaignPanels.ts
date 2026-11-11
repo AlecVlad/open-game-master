@@ -4107,4 +4107,9 @@ export const enCampaignPanels = {
   "campaign.overworld.map.tiles": "tiles",
   "campaign.overworld.map.pinsMoved": "pins moved",
   "campaign.overworld.map.atlasMoved": "Atlas moved",
+  "campaign.overworld.param.seaLevel": "Sea level",
+  "campaign.overworld.param.mountains": "Mountains",
+  "campaign.overworld.param.forests": "Forests",
+  "campaign.overworld.param.aridity": "Aridity",
+  "campaign.overworld.param.coastline": "Coastline",
 } satisfies Record<string, string>;
