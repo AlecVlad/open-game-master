@@ -3433,4 +3433,8 @@ export const enCampaignPanels = {
   "campaign.session.hand.group.noun.use": "uses",
   "campaign.session.hand.group.slotNote.pactLevel": "{left} of {total} pact slots (level {level})",
 
+  // Follow-up wording for hand arrangements and filters.
+  "campaign.session.hand.arrange.urgentWithDisplaced": "Urgent cards ({urgent}) have taken seats first. The displaced cards ({displaced}) wait in More until they are no longer needed. Your arrangement stays as you set it.",
+  "campaign.session.hand.group.filterChip": "{label}: {count}",
+
 } satisfies Record<string, string>;
