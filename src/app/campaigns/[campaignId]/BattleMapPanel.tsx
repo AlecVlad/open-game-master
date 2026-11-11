@@ -517,7 +517,7 @@ export function BattleMapPanel({
     if (done) {
       setHover(null);
       const feet = (done.undone as { feet?: unknown } | undefined)?.feet;
-      moveNotes.push([{ text: typeof feet === "number" ? "Back where you stood: " + formatFeet(feet, measurementSystem, tableLanguage) + " of movement returned." : "Back where you stood.", tone: "move" }]);
+      moveNotes.push([{ text: typeof feet === "number" ? t("campaign.session.battle.undoMoveReturned", { distance: formatFeet(feet, measurementSystem, tableLanguage) }) : t("campaign.session.battle.undoMove"), tone: "move" }]);
     }
     await refreshBattleMap();
   }
@@ -995,8 +995,8 @@ export function BattleMapPanel({
       }
       onCompose(
         targeting === "attack"
-          ? `I attack ${token.name}.`
-          : `I cast  at ${token.name}.`,
+          ? t("campaign.session.battle.composeAttack", { name: token.name })
+          : t("campaign.session.battle.composeCast", { name: token.name }),
       );
       setTargeting(null);
       setAimHoverId(null);
@@ -1124,13 +1124,13 @@ export function BattleMapPanel({
   const choose = (id: BoardControlId, label: string, value: string, options: Array<{ value: string; label: string; disabled: string | null }>): BoardControl => ({ id, label, value, disabled: null, options });
   const option = (value: string, label = value) => ({ value, label, disabled: null });
   const toolsPanel: BoardPanel = { title: "Battlefield tools", lines: ["Choose a tool, then close this panel to use it on the battlefield.", "Left drag orbits; middle drag pans; wheel zooms. WASD/arrows pan, 0 fits, Esc cancels. While drawing, left drag makes a mark.", ...(liveMeasure?.caught.length ? [`Caught: ${liveMeasure.caught.map(entry => entry.name).join(", ")}`] : []), ...(error ? [error] : [])], controls: [
-    ...(!canDirect && !scene ? [{ id: "follow-turn" as const, label: `Keep current turn in view: ${followTurn ? "on" : "off"}`, disabled: null }] : []),
+    ...(!canDirect && !scene ? [{ id: "follow-turn" as const, label: t("campaign.session.battle.followTurn", { state: followTurn ? t("campaign.session.battle.on") : t("campaign.session.battle.off") }), disabled: null }] : []),
     choose("view", t("campaign.session.battle.boardView"), addonView ? boardViewKey(addonView) : "", [option("", t("campaign.session.battle.nativeBoard")), ...offeredViews.map(entry => option(boardViewKey(entry), entry.title))]),
     ...(meUserId && multiCharacter !== "off" && sheets.filter(sheet => sheet.userId === meUserId && !sheet.isCompanion).length > 1 ? [choose("play-as", t("campaign.session.battle.playingAs"), playingSheet(sheets, meUserId, activeSheetId)?.id ?? "", sheets.filter(sheet => sheet.userId === meUserId && !sheet.isCompanion).map(sheet => option(sheet.id, sheet.name)))] : []),
-    ...(canDirect ? [choose("tool", "Tool", tool, [option("handle", "Move pieces"), option("place", "Put something down"), option("measure", "Measure an area"), option("point", t("campaign.session.battle.pointTile")), ...(canDraw ? [option("draw", t("campaign.session.battle.drawBoard"))] : [])])] : [{ id: "point" as const, label: `Point at a tile: ${pointing ? "on" : "off"}`, disabled: null }, ...(canDraw ? [{ id: "draw" as const, label: `Drawing: ${drawing ? "on" : "off"}`, disabled: null }] : [])]),
-    ...(canDirect && tool === "place" ? [choose("place-kind", "Place", placeKind, Object.entries(ADHOC_LABELS).map(([value, label]) => option(value, label))), { id: "place-name" as const, label: "Name", disabled: null, input: { value: placeName } }] : []),
-    ...(canDirect && tool === "measure" ? [choose("measure-shape", "Shape", shape, TEMPLATE_SHAPES.map(value => option(value, SHAPE_LABELS[value]))), choose("measure-size", measurementSystem === "si" ? "Size in metres" : "Size in feet", String(sizeFeet), Array.from({ length: 12 }, (_, index) => option(String((index + 1) * 5), formatFeet((index + 1) * 5, measurementSystem, tableLanguage)))), { id: "measure-clear" as const, label: "Clear measure", disabled: null }, ...(liveMeasure?.caught.some(entry => entry.enemyId) ? [{ id: "measure-copy" as const, label: "Copy enemy ids", disabled: null }] : [])] : []),
-    ...(drawActive && canDraw ? [choose("draw-kind", "Mark", drawKind, DRAWING_KINDS.map(value => option(value))), choose("draw-tone", "Ink", drawTone, DRAWING_TONES.map(value => option(value))), { id: "draw-ttl" as const, label: `Fades next round: ${drawTtl ? "yes" : "no"}`, disabled: null }, { id: "draw-erase" as const, label: canDirect ? "Clear all marks" : "Erase my marks", disabled: null }] : []), closePanel,
+    ...(canDirect ? [choose("tool", t("campaign.session.battle.tool"), tool, [option("handle", t("campaign.session.battle.movePieces")), option("place", t("campaign.session.battle.placeSomething")), option("measure", t("campaign.session.battle.measureArea")), option("point", t("campaign.session.battle.pointTile")), ...(canDraw ? [option("draw", t("campaign.session.battle.drawBoard"))] : [])])] : [{ id: "point" as const, label: t("campaign.session.battle.pointToggle", { state: pointing ? t("campaign.session.battle.on") : t("campaign.session.battle.off") }), disabled: null }, ...(canDraw ? [{ id: "draw" as const, label: t("campaign.session.battle.drawToggle", { state: drawing ? t("campaign.session.battle.on") : t("campaign.session.battle.off") }), disabled: null }] : [])]),
+    ...(canDirect && tool === "place" ? [choose("place-kind", t("campaign.session.battle.place"), placeKind, Object.entries(ADHOC_LABELS).map(([value, label]) => option(value, label))), { id: "place-name" as const, label: t("campaign.session.battle.name"), disabled: null, input: { value: placeName } }] : []),
+    ...(canDirect && tool === "measure" ? [choose("measure-shape", t("campaign.session.battle.shape"), shape, TEMPLATE_SHAPES.map(value => option(value, SHAPE_LABELS[value]))), choose("measure-size", measurementSystem === "si" ? t("campaign.session.battle.sizeMetres") : t("campaign.session.battle.sizeFeet"), String(sizeFeet), Array.from({ length: 12 }, (_, index) => option(String((index + 1) * 5), formatFeet((index + 1) * 5, measurementSystem, tableLanguage)))), { id: "measure-clear" as const, label: t("campaign.session.battle.clearMeasure"), disabled: null }, ...(liveMeasure?.caught.some(entry => entry.enemyId) ? [{ id: "measure-copy" as const, label: t("campaign.session.battle.copyEnemyIds"), disabled: null }] : [])] : []),
+    ...(drawActive && canDraw ? [choose("draw-kind", t("campaign.session.battle.mark"), drawKind, DRAWING_KINDS.map(value => option(value))), choose("draw-tone", t("campaign.session.battle.ink"), drawTone, DRAWING_TONES.map(value => option(value))), { id: "draw-ttl" as const, label: t("campaign.session.battle.fadesNextRound", { state: drawTtl ? t("campaign.session.battle.yes") : t("campaign.session.battle.no") }), disabled: null }, { id: "draw-erase" as const, label: canDirect ? t("campaign.session.battle.clearAllMarks") : t("campaign.session.battle.eraseOwnMarks"), disabled: null }] : []), closePanel,
   ] };
   const orderKey = JSON.stringify([campaignId, view.mapId, encounter?.order, encounter?.turnIndex, view.round]);
   const confirmation = orderConfirm?.key === orderKey ? orderConfirm : null;
@@ -1142,13 +1142,13 @@ export function BattleMapPanel({
     controls: [...(canDirect && encounter.orderReady ? [
       choose("order-entry", t("campaign.session.battle.combatant"), selectedEntry?.id ?? "", encounter.order.map(entry => option(entry.id, entry.name))),
       { id: "order-up" as const, label: t("campaign.session.battle.orderUp"), disabled: selectedIndex > 0 ? null : t("campaign.session.battle.alreadyFirst") }, { id: "order-down" as const, label: t("campaign.session.battle.orderDown"), disabled: selectedIndex >= 0 && selectedIndex < encounter.order.length - 1 ? null : t("campaign.session.battle.alreadyLast") },
-      { id: "order-delay" as const, label: "Delay to end", disabled: selectedEntry ? null : "Choose a combatant." }, { id: "order-remove" as const, label: "Take out of order…", disabled: selectedEntry ? null : "Choose a combatant." }, { id: "order-take" as const, label: "Give them the turn", disabled: selectedEntry?.kind === "pc" && selectedIndex !== encounter.turnIndex ? null : "Choose another player's slot." },
-      { id: "order-back" as const, label: "Back a turn", disabled: null }, { id: "order-forward" as const, label: "On a turn", disabled: null }, { id: "order-reset" as const, label: "Reset initiative…", disabled: null },
-      { id: "order-name" as const, label: "New slot name", disabled: null, input: { value: orderName } }, { id: "order-score" as const, label: `Initiative (${MIN_INITIATIVE} to ${MAX_INITIATIVE})`, disabled: null, input: { value: String(orderScore), numeric: true } }, { id: "order-insert" as const, label: "Add slot", disabled: orderName.trim() ? null : "Name the slot first." },
-      ...(encounter.enemiesDue?.length ? [{ id: "order-enemies-play" as const, label: "Play remaining enemies", disabled: null }, { id: "order-enemies-pass" as const, label: "Done, hand on turn", disabled: null }] : encounter.companionTurn ? [{ id: "order-companion" as const, label: `Play ${encounter.companionTurn.name}'s turn`, disabled: null }] : []),
+      { id: "order-delay" as const, label: t("campaign.session.battle.delayToEnd"), disabled: selectedEntry ? null : t("campaign.session.battle.chooseCombatant") }, { id: "order-remove" as const, label: t("campaign.session.battle.removeFromOrder"), disabled: selectedEntry ? null : t("campaign.session.battle.chooseCombatant") }, { id: "order-take" as const, label: t("campaign.session.battle.giveTurn"), disabled: selectedEntry?.kind === "pc" && selectedIndex !== encounter.turnIndex ? null : t("campaign.session.battle.choosePlayerSlot") },
+      { id: "order-back" as const, label: t("campaign.session.battle.backTurn"), disabled: null }, { id: "order-forward" as const, label: t("campaign.session.battle.advanceTurn"), disabled: null }, { id: "order-reset" as const, label: t("campaign.session.battle.resetInitiative"), disabled: null },
+      { id: "order-name" as const, label: t("campaign.session.battle.newSlotName"), disabled: null, input: { value: orderName } }, { id: "order-score" as const, label: t("campaign.session.battle.initiativeRange", { min: MIN_INITIATIVE, max: MAX_INITIATIVE }), disabled: null, input: { value: String(orderScore), numeric: true } }, { id: "order-insert" as const, label: t("campaign.session.battle.addSlot"), disabled: orderName.trim() ? null : t("campaign.session.battle.nameSlotFirst") },
+      ...(encounter.enemiesDue?.length ? [{ id: "order-enemies-play" as const, label: t("campaign.session.battle.playRemainingEnemies"), disabled: null }, { id: "order-enemies-pass" as const, label: t("campaign.session.battle.donePassTurn"), disabled: null }] : encounter.companionTurn ? [{ id: "order-companion" as const, label: t("campaign.session.battle.playCompanionTurn", { name: encounter.companionTurn.name }), disabled: null }] : []),
     ] : []), closePanel],
   } : null;
-  const nativePanel = nativeBattlefieldActive && !prompt ? handStatus?.panel ?? (confirmation ? { title: confirmation.title, lines: [confirmation.line], controls: [{ id: "confirm" as const, label: "Confirm", disabled: null }, closePanel] } : orderPanel ?? (toolsOpen ? toolsPanel : null)) : null;
+  const nativePanel = nativeBattlefieldActive && !prompt ? handStatus?.panel ?? (confirmation ? { title: confirmation.title, lines: [confirmation.line], controls: [{ id: "confirm" as const, label: t("campaign.session.battle.confirm"), disabled: null }, closePanel] } : orderPanel ?? (toolsOpen ? toolsPanel : null)) : null;
 
   const selectedFigure = nativeSelection?.mapId === view.mapId ? tokensById.get(nativeSelection.tokenId) : undefined;
   const battlefieldHud: BoardHud = {
@@ -1160,29 +1160,29 @@ export function BattleMapPanel({
           return [edge.blocked ? "No line of sight" : edge.cover ? `Cover: +${edge.cover} AC` : "", edge.flanking ? "Flanked: advantage in melee" : "", edge.hostileBeside && !edge.adjacent ? "Ranged at disadvantage: enemy beside you" : ""];
         })() : [])].filter(Boolean),
     } : null,
-    turn: view.currentTurnName ? `${view.currentTurnName}'s turn · Round ${view.round}` : "",
-    stats: [myTurn ? formatFeet(view.budgetLeft * TILE_FEET, measurementSystem, tableLanguage) + " left" : "", mySheet ? `HP ${mySheet.currentHp}/${effectiveMaxHp(mySheet)} · AC ${mySheet.ac}` : "",
-      myTurn && turnBudget ? `Action ${turnBudget.action ? "ready" : "spent"} · Bonus ${turnBudget.bonus ? "ready" : "spent"} · Reaction ${turnBudget.reaction ? "ready" : "spent"}` : "",
-      encounter?.orderReady ? `Order: ${encounter.order.map(entry => entry.name).join(" → ")}` : ""].filter(Boolean),
-    hint: formatMeasurementText([hudHint ?? (handAim?.active ? "Choose the card's target on the board or in your hand, then play the card." : cameraLocked ? "The DM is steering the view" : boardHintText({ canDirect, tool, teleporting: Boolean(teleporting), held: Boolean(held), liveOrigin: Boolean(liveOrigin), pointing, drawing, targeting: Boolean(targeting), canMove, moveAimed: Boolean(livePending), scene, budgetLeft: view.budgetLeft, hasToken: Boolean(view.myTokenId) })), moveModeHint(moveMode, view.moves), areaAim.hint].filter(Boolean).join("\n"), measurementSystem, tableLanguage),
+    turn: view.currentTurnName ? t("campaign.session.battle.currentTurn", { name: view.currentTurnName, round: view.round }) : "",
+    stats: [myTurn ? t("campaign.session.battle.movementLeft", { distance: formatFeet(view.budgetLeft * TILE_FEET, measurementSystem, tableLanguage) }) : "", mySheet ? t("campaign.session.battle.hpAc", { hp: mySheet.currentHp, max: effectiveMaxHp(mySheet), ac: mySheet.ac }) : "",
+      myTurn && turnBudget ? t("campaign.session.battle.actionBudget", { action: turnBudget.action ? t("campaign.session.battle.ready") : t("campaign.session.battle.spent"), bonus: turnBudget.bonus ? t("campaign.session.battle.ready") : t("campaign.session.battle.spent"), reaction: turnBudget.reaction ? t("campaign.session.battle.ready") : t("campaign.session.battle.spent") }) : "",
+      encounter?.orderReady ? t("campaign.session.battle.order", { order: encounter.order.map(entry => entry.name).join(" → ") }) : ""].filter(Boolean),
+    hint: formatMeasurementText([hudHint ?? (handAim?.active ? t("campaign.session.battle.chooseCardTarget") : cameraLocked ? t("campaign.session.battle.dmSteeringView") : boardHintText({ canDirect, tool, teleporting: Boolean(teleporting), held: Boolean(held), liveOrigin: Boolean(liveOrigin), pointing, drawing, targeting: Boolean(targeting), canMove, moveAimed: Boolean(livePending), scene, budgetLeft: view.budgetLeft, hasToken: Boolean(view.myTokenId) })), moveModeHint(moveMode, view.moves), areaAim.hint].filter(Boolean).join("\n"), measurementSystem, tableLanguage),
     notices: [...moveNotes.notes.map(note => formatMeasurementText(note.text, measurementSystem, tableLanguage)), ...(fieldRoll ? [fieldRoll.label] : []), ...(handStatus?.notice ? [handStatus.notice] : []), ...(areaAim.caught.length ? [`Area catches: ${areaAim.caught.join(", ")}`] : []), ...(liveMeasure?.caught.length ? [`Measured: ${liveMeasure.caught.map(entry => entry.name).join(", ")}`] : [])], error, pending: busy || endingTurn || Boolean(handStatus?.sending),
-    controls: prompt && tokensById.has(prompt.tokenId) ? [{ id: "prompt-submit", label: "Apply", disabled: null }, { id: "prompt-cancel", label: "Cancel input", disabled: null }] : [
-      ...(myTurn && !scene && !targeting ? [{ id: "end-turn" as const, label: "End turn", disabled: endingTurn ? "Ending turn…" : null }] : []),
-      ...(undoFeet !== null && !targeting ? [{ id: "undo-move" as const, label: "Undo " + formatFeet(undoFeet, measurementSystem, tableLanguage), disabled: null }] : []),
-      ...(!cameraLocked ? [{ id: "fit" as const, label: "Fit board", disabled: null }] : []),
-      ...(canDirect ? [{ id: "camera-pull" as const, label: "Bring everyone here", disabled: null }, { id: "camera-lock" as const, label: "Lock view", disabled: null }, { id: "camera-free" as const, label: "Free view", disabled: null }] : []),
-      ...(cameraLocked && cameraCanRelease ? [{ id: "camera-release" as const, label: "Look around", disabled: null }] : []),
-      ...(targeting || nativeSelection || held || teleporting ? [{ id: "cancel" as const, label: "Cancel", disabled: null }] : []),
-      ...(encounter ? [{ id: "order" as const, label: "Initiative", disabled: null }] : []),
+    controls: prompt && tokensById.has(prompt.tokenId) ? [{ id: "prompt-submit", label: t("campaign.session.battle.apply"), disabled: null }, { id: "prompt-cancel", label: t("campaign.session.battle.cancelInput"), disabled: null }] : [
+      ...(myTurn && !scene && !targeting ? [{ id: "end-turn" as const, label: t("campaign.session.battle.endTurn"), disabled: endingTurn ? t("campaign.session.battle.endingTurn") : null }] : []),
+      ...(undoFeet !== null && !targeting ? [{ id: "undo-move" as const, label: t("campaign.session.battle.undoDistance", { distance: formatFeet(undoFeet, measurementSystem, tableLanguage) }), disabled: null }] : []),
+      ...(!cameraLocked ? [{ id: "fit" as const, label: t("campaign.session.battle.fitBoard"), disabled: null }] : []),
+      ...(canDirect ? [{ id: "camera-pull" as const, label: t("campaign.session.battle.bringEveryone"), disabled: null }, { id: "camera-lock" as const, label: t("campaign.session.battle.lockView"), disabled: null }, { id: "camera-free" as const, label: t("campaign.session.battle.freeView"), disabled: null }] : []),
+      ...(cameraLocked && cameraCanRelease ? [{ id: "camera-release" as const, label: t("campaign.session.battle.lookAround"), disabled: null }] : []),
+      ...(targeting || nativeSelection || held || teleporting ? [{ id: "cancel" as const, label: t("campaign.session.battle.cancel"), disabled: null }] : []),
+      ...(encounter ? [{ id: "order" as const, label: t("campaign.session.battle.initiative"), disabled: null }] : []),
       ...(nativeBattlefieldActive ? [
-        ...(!canDirect && canMove && !areaAim.active && view.moves ? [choose("move-mode", "Move", moveMode, [option("walk", "Walk"), option("jump", "Jump"), ...(view.moves.drag ? [option("drag", `Drag ${view.moves.drag.names.join(" and ")}`)] : [])])] : []),
-        { id: "tools" as const, label: "Tools", disabled: null }, { id: "enlarge" as const, label: enlarged ? "Back to campaign" : "Enlarge", disabled: null },
+        ...(!canDirect && canMove && !areaAim.active && view.moves ? [choose("move-mode", t("campaign.session.battle.moveMode"), moveMode, [option("walk", t("campaign.session.battle.walk")), option("jump", t("campaign.session.battle.jump")), ...(view.moves.drag ? [option("drag", `Drag ${view.moves.drag.names.join(" and ")}`)] : [])])] : []),
+        { id: "tools" as const, label: t("campaign.session.battle.tools"), disabled: null }, { id: "enlarge" as const, label: enlarged ? t("campaign.session.battle.backToCampaign") : t("campaign.session.battle.enlarge"), disabled: null },
       ] : []),
     ],
     panel: nativePanel,
     drawing: nativeBattlefieldActive && drawActive && canDraw ? { kind: drawKind, tone: drawTone } : null,
     tiles: nativeBattlefieldActive ? (areaAim.overlay?.ghost ?? areaAim.overlay?.set)?.cells ?? liveMeasure?.tiles ?? [] : [],
-    prompt: prompt && tokensById.has(prompt.tokenId) ? { title: `${prompt.kind === "damage" ? "Damage" : prompt.kind === "heal" ? "Heal" : "Condition on"} ${tokensById.get(prompt.tokenId)!.name}`, label: prompt.kind === "condition" ? "Condition" : "Hit points", numeric: prompt.kind !== "condition" } : null,
+    prompt: prompt && tokensById.has(prompt.tokenId) ? { title: t(prompt.kind === "damage" ? "campaign.session.battle.promptDamage" : prompt.kind === "heal" ? "campaign.session.battle.promptHeal" : "campaign.session.battle.promptCondition", { name: tokensById.get(prompt.tokenId)!.name }), label: prompt.kind === "condition" ? t("campaign.session.battle.condition") : t("campaign.session.battle.hitPoints"), numeric: prompt.kind !== "condition" } : null,
   };
 
   const promptToken = prompt ? tokensById.get(prompt.tokenId) : undefined;
@@ -1630,7 +1630,7 @@ export function BattleMapPanel({
       ) : null}
       </> : null}
       <span className="sr-only" aria-live="polite">
-        {!scene && view.currentTurnName ? (commanding ? `${view.currentTurnName}'s turn: your orders.` : myTurn ? "Your turn." : `${view.currentTurnName}'s turn.`) : ""}
+        {!scene && view.currentTurnName ? (commanding ? `${view.currentTurnName}'s turn: your orders.` : myTurn ? t("campaign.session.battle.yourTurn") + "." : `${view.currentTurnName}'s turn.`) : ""}
       </span>
     </div>
   );
