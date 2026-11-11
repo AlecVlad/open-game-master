@@ -8,7 +8,7 @@ import { UnofficialPackNotice } from "@/components/UnofficialPackNotice";
 import { chip, chipOn, chipRow } from "@/app/workshop/kit";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui";
-import { BUNDLE_KIND_LABELS, type BundleDependency } from "@/lib/workshop/bundle";
+import { BUNDLE_KIND_LABELS } from "@/lib/workshop/bundle";
 
 // What a bundle holds, shown before it becomes a workshop: the card both a
 // bundle file (ImportBundleButton) and an addon's import (AddonImportButton)
