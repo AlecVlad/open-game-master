@@ -130,6 +130,7 @@ export type BackdropPlan = {
   // afresh (only when the map already stood over the Region).
   placements: Placement[];
   notes: string[];
+  noteDetails?: WorldNoticeDetail[];
   applied: boolean;
 };
 
@@ -180,6 +181,10 @@ export async function backdropFromAtlas(campaignId: string, mapId: string, apply
     released: next.released.map((pin) => ({ pinId: pin.id, pin: pin.name })),
     placements,
     notes: [PICTURE_ONLY, "Everyone at the table sees the Region's picture, so the players will see this map's art."],
+    noteDetails: [
+      { code: "workshop.world.atlas.notice.pictureOnly", params: {} },
+      { code: "workshop.world.atlas.notice.partySeesPicture", params: {} },
+    ],
     applied: false,
   };
   if (!apply) return plan;
@@ -226,7 +231,7 @@ export function unlinkRegionMap(campaignId: string, clearBackdrop: boolean): Unl
 export type PlacePlan = {
   placements: Placement[];
   // Pins asked for that cannot place anything, and why.
-  skipped: Array<{ pinId: string; reason: string }>;
+  skipped: Array<{ pinId: string; reason: string; reasonDetail?: WorldNoticeDetail }>;
   applied: boolean;
 };
 
@@ -245,9 +250,9 @@ export function placeInRegion(campaignId: string, pinIds: string[] | null, apply
   const skipped: PlacePlan["skipped"] = [];
   for (const id of wanted ?? []) {
     const pin = doc.pins.find((entry) => entry.id === id);
-    if (!pin) skipped.push({ pinId: id, reason: "There is no such pin." });
-    else if (pin.mapId !== atlas.id) skipped.push({ pinId: id, reason: `It is not on ${atlas.name}, the map over the Region.` });
-    else if (!names.has(placeIdOf(pin))) skipped.push({ pinId: id, reason: "It does not name a place." });
+    if (!pin) skipped.push({ pinId: id, reason: "There is no such pin.", reasonDetail: { code: "workshop.world.atlas.region.skip.missingPin", params: {} } });
+    else if (pin.mapId !== atlas.id) skipped.push({ pinId: id, reason: `It is not on ${atlas.name}, the map over the Region.`, reasonDetail: { code: "workshop.world.atlas.region.skip.otherMap", params: { name: atlas.name } } });
+    else if (!names.has(placeIdOf(pin))) skipped.push({ pinId: id, reason: "It does not name a place.", reasonDetail: { code: "workshop.world.atlas.region.skip.notPlace", params: {} } });
   }
   const chosen = doc.pins.filter((pin) => pin.mapId === atlas.id && names.has(placeIdOf(pin)) && (!wanted || wanted.has(pin.id)));
   const placements = chosen.map((pin): Placement => {
