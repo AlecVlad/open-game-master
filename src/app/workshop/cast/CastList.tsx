@@ -192,7 +192,7 @@ export function CastRows({ npcs, onOpen, factionNames }: Omit<ListProps, "select
                       )}
                     >
                       <GameIcon icon={{ kind: "glyph", key: ATTITUDE_GLYPH[npc.attitude] ?? "attitude-neutral" }} size="size-4" />
-                      {t(npc.attitude === "friendly" ? "workshop.cast.attitude.friendly" : npc.attitude === "hostile" ? "workshop.cast.attitude.hostile" : "workshop.cast.attitude.indifferent")}
+                      {npc.attitude === "friendly" ? t("workshop.cast.attitude.friendly") : npc.attitude === "hostile" ? t("workshop.cast.attitude.hostile") : npc.attitude === "indifferent" ? t("workshop.cast.attitude.indifferent") : npc.attitude}
                     </span>
                     {npc.factionId && factionNames?.get(npc.factionId) ? (
                       <span className="flex items-center gap-0.5 rounded-sm border border-amber-800/60 bg-amber-950/30 px-1.5 py-0.5 text-[10px] tracking-wide text-amber-200/90">
