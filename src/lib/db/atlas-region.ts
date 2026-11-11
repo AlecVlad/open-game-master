@@ -1,3 +1,4 @@
+import type { WorldNoticeDetail } from "@/lib/worldforge/format";
 import { listLocations } from "@/lib/db/locations";
 import { getOverworld, setOverworldAnchor, setOverworldBackdrop } from "@/lib/db/overworld";
 import { getWorldDoc, saveWorldDoc } from "@/lib/db/world-forge";
@@ -310,8 +311,13 @@ export function importBridge(
   before: Pick<WorldDoc, "maps" | "pins">,
   doc: WorldDoc,
   input: { rootId: string; fresh: Set<string>; aspects: Map<string, number> },
-): { notes: string[]; finish: () => Placement[] } {
+): { notes: string[]; noteDetails: WorldNoticeDetail[]; finish: () => Placement[] } {
   const notes: string[] = [];
+  const noteDetails: WorldNoticeDetail[] = [];
+  const addNote = (message: string, code: string, params: Record<string, string | number> = {}) => {
+    notes.push(message);
+    noteDetails.push({ code, params });
+  };
   const known = new Set(before.maps.map((atlas) => atlas.id));
   doc.maps = doc.maps.map((atlas) => {
     const aspect = input.aspects.get(atlas.id) ?? 0;
@@ -328,7 +334,7 @@ export function importBridge(
     doc.pins = stood.doc.pins;
     target = regionMapOf(doc);
     backdrop = isUploadedImagePath(root.image) ? root.image : "";
-    notes.push(`${root.name} now stands over the Region map${backdrop ? " as its picture" : ""}, and the places pinned on it are placed there.`);
+    addNote(root.name + " now stands over the Region map" + (backdrop ? " as its picture" : "") + ", and the places pinned on it are placed there.", backdrop ? "workshop.world.import.note.regionRootWithPicture" : "workshop.world.import.note.regionRootWithoutPicture", { name: root.name });
   }
   const names = placeNames(campaignId);
   if (target) {
@@ -341,15 +347,16 @@ export function importBridge(
       return pin;
     });
     if (waiting === 1) {
-      notes.push(`One place pinned on ${over.name} was here before this file and kept its Region spot. Place it from the Atlas to line the two up.`);
+      addNote("One place pinned on " + over.name + " was here before this file and kept its Region spot. Place it from the Atlas to line the two up.", "workshop.world.import.note.regionPinsKept", { count: waiting, map: over.name });
     } else if (waiting) {
-      notes.push(`${waiting} places pinned on ${over.name} were here before this file and kept their Region spots. Place them from the Atlas to line the two up.`);
+      addNote(waiting + " places pinned on " + over.name + " were here before this file and kept their Region spots. Place them from the Atlas to line the two up.", "workshop.world.import.note.regionPinsKept", { count: waiting, map: over.name });
     }
   } else if (root && doc.pins.some((pin) => pin.mapId === root.id && input.fresh.has(pin.ref) && names.has(placeIdOf(pin)))) {
-    notes.push(`The Region map already shows its own picture, so the new places pinned on ${root.name} were not placed from it. Use that map as the Region backdrop to place them.`);
+    addNote("The Region map already shows its own picture, so the new places pinned on " + root.name + " were not placed from it. Use that map as the Region backdrop to place them.", "workshop.world.import.note.regionAlreadyHasPicture", { map: root.name });
   }
   return {
     notes,
+    noteDetails,
     finish: () => {
       if (backdrop) setOverworldBackdrop(campaignId, backdrop);
       return followPins(campaignId, before, doc);
