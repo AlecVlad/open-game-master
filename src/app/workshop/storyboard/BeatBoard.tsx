@@ -117,7 +117,7 @@ export function BeatBoard({
               ) : null}
               <span className="mt-auto flex items-center gap-1 text-[11px] text-stone-500">
                 <ArrowRight className="size-3" aria-hidden="true" />
-                {t("campaign.storyboard.leadsTo", { count: node.out.length })}
+                {tp("campaign.storyboard.leadsTo", node.out.length)}
                 {choices ? <span className="text-amber-300/70"> · {tp("campaign.storyboard.routesToChoose", choices)}</span> : null}
                 {optional ? <span className="text-sky-300/70"> · {tp("campaign.storyboard.optionalRoutes", optional)}</span> : null}
               </span>
