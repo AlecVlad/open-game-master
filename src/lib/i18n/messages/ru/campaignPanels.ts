@@ -3366,4 +3366,6 @@ export const ruCampaignPanels: Partial<Record<keyof typeof enCampaignPanels, str
 
   "campaign.session.roll.waitingFor": "Ожидаем, пока {name} бросит {expression}",
 
+  "campaign.session.floor.nextTurn": "следующий ход",
+
 };
