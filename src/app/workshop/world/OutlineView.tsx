@@ -8,7 +8,7 @@ import { ui } from "@/lib/ui";
 import { KitButton, PanelError } from "@/app/campaigns/[campaignId]/PanelKit";
 import { forgeReport, type ForgeApplied, type ReportLine } from "@/lib/worldforge/forge";
 import { outlineCounts, type Outline, type OutlineAsset, type OutlineEntry } from "@/lib/worldforge/outline";
-import type { Shelf } from "@/lib/worldforge/model";
+import { LINK_LABELS, type Shelf } from "@/lib/worldforge/model";
 import type { MadeAsset } from "@/lib/dm/world-outline";
 import type { WorldApi, WorldState } from "./useWorld";
 import type { OpenSystem } from "./WorldForgePanel";
@@ -93,6 +93,10 @@ export function OutlineView({ api, world, onOpen, onOpenSystem }: { api: WorldAp
   const nameOf = (key: string) => names[key] ?? entries.find((row) => row.existing === key)?.name ?? world.entities.find((entity) => entity.ref === key)?.name ?? key;
   const ticked = [...entries.filter((row) => picked[row.key] && !row.existing), ...assets.filter((row) => picked[row.key])];
   const counts = outline ? outlineCounts(outline) : null;
+  const localizedLink = (label: string) => {
+    const index = LINK_LABELS.indexOf(label as (typeof LINK_LABELS)[number]);
+    return index >= 0 ? t(`workshop.world.link.words.${index}`) : label;
+  };
 
   // The World ref a link end has now: an entry the world already had, or a
   // row made here.
@@ -244,9 +248,9 @@ export function OutlineView({ api, world, onOpen, onOpenSystem }: { api: WorldAp
                 {outline.links.map((link, index) => (
                   <li key={`${link.from}-${link.to}-${link.label}`} className="flex items-center gap-2 text-sm text-stone-300">
                     <label className={TICK}>
-                      <input type="checkbox" className="size-4 accent-amber-400" aria-label={t("workshop.world.outline.link.keepAria", { from: nameOf(link.from), label: link.label, to: nameOf(link.to) })} checked={Boolean(linkPicked[index])} onChange={(event) => setLinkPicked((now) => now.map((value, at) => (at === index ? event.target.checked : value)))} />
+                      <input type="checkbox" className="size-4 accent-amber-400" aria-label={t("workshop.world.outline.link.keepAria", { from: nameOf(link.from), label: localizedLink(link.label), to: nameOf(link.to) })} checked={Boolean(linkPicked[index])} onChange={(event) => setLinkPicked((now) => now.map((value, at) => (at === index ? event.target.checked : value)))} />
                     </label>
-                    {nameOf(link.from)} <span className="text-stone-500">{link.label}</span> {nameOf(link.to)}
+                    {nameOf(link.from)} <span className="text-stone-500">{localizedLink(link.label)}</span> {nameOf(link.to)}
                   </li>
                 ))}
               </ul>
@@ -301,7 +305,7 @@ export function OutlineView({ api, world, onOpen, onOpenSystem }: { api: WorldAp
                   </div>
                   {task.state === "made" && task.made ? (
                     <p className="text-xs text-stone-400">
-                      {t("workshop.world.outline.madeDetail", { name: task.made.name, lands: task.made.lands, detail: task.made.detail })}{task.made.entryError ? ` ${t("workshop.world.outline.entryNotMade", { error: task.made.entryError })}` : ""}
+                      {t("workshop.world.outline.madeDetail", { name: task.made.name, lands: t(task.made.kind === "creature" ? "workshop.world.outline.bestiary" : "workshop.world.outline.homebrew"), detail: task.made.detail })}{task.made.entryError ? ` ${t("workshop.world.outline.entryNotMade", { error: task.made.entryError })}` : ""}
                     </p>
                   ) : null}
                   {task.state === "failed" ? <p className="text-xs text-ember-300" role="alert">{task.error}</p> : null}
@@ -314,7 +318,7 @@ export function OutlineView({ api, world, onOpen, onOpenSystem }: { api: WorldAp
           ))}
           {linksUnticked.length ? (
             <p className="text-xs text-amber-300">
-              {t("workshop.world.outline.linksNotMade", { links: linksUnticked.map((link) => `${nameOf(link.from)} ${link.label} ${nameOf(link.to)}`).join("; ") })}
+              {t("workshop.world.outline.linksNotMade", { links: linksUnticked.map((link) => `${nameOf(link.from)} ${localizedLink(link.label)} ${nameOf(link.to)}`).join("; ") })}
             </p>
           ) : null}
           {waitingLinks.length ? (
@@ -335,7 +339,7 @@ export function OutlineView({ api, world, onOpen, onOpenSystem }: { api: WorldAp
 
 function assetLine(row: OutlineAsset, t: ReturnType<typeof useI18n>["t"]): string {
   if (row.kind === "creature") return `${t("workshop.world.outline.asset.creature")}, CR ${row.cr < 1 ? `1/${Math.round(1 / row.cr)}` : row.cr}${row.basis ? `, ${t("workshop.world.outline.asset.basedOn", { basis: row.basis })}` : `, ${t("workshop.world.outline.asset.original")}`} · ${t("workshop.world.outline.bestiary")}`;
-  return `${t("workshop.world.outline.asset.item")}, ${row.itemKind.replace(/_/g, " ")} · ${t("workshop.world.outline.homebrew")}`;
+  return `${t("workshop.world.outline.asset.item")}, ${t(`workshop.world.outline.asset.itemKind.${row.itemKind}`)} · ${t("workshop.world.outline.homebrew")}`;
 }
 
 function OutlineRow({ name, summary, picked, existing, onPick, onName, onOpen, children }: { name: string; summary: string; picked: boolean; existing: boolean; onPick: (value: boolean) => void; onName: (value: string) => void; onOpen?: () => void; children: React.ReactNode }) {
