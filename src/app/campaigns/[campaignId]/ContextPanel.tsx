@@ -35,7 +35,7 @@ const KIND_KEY: Record<BlockKind, string> = {
 function localizedBlockReason(reason: string, kind: BlockKind, t: ReturnType<typeof useI18n>["t"]): string {
   if (reason === "always included") return t("campaign.contextTrace.reason.alwaysIncluded");
   if (reason === "fits") return t("campaign.contextTrace.reason.fits");
-  const ofKind = reason.match(/^over the ([a-z]+) budget \\(([\\d,]+) > ([\\d,]+) tokens left\\)$/);
+  const ofKind = reason.match(/^over the ([a-z]+) budget \(([\d,]+) > ([\d,]+) tokens left\)$/);
   if (ofKind) {
     return t("campaign.contextTrace.reason.overKind", {
       kind: t((KIND_KEY[ofKind[1] as BlockKind] ?? KIND_KEY[kind]) as never),
@@ -43,11 +43,67 @@ function localizedBlockReason(reason: string, kind: BlockKind, t: ReturnType<typ
       remaining: ofKind[3],
     });
   }
-  const total = reason.match(/^over the total context budget \\(([\\d,]+) > ([\\d,]+) tokens\\)$/);
+  const total = reason.match(/^over the total context budget \(([\d,]+) > ([\d,]+) tokens\)$/);
   if (total) {
     return t("campaign.contextTrace.reason.overTotal", { total: total[1], limit: total[2] });
   }
   return reason;
+}
+
+function localizedArcReason(reason: string, t: ReturnType<typeof useI18n>["t"]): string {
+  const held = reason.startsWith("held back: ");
+  const raw = held ? reason.slice("held back: ".length) : reason;
+  const hintMatch = raw.match(/(?:^|; )(no act hint|hinted at act (\d+), (due|ahead))$/);
+  const hint = !hintMatch
+    ? ""
+    : hintMatch[1] === "no act hint"
+      ? t("campaign.contextTrace.arcReason.noActHint")
+      : t(hintMatch[3] === "due" ? "campaign.contextTrace.arcReason.due" : "campaign.contextTrace.arcReason.ahead", { act: Number(hintMatch[2]) });
+  const body = hintMatch ? raw.slice(0, hintMatch.index).replace(/; $/, "") : raw;
+  const sceneMatch = body.match(/matches the scene \(([^)]*)\)/);
+  const scene = sceneMatch ? t("campaign.contextTrace.arcReason.sceneMatch", { words: sceneMatch[1] }) : "";
+  const cause = body
+    .replace(/, though it matches the scene \([^)]*\)/, "")
+    .replace(/matches the scene \([^)]*\)/, "")
+    .replace(/^,\\s*/, "");
+  let causeText = "";
+  const maxEvents = cause.match(/^(\d+) events already shown$/);
+  const budget = cause.match(/^over the (\d+)-character event budget$/);
+  if (maxEvents) causeText = t("campaign.contextTrace.arcReason.maxEvents", { count: Number(maxEvents[1]) });
+  else if (budget) causeText = t("campaign.contextTrace.arcReason.budget", { count: Number(budget[1]) });
+  else if (cause && cause !== raw) causeText = cause;
+  const detail = [causeText, scene, hint].filter(Boolean).join("; ");
+  if (!detail) return reason;
+  return held ? t("campaign.contextTrace.arcReason.heldBack", { reason: detail }) : detail;
+}
+
+function localizedLoreCause(reason: string, t: ReturnType<typeof useI18n>["t"]): string {
+  return reason.split("; ").map((part) => {
+    const named = part.match(/^the ask names it \\("([^"]+)"\\)$/);
+    if (named) return t("campaign.contextTrace.loreReason.askNames", { word: named[1] });
+    if (part === "the scene names it") return t("campaign.contextTrace.loreReason.sceneNames");
+    if (part === "words match") return t("campaign.contextTrace.loreReason.wordsMatch");
+    if (part === "meaning matches") return t("campaign.contextTrace.loreReason.meaningMatches");
+    return part;
+  }).join("; ");
+}
+
+function localizedLoreReason(reason: string, t: ReturnType<typeof useI18n>["t"]): string {
+  if (reason === "pinned") return t("campaign.contextTrace.loreReason.pinned");
+  if (reason === "pinned; held back: over the lore budget") return t("campaign.contextTrace.loreReason.pinnedHeld");
+  const budget = reason.match(/^held back: over the lore budget \\(rank (\\d+), (.+)\\)$/);
+  if (budget) return t("campaign.contextTrace.loreReason.overBudget", { rank: Number(budget[1]), reason: localizedLoreCause(budget[2], t) });
+  const cap = reason.match(/^held back: over the cap of (\\d+) entries a turn \\((.+)\\)$/);
+  if (cap) return t("campaign.contextTrace.loreReason.overCap", { count: Number(cap[1]), reason: localizedLoreCause(cap[2], t) });
+  const near = reason.match(/^a near match \\(rank (\\d+)\\), not close enough to ride$/);
+  if (near) return t("campaign.contextTrace.loreReason.nearMatch", { rank: Number(near[1]) });
+  const ranked = reason.match(/^rank (\\d+): (.*?)(?:; excerpt (\\d+) characters)?$/);
+  if (ranked) {
+    const base = t("campaign.contextTrace.loreReason.rank", { rank: Number(ranked[1]), reason: localizedLoreCause(ranked[2], t) });
+    return ranked[3] ? t("campaign.contextTrace.loreReason.excerpt", { reason: base, count: Number(ranked[3]) }) : base;
+  }
+  if (reason.startsWith("held back: ")) return t("campaign.contextTrace.loreReason.heldBack", { reason: localizedLoreCause(reason.slice(11), t) });
+  return localizedLoreCause(reason, t);
 }
 
 // Palette is stone, amber and ember only (src/app/globals.css remaps the
