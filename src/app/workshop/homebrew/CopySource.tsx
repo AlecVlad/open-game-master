@@ -66,12 +66,12 @@ const FIELD_LABELS: Record<string, string> = {
 const same = (a: unknown, b: unknown) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
 
 // The fields a draft holds that differ from the draft its source would make.
-export function changedFields(draft: HomebrewDraft, source: HomebrewDraft): string[] {
+export function changedFields(draft: HomebrewDraft, source: HomebrewDraft, translate?: (key: string) => string): string[] {
   const keys = new Set([...Object.keys(draft.data), ...Object.keys(source.data)]);
   keys.delete("copiedFrom");
   return [...keys]
     .filter((key) => !same(draft.data[key], source.data[key]) && !(draft.data[key] === "" && source.data[key] === undefined))
-    .map((key) => FIELD_LABELS[key] ?? key);
+    .map((key) => (FIELD_LABELS[key] ? translate?.(`workshop.homebrew.copy.field.${key}`) ?? FIELD_LABELS[key] : key));
 }
 
 export function CopySource({ kind, draft }: { kind: EditorKind; draft: HomebrewDraft }) {
@@ -104,8 +104,8 @@ export function CopySource({ kind, draft }: { kind: EditorKind; draft: HomebrewD
   }, [from?.name, from?.slug, kind]);
 
   const changes = useMemo(
-    () => (source ? changedFields(draft, draftFromCatalog(kind, source, { classSlug: String(draft.data.classSlug ?? "") || undefined })) : null),
-    [source, draft, kind],
+    () => (source ? changedFields(draft, draftFromCatalog(kind, source, { classSlug: String(draft.data.classSlug ?? "") || undefined }), (key) => t(key as never)) : null),
+    [source, draft, kind, t],
   );
 
   if (!from?.name) return null;
