@@ -406,7 +406,7 @@ export function runContentImport(input: {
   arcMode?: ArcMode;
   // Kinds WorldForge needs that the DM chose to leave behind (WF-07).
   exclude?: readonly ImportKind[];
-}): ImportOutcome | { error: string } {
+}): ImportOutcome | { error: string; errorCode?: string } {
   const { sourceId, campaignId, houseRulesMode } = input;
   // WorldForge brings the records it describes unless the DM left one out.
   const selection = withRequired(input.selection, input.exclude);
@@ -414,10 +414,10 @@ export function runContentImport(input: {
   const source = getCampaignById(sourceId);
   const campaign = getCampaignById(campaignId);
   if (!source || !campaign) {
-    return { error: "Not found." };
+    return { error: "Not found.", errorCode: "workshop.contentImport.error.notFound" };
   }
   if (source.id === campaign.id) {
-    return { error: "Nothing can import into itself." };
+    return { error: "Nothing can import into itself.", errorCode: "workshop.contentImport.error.cannotImportSelf" };
   }
 
   // The table starts from every workshop this import draws on
