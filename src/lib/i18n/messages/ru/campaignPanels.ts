@@ -2651,6 +2651,15 @@ export const ruCampaignPanels: Partial<Record<keyof typeof enCampaignPanels, str
 
   "campaign.relationship.pact.nobody": "пока никто",
   "campaign.relationship.private.storyteller": "Это видит только ведущий.",
+
+  "campaign.relationship.tier.tip.hostile": "Враждебен, почти открытый враг",
+  "campaign.relationship.tier.tip.disliked": "Испытывает неприязнь",
+  "campaign.relationship.tier.tip.wary": "Относится настороженно",
+  "campaign.relationship.tier.tip.neutral": "Нейтрален",
+  "campaign.relationship.tier.tip.cordial": "Доброжелателен",
+  "campaign.relationship.tier.tip.friendly": "Дружелюбен",
+  "campaign.relationship.tier.tip.close": "Близкий и надёжный друг",
+  "campaign.relationship.tier.tip.devoted": "Предан",
 }; группа: {characters}. {note}",
   "campaign.dmWorkbench.budget.creaturesAgainstParty.few": "Состав противников: {count}; группа: {characters}. {note}",
   "campaign.dmWorkbench.budget.creaturesAgainstParty.many": "Состав противников: {count}; группа: {characters}. {note}",
