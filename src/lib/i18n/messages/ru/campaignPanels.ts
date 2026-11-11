@@ -3525,4 +3525,6 @@ export const ruCampaignPanels: Partial<Record<keyof typeof enCampaignPanels, str
   "campaign.session.hand.arrange.urgentWithDisplaced": "Срочные карты ({urgent}) заняли места первыми. Вытесненные карты ({displaced}) остаются среди остальных, пока снова не понадобятся. Выбранный порядок сохранён.",
   "campaign.session.hand.group.filterChip": "{label}: {count}",
 
+  "campaign.session.hand.react.promptWithoutReason": "Ответить реакцией на атаку?",
+
 };
