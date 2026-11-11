@@ -209,7 +209,7 @@ function HandInner({
   reactionsSent?: readonly string[];
   onReactionSent?: (characterId: string) => void;
 }) {
-  const { t } = useI18n();
+  const { t, tp } = useI18n();
   const turnId = turnCharacterId(encounter);
   const capabilities = useCapabilities();
   // A companion's reactions, for its commander or the GM seat that plays it
