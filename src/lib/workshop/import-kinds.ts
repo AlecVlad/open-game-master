@@ -108,6 +108,8 @@ export type BoardFacts = {
   moments: number;
   // Why the board cannot make an arc of its own, or "" when it can.
   arcProblem: string;
+  arcProblemCode?: string;
+  arcProblemParams?: Record<string, string | number>;
   // The cards behind `beats` and the moments, by title and in the same
   // order, so a preflight can NAME what the arc's caps would leave out
   // (issue #301). Older callers leave them off.
@@ -115,7 +117,11 @@ export type BoardFacts = {
   momentTitles?: string[];
   // Cards whose prose reads as compressed (src/lib/workshop/prose-check.ts),
   // said as a note the author can review (issue #302).
-  proseNotes?: Array<{ title: string; message: string }>;
+  proseNotes?: Array<{
+    title: string;
+    message: string;
+    reasons?: Array<{ kind: "joined-sentences" | "long-run" | "few-spaces"; count: number; minimum: number; sample: string }>;
+  }>;
 };
 
 // The arc a campaign already has, for a board joining it as a new act.
