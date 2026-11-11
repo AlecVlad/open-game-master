@@ -849,4 +849,10 @@ export const ruWorkshop: Partial<Record<keyof typeof enWorkshop, string>> = {
   "workshop.contentImport.worldLinkLabel.reportsTo": "подчиняется",
   "workshop.contentImport.worldLinkLabel.liegeOf": "сюзерен",
   "workshop.contentImport.worldLinkLabel.vassalOf": "вассал",
+  "workshop.rulesets.noun.few": "набора правил",
+  "workshop.rulesets.noun.other": "наборов правил",
+  "workshop.bestiary.noun.few": "существа",
+  "workshop.bestiary.noun.other": "существ",
+  "workshop.cast.noun.few": "персонажа",
+  "workshop.cast.noun.other": "персонажей",
 };
