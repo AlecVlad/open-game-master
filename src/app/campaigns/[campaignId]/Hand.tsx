@@ -10,7 +10,7 @@ import { Tooltip } from "@/components/ui/Tooltip";
 import { askConcentrationSwap, isConcentrationQuestion } from "@/components/concentration-prompt";
 import type { ConcentrationSwap } from "@/lib/dm/concentration-confirm-logic";
 import { HandAimBar, type HandTargetChip } from "@/app/campaigns/[campaignId]/HandAimBar";
-import { HandCardFace, HandPlayedCard } from "@/app/campaigns/[campaignId]/HandCardFace";
+import { HandCardFace, HandPlayedCard, costLabel } from "@/app/campaigns/[campaignId]/HandCardFace";
 import { HandArrange } from "@/app/campaigns/[campaignId]/HandArrange";
 import { HandMoreSheet } from "@/app/campaigns/[campaignId]/HandMoreSheet";
 import { HandGroupFace, HandGroupView, fanStep } from "@/app/campaigns/[campaignId]/HandGroups";
@@ -58,7 +58,9 @@ import type { Floor } from "@/lib/db/campaigns";
 import type { PublicEncounter } from "@/lib/db/encounter-view";
 import type { CharacterSheet } from "@/lib/schemas/sheet";
 import { useI18n } from "@/lib/i18n/provider";
+import { handShareUnit } from "@/lib/battlemap/hand-i18n";
 type Translator = ReturnType<typeof useI18n>["t"];
+type PluralTranslator = ReturnType<typeof useI18n>["tp"];
 
 // The Hand: on your turn in a fight, your options as cards above the message
 // box (docs/visual-overhaul-plan.md 5.2, 5.3, 5.7). It adds to the composer
@@ -103,7 +105,7 @@ function writeFlag(key: string, on: boolean) {
 // The board-native panel's mirror of the aim bar's share row (HandShares):
 // one more or one fewer dart, ray or beam on a creature, or a creature taken
 // or let go, as "id:+" and "id:-".
-function shareControl(card: HandCard, aim: HandAim, offered: HandTargetChip[], shares: HandShare[], t: Translator): BoardControl {
+function shareControl(card: HandCard, aim: HandAim, offered: HandTargetChip[], shares: HandShare[], t: Translator, tp: PluralTranslator): BoardControl {
   const rule = card.shares!;
   const list = shareList(card, aim, { shares });
   const count = (id: string) => list.find((share) => share.id === id)?.count ?? 0;
@@ -111,14 +113,14 @@ function shareControl(card: HandCard, aim: HandAim, offered: HandTargetChip[], s
   const others = offered.filter((target) => target.id !== aim.id);
   const options = rule.stack
     ? others.flatMap((target) => [
-        { value: `${target.id}:+`, label: t("campaign.session.hand.share.moreOne", { unit: rule.unit, name: target.name, count: count(target.id) }), disabled: left > 0 ? null : t("campaign.session.hand.share.everyUnitPlaced", { unit: rule.unit }) },
-        { value: `${target.id}:-`, label: t("campaign.session.hand.share.fewer", { unit: rule.unit, name: target.name }), disabled: count(target.id) ? null : t("campaign.session.hand.share.targetHasNone", { name: target.name }) },
+        { value: `${target.id}:+`, label: t("campaign.session.hand.share.moreOne", { unit: handShareUnit(rule.unit, 1, tp), name: target.name, count: count(target.id) }), disabled: left > 0 ? null : t("campaign.session.hand.share.everyUnitPlaced") },
+        { value: `${target.id}:-`, label: t("campaign.session.hand.share.fewer", { unit: handShareUnit(rule.unit, 1, tp), name: target.name }), disabled: count(target.id) ? null : t("campaign.session.hand.share.targetHasNone", { name: target.name }) },
       ])
     : others.map((target) => {
         const taken = count(target.id) > 0;
         return { value: `${target.id}:${taken ? "-" : "+"}`, label: `${taken ? "✓ " : ""}${target.name}`, disabled: taken || left > 0 ? null : t("campaign.session.hand.share.everyPlaceTaken") };
       });
-  return { id: "hand-share", label: rule.stack ? t("campaign.session.hand.share.distribute", { unit: rule.unit }) : t("campaign.session.hand.share.whoElse", { count: rule.count }), disabled: null, options };
+  return { id: "hand-share", label: rule.stack ? t("campaign.session.hand.share.distribute", { unit: handShareUnit(rule.unit, 5, tp) }) : t("campaign.session.hand.share.whoElse", { count: rule.count }), disabled: null, options };
 }
 
 // No reaction waits on the GM: the same empty list each render, so the memos
@@ -623,7 +625,7 @@ function HandInner({
     if (boardSwap) return { title: t("campaign.session.hand.board.replaceTitle", { name: boardSwap.current }), lines: [t("campaign.session.hand.board.replaceDescription", { next: boardSwap.next, current: boardSwap.current })], controls: [{ id: "hand-confirm", label: t("campaign.session.hand.board.cast", { name: boardSwap.next }), disabled: null }, { id: "hand-keep", label: t("campaign.session.hand.board.keep", { name: boardSwap.current }), disabled: null }, close] };
     if (boardChoices) {
       const matches = cards.filter(card => card.intent.card === (boardChoices === "attack" ? "attack" : "spell"));
-      return { title: boardChoices === "attack" ? t("campaign.session.hand.board.chooseWeapon") : t("campaign.session.hand.board.chooseSpell"), lines: [t("campaign.session.hand.board.actionHint"), ...(!matches.length ? [t("campaign.session.hand.board.noCards")] : []), ...(notice ? [notice] : [])], controls: [{ id: "hand-card", label: boardChoices === "attack" ? t("campaign.session.hand.board.weapon") : t("campaign.session.hand.board.spell"), disabled: null, options: matches.map(card => ({ value: card.id, label: `${card.name} · ${card.cost}${card.resource ? ` · ${card.resource}` : ""}${card.dice ? ` · ${card.dice}` : ""}`, disabled: card.disabled })) }, close] };
+      return { title: boardChoices === "attack" ? t("campaign.session.hand.board.chooseWeapon") : t("campaign.session.hand.board.chooseSpell"), lines: [t("campaign.session.hand.board.actionHint"), ...(!matches.length ? [t("campaign.session.hand.board.noCards")] : []), ...(notice ? [notice] : [])], controls: [{ id: "hand-card", label: boardChoices === "attack" ? t("campaign.session.hand.board.weapon") : t("campaign.session.hand.board.spell"), disabled: null, options: matches.map(card => ({ value: card.id, label: `${card.name} · ${costLabel(card.cost, t)}${card.resource ? ` · ${card.resource}` : ""}${card.dice ? ` · ${card.dice}` : ""}`, disabled: card.disabled })) }, close] };
     }
     if (!picked) return null;
     const option = (value: string, label: string, disabled: string | null = null) => ({ value, label, disabled });
@@ -634,13 +636,13 @@ function HandInner({
       ...(picked.choice && !picked.summon?.mix ? [{ id: "hand-choice" as const, label: picked.choice.label, value: barProps.choice ?? picked.choice.fallback ?? picked.choice.options[0]?.value, disabled: null, options: picked.choice.options.map(entry => option(entry.value, entry.label)) }] : []),
       // A summoning card's number and each target's form (issue 685).
       ...summonBoardControls(picked, { form: barProps.choice, ...(barProps.count !== null ? { count: barProps.count } : {}), mix: barProps.mix }),
-      ...(splits && picked.shares && aim && offered.some(target => target.id !== aim.id) ? [shareControl(picked, aim, offered, barProps.shares, t)] : []),
+      ...(splits && picked.shares && aim && offered.some(target => target.id !== aim.id) ? [shareControl(picked, aim, offered, barProps.shares, t, tp)] : []),
       ...(barProps.trigger !== null ? [{ id: "hand-trigger" as const, label: t("campaign.session.hand.board.trigger"), disabled: null, input: { value: barProps.trigger } }] : []),
       ...(picked.area && hasPick(picked.area, barProps.areaPick) ? [{ id: "hand-area-clear" as const, label: t("campaign.session.hand.board.clearArea"), disabled: null }] : []),
       { id: "hand-play", label: picked.compose ? t("campaign.session.hand.board.writeInChat") : t("campaign.session.hand.board.play", { name: picked.name }), disabled: inputBlocked && picked.cost !== "reaction" && picked.intent.card !== "reaction" ? blockedReason : handReady(picked, aim, { trigger: barProps.trigger ?? "", area: barProps.areaPick, ...(barProps.choice !== null ? { choice: barProps.choice } : {}), mix: barProps.mix }) ? null : picked.summon ? t("campaign.session.hand.board.chooseCreature") : t("campaign.session.hand.board.chooseTarget") },
       { id: "hand-edit", label: t("campaign.session.hand.board.editInChat"), disabled: null }, { id: "hand-back", label: t("campaign.session.hand.board.back"), disabled: null }, close,
     ] };
-  }, [boardNative, boardSwap, boardChoices, cards, picked, rows, sentence, offered, aim, attachedRiders, barProps.options, barProps.chosen, barProps.choice, barProps.count, barProps.mix, barProps.trigger, barProps.areaPick, barProps.shares, splits, notice, inputBlocked, blockedReason, t]);
+  }, [boardNative, boardSwap, boardChoices, cards, picked, rows, sentence, offered, aim, attachedRiders, barProps.options, barProps.chosen, barProps.choice, barProps.count, barProps.mix, barProps.trigger, barProps.areaPick, barProps.shares, splits, notice, inputBlocked, blockedReason, t, tp]);
   const nativeSignature = JSON.stringify([campaignId, sheet?.id, signature, nativePanel, sending && !boardSwap]);
   useEffect(() => {
     if (swapReply.current && swapTurn.current !== `${campaignId}:${sheet?.id}:${signature}`) {
