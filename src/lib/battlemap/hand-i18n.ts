@@ -54,6 +54,17 @@ const GROUP_COUNT_KEYS: Partial<Record<HandGroupKey, string>> = {
   "pool:sorcery_points": "campaign.session.hand.group.count.option",
 };
 
+const GROUP_NOUN_KEYS: Partial<Record<HandGroupKey, MessageKey>> = {
+  spells: "campaign.session.hand.group.noun.spell",
+  items: "campaign.session.hand.group.noun.card",
+  actions: "campaign.session.hand.group.noun.action",
+  "pool:ki": "campaign.session.hand.group.noun.technique",
+  "pool:sub_superiority_dice": "campaign.session.hand.group.noun.maneuver",
+  "pool:channel_divinity": "campaign.session.hand.group.noun.option",
+  "pool:sub_psionic_energy": "campaign.session.hand.group.noun.use",
+  "pool:sorcery_points": "campaign.session.hand.group.noun.option",
+};
+
 const POOL_COUNTER_KEYS: Partial<Record<HandGroupKey, MessageKey>> = {
   "pool:ki": "campaign.session.hand.group.counter.ki",
   "pool:sub_superiority_dice": "campaign.session.hand.group.counter.dice",
@@ -65,6 +76,11 @@ const POOL_COUNTER_KEYS: Partial<Record<HandGroupKey, MessageKey>> = {
 export function handGroupTitle(group: HandGroup, t: Translator): string {
   const key = GROUP_TITLE_KEYS[group.key];
   return key ? t(key) : group.name;
+}
+
+export function handGroupNounWord(group: HandGroup, t: Translator): string {
+  const key = GROUP_NOUN_KEYS[group.key];
+  return key ? t(key) : group.noun[1];
 }
 
 export function handGroupNoun(group: HandGroup, count: number, tp: PluralTranslator): string {
@@ -109,11 +125,9 @@ export function handSlotNote(note: string, t: Translator): string {
   let match = /^(\\d+) of (\\d+) slots$/.exec(note);
   if (match) return t("campaign.session.hand.group.slotNote.slots", { left: Number(match[1]), total: Number(match[2]) });
   match = /^(\\d+) of (\\d+) pact slots(?: \\(level (\\d+)\\))?$/.exec(note);
-  if (match) return t("campaign.session.hand.group.slotNote.pact", {
-    left: Number(match[1]),
-    total: Number(match[2]),
-    ...(match[3] ? { level: Number(match[3]) } : {}),
-  });
+  if (match) return match[3]
+    ? t("campaign.session.hand.group.slotNote.pactLevel", { left: Number(match[1]), total: Number(match[2]), level: Number(match[3]) })
+    : t("campaign.session.hand.group.slotNote.pact", { left: Number(match[1]), total: Number(match[2]) });
   match = /^level (\\d+) slots open$/.exec(note);
   if (match) return t("campaign.session.hand.group.slotNote.openLevel", { level: Number(match[1]) });
   match = /^cast with a level (\\d+) slot$/.exec(note);
