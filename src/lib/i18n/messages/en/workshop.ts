@@ -404,5 +404,16 @@ export const enWorkshop = {
   "workshop.create.way.extract": "Extract from notes",
   "workshop.create.model.story": "a text model, which an admin adds under Admin > Text model defaults",
   "workshop.create.model.images": "an image backend, which an admin adds under Admin > Image generation",
+  "workshop.header.allWorkshops": "All workshops",
+  "workshop.header.name": "Workshop name",
+  "workshop.header.rename": "Rename this workshop",
+  "workshop.header.help.aria": "How workshops work",
+  "workshop.header.help.title": "Guides and tours",
+  "workshop.header.duplicate.aria": "Duplicate {name}",
+  "workshop.header.duplicate.title": "Duplicate this workshop and everything in it",
+  "workshop.header.delete.aria": "Delete {name}",
+  "workshop.header.delete.title": "Delete this workshop",
+  "workshop.header.delete.confirm": "Delete \"{name}\"? Every map, NPC, table and note in it is lost. Anything already imported into a campaign stays there.",
+  "workshop.header.importBundle": "Import a bundle",
 
 } satisfies Record<string, string>;
