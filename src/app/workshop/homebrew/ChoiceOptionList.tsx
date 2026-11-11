@@ -2,6 +2,7 @@
 
 import { ArrowDown, ArrowUp, Plus, X } from "lucide-react";
 import { useState, type ReactNode } from "react";
+import { useT } from "@/lib/i18n/provider";
 import { flushSync } from "react-dom";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui";
@@ -36,6 +37,7 @@ export function ChoiceOptionList({
   limits: { options: number; minOptions: number; name: number };
   placeholder: string;
 }) {
+  const t = useT();
   const [newName, setNewName] = useState("");
   // The option just added opens, ready for its grants.
   const [fresh, setFresh] = useState<string | null>(null);
@@ -59,9 +61,9 @@ export function ChoiceOptionList({
   const rowAttr = (id: string) => ({ [`data-${attr}-option`]: id });
   return (
     <div className="space-y-2" {...{ [`data-${attr}-list`]: "" }}>
-      <ul className="space-y-1.5" aria-label="Options">
+      <ul className="space-y-1.5" aria-label={t("workshop.homebrew.choice.options")}>
         {options.map((option, index) => {
-          const optionName = String(option.name ?? "").trim() || `Option ${index + 1}`;
+          const optionName = String(option.name ?? "").trim() || t("workshop.homebrew.choice.option", { number: index + 1 });
           const key = String(option.id ?? "") || `at-${index}`;
           return (
             <li key={key} className="live-in flex items-start gap-1" {...rowAttr(String(option.id ?? ""))}>
@@ -72,7 +74,7 @@ export function ChoiceOptionList({
               </div>
               <button
                 type="button"
-                aria-label={`Move ${optionName} up`}
+                aria-label={t("workshop.homebrew.choice.moveUp", { name: optionName })}
                 disabled={index === 0}
                 onClick={() => move(index, -1)}
                 className={cn(ui.iconAction, rowIcon, "disabled:opacity-40")}
@@ -81,7 +83,7 @@ export function ChoiceOptionList({
               </button>
               <button
                 type="button"
-                aria-label={`Move ${optionName} down`}
+                aria-label={t("workshop.homebrew.choice.moveDown", { name: optionName })}
                 disabled={index === options.length - 1}
                 onClick={() => move(index, 1)}
                 className={cn(ui.iconAction, rowIcon, "disabled:opacity-40")}
@@ -90,7 +92,7 @@ export function ChoiceOptionList({
               </button>
               <button
                 type="button"
-                aria-label={`Remove ${optionName}`}
+                aria-label={t("workshop.homebrew.choice.remove", { name: optionName })}
                 onClick={() => putOptions(options.filter((_, at) => at !== index))}
                 className={cn(ui.iconAction, rowIcon, "hover:text-red-300")}
               >
@@ -101,7 +103,7 @@ export function ChoiceOptionList({
         })}
       </ul>
       <div className="flex flex-wrap items-end gap-2">
-        <TextField label="New option's name" value={newName} onChange={setNewName} placeholder={placeholder} maxLength={limits.name} className="min-w-48 grow sm:grow-0" />
+        <TextField label={t("workshop.homebrew.choice.newName")} value={newName} onChange={setNewName} placeholder={placeholder} maxLength={limits.name} className="min-w-48 grow sm:grow-0" />
         <button
           type="button"
           onClick={(event) => {
@@ -116,11 +118,11 @@ export function ChoiceOptionList({
           disabled={!name || full}
           className={cn(ui.btnSmall, addChip)}
         >
-          <Plus className="size-3" /> Add option
+          <Plus className="size-3" /> {t("workshop.homebrew.choice.add")}
         </button>
         <span className="pb-2 text-[11px] text-stone-400" {...{ [`data-${attr}-option-count`]: "" }}>
-          {options.length} of {limits.options}
-          {options.length < limits.minOptions ? `: a choice needs ${limits.minOptions}` : ""}
+          {t("workshop.homebrew.choice.count", { count: options.length, max: limits.options })}
+          {options.length < limits.minOptions ? t("workshop.homebrew.choice.needMore", { min: limits.minOptions }) : ""}
         </span>
       </div>
     </div>
