@@ -2,11 +2,12 @@
 
 import { Check, Sparkles } from "lucide-react";
 import { useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui";
 import { Select } from "@/components/ui/Select";
 import { KitButton, PanelError } from "@/app/campaigns/[campaignId]/PanelKit";
-import { forgeReport, type ForgeApplied, type ForgeEntity, type ForgeLink, type ForgePreview } from "@/lib/worldforge/forge";
+import type { ForgeApplied, ForgeEntity, ForgeLink, ForgePreview } from "@/lib/worldforge/forge";
 import type { WorldApi, WorldState } from "./useWorld";
 import { TypeChip, typeOf } from "./world-ui";
 
@@ -24,7 +25,79 @@ import { TypeChip, typeOf } from "./world-ui";
 type Row = ForgeEntity & { keep: boolean };
 type LinkRow = ForgeLink & { keep: boolean };
 
+const FORGE_LINK_KEYS: Record<string, string> = {
+  "allied with": "workshop.contentImport.worldLinkLabel.alliedWith",
+  "enemy of": "workshop.contentImport.worldLinkLabel.enemyOf",
+  "friend of": "workshop.contentImport.worldLinkLabel.friendOf",
+  "rival of": "workshop.contentImport.worldLinkLabel.rivalOf",
+  loves: "workshop.contentImport.worldLinkLabel.loves",
+  fears: "workshop.contentImport.worldLinkLabel.fears",
+  serves: "workshop.contentImport.worldLinkLabel.serves",
+  "mentor of": "workshop.contentImport.worldLinkLabel.mentorOf",
+  "member of": "workshop.contentImport.worldLinkLabel.memberOf",
+  rules: "workshop.contentImport.worldLinkLabel.rules",
+  "lives in": "workshop.contentImport.worldLinkLabel.livesIn",
+  "located in": "workshop.contentImport.worldLinkLabel.locatedIn",
+  worships: "workshop.contentImport.worldLinkLabel.worships",
+  guards: "workshop.contentImport.worldLinkLabel.guards",
+  seeks: "workshop.contentImport.worldLinkLabel.seeks",
+  created: "workshop.contentImport.worldLinkLabel.created",
+  destroyed: "workshop.contentImport.worldLinkLabel.destroyed",
+  "parent of": "workshop.contentImport.worldLinkLabel.parentOf",
+  "child of": "workshop.contentImport.worldLinkLabel.childOf",
+  "spouse of": "workshop.contentImport.worldLinkLabel.spouseOf",
+  "sibling of": "workshop.contentImport.worldLinkLabel.siblingOf",
+  "descended from": "workshop.contentImport.worldLinkLabel.descendedFrom",
+  "superior of": "workshop.contentImport.worldLinkLabel.superiorOf",
+  "reports to": "workshop.contentImport.worldLinkLabel.reportsTo",
+  "liege of": "workshop.contentImport.worldLinkLabel.liegeOf",
+  "vassal of": "workshop.contentImport.worldLinkLabel.vassalOf",
+};
+
+function forgeReportLines(applied: ForgeApplied, t: (key: string, params?: Record<string, string | number>) => string, tp: (key: string, count: number) => string) {
+  const added = [
+    applied.created ? tp("workshop.world.forge.report.count.entries", applied.created) : "",
+    applied.links ? tp("workshop.world.forge.report.count.links", applied.links) : "",
+  ].filter(Boolean);
+  const kept = applied.stubs ? tp("workshop.world.forge.report.count.stubs", applied.stubs) : "";
+  const lines: Array<{ text: string; left: boolean }> = [{
+    text: added.length
+      ? t("workshop.world.forge.report.summary.added", { added: added.join(", "), kept })
+      : kept
+        ? t("workshop.world.forge.report.summary.onlyStubs", { kept })
+        : t("workshop.world.forge.report.summary.nothing"),
+    left: false,
+  }];
+  if (applied.made.length) {
+    lines.push({ text: t("workshop.world.forge.report.newEntries", { names: applied.made.map((row) => row.name).join(", ") }), left: false });
+  }
+  if (applied.failed.length) {
+    const entries = applied.failed.map((row) => {
+      const reason = row.errorCode ? t(row.errorCode as never, row.errorParams) : row.error;
+      return `${row.name} (${reason})`;
+    }).join("; ");
+    lines.push({ text: t("workshop.world.forge.report.notAdded", { entries }), left: true });
+  }
+  if (applied.linksLeft.length) {
+    const entries = applied.linksLeft.map((link) => {
+      const label = FORGE_LINK_KEYS[link.label] ? t(FORGE_LINK_KEYS[link.label] as never) : link.label;
+      const reason = link.whyCode ? t(link.whyCode as never, link.whyParams) : link.why;
+      return `${link.from} ${label} ${link.to} (${reason})`;
+    }).join("; ");
+    lines.push({ text: t("workshop.world.forge.report.linksLeft", { entries }), left: true });
+  }
+  if (applied.stubsLeft.length) {
+    const entries = applied.stubsLeft.map((stub) => {
+      const reason = stub.whyCode ? t(stub.whyCode as never, stub.whyParams) : stub.why;
+      return `${stub.name} (${reason})`;
+    }).join("; ");
+    lines.push({ text: t("workshop.world.forge.report.stubsLeft", { entries }), left: true });
+  }
+  return { lines, partial: applied.failed.length > 0 || applied.linksLeft.length > 0 || applied.stubsLeft.length > 0 };
+}
+
 export function ForgeView({ api, world, onOpen }: { api: WorldApi; world: WorldState; onOpen: (ref: string) => void }) {
+  const { t, tp } = useI18n();
   const { doc, entities } = world;
   const [text, setText] = useState("");
   const [hint, setHint] = useState("");
@@ -32,7 +105,7 @@ export function ForgeView({ api, world, onOpen }: { api: WorldApi; world: WorldS
   const [rows, setRows] = useState<Row[] | null>(null);
   const [links, setLinks] = useState<LinkRow[]>([]);
   const [stubTheRest, setStubTheRest] = useState(true);
-  const [report, setReport] = useState<ReturnType<typeof forgeReport> | null>(null);
+  const [report, setReport] = useState<ForgeApplied | null>(null);
   const nameOf = (key: string) => rows?.find((row) => row.key === key)?.name ?? entities.find((entity) => entity.ref === key)?.name ?? key;
 
   async function forge() {
@@ -59,11 +132,13 @@ export function ForgeView({ api, world, onOpen }: { api: WorldApi; world: WorldS
     });
     setBusy(false);
     if (!result) return;
-    setReport(forgeReport(result as unknown as ForgeApplied));
+    setReport(result as unknown as ForgeApplied);
     setRows(null);
     setLinks([]);
     setText("");
   }
+
+  const reportView = report ? forgeReportLines(report, t, (key, count) => tp(key as never, count)) : null;
 
   const set = (key: string, patch: Partial<Row>) => setRows((current) => current?.map((row) => (row.key === key ? { ...row, ...patch } : row)) ?? null);
 
@@ -79,8 +154,8 @@ export function ForgeView({ api, world, onOpen }: { api: WorldApi; world: WorldS
       </div>
       {api.error ? <PanelError>{api.error}</PanelError> : null}
       {report ? (
-        <div className={cn("motion-pop flex flex-col gap-0.5 rounded-lg border px-3 py-2 text-xs text-stone-200", report.partial ? "border-amber-600/50 bg-amber-900/15" : "border-emerald-700/40 bg-emerald-900/15")} role="status" data-testid="forge-report">
-          {report.lines.map((line, at) => (
+        <div className={cn("motion-pop flex flex-col gap-0.5 rounded-lg border px-3 py-2 text-xs text-stone-200", reportView?.partial ? "border-amber-600/50 bg-amber-900/15" : "border-emerald-700/40 bg-emerald-900/15")} role="status" data-testid="forge-report">
+          {reportView?.lines.map((line, at) => (
             <p key={at} className={line.left ? "text-amber-200" : undefined}>{line.text}</p>
           ))}
         </div>
