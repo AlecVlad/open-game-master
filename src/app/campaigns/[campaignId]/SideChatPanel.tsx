@@ -4,6 +4,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { ArrowLeft, Bell, BellOff, Loader2, Plus, Send } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { cn } from "@/lib/cn";
+import { useI18n } from "@/lib/i18n/provider";
 import { ui } from "@/lib/ui";
 import { setChimeMuted, useChimeMuted } from "@/app/campaigns/[campaignId]/useChatChime";
 import { GameIcon } from "@/components/ui/GameIcon";
@@ -36,6 +37,7 @@ export function SideChatPanel({
   openThreadRequest: string | null;
   onOpenHandled: () => void;
 }) {
+  const { t } = useI18n();
   const [openThreadId, setOpenThreadId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState("");
@@ -54,16 +56,16 @@ export function SideChatPanel({
         });
         const data = await response.json().catch(() => ({}));
         if (!response.ok) {
-          setError(data.error || "Could not open the chat.");
+          setError(data.error || t("campaign.session.sideChat.error.open"));
           return;
         }
         await refreshSideChat();
         setOpenThreadId(data.thread.id);
       } catch {
-        setError("Could not reach the server.");
+        setError(t("campaign.session.sideChat.error.network"));
       }
     },
-    [campaignId, refreshSideChat],
+    [campaignId, refreshSideChat, t],
   );
 
   useEffect(() => {
@@ -79,8 +81,8 @@ export function SideChatPanel({
   }, [openThreadRequest, onOpenHandled, openDmWith]);
 
   const nameOf = useCallback(
-    (userId: string) => members.find((member) => member.userId === userId)?.username ?? "someone",
-    [members],
+    (userId: string) => members.find((member) => member.userId === userId)?.username ?? t("campaign.session.sideChat.someone"),
+    [members, t],
   );
 
   function threadLabel(thread: SideThread): string {
@@ -108,30 +110,30 @@ export function SideChatPanel({
   return (
     <div className="space-y-3">
       <SectionHead
-        title="Private chats"
+        title={t("campaign.session.sideChat.title")}
         glyph="tab-chat"
         aside={
           <>
             <KitButton
               onClick={() => setChimeMuted(!chimeMuted)}
               aria-pressed={!chimeMuted}
-              aria-label={chimeMuted ? "Chime muted" : "Chime on"}
+              aria-label={chimeMuted ? t("campaign.session.sideChat.chime.muted") : t("campaign.session.sideChat.chime.on")}
               title={
                 chimeMuted
-                  ? "Chime muted. Click to play a chime when a private message arrives."
-                  : "The chime plays when a private message arrives. Click to mute."
+                  ? t("campaign.session.sideChat.chime.mutedHint")
+                  : t("campaign.session.sideChat.chime.onHint")
               }
             >
               {chimeMuted ? <BellOff className="size-3.5" /> : <Bell className="size-3.5" />}
             </KitButton>
             <KitButton onClick={() => setCreating(true)}>
-              <Plus className="size-3.5" /> New
+              <Plus className="size-3.5" /> {t("campaign.session.sideChat.new")}
             </KitButton>
           </>
         }
       />
       <p className="text-xs leading-5 text-stone-500">
-        Only the people in a chat can read it. The Game Master never sees these.
+        {t("campaign.session.sideChat.privacy")}
       </p>
       {error ? <PanelError className="text-sm">{error}</PanelError> : null}
 
@@ -139,10 +141,10 @@ export function SideChatPanel({
         <EmptyState
           size="sm"
           art="board"
-          title="No side chats yet. Whisper a party member from their card, or start one here."
+          title={t("campaign.session.sideChat.empty")}
           action={
             <KitButton onClick={() => setCreating(true)}>
-              <Plus className="size-3.5" /> New
+              <Plus className="size-3.5" /> {t("campaign.session.sideChat.new")}
             </KitButton>
           }
         />
@@ -200,6 +202,7 @@ function NewChatForm({
   onCreated: (threadId: string) => Promise<void>;
   onCancel: () => void;
 }) {
+  const { t } = useI18n();
   const [selected, setSelected] = useState<string[]>([]);
   const [title, setTitle] = useState("");
   const [busy, setBusy] = useState(false);
@@ -207,7 +210,7 @@ function NewChatForm({
 
   async function create() {
     if (selected.length === 0) {
-      setError("Pick at least one member.");
+      setError(t("campaign.session.sideChat.error.pickMember"));
       return;
     }
     setBusy(true);
@@ -224,12 +227,12 @@ function NewChatForm({
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError(data.error || "Could not create the chat.");
+        setError(data.error || t("campaign.session.sideChat.error.create"));
         return;
       }
       await onCreated(data.thread.id);
     } catch {
-      setError("Could not reach the server.");
+      setError(t("campaign.session.sideChat.error.network"));
     } finally {
       setBusy(false);
     }
@@ -237,7 +240,7 @@ function NewChatForm({
 
   return (
     <div className="panel rounded-lg p-3">
-      <SectionHead title="Who&apos;s in it?" glyph="tab-party" level="h4" />
+      <SectionHead title={t("campaign.session.sideChat.form.title")} glyph="tab-party" level="h4" />
       <ul className="stagger space-y-1">
         {members.map((member) => (
           <li key={member.userId}>
@@ -259,15 +262,15 @@ function NewChatForm({
           value={title}
           onChange={(event) => setTitle(event.target.value)}
           maxLength={80}
-          placeholder="Group name (optional)"
+          placeholder={t("campaign.session.sideChat.form.groupName")}
           className={cn(ui.input, "mt-2 text-sm")}
         />
       ) : null}
       {error ? <PanelError className="mt-2">{error}</PanelError> : null}
       <div className="mt-2 flex justify-end gap-2">
-        <KitButton onClick={onCancel}>Cancel</KitButton>
+        <KitButton onClick={onCancel}>{t("campaign.session.sideChat.form.cancel")}</KitButton>
         <KitButton tone="primary" onClick={create} disabled={busy} busy={busy}>
-          Start chat
+          {t("campaign.session.sideChat.form.start")}
         </KitButton>
       </div>
     </div>
@@ -291,6 +294,7 @@ function ThreadView({
   refreshSideChat: () => Promise<void>;
   onBack: () => void;
 }) {
+  const { t } = useI18n();
   const [messages, setMessages] = useState<SideMessage[]>([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
@@ -372,7 +376,7 @@ function ThreadView({
       );
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError(data.error || "Could not send.");
+        setError(data.error || t("campaign.session.sideChat.error.send"));
         return;
       }
       setInput("");
@@ -382,19 +386,19 @@ function ThreadView({
       setMessages((current) => [...current, message]);
       lastSeqRef.current = Math.max(lastSeqRef.current, message.seq);
     } catch {
-      setError("Could not reach the server.");
+      setError(t("campaign.session.sideChat.error.network"));
     } finally {
       setSending(false);
     }
   }
 
   const nameOf = (userId: string) =>
-    members.find((member) => member.userId === userId)?.username ?? "someone";
+    members.find((member) => member.userId === userId)?.username ?? t("campaign.session.sideChat.someone");
 
   return (
     <div className="flex h-full flex-col">
       <div className="mb-2 flex items-center gap-2">
-        <KitButton tone="icon" always onClick={onBack} title="All chats" aria-label="All chats">
+        <KitButton tone="icon" always onClick={onBack} title={t("campaign.session.sideChat.thread.all")} aria-label={t("campaign.session.sideChat.thread.all")}>
           <ArrowLeft className="size-4" />
         </KitButton>
         <GameIcon icon={{ kind: "glyph", key: thread.kind === "dm" ? "tab-chat" : "tab-party" }} size="size-6" className="shrink-0" />
@@ -453,14 +457,14 @@ function ThreadView({
             }}
             rows={1}
             maxLength={2000}
-            placeholder={`Message ${label}`}
-            aria-label={`Message ${label}`}
+            placeholder={t("campaign.session.sideChat.thread.messagePlaceholder", { label })}
+            aria-label={t("campaign.session.sideChat.thread.messageAria", { label })}
             className="flex-1 resize-none bg-transparent px-1.5 py-1 text-sm text-stone-200 outline-none"
           />
           <button
             type="submit"
             disabled={sending || !input.trim()}
-            aria-label="Send"
+            aria-label={t("campaign.session.sideChat.thread.send")}
             className={cn(ui.btnPrimary, "pk-tap size-9 shrink-0 px-0 disabled:opacity-40")}
           >
             {sending ? <Loader2 className="size-3.5 animate-spin" /> : <Send className="size-3.5" />}
