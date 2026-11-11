@@ -262,10 +262,11 @@ export function PaintTools({
   stranded: Array<{ id: string; name: string }>;
   undo?: { canUndo: boolean; canRedo: boolean; onUndo: () => void; onRedo: () => void };
 }) {
+  const { t } = useI18n();
   return (
     <div className="panel reveal space-y-2 rounded-lg p-2.5">
-      <SectionHead title="Paint terrain" glyph="climate-temperate" level="h4" />
-      <div data-pill-group="" role="group" aria-label="Brush" className="flex flex-wrap items-center gap-1">
+      <SectionHead title={t("campaign.overworld.paint.title")} glyph="climate-temperate" level="h4" />
+      <div data-pill-group="" role="group" aria-label={t("campaign.overworld.paint.brush")} className="flex flex-wrap items-center gap-1">
         {OVERWORLD_BRUSHES.map((value) => (
           <button data-on={brush === value ? "" : undefined}
             key={value}
@@ -283,38 +284,36 @@ export function PaintTools({
         ))}
       </div>
       <div className="flex flex-wrap items-center gap-2 text-xs text-stone-400">
-        Brush size
-        <Slider min={0} max={MAX_BRUSH_RADIUS} value={radius} onChange={onRadius} label="Brush size" className="pk-w-28" />
-        <span className="text-stone-500">{radius === 0 ? "one tile" : `${radius * 2 + 1} across`}</span>
+        {t("campaign.overworld.paint.brushSize")}
+        <Slider min={0} max={MAX_BRUSH_RADIUS} value={radius} onChange={onRadius} label={t("campaign.overworld.paint.brushSize")} className="pk-w-28" />
+        <span className="text-stone-500">{radius === 0 ? t("campaign.overworld.paint.oneTile") : t("campaign.overworld.paint.radiusAcross", { count: radius * 2 + 1 })}</span>
         {undo ? (
           <span className="ml-auto flex items-center gap-1">
             <button
               type="button"
               onClick={undo.onUndo}
               disabled={!undo.canUndo}
-              title="Undo (Ctrl+Z)"
+              title={t("campaign.overworld.history.undo")}
               className={cn(chip, undo.canUndo ? idle : "border-stone-800 text-stone-700")}
             >
-              Undo
+              {t("campaign.overworld.history.undo").replace(" (Ctrl+Z)", "")}
             </button>
             <button
               type="button"
               onClick={undo.onRedo}
               disabled={!undo.canRedo}
-              title="Redo (Ctrl+Shift+Z)"
+              title={t("campaign.overworld.history.redo")}
               className={cn(chip, undo.canRedo ? idle : "border-stone-800 text-stone-700")}
             >
-              Redo
+              {t("campaign.overworld.history.redo").replace(" (Ctrl+Shift+Z)", "")}
             </button>
           </span>
         ) : null}
       </div>
-      <p className="text-xs text-stone-500">Press and drag to paint; the tiles land when you let go.</p>
+      <p className="text-xs text-stone-500">{t("campaign.overworld.paint.dragHint")}</p>
       {stranded.length ? (
         <p role="status" className="live-in text-xs text-amber-300/90">
-          {stranded.map((place) => place.name).filter(Boolean).join(", ")}{" "}
-          {stranded.length === 1 ? "is" : "are"} now standing in sea or on a peak. The marker
-          stays where you put it; move it with Move a place if that was not the idea.
+          {t("campaign.overworld.paint.stranded", { places: stranded.map((place) => place.name).filter(Boolean).join(", ") })}
         </p>
       ) : null}
     </div>
@@ -342,10 +341,12 @@ export function LineTools({
   onUndo: () => void;
   onCancel: () => void;
 }) {
+  const { t, tp } = useI18n();
+  const kindLabel = t(`campaign.overworld.line.${kind}` as never);
   return (
     <div className="panel reveal space-y-2 rounded-lg p-2.5">
-      <SectionHead title="Draw a line" glyph="pace-normal" level="h4" />
-      <div data-pill-group="" role="group" aria-label="Kind of line" className="flex flex-wrap items-center gap-1">
+      <SectionHead title={t("campaign.overworld.mode.drawLine")} glyph="pace-normal" level="h4" />
+      <div data-pill-group="" role="group" aria-label={t("campaign.overworld.line.kind")} className="flex flex-wrap items-center gap-1">
         {PATH_KINDS.map((value) => (
           <button data-on={kind === value ? "" : undefined}
             key={value}
@@ -362,16 +363,16 @@ export function LineTools({
           value={label}
           maxLength={FEATURE_LIMITS.labelLength}
           onChange={(event) => onLabel(event.target.value)}
-          placeholder={`Name the ${kind} (optional)`}
-          aria-label={`Name the ${kind} (optional)`}
+          placeholder={t("campaign.overworld.line.namePlaceholder", { kind: kindLabel })}
+          aria-label={t("campaign.overworld.line.namePlaceholder", { kind: kindLabel })}
           className={cn(panelField, "w-auto min-w-32 flex-1")}
         />
       </div>
       <div className="flex flex-wrap items-center gap-1.5 text-xs text-stone-500">
         <span>
           {pendingCount === 0
-            ? "Tap where it starts, then along its course."
-            : `${pendingCount} point${pendingCount === 1 ? "" : "s"} so far.`}
+            ? t("campaign.overworld.line.hint")
+            : tp("campaign.overworld.line.pendingPoints", pendingCount)}
         </span>
         <button
           type="button"
@@ -379,13 +380,13 @@ export function LineTools({
           onClick={onFinish}
           className={kitButtonClass("primary", "disabled:opacity-40")}
         >
-          Finish the {kind}
+          {t("campaign.overworld.line.finish", { kind: kindLabel })}
         </button>
         <button type="button" disabled={pendingCount === 0} onClick={onUndo} className={cn(chip, idle, "disabled:opacity-40")}>
-          Undo a point
+          {t("campaign.overworld.line.undoPoint")}
         </button>
         <button type="button" disabled={pendingCount === 0} onClick={onCancel} className={cn(chip, idle, "disabled:opacity-40")}>
-          Cancel
+          {t("campaign.overworld.line.cancel")}
         </button>
       </div>
     </div>
