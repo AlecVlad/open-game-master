@@ -22,31 +22,31 @@ function localizeTradeError(error: string | undefined, t: Translator, fromName: 
   if (error === "You have no character to trade with.") return t("campaign.trade.errors.noCharacter");
   if (error === "Pick another character at this table.") return t("campaign.trade.errors.pickCharacter");
 
-  const missingItem = error.match(/^(.+) no longer carries (?:(\\d+) )?(.+)\\.$/);
+  const missingItem = error.match(/^(.+) no longer carries (?:(\d+) )?(.+)\.$/);
   if (missingItem) {
     return t(missingItem[1] === fromName ? "campaign.trade.errors.missingFrom" : "campaign.trade.errors.missingTo", {
       name: missingItem[1],
       item: missingItem[2] ? `${missingItem[2]} ${missingItem[3]}` : missingItem[3],
     });
   }
-  const absentItem = error.match(/^(.+) does not carry (?:(\\d+) )?(.+)\\.$/);
+  const absentItem = error.match(/^(.+) does not carry (?:(\d+) )?(.+)\.$/);
   if (absentItem) {
-    return t(missingItem && absentItem[1] === fromName ? "campaign.trade.errors.missingFrom" : "campaign.trade.errors.missingTo", {
+    return t(absentItem[1] === toName ? "campaign.trade.errors.missingTo" : "campaign.trade.errors.missingFrom", {
       name: absentItem[1],
       item: absentItem[2] ? `${absentItem[2]} ${absentItem[3]}` : absentItem[3],
     });
   }
-  const missingCoins = error.match(/^(.+) no longer has (.+)\\.$/);
+  const missingCoins = error.match(/^(.+) no longer has (.+)\.$/);
   if (missingCoins) {
     return t("campaign.trade.errors.coinsFrom", { name: missingCoins[1], price: missingCoins[2] });
   }
-  const absentCoins = error.match(/^(.+) does not have (.+)\\.$/);
+  const absentCoins = error.match(/^(.+) does not have (.+)\.$/);
   if (absentCoins) {
     return t("campaign.trade.errors.coinsTo", { name: absentCoins[1], price: absentCoins[2] });
   }
-  const paused = error.match(/^The table is paused: (.+) called a break\\. Use OOC for table talk until it resumes\\.$/);
+  const paused = error.match(/^The table is paused: (.+) called a break\. Use OOC for table talk until it resumes\.$/);
   if (paused) return t("campaign.trade.errors.break", { name: paused[1] });
-  const ended = error.match(/^Session (\\d+) is over\\. Use OOC for table talk until the next session starts\\.$/);
+  const ended = error.match(/^Session (\d+) is over\. Use OOC for table talk until the next session starts\.$/);
   if (ended) return t("campaign.trade.errors.session", { number: ended[1] });
 
   return t("campaign.trade.errors.offer");
