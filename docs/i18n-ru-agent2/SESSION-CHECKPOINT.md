@@ -33,13 +33,15 @@ Single restore point for Russian localization. After a chat interruption, read o
 - `CompanionCommand.tsx`: turn-control options, current-controller hint, group accessibility label and generic save/network errors localized; `commandedBy` values and account names remain unchanged.
 - `CompanionBuilderDialog.tsx`: title, descriptions, library list, confirmation, actions, close label, submit button and generic API fallbacks localized. Companion IDs, sheets, levels and builder payloads remain unchanged; the embedded shared `CharacterBuilder` is not modified.
 - `CompanionKeepButton.tsx` and `CompanionPaintButton.tsx`: save-to-library labels/tooltips, saved states, portrait generation labels/tooltips and generic errors localized. Companion IDs, portrait URLs and image queue polling remain unchanged.
+- `DmMapLibraryPanel.tsx`: map-library resource/loading/empty states, create/import, deploy/open-scene feedback, copy/delete errors and map fallback title localized. Map names, IDs and imported content remain data.
+- `DmMapStudioPanel.tsx`: board status, enemy count, preview/apply/open/close scene actions, seed labels and hotkey overlay group/mode/brush/edit labels localized. Map seeds, terrain values and tool modes remain unchanged.
 - `NameMenu.tsx`: mention list accessibility label, party/people/place groups, no-match state, keyboard hints and not-yet-introduced marker localized. Search matching, insertion behavior and actual names remain unchanged.
 - `PregenPicker.tsx`: default heading localized; pre-generated hero names, taglines and descriptions remain content data.
 - The existing `campaignSession.ts` EN/RU pair was extended: dice dialogs added 40 keys, context trace has 80 keys, report dialog added 31 keys, voice controls added 20 keys. Voice dictionaries are 20 EN / 20 RU, no missing pairs, duplicates or placeholder differences. The two plural base keys are `tp()` groups with `.one/.few/.many/.other` variants in both dictionaries; validate their suffixed forms rather than treating the base key as missing.
 - Do not repeat these components unless a targeted defect is found.
 
 ## Next work
-Continue the remaining Block 1 scan with `DmEnemyHpCard.tsx`, `DmDelegationPanel.tsx`, `DmMapLibraryPanel.tsx`, `DmMapStudioPanel.tsx` and nearby DM controls. Check only components not already localized; translate their fixed interface labels, tooltips and fallback errors while preserving map IDs, monster data, API values and all game behavior.
+Audit `src/app/campaigns/[campaignId]/DmNpcForgePanel.tsx` and `DmSharePanel.tsx` for fixed UI strings. `DmNpcForgePanel` has two visible tooltip labels and may have other translated controls hidden in the full component; `DmSharePanel` still lacked `useI18n()` and shows the workshop bundle-sharing form. Translate fixed labels/placeholders/actions/errors only; preserve NPC names, map data, sharing IDs and API values.
 
 ## Low-token work protocol
 - Read this file, then only the next target source file(s) and exact dictionary sections needed.
