@@ -28,6 +28,7 @@ import {
   settle,
   valueWords,
   type ImportSlice,
+  type WorldConflictDetail,
 } from "@/lib/worldforge/import-merge";
 import { keptAfter } from "@/lib/worldforge/import-kept";
 import { mergeImportedLinks } from "@/lib/db/world-link-merge";
@@ -51,6 +52,7 @@ export type WorldImportResult =
       linksUpdated: number;
       linksRemoved: number;
       conflicts: string[];
+      conflictDetails?: WorldConflictDetail[];
       // Entries in the file matched to one already here by name alone.
       matched: string[];
       // Cards made before cards remembered their scene, matched by title.
@@ -191,16 +193,18 @@ function mergeSlices(
   source: string,
   slices: readonly ImportSlice[],
   mapRow: (atlas: WorldDoc["maps"][number]) => WorldDoc["maps"][number] = (atlas) => atlas,
-): { conflicts: string[]; pending: Pending[] } {
+): { conflicts: string[]; conflictDetails: WorldConflictDetail[]; pending: Pending[] } {
   const conflicts: string[] = [];
+  const conflictDetails: WorldConflictDetail[] = [];
   const pending: Pending[] = [];
   for (const slice of slices) {
     const rows = (slice === "maps" ? moved.maps.map(mapRow) : moved[slice]) as unknown as Array<{ id: string } & Values>;
     const result = mergeSliceRows(doc, slice, rows, (mapped[slice] as Array<{ id: string }>).map((row) => row.id), source);
     conflicts.push(...result.conflicts);
+    conflictDetails.push(...result.conflictDetails);
     pending.push(...result.pending);
   }
-  return { conflicts, pending };
+  return { conflicts, conflictDetails, pending };
 }
 
 export function importWorldForge(campaignId: string, account: UploadAccount, raw: unknown): WorldImportResult {
@@ -248,6 +252,7 @@ export function applyWorldImport(campaignId: string, account: UploadAccount, par
       const fresh = new Set<string>();
       const skipped: string[] = [];
       const conflicts: string[] = [];
+      const conflictDetails: WorldConflictDetail[] = [...firstRows.conflictDetails];
       const matched: string[] = [];
       const pending: Pending[] = [];
       let created = 0;
@@ -298,7 +303,16 @@ export function applyWorldImport(campaignId: string, account: UploadAccount, par
           // the file's version beside it for the author (import-kept.ts).
           origins[key] = { from, at: merged.at, ...keptAfter(prior, merged, theirs) };
           merged.pending.forEach((item) => pending.push({ origin: key, ...item }));
-          for (const words of new Set(merged.clashes.map((key) => valueWords(key, fieldName(doc))))) conflicts.push(`${record.name}: kept your ${words} over the file's.`);
+          for (const key of [...new Set(merged.clashes)]) {
+            const words = valueWords(key, fieldName(doc));
+            const message = `${record.name}: kept your ${words} over the imported version.`;
+            conflicts.push(message);
+            conflictDetails.push({
+              code: "workshop.contentImport.note.worldConflict.value",
+              params: { slice: "entries", label: record.name, field: key },
+              message,
+            });
+          }
         } else {
           const made = createRecord(campaignId, type, record);
           if ("error" in made) {
@@ -349,11 +363,13 @@ export function applyWorldImport(campaignId: string, account: UploadAccount, par
       const names = new Map(worldEntities(campaignId, doc).map((entity) => [entity.ref, entity.name]));
       const merged = mergeImportedLinks(doc.links, mapped.links, source, (ref) => names.get(ref) ?? "someone", [legacySource]);
       doc.links = merged.links;
+      conflictDetails.push(...merged.conflictDetails);
       // A map's art is compared by its bytes too, and written once taken.
       const artUrl = new Map(mapped.maps.map((atlas) => [plan.maps.get(atlas.id) ?? atlas.id, parsed.mapImages[atlas.id] ?? ""]));
       const artBytes = new Map(mapped.maps.map((atlas) => [plan.maps.get(atlas.id) ?? atlas.id, mapArt.get(atlas.id) ?? null]));
       const rows = mergeSlices(doc, moved, mapped, source, LATER_SLICES, (atlas) => ({ ...atlas, image: artUrl.get(atlas.id) ? `src:${hashOf(artUrl.get(atlas.id))}` : "" }));
       doc.maps = doc.maps.map((atlas) => (atlas.image.startsWith("src:") ? { ...atlas, image: saveImage(artBytes.get(atlas.id) ?? null, written) } : atlas));
+      conflictDetails.push(...rows.conflictDetails);
       settle(doc, [...firstRows.pending, ...rows.pending], (origin, key) => rowValue(doc, origin, key));
       conflicts.push(...merged.conflicts, ...firstRows.conflicts, ...rows.conflicts);
 
@@ -376,6 +392,8 @@ export function applyWorldImport(campaignId: string, account: UploadAccount, par
         links: merged.added,
         linksUpdated: merged.updated,
         linksRemoved: merged.removed,
+        conflictDetails.push(...scenes.conflictDetails),
+        conflictDetails,
         conflicts: [...conflicts, ...scenes.conflicts],
         matched,
         scenesMatched: scenes.matched,
@@ -485,7 +503,7 @@ export function copyWorldDoc(
   targetId: string,
   resolve: (shelf: "npc" | "location" | "faction" | "lore", id: string) => string | null,
   resolveRecord: (kind: PlaceBindingKind, id: string) => string | null = () => null,
-): { count: number; conflicts: string[]; unbound: number } {
+): { count: number; conflicts: string[]; conflictDetails: WorldConflictDetail[]; unbound: number } {
   const source = `campaign:${sourceId}`;
   const sourceDoc = getWorldDoc(sourceId);
   const toCopy = (ref: string) => {
@@ -502,6 +520,7 @@ export function copyWorldDoc(
   const firstRows = mergeSlices(target, moved, mapped, source, FIRST_SLICES);
   const names = new Map(worldEntities(targetId, target).map((entity) => [entity.ref, entity.name]));
   const conflicts: string[] = [];
+  const conflictDetails: WorldConflictDetail[] = [...firstRows.conflictDetails];
   const pending: Pending[] = [];
   let entries = 0;
   let unbound = 0;
@@ -541,7 +560,16 @@ export function copyWorldDoc(
     // import's version beside it for the author (import-kept.ts).
     origins[key] = { from, at: merged.at, ...keptAfter(prior, merged, theirs) };
     merged.pending.forEach((item) => pending.push({ origin: key, ...item }));
-    for (const words of new Set(merged.clashes.map((key) => valueWords(key, fieldName(target))))) conflicts.push(`${names.get(ref) ?? "An entry"}: kept your ${words} over the import's.`);
+    for (const key of [...new Set(merged.clashes)]) {
+      const words = valueWords(key, fieldName(target));
+      const message = `${names.get(ref) ?? "An entry"}: kept your ${words} over the imported version.`;
+      conflicts.push(message);
+      conflictDetails.push({
+        code: "workshop.contentImport.note.worldConflict.value",
+        params: { slice: "entries", label: names.get(ref) ?? "An entry", field: key },
+        message,
+      });
+    }
   }
   settle(target, pending, (origin, value) => {
     const own = target.entries[origin.slice("entries/".length)];
@@ -549,6 +577,7 @@ export function copyWorldDoc(
   });
   const merged = mergeImportedLinks(target.links, mapped.links, source, (ref) => names.get(ref) ?? "someone");
   target.links = merged.links;
+  conflictDetails.push(...merged.conflictDetails);
   // A map shown to the party is the source table's play, and a workshop has
   // no party to show one to (issue 553): a map arrives shown only where this
   // table already showed it. Its own players see a map after the review a
@@ -559,15 +588,27 @@ export function copyWorldDoc(
     delete rest.party;
     return shownHere.has(atlas.id) ? { ...rest, party: "shown" as const } : rest;
   });
+  conflictDetails.push(...rows.conflictDetails);
   settle(target, [...firstRows.pending, ...rows.pending], (origin, value) => rowValue(target, origin, value));
   saveWorldDoc(targetId, target);
   // What this source's earlier imports kept and the author has not settled
   // yet is said again beside this import's own clashes, in the same words,
   // so a note missed once is not lost (import-kept.ts).
   const standing = standingKept(target, names, source);
+  for (const [originName, origin] of Object.entries(target.origins ?? {})) {
+    if (!origin.kept || !originName.startsWith("entries/") || !origin.from.startsWith(`${source}|`)) continue;
+    const label = names.get(originName.slice("entries/".length));
+    if (!label) continue;
+    for (const [field, kept] of Object.entries(origin.kept)) {
+      if (kept.taken) continue;
+      const message = `${label}: kept your ${valueWords(field, fieldName(target))} over the imported version.`;
+      conflictDetails.push({ code: "workshop.contentImport.note.worldConflict.value", params: { slice: "entries", label, field }, message });
+    }
+  }
   return {
     count: entries + merged.added + merged.updated + mapped.events.length + mapped.secrets.length,
     conflicts: [...new Set([...conflicts, ...standing]), ...merged.conflicts, ...firstRows.conflicts, ...rows.conflicts],
+    conflictDetails,
     unbound,
   };
 }
