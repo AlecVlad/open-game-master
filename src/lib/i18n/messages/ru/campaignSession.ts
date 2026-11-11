@@ -282,5 +282,6 @@ export const ruCampaignSession: Partial<Record<keyof typeof enCampaignSession, s
   "campaign.nameMenu.keyboard.insert": "вставить",
   "campaign.nameMenu.keyboard.close": "закрыть",
   "campaign.nameMenu.keyboard.or": "или",
+  "campaign.pregenPicker.heading": "Или выберите готового персонажа",
   "campaign.nameMenu.unmet": "Ещё не представлен группе",
 };
