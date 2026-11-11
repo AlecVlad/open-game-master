@@ -74,15 +74,24 @@ export function CoordinationPanel({
   };
   const errorText = (message?: string) => {
     if (!message) return t("campaign.session.coordination.error.generic");
-    const session = message.match(/^Session (\\d+) is over\\./);
-    if (session) return t("campaign.session.coordination.error.sessionOver", { number: session[1] });
-    const companion = message.match(/^(.+) is an AI companion; stage a request for them instead\\.$/);
-    if (companion) return t("campaign.session.coordination.error.companionRequest", { name: companion[1] });
-    const owner = message.match(/^Only (.+)'s player stages their part\\.$/);
-    if (owner) return t("campaign.session.coordination.error.onlyOwner", { name: owner[1] });
-    const describe = message.match(/^Say what (.+) does before marking it ready, or pass\\.$/);
-    if (describe) return t("campaign.session.coordination.error.mustDescribe", { name: describe[1] });
-    if (message.startsWith("The order changed after ")) {
+    const sessionEnd = " is over. Use OOC for table talk until the next session starts."; 
+    if (message.startsWith("Session ") && message.endsWith(sessionEnd)) {
+      return t("campaign.session.coordination.error.sessionOver", { number: message.slice(8, -sessionEnd.length) });
+    }
+    const companionEnd = " is an AI companion; stage a request for them instead."; 
+    if (message.endsWith(companionEnd)) {
+      return t("campaign.session.coordination.error.companionRequest", { name: message.slice(0, -companionEnd.length) });
+    }
+    const ownerEnd = "'s player stages their part.";
+    if (message.startsWith("Only ") && message.endsWith(ownerEnd)) {
+      return t("campaign.session.coordination.error.onlyOwner", { name: message.slice(5, -ownerEnd.length) });
+    }
+    const describeStart = "Say what ";
+    const describeEnd = " does before marking it ready, or pass."; 
+    if (message.startsWith(describeStart) && message.endsWith(describeEnd)) {
+      return t("campaign.session.coordination.error.mustDescribe", { name: message.slice(describeStart.length, -describeEnd.length) });
+    }
+      if (message.startsWith("The order changed after ")) {
       return t("campaign.session.coordination.error.waitForChangedOrder", { names: joinNames(unconfirmed) });
     }
     const exact: Record<string, string> = {
