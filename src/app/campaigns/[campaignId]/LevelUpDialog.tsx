@@ -943,7 +943,7 @@ export function LevelUpDialog({
           <div className="mb-4 flex items-center justify-between">
             <Dialog.Title className="flex items-center gap-2 font-display text-lg tracking-wide text-amber-100">
               <Sparkles className="size-5 text-amber-200" />
-              Level {targetLevel}!
+              {t("charSheet.levelUp.heading", { level: targetLevel })}
             </Dialog.Title>
             <Dialog.Close className="rounded p-1 text-stone-400 hover:bg-stone-900">
               <X className="size-4" />
@@ -953,23 +953,22 @@ export function LevelUpDialog({
           {result ? (
             <div className="reveal space-y-4 text-sm" role="status">
               <p className="text-stone-300">
-                {sheet.name} is level {targetLevel}
-                {result.classLine}.
+                {t("charSheet.levelUp.result.character", { name: sheet.name, level: targetLevel, classLine: result.classLine })}
               </p>
               <div className="flex items-center justify-between rounded-md border border-amber-900/50 bg-stone-950/60 px-4 py-3">
                 <span className="flex items-center gap-2 text-stone-300">
                   {result.rolled !== null ? <Dices className="size-4 text-amber-300" /> : null}
                   {result.rolled !== null
-                    ? `The server rolled ${result.rolled} on the d${result.die}`
+                    ? t("charSheet.levelUp.result.rolled", { rolled: result.rolled, die: result.die })
                     : hpMethod === "max"
-                      ? `The d${result.die}'s highest face`
-                      : `The d${result.die}'s average, ${fixedDieValue(result.die)}`}
+                      ? t("charSheet.levelUp.result.max", { die: result.die })
+                      : t("charSheet.levelUp.result.average", { die: result.die, average: fixedDieValue(result.die) })}
                 </span>
                 <span className="motion-pop font-mono text-lg text-amber-300">+{result.hpGained} HP</span>
               </div>
               {reachedLevel > targetLevel && targetLevel < 20 ? (
                 <p className="text-xs text-stone-400">
-                  The experience already earns level {targetLevel + 1} too; take it next, one level at a time.
+                  {t("charSheet.levelUp.result.next", { level: targetLevel + 1 })}
                 </p>
               ) : null}
               <button
@@ -977,7 +976,7 @@ export function LevelUpDialog({
                 onClick={onDone}
                 className="flex w-full items-center justify-center gap-2 rounded-lg bg-amber-200 px-4 py-2.5 text-sm font-medium text-stone-950 hover:bg-amber-100"
               >
-                Done
+                {t("charSheet.levelUp.done")}
               </button>
             </div>
           ) : blocked ? (
@@ -990,7 +989,7 @@ export function LevelUpDialog({
                 onClick={onDone}
                 className="w-full rounded-md border border-stone-700 px-4 py-2.5 text-sm text-stone-300 hover:bg-stone-900"
               >
-                Close
+                {t("charSheet.levelUp.close")}
               </button>
             </div>
           ) : (
@@ -1008,7 +1007,7 @@ export function LevelUpDialog({
                   </p>
                   {newFeatureNames.length ? (
                     <div className="reveal rounded-md border border-amber-900/50 bg-stone-950/60 px-3 py-2">
-                      <p className="mb-1 text-xs text-amber-200">New at level {targetLevel}:</p>
+                      <p className="mb-1 text-xs text-amber-200">{t("charSheet.levelUp.newFeature", { level: targetLevel })}</p>
                       <InfoChipList
                         items={newFeatureNames.map((name) => ({
                           name,
@@ -1023,11 +1022,11 @@ export function LevelUpDialog({
                         Hit points: this table rolls them. The server rolls the d{hitDie} when you
                         confirm{conMod ? `, and adds ${conMod > 0 ? "+" : ""}${conMod} for Constitution` : ""}; every level adds at least 1.
                       </p>
-                      <div className="stagger space-y-1.5" role="radiogroup" aria-label="Hit points">
+                      <div className="stagger space-y-1.5" role="radiogroup" aria-label={t("charSheet.levelUp.hp.aria")}>
                         {(
                           [
-                            ["roll", `Roll the d${hitDie}`, `${hpPreview.min} to ${hpPreview.max} HP`],
-                            ["average", "Take the average instead", `+${fixedGain} HP`],
+                            ["roll", t("charSheet.levelUp.hp.roll", { die: hitDie }), t("charSheet.levelUp.hp.range", { min: hpPreview.min, max: hpPreview.max })],
+                            ["average", t("charSheet.levelUp.hp.average"), `+${fixedGain} HP`],
                           ] as const
                         ).map(([value, label, note]) => (
                           <button
@@ -1066,12 +1065,12 @@ export function LevelUpDialog({
                   {hpPreview.extras.length || after.primalChampion ? (
                     // What rides on top of the die, each counted in the
                     // numbers above as the server counts it.
-                    <ul className="stagger space-y-0.5 text-xs text-stone-400" aria-label="Also added">
+                    <ul className="stagger space-y-0.5 text-xs text-stone-400" aria-label={t("charSheet.levelUp.hp.alsoAdded")}>
                       {hpPreview.extras.map((line) => (
                         <li key={line}>{line}</li>
                       ))}
                       {after.primalChampion ? (
-                        <li className="text-amber-200">Primal Champion: +4 Strength and Constitution (to 24)</li>
+                        <li className="text-amber-200">{t("charSheet.levelUp.hp.primalChampion")}</li>
                       ) : null}
                     </ul>
                   ) : null}
