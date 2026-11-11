@@ -1397,15 +1397,14 @@ export function SessionView({
                       glyph="tab-campaigns"
                       tone="quiet"
                       className="campaign-ended-banner"
-                      title="The campaign has ended"
+                      title={t("campaign.ended.title")}
                       actions={
                         <Link href="/" className={bannerButtonClass(true)}>
-                          All campaigns
+                          {t("campaign.ended.allCampaigns")}
                         </Link>
                       }
                     >
-                      Characters from a library took their progress home with them. The story stays
-                      here to read.
+                      {t("campaign.ended.body")}
                     </SessionBanner>
                   ) : null}
                   {fallen ? (
