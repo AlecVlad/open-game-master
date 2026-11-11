@@ -553,6 +553,108 @@ type ImportMessages = {
   tp: (key: string, count: number, params?: Record<string, string | number>) => string;
 };
 
+const WORLD_SLICE_KEYS: Record<string, string> = {
+  entries: "workshop.contentImport.worldSlice.entries",
+  folders: "workshop.contentImport.worldSlice.folders",
+  calendars: "workshop.contentImport.worldSlice.calendars",
+  events: "workshop.contentImport.worldSlice.events",
+  secrets: "workshop.contentImport.worldSlice.secrets",
+  stubs: "workshop.contentImport.worldSlice.stubs",
+  maps: "workshop.contentImport.worldSlice.maps",
+  pins: "workshop.contentImport.worldSlice.pins",
+};
+
+const WORLD_FIELD_KEYS: Record<string, string> = {
+  name: "workshop.contentImport.worldField.name",
+  title: "workshop.contentImport.worldField.title",
+  body: "workshop.contentImport.worldField.body",
+  text: "workshop.contentImport.worldField.text",
+  tagline: "workshop.contentImport.worldField.tagline",
+  notes: "workshop.contentImport.worldField.notes",
+  note: "workshop.contentImport.worldField.note",
+  article: "workshop.contentImport.worldField.article",
+  hiddenTruth: "workshop.contentImport.worldField.hiddenTruth",
+  canon: "workshop.contentImport.worldField.canon",
+  typeId: "workshop.contentImport.worldField.typeId",
+  folderId: "workshop.contentImport.worldField.folderId",
+  parentId: "workshop.contentImport.worldField.parentId",
+  aliases: "workshop.contentImport.worldField.aliases",
+  tags: "workshop.contentImport.worldField.tags",
+  portrait: "workshop.contentImport.worldField.portrait",
+  image: "workshop.contentImport.worldField.image",
+  knownBy: "workshop.contentImport.worldField.knownBy",
+  partyKnows: "workshop.contentImport.worldField.partyKnows",
+  subject: "workshop.contentImport.worldField.subject",
+  when: "workshop.contentImport.worldField.when",
+  refs: "workshop.contentImport.worldField.refs",
+  era: "workshop.contentImport.worldField.era",
+  regions: "workshop.contentImport.worldField.regions",
+  x: "workshop.contentImport.worldField.position",
+  y: "workshop.contentImport.worldField.position",
+  mapId: "workshop.contentImport.worldField.mapId",
+  linkedMapId: "workshop.contentImport.worldField.linkedMapId",
+  ref: "workshop.contentImport.worldField.ref",
+  status: "workshop.contentImport.worldField.status",
+  abbrev: "workshop.contentImport.worldField.abbrev",
+  epochOffset: "workshop.contentImport.worldField.epochOffset",
+  color: "workshop.contentImport.worldField.color",
+  source: "workshop.contentImport.worldField.source",
+  dmOnly: "workshop.contentImport.worldField.dmOnly",
+  npcId: "workshop.contentImport.worldField.npcId",
+  locationId: "workshop.contentImport.worldField.locationId",
+  fields: "workshop.contentImport.worldField.custom",
+};
+
+const WORLD_LINK_LABEL_KEYS: Record<string, string> = {
+  "allied with": "workshop.contentImport.worldLinkLabel.alliedWith",
+  "enemy of": "workshop.contentImport.worldLinkLabel.enemyOf",
+  "friend of": "workshop.contentImport.worldLinkLabel.friendOf",
+  "rival of": "workshop.contentImport.worldLinkLabel.rivalOf",
+  loves: "workshop.contentImport.worldLinkLabel.loves",
+  fears: "workshop.contentImport.worldLinkLabel.fears",
+  serves: "workshop.contentImport.worldLinkLabel.serves",
+  "mentor of": "workshop.contentImport.worldLinkLabel.mentorOf",
+  "member of": "workshop.contentImport.worldLinkLabel.memberOf",
+  rules: "workshop.contentImport.worldLinkLabel.rules",
+  "lives in": "workshop.contentImport.worldLinkLabel.livesIn",
+  "located in": "workshop.contentImport.worldLinkLabel.locatedIn",
+  worships: "workshop.contentImport.worldLinkLabel.worships",
+  guards: "workshop.contentImport.worldLinkLabel.guards",
+  seeks: "workshop.contentImport.worldLinkLabel.seeks",
+  created: "workshop.contentImport.worldLinkLabel.created",
+  destroyed: "workshop.contentImport.worldLinkLabel.destroyed",
+  "parent of": "workshop.contentImport.worldLinkLabel.parentOf",
+  "child of": "workshop.contentImport.worldLinkLabel.childOf",
+  "spouse of": "workshop.contentImport.worldLinkLabel.spouseOf",
+  "sibling of": "workshop.contentImport.worldLinkLabel.siblingOf",
+  "descended from": "workshop.contentImport.worldLinkLabel.descendedFrom",
+  "superior of": "workshop.contentImport.worldLinkLabel.superiorOf",
+  "reports to": "workshop.contentImport.worldLinkLabel.reportsTo",
+  "liege of": "workshop.contentImport.worldLinkLabel.liegeOf",
+  "vassal of": "workshop.contentImport.worldLinkLabel.vassalOf",
+};
+
+type WorldConflictNotice = {
+  code: string;
+  params: Record<string, string | number>;
+  message: string;
+};
+
+function worldConflictText(notice: WorldConflictNotice, t: ImportMessages["t"]): string {
+  const params: Record<string, string | number> = { ...notice.params };
+  if (typeof params.slice === "string" && WORLD_SLICE_KEYS[params.slice]) {
+    params.slice = t(WORLD_SLICE_KEYS[params.slice]);
+  }
+  if (typeof params.field === "string") {
+    const key = params.field.startsWith("fields.") ? "fields" : params.field;
+    if (WORLD_FIELD_KEYS[key]) params.field = t(WORLD_FIELD_KEYS[key]);
+  }
+  if (typeof params.label === "string" && WORLD_LINK_LABEL_KEYS[params.label]) {
+    params.label = t(WORLD_LINK_LABEL_KEYS[params.label]);
+  }
+  return t(notice.code, params);
+}
+
 // What an import brought, in one line for the person who asked for it.
 // Server-authored conflict and reference notes remain data; the surrounding
 // labels and every summary composed here follow the interface language.
@@ -561,6 +663,20 @@ function importNote(data: Record<string, unknown>, messages?: ImportMessages): s
   const names = (value: unknown) => (Array.isArray(value) ? value.map(String) : []);
   const unresolved = names(data.unresolved);
   const offered = names(data.pregensOffered);
+  const worldConflictDetails = Array.isArray(data.worldConflictDetails)
+    ? data.worldConflictDetails.filter((value): value is WorldConflictNotice => Boolean(
+        value && typeof value === "object" &&
+        typeof (value as Record<string, unknown>).code === "string" &&
+        typeof (value as Record<string, unknown>).message === "string" &&
+        (value as Record<string, unknown>).params && typeof (value as Record<string, unknown>).params === "object" &&
+        Object.values((value as Record<string, { params: Record<string, unknown> }>).params ?? {}).every(
+          (param) => typeof param === "string" || typeof param === "number",
+        ),
+      ))
+    : [];
+  const legacyWorldConflicts = names(data.worldConflicts).filter(
+    (message) => !worldConflictDetails.some((detail) => detail.message === message),
+  );
   const referenceNoteDetails = Array.isArray(data.referenceNoteDetails)
     ? data.referenceNoteDetails.filter((value): value is {
         tableName: string; kind: "tables" | "npcs" | "lore" | "locations";
@@ -577,7 +693,7 @@ function importNote(data: Record<string, unknown>, messages?: ImportMessages): s
       data.kept ? `Kept ${String(data.kept)} already here.` : "",
       data.beatsAdded ? `${String(data.beatsAdded)} beats joined the arc.` : "",
       unresolved.length ? `No monster here answers to ${unresolved.join(", ")}: add them to your bestiary, or point those NPCs and fights at another.` : "",
-      names(data.worldConflicts).join(" "),
+      [...worldConflictDetails.map((detail) => detail.message), ...legacyWorldConflicts].join(" "),
       referenceNoteDetails.length ? referenceNoteDetails.map((item) => item.message).join(" ") : names(data.referenceNotes).join(" "),
       names(data.monstersBrought).length ? `Copied into this table's bestiary: ${names(data.monstersBrought).join(", ")}.` : "",
       names(data.monstersReused).length ? `Already in this table's bestiary: ${names(data.monstersReused).join(", ")}.` : "",
@@ -593,7 +709,7 @@ function importNote(data: Record<string, unknown>, messages?: ImportMessages): s
     data.kept ? tp("workshop.contentImport.note.kept", Number(data.kept)) : "",
     data.beatsAdded ? tp("workshop.contentImport.note.beats", Number(data.beatsAdded)) : "",
     unresolved.length ? t("workshop.contentImport.note.unresolved", { names: unresolved.join(", ") }) : "",
-    names(data.worldConflicts).join(" "),
+    [...worldConflictDetails.map((detail) => worldConflictText(detail, t)), ...legacyWorldConflicts].join(" "),
     referenceNoteDetails.length
       ? referenceNoteDetails.map((item) => t(
           item.resolution === "campaign"
