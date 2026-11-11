@@ -497,3 +497,6 @@ export const enCharSheet = {
   "charSheet.levelUp.options.title": "New abilities",
   "charSheet.levelUp.spells.title": "Spells",
 } satisfies Record<string, string>;
+  "charSheet.levelUp.class.advance": "{name} advances to level {level}{classLine}.",
+  "charSheet.levelUp.multiclass.grants": "Grants: {grant}",
+  "charSheet.levelUp.multiclass.requires": "Requires {requirement}",
