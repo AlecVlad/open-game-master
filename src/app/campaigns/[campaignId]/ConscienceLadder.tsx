@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/cn";
 import { useI18n } from "@/lib/i18n/provider";
-import { CONSCIENCE_RUNGS, RUNG_LABEL, type ConscienceRung } from "@/lib/dm/conscience-logic";
+import { CONSCIENCE_RUNGS, type ConscienceRung } from "@/lib/dm/conscience-logic";
 
 // A lasting companion's conscience on its Bonds row (issue 503): the five
 // rungs from content to the breaking point, with a marker that slides one
