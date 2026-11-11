@@ -2861,6 +2861,12 @@ export const ruCampaignPanels: Partial<Record<keyof typeof enCampaignPanels, str
   "campaign.story.event.deadline": "Срок",
   "campaign.story.event.discovery": "Открытие",
   "campaign.story.event.setpiece": "Ключевая сцена",
+
+  "campaign.story.arc.errors.edit": "Не удалось применить это изменение.",
+  "campaign.story.errors.load": "Не удалось загрузить историю кампании. Проверьте подключение и попробуйте ещё раз.",
+  "campaign.story.arc.when": "условие: {trigger}",
+  "campaign.story.book.kicker": "{actPrefix}Глава {chapter}",
+  "campaign.story.book.noSummary": "Краткое содержание этой главы не записано.",
 }; группа: {characters}. {note}",
   "campaign.dmWorkbench.budget.creaturesAgainstParty.few": "Состав противников: {count}; группа: {characters}. {note}",
   "campaign.dmWorkbench.budget.creaturesAgainstParty.many": "Состав противников: {count}; группа: {characters}. {note}",
