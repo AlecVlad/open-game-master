@@ -271,4 +271,13 @@ export const enCampaignSession = {
   "campaign.joinConfirm.cancel": "Cancel",
   "campaign.joinConfirm.action.switch": "Switch to {name}",
   "campaign.joinConfirm.action.takeSeat": "Take the seat",
+  "campaign.nameMenu.list.aria": "Names at this table",
+  "campaign.nameMenu.group.party": "Party",
+  "campaign.nameMenu.group.people": "People",
+  "campaign.nameMenu.group.places": "Places",
+  "campaign.nameMenu.empty": "No known name matches.",
+  "campaign.nameMenu.keyboard.choose": "choose",
+  "campaign.nameMenu.keyboard.insert": "insert",
+  "campaign.nameMenu.keyboard.close": "close",
+  "campaign.nameMenu.unmet": "Not introduced yet",
 } satisfies Record<string, string>;
