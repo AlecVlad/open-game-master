@@ -42,7 +42,7 @@ export function SummonDoor({ sheet, mine, inCombat }: { sheet: CharacterSheet; m
   const pickOf = (row: SummonDoorRow) => choices[row.spell] ?? {};
   const disabledReason = (reason: string | null): string | null => {
     if (!reason) return null;
-    const match = reason.match(/^No spell slot of level (\\d+) or higher is left/);
+    const match = reason.match(/^No spell slot of level (\d+) or higher is left/);
     if (!match) return reason;
     return t(reason.includes("can still be cast as a ritual") ? "campaign.summonDoor.noSlotRitual" : "campaign.summonDoor.noSlot", { level: Number(match[1]) });
   };
