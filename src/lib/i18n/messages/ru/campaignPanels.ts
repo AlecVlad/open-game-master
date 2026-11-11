@@ -2589,7 +2589,7 @@ export const ruCampaignPanels: Partial<Record<keyof typeof enCampaignPanels, str
   "campaign.storyboard.compile.refusal.noPremise": "Для сюжетной арки нужна отправная точка. Сначала добавьте место или часть предыстории.",
   "campaign.storyboard.compile.refusal.tooFew": "Для арки нужно хотя бы {min} событий. На доске пока {count}.",
   "campaign.storyboard.compile.refusal.existingArc": "В этой кампании уже есть сюжетная арка. Существующая история не будет перезаписана.",
-  "campaign.storyboard.overflow": "В тексте {length} символов при ограничении {max}. Будет потеряна следующая часть: {lost}",
+  "campaign.storyboard.overflow": "В тексте {length} символов при ограничении {max}. Будет потеряна следующая часть{lost}",
   "campaign.storyboard.prose.joined": "В {count} местах, похоже, пропущен пробел после конца предложения.",
   "campaign.storyboard.prose.longRun": "Обнаружено {count} фрагментов длиной от {letters} букв без пробелов.",
   "campaign.storyboard.prose.fewSpaces": "Для текста такой длины здесь необычно мало пробелов.",
