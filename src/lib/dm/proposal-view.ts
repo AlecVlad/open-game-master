@@ -96,7 +96,7 @@ function proposalSummaryData(proposal: ItemProposal) {
     currency,
     currencyDirection: "copper" in move ? (move.copper >= 0 ? "give" : "take") : "",
     price,
-    amount: Math.max(1, Number(args.amount ?? 0) || 1),
+    amount: Math.max(0, Number(args.amount ?? 0) || 0),
     damageType: text(args.type).trim(),
     temporary: args.temp === true,
     spell: text(args.spell).trim(),
