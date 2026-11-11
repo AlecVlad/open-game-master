@@ -244,7 +244,7 @@ export function EncounterRows({
               ) : null}
               <div className="flex flex-wrap items-center gap-1.5">
                 <button type="button" disabled={busy} onClick={() => onDeploy(encounter)} className={cn(ui.btnSecondary, "h-9")} data-encounter-deploy={encounter.id}>
-                  <Swords className="size-3.5" /> {deployLabel}
+                  <Swords className="size-3.5" /> {deploy}
                 </button>
               </div>
             </ContextMenu>
