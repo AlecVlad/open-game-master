@@ -433,6 +433,8 @@ export const enCampaignSession = {
   "campaign.dmMapStudio.board.fight": "A fight is on the table, with {enemies}.",
   "campaign.dmMapStudio.enemies.one": "{count} enemy",
   "campaign.dmMapStudio.enemies.other": "{count} enemies",
+  "campaign.dmMapStudio.enemies.few": "{count} enemies",
+  "campaign.dmMapStudio.enemies.many": "{count} enemies",
   "campaign.dmMapStudio.board.scene": "An exploration scene is on the table. The party can walk it freely.",
   "campaign.dmMapStudio.board.empty": "Nothing is on the table. Open a scene to put the party on a map without a fight.",
   "campaign.dmMapStudio.apply.replaceTitle": "Replace the board's ground with this map",
