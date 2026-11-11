@@ -2568,7 +2568,7 @@ export const ruCampaignPanels: Partial<Record<keyof typeof enCampaignPanels, str
   "campaign.storyboard.error.saveUnknown": "Сохранение могло пройти, но сервер не ответил: {error}",
   "campaign.storyboard.error.delete": "Не удалось удалить карточку.",
   "campaign.storyboard.error.titleRequired": "Карточке нужно название, даже если пока это просто набросок.",
-  "campaign.storyboard.error.bodyOverflow": "В тексте карточки {length} символов при ограничении {max}. При сохранении будут потеряны последние {lostLength} символов{lost}.",
+  "campaign.storyboard.error.bodyOverflow": "В тексте карточки {length} символов при ограничении {max}. При сохранении будут потеряны {lostCount}{lost}.",
   "campaign.storyboard.error.missingCard": "Этой карточки больше нет.",
   "campaign.storyboard.note.addedAfterRetry": "Карточка добавлена.",
   "campaign.storyboard.loading": "Загружаем сюжетную доску…",
@@ -2722,4 +2722,8 @@ export const ruCampaignPanels: Partial<Record<keyof typeof enCampaignPanels, str
   "campaign.storyboard.hint.secret": "То, о чём группа пока не знает. При импорте станет заметкой только для ведущего.",
   "campaign.storyboard.hint.npcMoment": "Сцена, которой давно ждёт один из персонажей. При импорте станет эпизодом сюжетной арки.",
   "campaign.storyboard.suggestion.reason.generic": "Возможно, вокруг «{name}» не хватает ещё одной детали.",
+  "campaign.storyboard.error.lostCharacters.one": "1 лишний символ",
+  "campaign.storyboard.error.lostCharacters.few": "{count} лишних символа",
+  "campaign.storyboard.error.lostCharacters.many": "{count} лишних символов",
+  "campaign.storyboard.error.lostCharacters.other": "{count} лишних символа",
 };
