@@ -104,7 +104,7 @@ function localizedLoreReason(reason: string, t: ReturnType<typeof useI18n>["t"])
   }
   if (reason.startsWith("held back: ")) {
     const inner = reason.slice(11);
-    const nearHeld = inner.match(/^a near match \\(rank (\\d+)\\), not close enough to ride$/);
+    const nearHeld = inner.match(/^a near match \(rank (\d+)\), not close enough to ride$/);
     const detail = nearHeld
       ? t("campaign.contextTrace.loreReason.nearMatch", { rank: Number(nearHeld[1]) })
       : localizedLoreCause(inner, t);
