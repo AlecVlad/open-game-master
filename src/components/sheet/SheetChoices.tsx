@@ -3,6 +3,7 @@
 import { Check, Loader2 } from "lucide-react";
 import { useRef, useState, type CSSProperties } from "react";
 import { cn } from "@/lib/cn";
+import { useI18n } from "@/lib/i18n/provider";
 import { formatMeasurementText, type MeasurementSystem } from "@/lib/measurement-system";
 import { replayAnimation } from "@/lib/motion/replay";
 import { featureChoices } from "@/lib/battlemap/hand-subclass";
@@ -48,6 +49,7 @@ export function FeatureChoicePicker({
   mine: boolean;
   inCombat: boolean;
 }) {
+  const { t } = useI18n();
   // A choice the sheet's owed picks make too (a Land druid's terrain is a
   // pick-list since issue #833, OwedPicks.tsx) is asked there only, where the
   // host takes it; asked in both places it read as two choices.
@@ -75,13 +77,13 @@ export function FeatureChoicePicker({
       });
       if (!response.ok) {
         const data = (await response.json().catch(() => ({}))) as { error?: string };
-        setRefusal(data.error || "The choice was refused.");
+        setRefusal(data.error || t("charSheet.choice.refused"));
         replayAnimation(refusalRef.current, "shake-x var(--dur-beat) var(--ease-snap) both");
         return;
       }
       setSent((current) => ({ ...current, [spend]: option }));
     } catch {
-      setRefusal("Could not reach the server.");
+      setRefusal(t("charSheet.choice.network"));
     } finally {
       setBusy(null);
     }
@@ -115,12 +117,12 @@ export function FeatureChoicePicker({
                       onClick={() => void choose(choice.spend, option)}
                       title={
                         !mine
-                          ? "The character's own player chooses."
+                          ? t("charSheet.choice.playerChooses")
                           : inCombat
-                            ? "Chosen outside a fight."
+                            ? t("charSheet.choice.outsideCombat")
                             : waiting
-                              ? "Sent. The GM resolves it."
-                              : `Choose ${titleCase(option)}`
+                              ? t("charSheet.choice.sent")
+                              : t("charSheet.choice.select", { option: titleCase(option) })
                       }
                       className={cn(
                         "hand-option motion-press inline-flex min-h-9 items-center gap-1 rounded-full border px-3 sm:min-h-8",
