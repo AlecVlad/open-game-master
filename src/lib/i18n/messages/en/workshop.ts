@@ -1785,4 +1785,6 @@ export const enWorkshop = {
   "workshop.world.outline.asset.itemKind.gear": "Gear",
   "workshop.world.outline.asset.itemKind.magic_item": "Magic item",
 
+  "workshop.world.web.edge.above": "above",
+
 } satisfies Record<string, string>;
