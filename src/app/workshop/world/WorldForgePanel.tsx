@@ -78,6 +78,7 @@ type ImportReport = {
   linksUpdated?: number;
   linksRemoved?: number;
   conflicts?: string[];
+  conflictDetails?: WorldReportConflict[];
   matched?: string[];
   events: number;
   secrets: number;
@@ -96,6 +97,61 @@ type Held = { text: string; losses: string[]; scenes: SceneLoss[]; notes: string
 // What a WorldForge file of this world could not carry, named before the
 // download (audit WF-19).
 type ExportCheck = { scenes: SceneLoss[]; notes: string[] };
+
+const WORLD_REPORT_SLICE_KEYS: Record<string, string> = {
+  entries: "workshop.contentImport.worldSlice.entries",
+  folders: "workshop.contentImport.worldSlice.folders",
+  calendars: "workshop.contentImport.worldSlice.calendars",
+  events: "workshop.contentImport.worldSlice.events",
+  secrets: "workshop.contentImport.worldSlice.secrets",
+  stubs: "workshop.contentImport.worldSlice.stubs",
+  maps: "workshop.contentImport.worldSlice.maps",
+  pins: "workshop.contentImport.worldSlice.pins",
+};
+const WORLD_REPORT_FIELD_KEYS: Record<string, string> = {
+  name: "name", title: "title", body: "body", text: "text", tagline: "tagline",
+  notes: "notes", note: "note", article: "article", hiddenTruth: "hiddenTruth",
+  canon: "canon", typeId: "typeId", folderId: "folderId", parentId: "parentId",
+  aliases: "aliases", tags: "tags", portrait: "portrait", image: "image",
+  knownBy: "knownBy", partyKnows: "partyKnows", subject: "subject", when: "when",
+  refs: "refs", era: "era", regions: "regions", x: "position", y: "position",
+  mapId: "mapId", linkedMapId: "linkedMapId", ref: "ref", status: "status",
+  abbrev: "abbrev", epochOffset: "epochOffset", color: "color", source: "source",
+  dmOnly: "dmOnly", npcId: "npcId", locationId: "locationId", fields: "custom",
+};
+const WORLD_REPORT_LINK_KEYS: Record<string, string> = {
+  "allied with": "alliedWith", "enemy of": "enemyOf", "friend of": "friendOf",
+  "rival of": "rivalOf", loves: "loves", fears: "fears", serves: "serves",
+  "mentor of": "mentorOf", "member of": "memberOf", rules: "rules",
+  "lives in": "livesIn", "located in": "locatedIn", worships: "worships",
+  guards: "guards", seeks: "seeks", created: "created", destroyed: "destroyed",
+  "parent of": "parentOf", "child of": "childOf", "spouse of": "spouseOf",
+  "sibling of": "siblingOf", "descended from": "descendedFrom",
+  "superior of": "superiorOf", "reports to": "reportsTo", "liege of": "liegeOf",
+  "vassal of": "vassalOf",
+};
+type WorldReportConflict = { code: string; params: Record<string, string | number>; message: string };
+function worldReportConflictText(
+  notice: WorldReportConflict,
+  t: (key: string, params?: Record<string, string | number>) => string,
+): string {
+  const params = { ...notice.params };
+  if (typeof params.slice === "string" && WORLD_REPORT_SLICE_KEYS[params.slice]) {
+    params.slice = t(WORLD_REPORT_SLICE_KEYS[params.slice] as never);
+  }
+  if (typeof params.field === "string") {
+    if (params.field.startsWith("fields.")) {
+      params.field = t("workshop.contentImport.worldField.custom" as never) + ": " + params.field.slice(7);
+    } else if (WORLD_REPORT_FIELD_KEYS[params.field]) {
+      params.field = t(("workshop.contentImport.worldField." + WORLD_REPORT_FIELD_KEYS[params.field]) as never);
+    }
+  }
+  if ((notice.code.endsWith(".linkChanged") || notice.code.endsWith(".linkRemoved")) && typeof params.label === "string") {
+    const linkKey = WORLD_REPORT_LINK_KEYS[params.label];
+    if (linkKey) params.label = t(("workshop.contentImport.worldLinkLabel." + linkKey) as never);
+  }
+  return t(notice.code as never, params);
+}
 
 // The tool a record lives in, and optionally the record itself with the
 // World entry to come back to (src/lib/workshop/links.ts).
@@ -147,7 +203,7 @@ export function WorldForgePanel({
   // Bumped when any record changed elsewhere (useWorkshopVersions).
   refreshKey?: number;
 }) {
-  const { t } = useI18n();
+  const { t, tp } = useI18n();
   const api = useWorld(campaignId);
   const capabilities = useCapabilities();
   const canWrite = offersStoryModel(capabilities);
@@ -357,28 +413,27 @@ export function WorldForgePanel({
       ) : null}
       {report ? (
         <div className="motion-pop rounded-lg border border-emerald-700/40 bg-emerald-900/15 px-3 py-2 text-xs text-stone-200" role="status">
-          Brought in {report.created} new {report.created === 1 ? "entry" : "entries"}
-          {report.updated ? `, updated ${report.updated}` : ""}, {report.links} links, {report.events} events, {report.secrets} secrets, {report.maps} maps
-          {report.beats ? ` and ${report.beats} storyboard cards` : ""}.
+          <p>{t("workshop.world.panel.report.summary", { created: report.created, updated: report.updated, links: report.links, events: report.events, secrets: report.secrets, maps: report.maps })}</p>
+          {report.beats ? <span className="block">{tp("workshop.world.panel.report.beats", report.beats)}</span> : null}
           {report.beatsUpdated ? (
-            <span className="block">Storyboard cards brought in before: {report.beatsUpdated} found again and updated, not added twice.</span>
+            <span className="block">{t("workshop.world.panel.report.beatsUpdated", { count: report.beatsUpdated })}</span>
           ) : null}
           {report.scenesMatched?.length ? (
-            <span className="block text-amber-300">Scenes matched by title to cards already here, so check they are the same: {report.scenesMatched.join(", ")}.</span>
+            <span className="block text-amber-300">{t("workshop.world.panel.report.scenesMatched", { names: report.scenesMatched.join(", ") })}</span>
           ) : null}
           {report.linksUpdated || report.linksRemoved ? (
-            <span className="block">
-              Links brought in before: {report.linksUpdated ?? 0} updated to match the file, {report.linksRemoved ?? 0} the file no longer has removed.
-            </span>
+            <span className="block">{t("workshop.world.panel.report.links", { updated: report.linksUpdated ?? 0, removed: report.linksRemoved ?? 0 })}</span>
           ) : null}
-          {report.conflicts?.length ? (
+          {report.conflictDetails?.length ? report.conflictDetails.map((detail, index) => (
+            <span key={index} className="block text-amber-300">{worldReportConflictText(detail, t)}</span>
+          )) : report.conflicts?.length ? (
             <span className="block text-amber-300">{report.conflicts.join(" ")}</span>
           ) : null}
           {report.matched?.length ? (
-            <span className="block text-amber-300">Matched by name to entries already here, so check they are the same: {report.matched.join(", ")}.</span>
+            <span className="block text-amber-300">{t("workshop.world.panel.report.matched", { names: report.matched.join(", ") })}</span>
           ) : null}
-          {report.skipped.length ? <span className="block text-ember-300">Left out: {report.skipped.join("; ")}</span> : null}
-          {report.losses?.length ? <span className="block text-amber-300">Not in whole: {report.losses.join(" ")}</span> : null}
+          {report.skipped.length ? <span className="block text-amber-300">{t("workshop.world.panel.report.skipped", { items: report.skipped.join("; ") })}</span> : null}
+          {report.losses?.length ? <span className="block text-amber-300">{t("workshop.world.panel.report.losses", { items: report.losses.join(" ") })}</span> : null}
           {report.notes?.length ? <span className="block text-stone-300">{report.notes.join(" ")}</span> : null}
         </div>
       ) : null}
