@@ -2506,6 +2506,8 @@ export const ruCampaignPanels: Partial<Record<keyof typeof enCampaignPanels, str
   "campaign.session.hand.heading.anotherHero": "Другой герой",
 
   "campaign.session.hand.more": "ещё",
+
+  "campaign.session.encounter.groupStanding": "В строю: {current} из {total}",
 }; запас составит около {margin}.",
   "campaign.dmWorkbench.outcome.monstersWin": "При этих показателях противники одолеют группу первыми: примерно за {monsterRounds}, тогда как группе потребуется {partyRounds}.",
   "campaign.dmWorkbench.warning.noHealing": "В расчёте обе стороны атакуют каждый раунд, никто не лечится, не прячется и не отступает. Реальный бой такого типа обычно длится на один-два раунда дольше.",
