@@ -2,6 +2,7 @@
 
 import { Check, Loader2, TriangleAlert } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { Dialog } from "@/components/ui/Dialog";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui";
@@ -15,7 +16,7 @@ import {
 } from "@/app/campaigns/[campaignId]/OwedPicksFields";
 import type { SeatPicks } from "@/lib/characters/seat-picks";
 import type { JoinPreview } from "@/lib/characters/join-changes";
-import { joinOwedLeft, joinOwedNote } from "@/lib/srd/owed-choices";
+
 import type { CreateSheetInput } from "@/lib/schemas/sheet";
 
 // A hero about to take a seat: one from the player's library (their own, or
@@ -54,7 +55,7 @@ function joinRequest(campaignId: string, hero: JoinHero, flow: "join" | "replace
 
 type Preview = JoinPreview & { alreadyHere: boolean };
 
-async function askPreview(campaignId: string, body: unknown): Promise<{ preview?: Preview; error?: string }> {
+async function askPreview(campaignId: string, body: unknown, t: ReturnType<typeof useI18n>["t"]): Promise<{ preview?: Preview; error?: string }> {
   try {
     const response = await fetch(`/api/campaigns/${campaignId}/sheet/preview`, {
       method: "POST",
@@ -63,11 +64,11 @@ async function askPreview(campaignId: string, body: unknown): Promise<{ preview?
     });
     const data = await response.json().catch(() => ({}));
     if (!response.ok || !data.preview) {
-      return { error: refusalText(data, "Could not check this hero against the table.") };
+      return { error: refusalText(data, t("campaign.joinConfirm.error.preview")) };
     }
     return { preview: data.preview };
   } catch {
-    return { error: "Could not reach the server." };
+    return { error: t("campaign.joinConfirm.error.server") };
   }
 }
 
@@ -99,6 +100,7 @@ export function JoinConfirmDialog({
   onClose: () => void;
   onSeated: () => void;
 }) {
+  const { t } = useI18n();
   // The server's answer, kept with the hero it answers for: a sheet opened
   // on another hero shows its own check, never the last one's.
   const heroKey = hero ? `${hero.kind}:${hero.id}:${flow}` : "";
@@ -128,13 +130,13 @@ export function JoinConfirmDialog({
     }
     let cancelled = false;
     const key = `${hero.kind}:${hero.id}:${flow}`;
-    void askPreview(campaignId, previewBody(hero, flow, null)).then((result) => {
+    void askPreview(campaignId, previewBody(hero, flow, null), t).then((result) => {
       if (!cancelled) setAnswer({ key, ...result });
     });
     return () => {
       cancelled = true;
     };
-  }, [campaignId, hero, flow]);
+  }, [campaignId, hero, flow, t]);
 
   useEffect(() => {
     if (!hero || !picksKey) {
@@ -144,7 +146,7 @@ export function JoinConfirmDialog({
     const key = `${hero.kind}:${hero.id}:${flow}|${picksKey}`;
     // A short wait, so a run of clicks asks once.
     const timer = setTimeout(() => {
-      void askPreview(campaignId, previewBody(hero, flow, JSON.parse(picksKey) as SeatPicks)).then((result) => {
+      void askPreview(campaignId, previewBody(hero, flow, JSON.parse(picksKey) as SeatPicks), t).then((result) => {
         if (!cancelled) setChecked({ key, ...result });
       });
     }, 250);
@@ -152,7 +154,7 @@ export function JoinConfirmDialog({
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [campaignId, hero, flow, picksKey]);
+  }, [campaignId, hero, flow, picksKey, t]);
 
   async function confirm() {
     if (!hero) {
@@ -169,12 +171,12 @@ export function JoinConfirmDialog({
       });
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        setError(refusalText(data, "Could not seat that hero."));
+        setError(refusalText(data, t("campaign.joinConfirm.error.seat")));
         return;
       }
       onSeated();
     } catch {
-      setError("Could not reach the server.");
+      setError(t("campaign.joinConfirm.error.server"));
     } finally {
       setBusy(false);
     }
@@ -186,8 +188,20 @@ export function JoinConfirmDialog({
     onClose();
   }
 
-  const name = preview?.name || hero?.name || "this hero";
+  const name = preview?.name || hero?.name || t("campaign.joinConfirm.thisHero");
   const owedLeft = shown?.owed ?? preview?.owed ?? [];
+  const owedOnSheet = shown?.owedOnSheet ?? preview?.owedOnSheet ?? [];
+  const sheetOwedLeft = owedLeft.filter((line) => owedOnSheet.includes(line));
+  const levelUpOwedLeft = owedLeft.filter((line) => !owedOnSheet.includes(line));
+  const owedNote = !sheetOwedLeft.length
+    ? t("campaign.joinConfirm.owedNote.levelUp", { name, choices: levelUpOwedLeft.join("; ") })
+    : !levelUpOwedLeft.length
+      ? t("campaign.joinConfirm.owedNote.sheet", { name, choices: sheetOwedLeft.join("; ") })
+      : t("campaign.joinConfirm.owedNote.split", { name, levelUp: levelUpOwedLeft.join("; "), sheet: sheetOwedLeft.join("; ") });
+  const owedLeftLines = [
+    ...(levelUpOwedLeft.length ? [t("campaign.joinConfirm.owedLeft.levelUp", { choices: levelUpOwedLeft.join("; ") })] : []),
+    ...(sheetOwedLeft.length ? [t("campaign.joinConfirm.owedLeft.sheet", { choices: sheetOwedLeft.join("; ") })] : []),
+  ];
   return (
     <Dialog
       open={hero !== null}
