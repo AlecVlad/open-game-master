@@ -791,4 +791,7 @@ export const enWorkshop = {
   "workshop.contentImport.worldLinkLabel.reportsTo": "reports to",
   "workshop.contentImport.worldLinkLabel.liegeOf": "liege of",
   "workshop.contentImport.worldLinkLabel.vassalOf": "vassal of",
+  "workshop.rulesets.noun.other": "rulesets",
+  "workshop.bestiary.noun.other": "monsters",
+  "workshop.cast.noun.other": "people",
 } satisfies Record<string, string>;
