@@ -13,6 +13,7 @@ import { returnFocus } from "@/components/ui/return-focus";
 import { ChevronDown, Dices, Loader2, Search, Sparkles, X } from "lucide-react";
 import { useEffect, useId, useMemo, useState } from "react";
 import { cn } from "@/lib/cn";
+import { useI18n } from "@/lib/i18n/provider";
 import { InfoButton, InfoChipList } from "@/components/ui/InfoDialog";
 import { describeFeature, describeSkill } from "@/lib/help";
 import { useClassFeatureText } from "@/lib/classes/use-feature-text";
@@ -130,6 +131,7 @@ export function LevelUpDialog({
   worldPack?: string;
   onDone: () => void;
 }) {
+  const { t } = useI18n();
   // Held from the moment the dialog opens: the sheet the server sends back
   // after the level is already at it.
   const [startLevel] = useState(sheet.level);
@@ -265,8 +267,12 @@ export function LevelUpDialog({
       matching.map((entry) => ({ ...entry, id: entry.option.id })),
       ids,
     );
-    return { ...split, label: pack?.classes.length ? `Callings of ${pack.name}` : "Recommended for this setting", query };
-  }, [genre, pack, classQuery, newClassOptions]);
+    return {
+      ...split,
+      label: pack?.classes.length ? t("charSheet.levelUp.classGroups.callings", { name: pack.name }) : t("charSheet.levelUp.classGroups.recommended"),
+      query,
+    };
+  }, [genre, pack, classQuery, newClassOptions, t]);
   const classListId = useId();
 
   // Some multiclass grants include one class-skill pick (rogue, ranger,
@@ -702,17 +708,17 @@ export function LevelUpDialog({
   function pickRefusal(name: string, level: number | null): { short: string; long: string } | null {
     if (anyGroup && anyChosenKeys.has(textKey(name))) {
       return {
-        short: "Chosen below",
-        long: `${name} is already chosen under ${anyGroup.feature}, below. Untick it there to choose it here.`,
+        short: t("charSheet.levelUp.spellRefusal.chosenBelow.short"),
+        long: t("charSheet.levelUp.spellRefusal.chosenBelow.long", { name, feature: anyGroup.feature }),
       };
     }
     if (level === 0) {
       return remainingCantrips !== null && cantripPicks.length >= remainingCantrips
-        ? { short: "Cantrips full", long: `That is every new cantrip for this level. Untick one to choose ${name}.` }
+        ? { short: t("charSheet.levelUp.spellRefusal.cantripsFull.short"), long: t("charSheet.levelUp.spellRefusal.cantripsFull.long", { name }) }
         : null;
     }
     if (remainingPicks !== null && spellPicks.length >= remainingPicks) {
-      return { short: "All new spells chosen", long: `That is every new spell for this level. Untick one to choose ${name}.` };
+      return { short: t("charSheet.levelUp.spellRefusal.spellsFull.short"), long: t("charSheet.levelUp.spellRefusal.spellsFull.long", { name }) };
     }
     if (!isThirdCaster(classChoice, effectiveSubclass, progression)) {
       return null;
@@ -727,12 +733,12 @@ export function LevelUpDialog({
       adding: name,
       schoolOf,
     });
-    return offSchool ? { short: "Outside your two schools", long: offSchool } : null;
+    return offSchool ? { short: t("charSheet.levelUp.spellRefusal.offSchool"), long: offSchool } : null;
   }
   function freeNote(name: string): string {
     return spellGrants.learned.some((entry) => textKey(entry) === textKey(name))
-      ? `Free with ${spellGrants.learnedFrom}`
-      : "Free with your subclass";
+      ? t("charSheet.levelUp.spell.freeLearned", { source: spellGrants.learnedFrom })
+      : t("charSheet.levelUp.spell.freeSubclass");
   }
   function anyRefusal(name: string, cantrip: boolean) {
     return anyGroup
@@ -760,7 +766,7 @@ export function LevelUpDialog({
         name: spell.name,
         level: spell.level,
         state: granted ? ("granted" as const) : picked ? ("ready" as const) : ("available" as const),
-        note: granted ? freeNote(spell.name) : picked ? "New" : undefined,
+        note: granted ? freeNote(spell.name) : picked ? t("charSheet.levelUp.spell.new") : undefined,
         blocked: granted || picked ? undefined : pickRefusal(spell.name, spell.level)?.short,
         data: spell.data,
         slug: spell.slug,
@@ -784,7 +790,7 @@ export function LevelUpDialog({
         pool: anyPool,
         held: (name) => alreadyKnown.has(textKey(name)) || grantedFree.has(textKey(name)),
         picks: anyChosen,
-        elsewhere: (name) => (classPickKeys.has(textKey(name)) ? "Chosen above" : null),
+        elsewhere: (name) => (classPickKeys.has(textKey(name)) ? t("charSheet.levelUp.spell.chosenAbove") : null),
         refusal: anyRefusal,
       })
     : [];
