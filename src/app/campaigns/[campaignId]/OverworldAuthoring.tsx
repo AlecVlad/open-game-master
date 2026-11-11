@@ -16,6 +16,7 @@ import type { OverworldData } from "@/app/campaigns/[campaignId]/overworldDraw";
 import { offersStoryModel, useCapabilities } from "@/lib/use-capabilities";
 import { DictateField } from "@/components/DictateField";
 import { appendDictation } from "@/lib/dictation";
+import { localizeOverworldError } from "@/app/campaigns/[campaignId]/OverworldTools";
 
 // Authoring the region: describe it, roll seeds against it, name what you
 // see, and write down what only you know.
@@ -78,7 +79,7 @@ export function OverworldAuthoring({
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError(t("campaign.overworld.errors.generic"));
+        setError(localizeOverworldError((payload as { error?: string }).error, t));
         return false;
       }
       onData(payload as OverworldData);
@@ -115,7 +116,7 @@ export function OverworldAuthoring({
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError(t("campaign.overworld.errors.modelDescription"));
+        setError(localizeOverworldError((payload as { error?: string }).error, t));
         return;
       }
       const described = (payload as { plan: Plan }).plan;
