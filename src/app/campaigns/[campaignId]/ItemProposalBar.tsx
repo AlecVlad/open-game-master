@@ -10,6 +10,7 @@ import type { ItemProposal } from "@/app/campaigns/[campaignId]/useCampaignStrea
 import type { CharacterSheet } from "@/lib/schemas/sheet";
 import { AdvanceOffers } from "./AdvanceOfferCard";
 import { PactOffers } from "./PactOfferCard";
+import { COPPER_PER_GOLD, formatPrice } from "@/lib/srd/currency";
 
 // Pending DM offers: item and gold changes (inventoryApprovals) and damage,
 // healing and conditions (vitalsApprovals). The owning player gets
@@ -38,6 +39,66 @@ export function ItemProposalBar({
   const advances = proposals.filter((proposal) => proposal.toolName === "romance_advance");
   const pacts = proposals.filter((proposal) => proposal.toolName === "pact_approach");
   const offers = proposals.filter((proposal) => proposal.toolName !== "romance_advance" && proposal.toolName !== "pact_approach");
+  const summarizeProposal = (proposal: ItemProposal) => {
+    const data = proposal.summaryData;
+    if (!data) return proposal.summary;
+    const quantitySuffix = data.quantity > 1 ? ` ×${data.quantity}` : "";
+    const item = data.item || t("campaign.session.proposals.summary.unknownItem");
+
+    switch (proposal.toolName) {
+      case "trade": {
+        if (!proposal.offer || !data.fromName || !data.toName) return proposal.summary;
+        const side = (lines: Array<{ name: string; qty: number }>, copper: number) => {
+          const parts = lines.map((line) => line.qty > 1 ? `${line.name} ×${line.qty}` : line.name);
+          if (copper > 0) parts.push(formatPrice(copper));
+          return parts.length ? parts.join(", ") : t("campaign.session.proposals.summary.nothing");
+        };
+        return t("campaign.session.proposals.summary.trade", {
+          from: data.fromName,
+          give: side(proposal.offer.give, proposal.offer.giveCp),
+          to: data.toName,
+          want: side(proposal.offer.want, proposal.offer.wantCp),
+        });
+      }
+      case "grant_item":
+        return t("campaign.session.proposals.summary.giveItem", { item, quantitySuffix, character: data.characterName });
+      case "remove_item":
+        return t("campaign.session.proposals.summary.takeItem", { item, quantitySuffix, character: data.characterName });
+      case "modify_gold": {
+        const amount = data.currency || `${Math.abs(data.delta)} gp`;
+        return data.currencyDirection === "take" || (!data.currencyDirection && data.delta < 0)
+          ? t("campaign.session.proposals.summary.takeMoney", { amount, character: data.characterName })
+          : t("campaign.session.proposals.summary.giveMoney", { amount, character: data.characterName });
+      }
+      case "purchase": {
+        const priceSuffix = data.price > 0
+          ? t("campaign.session.proposals.summary.priceSuffix", { price: formatPrice(data.price * COPPER_PER_GOLD) })
+          : "";
+        return data.action === "sell"
+          ? t("campaign.session.proposals.summary.sell", { character: data.characterName, item, quantitySuffix, priceSuffix })
+          : t("campaign.session.proposals.summary.buy", { character: data.characterName, item, quantitySuffix, priceSuffix });
+      }
+      case "apply_damage":
+        return data.damageType
+          ? t("campaign.session.proposals.summary.damageTyped", { amount: data.amount, type: data.damageType, character: data.characterName })
+          : t("campaign.session.proposals.summary.damage", { amount: data.amount, character: data.characterName });
+      case "heal":
+        if (data.temporary) return t("campaign.session.proposals.summary.temporaryHp", { character: data.characterName, amount: data.amount });
+        if (data.spell) return data.amount > 0
+          ? t("campaign.session.proposals.summary.healSpellAmount", { character: data.characterName, spell: data.spell, amount: data.amount })
+          : t("campaign.session.proposals.summary.healSpell", { character: data.characterName, spell: data.spell });
+        return t("campaign.session.proposals.summary.heal", { character: data.characterName, amount: data.amount });
+      case "set_condition":
+        return data.rounds > 0
+          ? t("campaign.session.proposals.summary.conditionRounds", { character: data.characterName, condition: data.condition, rounds: data.rounds })
+          : t("campaign.session.proposals.summary.condition", { character: data.characterName, condition: data.condition });
+      case "clear_condition":
+        return t("campaign.session.proposals.summary.clearCondition", { character: data.characterName, condition: data.condition });
+      default:
+        return proposal.summary;
+    }
+  };
+
 
   async function resolve(proposalId: string, action: "approve" | "decline" | "cancel") {
     setBusyId(proposalId);
@@ -108,7 +169,7 @@ export function ItemProposalBar({
                   className="shrink-0"
                 />
                 <span className="min-w-0 flex-1">
-                  {proposal.summary}
+                  {summarizeProposal(proposal)}
                   {proposal.reason ? (
                     <span className="text-stone-500"> ({proposal.reason})</span>
                   ) : null}
