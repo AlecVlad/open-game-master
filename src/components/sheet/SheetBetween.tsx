@@ -52,25 +52,25 @@ function localizeBetweenLine(text: string, kind: BetweenLine["kind"], t: Between
   };
   const disease = (name: string) => diseaseNames[name.trim().toLowerCase()] ?? name;
   if (kind === "affliction") {
-    let match = /^infected with (.+), symptoms in (\\d+) h$/.exec(text);
+    let match = /^infected with (.+), symptoms in (\d+) h$/.exec(text);
     if (match) return t("charSheet.between.infected", { disease: disease(match[1]), hours: Number(match[2]) });
-    match = /^(.+) \\((\\d+) of (\\d+) rest saves toward a cure\\)$/.exec(text);
+    match = /^(.+) \((\d+) of (\d+) rest saves toward a cure\)$/.exec(text);
     if (match) return t("charSheet.between.diseaseProgress", { disease: disease(match[1]), successes: Number(match[2]), total: Number(match[3]) });
-    match = /^Cackle Fever \\(DC (\\d+), (\\d+) of 3 failed rest saves\\)$/.exec(text);
+    match = /^Cackle Fever \(DC (\d+), (\d+) of 3 failed rest saves\)$/.exec(text);
     if (match) return t("charSheet.between.cackle", { dc: Number(match[1]), fails: Number(match[2]) });
-    match = /^Sight Rot \\(-?(\\d+), (\\d+) of 3 Eyebright doses\\)$/.exec(text);
+    match = /^Sight Rot \(-?(\d+), (\d+) of 3 Eyebright doses\)$/.exec(text);
     if (match) return t("charSheet.between.sight", { penalty: Number(match[1]), doses: Number(match[2]) });
     match = /^indefinite madness, flaw: (.+)$/.exec(text);
     if (match) return t("charSheet.between.indefinite", { flaw: match[1] });
-    match = /^(short|long)-term madness \\((.*?)(?:, (\\d+) h left)?\\)$/.exec(text);
+    match = /^(short|long)-term madness \((.*?)(?:, (\d+) h left)?\)$/.exec(text);
     if (match) {
       const remaining = match[3] ? `, ${t("charSheet.between.hoursLeft", { hours: Number(match[3]) })}` : "";
       const madnessKind = t(match[1] === "short" ? "charSheet.between.madness.short" : "charSheet.between.madness.long");
       return t("charSheet.between.madness", { kind: madnessKind, conditions: match[2], remaining });
     }
-    const poison = /^(.+?)(?:, next save in (\\d+) h)?$/.exec(text);
+    const poison = /^(.+?)(?:, next save in (\d+) h)?$/.exec(text);
     if (poison) {
-      const id = poison[1].trim().toLowerCase().replace(/\\s+/g, "_");
+      const id = poison[1].trim().toLowerCase().replace(/\s+/g, "_");
       if (poisonNames[id]) {
         const nextSave = poison[2] ? t("charSheet.between.nextSave", { hours: Number(poison[2]) }) : "";
         return t("charSheet.between.poison", { poison: poisonNames[id], nextSave: nextSave ? `, ${nextSave}` : "" });
@@ -79,18 +79,18 @@ function localizeBetweenLine(text: string, kind: BetweenLine["kind"], t: Between
     return text;
   }
   return text.split("; ").map((part) => {
-    let match = /^lifestyle (\\w+) \\((.+) a day, paid at each dawn in town\\)$/.exec(part);
+    let match = /^lifestyle (\w+) \((.+) a day, paid at each dawn in town\)$/.exec(part);
     if (match) return t("charSheet.between.lifestyle", {
       name: lifestyleNames[match[1]] ?? match[1],
       price: match[2],
     });
-    match = /^crafting (.+) (\\d[\\d,.]* \\w+) of (\\d[\\d,.]* \\w+)$/.exec(part);
+    match = /^crafting (.+) (\d[\d,.]* \w+) of (\d[\d,.]* \w+)$/.exec(part);
     if (match) return t("charSheet.between.crafting", { item: match[1], progress: match[2], total: match[3] });
-    match = /^training (.+) (\\d+)\\/250 days$/.exec(part);
+    match = /^training (.+) (\d+)\/250 days$/.exec(part);
     if (match) return t("charSheet.between.training", { subject: match[1], days: Number(match[2]) });
-    match = /^researching (.+) \\((\\d+) days\\)$/.exec(part);
+    match = /^researching (.+) \((\d+) days\)$/.exec(part);
     if (match) return t("charSheet.between.research", { topic: match[1], days: Number(match[2]) });
-    match = /^recuperating (\\d+)\\/3 days$/.exec(part);
+    match = /^recuperating (\d+)\/3 days$/.exec(part);
     if (match) return t("charSheet.between.recuperating", { days: Number(match[1]) });
     return part;
   }).join("; ");
@@ -135,7 +135,7 @@ export function SheetBetween({ sheet, className }: { sheet: CharacterSheet; clas
           >
             <span aria-hidden="true" className={cn("mt-1.5 size-1.5 shrink-0 rounded-full", line.kind === "affliction" ? "bg-red-400/80" : "bg-amber-400/70")} />
             <span>
-              {line.text}
+              {localizeBetweenLine(line.text, line.kind, t)}
               {line.secret ? <span className="ml-1 text-[10px] uppercase tracking-wide text-stone-500">{t("charSheet.between.dmOnly")}</span> : null}
             </span>
           </li>
