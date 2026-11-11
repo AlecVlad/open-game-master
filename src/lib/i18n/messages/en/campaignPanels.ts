@@ -4639,4 +4639,27 @@ export const enCampaignPanels = {
   "campaign.session.loreCheck.error.network": "Could not reach the server.",
 
 
+  "campaign.session.sideChat.title": "Private chats",
+  "campaign.session.sideChat.chime.muted": "Chime muted",
+  "campaign.session.sideChat.chime.on": "Chime on",
+  "campaign.session.sideChat.chime.mutedHint": "Chime muted. Click to play a chime when a private message arrives.",
+  "campaign.session.sideChat.chime.onHint": "The chime plays when a private message arrives. Click to mute.",
+  "campaign.session.sideChat.new": "New",
+  "campaign.session.sideChat.privacy": "Only the people in a chat can read it. The Game Master never sees these.",
+  "campaign.session.sideChat.empty": "No side chats yet. Whisper a party member from their card, or start one here.",
+  "campaign.session.sideChat.someone": "someone",
+  "campaign.session.sideChat.error.open": "Could not open the chat.",
+  "campaign.session.sideChat.error.create": "Could not create the chat.",
+  "campaign.session.sideChat.error.pickMember": "Pick at least one member.",
+  "campaign.session.sideChat.error.send": "Could not send.",
+  "campaign.session.sideChat.error.network": "Could not reach the server.",
+  "campaign.session.sideChat.form.title": "Who's in it?",
+  "campaign.session.sideChat.form.groupName": "Group name (optional)",
+  "campaign.session.sideChat.form.cancel": "Cancel",
+  "campaign.session.sideChat.form.start": "Start chat",
+  "campaign.session.sideChat.thread.all": "All chats",
+  "campaign.session.sideChat.thread.messagePlaceholder": "Message {label}",
+  "campaign.session.sideChat.thread.messageAria": "Message {label}",
+  "campaign.session.sideChat.thread.send": "Send",
+
 } satisfies Record<string, string>;
