@@ -80,14 +80,14 @@ export function ItemProposalBar({
       }
       case "apply_damage":
         return data.damageType
-          ? t("campaign.session.proposals.summary.damageTyped", { amount: data.amount, type: data.damageType, character: data.characterName })
-          : t("campaign.session.proposals.summary.damage", { amount: data.amount, character: data.characterName });
+          ? t("campaign.session.proposals.summary.damageTyped", { amount: Math.max(1, data.amount), type: data.damageType, character: data.characterName })
+          : t("campaign.session.proposals.summary.damage", { amount: Math.max(1, data.amount), character: data.characterName });
       case "heal":
-        if (data.temporary) return t("campaign.session.proposals.summary.temporaryHp", { character: data.characterName, amount: data.amount });
+        if (data.temporary) return t("campaign.session.proposals.summary.temporaryHp", { character: data.characterName, amount: Math.max(1, data.amount) });
         if (data.spell) return data.amount > 0
           ? t("campaign.session.proposals.summary.healSpellAmount", { character: data.characterName, spell: data.spell, amount: data.amount })
           : t("campaign.session.proposals.summary.healSpell", { character: data.characterName, spell: data.spell });
-        return t("campaign.session.proposals.summary.heal", { character: data.characterName, amount: data.amount });
+        return t("campaign.session.proposals.summary.heal", { character: data.characterName, amount: Math.max(1, data.amount) });
       case "set_condition":
         return data.rounds > 0
           ? tp("campaign.session.proposals.summary.conditionRounds", data.rounds, { character: data.characterName, condition: data.condition })
