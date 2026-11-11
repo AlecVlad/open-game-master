@@ -4332,4 +4332,17 @@ export const enCampaignPanels = {
   "campaign.relationship.tier.tip.friendly": "Friendly",
   "campaign.relationship.tier.tip.close": "Close, a trusted friend",
   "campaign.relationship.tier.tip.devoted": "Devoted",
+
+  "campaign.pins.menu.jump": "Jump to message",
+  "campaign.pins.menu.showLess": "Show less",
+  "campaign.pins.menu.showMore": "Show more",
+  "campaign.pins.menu.unpin": "Unpin",
+  "campaign.pins.kind.fullMessage": "Full message",
+  "campaign.pins.kind.excerpt": "Excerpt",
+  "campaign.pins.aria.unpin": "Unpin",
+  "campaign.pins.title": "Pinned memories",
+  "campaign.pins.budget.aria": "Pin budget used",
+  "campaign.pins.budget.tokens": "tokens",
+  "campaign.pins.empty": "Nothing pinned yet. Select text in one of the GM's messages and press Pin to memory, using the pin icon on the message or its ⋯ menu on a phone. Pinned memories stay in front of the GM every turn, whether or not they seem relevant.",
+  "campaign.pins.loadError": "Pinned memories could not be loaded. Check your connection and try again.",
 } satisfies Record<string, string>;
