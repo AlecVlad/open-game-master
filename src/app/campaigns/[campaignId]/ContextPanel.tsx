@@ -3,6 +3,7 @@
 import { EmptyState } from "@/components/EmptyState";
 import { RefreshCw } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { SectionHead } from "@/components/ui/SectionHead";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui";
@@ -16,20 +17,41 @@ import type { BlockKind, ContextTrace } from "@/lib/dm/context-budget";
 // thing the DM forgot even in the prompt? A dropped block with a reason is a
 // far better answer than guessing at the model.
 
-const KIND_LABEL: Record<BlockKind, string> = {
-  safety: "Lines and veils",
-  contract: "Engine boundary",
-  rules: "Rules",
-  sky: "Sky and hour",
-  state: "Game state",
-  factions: "Factions",
-  quests: "Quests",
-  shop: "Shop",
-  retrieval: "Lore and house rules",
-  chapters: "Chapters",
-  history: "Transcript",
-  tools: "Tool definitions",
+const KIND_KEY: Record<BlockKind, string> = {
+  safety: "campaign.contextTrace.kind.safety",
+  contract: "campaign.contextTrace.kind.contract",
+  rules: "campaign.contextTrace.kind.rules",
+  sky: "campaign.contextTrace.kind.sky",
+  state: "campaign.contextTrace.kind.state",
+  factions: "campaign.contextTrace.kind.factions",
+  quests: "campaign.contextTrace.kind.quests",
+  shop: "campaign.contextTrace.kind.shop",
+  retrieval: "campaign.contextTrace.kind.retrieval",
+  chapters: "campaign.contextTrace.kind.chapters",
+  history: "campaign.contextTrace.kind.history",
+  tools: "campaign.contextTrace.kind.tools",
 };
+
+function localizedBlockReason(reason: string, kind: BlockKind, t: ReturnType<typeof useI18n>["t"]): string {
+  if (reason === "always included") return t("campaign.contextTrace.reason.alwaysIncluded");
+  if (reason === "fits") return t("campaign.contextTrace.reason.fits");
+  const ofKind = reason.match(/^over the ([a-z]+) budget \\(\\d+ > [\\d,]+ tokens left\\)$/);
+  if (ofKind) {
+    return t("campaign.contextTrace.reason.overKind", {
+      kind: t((KIND_KEY[ofKind[1] as BlockKind] ?? KIND_KEY[kind]) as never),
+      tokens: reason.match(/\\((\\d+)/)?.[1] ?? "",
+      remaining: reason.match(/> ([\\d,]+)/)?.[1] ?? "",
+    });
+  }
+  const total = reason.match(/^over the total context budget \\(\\d+ > [\\d,]+ tokens\\)$/);
+  if (total) {
+    return t("campaign.contextTrace.reason.overTotal", {
+      total: reason.match(/\\((\\d+)/)?.[1] ?? "",
+      limit: reason.match(/> ([\\d,]+)/)?.[1] ?? "",
+    });
+  }
+  return reason;
+}
 
 // Palette is stone, amber and ember only (src/app/globals.css remaps the
 // Tailwind names); anything outside it renders as raw Tailwind and clashes
@@ -50,6 +72,8 @@ const KIND_COLOR: Record<BlockKind, string> = {
 };
 
 export function ContextPanel({ campaignId }: { campaignId: string }) {
+  const { t, lang } = useI18n();
+  const numberLocale = lang === "ru" ? "ru-RU" : "en-US";
   const [trace, setTrace] = useState<ContextTrace | null>(null);
   const [at, setAt] = useState<string>("");
   const [loading, setLoading] = useState(true);
@@ -70,7 +94,7 @@ export function ContextPanel({ campaignId }: { campaignId: string }) {
           return;
         }
         if (!response.ok) {
-          setError(response.status === 403 ? "Party lead only." : "Could not load the context.");
+          setError(response.status === 403 ? t("campaign.contextTrace.error.leadOnly") : t("campaign.contextTrace.error.load"));
           setLoading(false);
           return;
         }
@@ -83,7 +107,7 @@ export function ContextPanel({ campaignId }: { campaignId: string }) {
         setAt(data.at ?? "");
       } catch {
         if (!cancelled) {
-          setError("Could not load the context.");
+          setError(t("campaign.contextTrace.error.load"));
         }
       } finally {
         if (!cancelled) {
@@ -94,7 +118,7 @@ export function ContextPanel({ campaignId }: { campaignId: string }) {
     return () => {
       cancelled = true;
     };
-  }, [campaignId, reload]);
+  }, [campaignId, reload, t]);
 
   const pct = trace ? Math.min(100, Math.round((trace.promptTokens / trace.limitTokens) * 100)) : 0;
   const over = trace ? trace.promptTokens > trace.limitTokens : false;
@@ -102,22 +126,22 @@ export function ContextPanel({ campaignId }: { campaignId: string }) {
   return (
     <div className="space-y-3 p-3">
       <SectionHead
-        title="What the GM was sent"
+        title={t("campaign.contextTrace.title")}
         glyph="tab-context"
         aside={
-          <button type="button" onClick={load} className={cn(ui.iconAction, "pk-tap pk-always -my-1 inline-flex items-center justify-center")} aria-label="Refresh">
+          <button type="button" onClick={load} className={cn(ui.iconAction, "pk-tap pk-always -my-1 inline-flex items-center justify-center")} aria-label={t("campaign.contextTrace.refresh")}>
             <RefreshCw className={cn("size-3.5", loading && "animate-spin")} />
           </button>
         }
       />
       <p className="-mt-1 text-xs text-stone-500">
-        Last turn{at ? `, ${new Date(at).toLocaleTimeString()}` : ""}. Token counts are estimates.
+        {t("campaign.contextTrace.lastTurn", { time: at ? new Date(at).toLocaleTimeString(numberLocale) : t("campaign.contextTrace.notAvailable") })}. {t("campaign.contextTrace.tokenCountsAreEstimates")}
       </p>
 
       {error ? <p className="motion-shake text-xs text-red-400">{error}</p> : null}
 
       {!error && !loading && !trace ? (
-        <EmptyState size="sm" art="scrolls" title="No turn has been taken yet. Play a round and this will show every block the GM received, what it cost, and anything the budget cut." />
+        <EmptyState size="sm" art="scrolls" title={t("campaign.contextTrace.empty")} />
       ) : null}
 
       {trace ? (
@@ -125,7 +149,7 @@ export function ContextPanel({ campaignId }: { campaignId: string }) {
           <div>
             <div className="mb-1 flex justify-between font-mono text-[11px] text-stone-400">
               <span>
-                {trace.promptTokens.toLocaleString()} / {trace.limitTokens.toLocaleString()} tokens
+                {trace.promptTokens.toLocaleString(numberLocale)} / {trace.limitTokens.toLocaleString(numberLocale)} {t("campaign.contextTrace.tokens")}
               </span>
               <span className={over ? "text-red-400" : "text-stone-500"}>{pct}%</span>
             </div>
@@ -139,7 +163,7 @@ export function ContextPanel({ campaignId }: { campaignId: string }) {
 
           {trace.tuning?.length ? (
             <div className="panel rounded-lg px-2.5 py-1.5 text-xs" data-testid="tuning-trace">
-              <span className="whitespace-nowrap font-medium text-amber-200">Fitted to this model</span>
+              <span className="whitespace-nowrap font-medium text-amber-200">{t("campaign.contextTrace.fittedToModel")}</span>
               <ul className="mt-1 space-y-0.5">
                 {trace.tuning.map((line) => (
                   <li key={line} className="text-[11px] text-stone-400">
@@ -153,12 +177,12 @@ export function ContextPanel({ campaignId }: { campaignId: string }) {
           {trace.profile && trace.profile.name !== "full" ? (
             <div className="panel rounded-lg px-2.5 py-1.5 text-xs" data-testid="profile-trace">
               <span className="whitespace-nowrap font-medium text-amber-200">
-                {trace.profile.name === "compact" ? "Compact tool set" : "Trimmed tool set"}
+                {trace.profile.name === "compact" ? t("campaign.contextTrace.compactToolSet") : t("campaign.contextTrace.trimmedToolSet")}
               </span>
               {trace.profile.name === "compact" ? (
                 <p className="mt-0.5 text-[11px] text-stone-400">
-                  Groups offered: {trace.profile.groups?.length ? trace.profile.groups.join(", ") : "the core only"}
-                  {trace.profile.opened?.length ? `; opened during the turn: ${trace.profile.opened.join(", ")}` : ""}. The rest are one more_tools call away.
+                  {t("campaign.contextTrace.groupsOffered", { groups: trace.profile.groups?.length ? trace.profile.groups.join(", ") : t("campaign.contextTrace.coreOnly") })}
+                  {trace.profile.opened?.length ? `; ${t("campaign.contextTrace.openedDuringTurn", { groups: trace.profile.opened.join(", ") })}` : ""}. {t("campaign.contextTrace.moreToolsAway")}
                 </p>
               ) : null}
             </div>
@@ -167,10 +191,10 @@ export function ContextPanel({ campaignId }: { campaignId: string }) {
           {trace.calls?.length ? (
             <div className="panel rounded-lg px-2.5 py-1.5 text-xs" data-testid="calls-trace">
               <div className="flex flex-wrap items-baseline justify-between gap-x-2">
-                <span className="whitespace-nowrap font-medium text-amber-200">Calls</span>
+                <span className="whitespace-nowrap font-medium text-amber-200">{t("campaign.contextTrace.calls")}</span>
                 {trace.prefix ? (
-                  <span className="shrink-0 font-mono text-[11px] text-stone-400" title="How much of this turn's prompt matched the last turn's from its start: the most a prompt cache could reuse.">
-                    {trace.prefix.sharedTokens.toLocaleString()}/{trace.prefix.promptTokens.toLocaleString()} shared with the last turn
+                  <span className="shrink-0 font-mono text-[11px] text-stone-400" title={t("campaign.contextTrace.sharedWithLastTurnHelp")}>
+                    {trace.prefix.sharedTokens.toLocaleString(numberLocale)}/{trace.prefix.promptTokens.toLocaleString(numberLocale)} {t("campaign.contextTrace.sharedWithLastTurn")}
                   </span>
                 ) : null}
               </div>
@@ -180,20 +204,20 @@ export function ContextPanel({ campaignId }: { campaignId: string }) {
                     <span className="font-mono text-stone-500">{call.task}</span>{" "}
                     {call.windowTokens
                       ? call.windowAssumed
-                        ? `about ${call.promptTokens.toLocaleString()} sent past an assumed ${call.windowTokens.toLocaleString()} window (the endpoint reports none), reply uncapped`
-                        : `${call.promptTokens.toLocaleString()}/${call.windowTokens.toLocaleString()} sent`
-                      : "sent unmeasured"}
-                    {call.toolCount ? `, ${call.toolCount} tools` : ""}
-                    {call.windowTokens && !call.windowAssumed ? `, reply up to ${call.outputTokens.toLocaleString()}` : ""}
-                    {call.reportedInputTokens !== undefined ? `; backend counted ${call.reportedInputTokens.toLocaleString()} in` : ""}
-                    {call.cachedInputTokens !== undefined ? ` (${call.cachedInputTokens.toLocaleString()} cached)` : ""}
-                    {call.outputTokensUsed !== undefined ? `, ${call.outputTokensUsed.toLocaleString()} out` : ""}
-                    {call.reasoningTokens !== undefined ? ` (${call.reasoningTokens.toLocaleString()} reasoning)` : ""}
-                    {call.durationMs !== undefined ? `, ${(call.durationMs / 1000).toFixed(1)}s` : ""}
-                    {call.firstTokenMs !== undefined ? ` (first words ${(call.firstTokenMs / 1000).toFixed(1)}s)` : ""}
-                    {call.dropped || call.clipped ? `; fitted: ${call.dropped} older line(s) left out, ${call.clipped} cut short` : ""}
-                    {call.finishReason && call.finishReason !== "stop" && call.finishReason !== "tool_calls" ? `; ended: ${call.finishReason}` : ""}
-                    {call.error ? `; failed: ${call.error}` : ""}
+                        ? t("campaign.contextTrace.call.assumedWindow", { sent: call.promptTokens.toLocaleString(numberLocale), window: call.windowTokens.toLocaleString(numberLocale) })
+                        : t("campaign.contextTrace.call.sentWindow", { sent: call.promptTokens.toLocaleString(numberLocale), window: call.windowTokens.toLocaleString(numberLocale) })
+                      : t("campaign.contextTrace.call.sentUnmeasured")}
+                    {call.toolCount ? t("campaign.contextTrace.call.toolsCount", { count: call.toolCount }) : ""}
+                    {call.windowTokens && !call.windowAssumed ? t("campaign.contextTrace.call.replyUpTo", { tokens: call.outputTokens.toLocaleString(numberLocale) }) : ""}
+                    {call.reportedInputTokens !== undefined ? t("campaign.contextTrace.call.backendCounted", { tokens: call.reportedInputTokens.toLocaleString(numberLocale) }) : ""}
+                    {call.cachedInputTokens !== undefined ? t("campaign.contextTrace.call.cached", { tokens: call.cachedInputTokens.toLocaleString(numberLocale) }) : ""}
+                    {call.outputTokensUsed !== undefined ? t("campaign.contextTrace.call.output", { tokens: call.outputTokensUsed.toLocaleString(numberLocale) }) : ""}
+                    {call.reasoningTokens !== undefined ? t("campaign.contextTrace.call.reasoning", { tokens: call.reasoningTokens.toLocaleString(numberLocale) }) : ""}
+                    {call.durationMs !== undefined ? t("campaign.contextTrace.call.duration", { seconds: (call.durationMs / 1000).toFixed(1) }) : ""}
+                    {call.firstTokenMs !== undefined ? t("campaign.contextTrace.call.firstToken", { seconds: (call.firstTokenMs / 1000).toFixed(1) }) : ""}
+                    {call.dropped || call.clipped ? t("campaign.contextTrace.call.fitted", { dropped: call.dropped, clipped: call.clipped }) : ""}
+                    {call.finishReason && call.finishReason !== "stop" && call.finishReason !== "tool_calls" ? t("campaign.contextTrace.call.ended", { reason: call.finishReason }) : ""}
+                    {call.error ? t("campaign.contextTrace.call.failed", { error: call.error }) : ""}
                   </li>
                 ))}
               </ul>
@@ -202,12 +226,12 @@ export function ContextPanel({ campaignId }: { campaignId: string }) {
 
           {trace.houseRules ? (
             <div className="panel rounded-lg px-2.5 py-1.5 text-xs" data-testid="house-rules-trace">
-              <span className="whitespace-nowrap font-medium text-amber-200">House rules</span>
+              <span className="whitespace-nowrap font-medium text-amber-200">{t("campaign.contextTrace.houseRules")}</span>
               <p className="mt-0.5 text-[11px] text-stone-400">
-                {trace.houseRules.shown.length ? `Shown: ${trace.houseRules.shown.join("; ")}.` : "None shown."}
+                {trace.houseRules.shown.length ? t("campaign.contextTrace.shown", { items: trace.houseRules.shown.join("; ") }) : t("campaign.contextTrace.noneShown")}
               </p>
               {trace.houseRules.omitted.length ? (
-                <p className="mt-0.5 text-[11px] text-red-300/90">Left out for room (named to the GM): {trace.houseRules.omitted.join("; ")}.</p>
+                <p className="mt-0.5 text-[11px] text-red-300/90">{t("campaign.contextTrace.leftOutForRoom", { items: trace.houseRules.omitted.join("; ") })}</p>
               ) : null}
             </div>
           ) : null}
@@ -215,9 +239,9 @@ export function ContextPanel({ campaignId }: { campaignId: string }) {
           {trace.arc ? (
             <div className="panel rounded-lg px-2.5 py-1.5 text-xs" data-testid="arc-trace">
               <div className="flex flex-wrap items-baseline justify-between gap-x-2">
-                <span className="whitespace-nowrap font-medium text-amber-200">Story arc</span>
+                <span className="whitespace-nowrap font-medium text-amber-200">{t("campaign.contextTrace.storyArc")}</span>
                 <span className="shrink-0 font-mono text-[11px] text-stone-400">
-                  {trace.arc.beats.shown}/{trace.arc.beats.total} beats, {trace.arc.chars.toLocaleString()}/{trace.arc.budgetChars.toLocaleString()} event chars
+                  {t("campaign.contextTrace.arcStats", { shown: trace.arc.beats.shown, total: trace.arc.beats.total, chars: trace.arc.chars.toLocaleString(numberLocale), budget: trace.arc.budgetChars.toLocaleString(numberLocale) })}
                 </span>
               </div>
               {trace.arc.events.length ? (
@@ -230,7 +254,7 @@ export function ContextPanel({ campaignId }: { campaignId: string }) {
                   ))}
                 </ul>
               ) : (
-                <p className="mt-0.5 text-[11px] text-stone-500">No planned events pending.</p>
+                <p className="mt-0.5 text-[11px] text-stone-500">{t("campaign.contextTrace.noPlannedEvents")}</p>
               )}
             </div>
           ) : null}
@@ -238,9 +262,9 @@ export function ContextPanel({ campaignId }: { campaignId: string }) {
           {trace.lore ? (
             <div className="panel rounded-lg px-2.5 py-1.5 text-xs" data-testid="lore-trace">
               <div className="flex flex-wrap items-baseline justify-between gap-x-2">
-                <span className="whitespace-nowrap font-medium text-amber-200">World lore</span>
+                <span className="whitespace-nowrap font-medium text-amber-200">{t("campaign.contextTrace.worldLore")}</span>
                 <span className="shrink-0 font-mono text-[11px] text-stone-400">
-                  {trace.lore.picks.filter((pick) => pick.included).length}/{trace.lore.picks.filter((pick) => !pick.weak).length} entries, {trace.lore.chars.toLocaleString()}/{trace.lore.budgetChars.toLocaleString()} chars
+                  {t("campaign.contextTrace.loreStats", { shown: trace.lore.picks.filter((pick) => pick.included).length, total: trace.lore.picks.filter((pick) => !pick.weak).length, chars: trace.lore.chars.toLocaleString(numberLocale), budget: trace.lore.budgetChars.toLocaleString(numberLocale) })}
                 </span>
               </div>
               {trace.lore.picks.length ? (
@@ -253,13 +277,13 @@ export function ContextPanel({ campaignId }: { campaignId: string }) {
                       className={cn("text-[11px]", pick.included ? "text-stone-400" : pick.weak ? "text-stone-500" : "text-red-300/90")}
                     >
                       {pick.title}
-                      {pick.secret ? <span className="text-ember-300"> (secret)</span> : null}
+                      {pick.secret ? <span className="text-ember-300"> ({t("campaign.contextTrace.secret")})</span> : null}
                       <span className="text-stone-500">: {pick.reason}</span>
                     </li>
                   ))}
                 </ul>
               ) : (
-                <p className="mt-0.5 text-[11px] text-stone-500">No entry matched this moment.</p>
+                <p className="mt-0.5 text-[11px] text-stone-500">{t("campaign.contextTrace.noLoreEntry")}</p>
               )}
             </div>
           ) : null}
@@ -275,11 +299,11 @@ export function ContextPanel({ campaignId }: { campaignId: string }) {
               >
                 <div className="flex items-baseline justify-between gap-2">
                   <span className={cn("font-medium", KIND_COLOR[block.kind])}>
-                    {KIND_LABEL[block.kind]}
+                    {t(KIND_KEY[block.kind] as never)}
                     <span className="ml-1 font-normal text-stone-500">{block.id}</span>
                   </span>
                   <span className="shrink-0 font-mono text-[11px] text-stone-400">
-                    {block.tokens.toLocaleString()}
+                    {block.tokens.toLocaleString(numberLocale)}
                   </span>
                 </div>
                 <p
@@ -288,7 +312,7 @@ export function ContextPanel({ campaignId }: { campaignId: string }) {
                     block.included ? "text-stone-500" : "text-red-300",
                   )}
                 >
-                  {block.included ? block.reason : `dropped: ${block.reason}`}
+                  {block.included ? localizedBlockReason(block.reason, block.kind, t) : t("campaign.contextTrace.dropped", { reason: localizedBlockReason(block.reason, block.kind, t) })}
                 </p>
               </li>
             ))}
