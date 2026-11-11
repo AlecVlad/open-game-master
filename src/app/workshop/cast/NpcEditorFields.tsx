@@ -267,7 +267,7 @@ export function NpcEditorFields({
           <GameIcon icon={{ kind: "glyph", key: "tab-ambience" }} size="size-7" />
           <span className="min-w-0 flex-1 sm:max-w-72">
           <VoicePicker
-            label="Voice"
+            label={t("campaign.npcEditor.voice.label")}
             value={draft.voice?.voiceId ?? ""}
             onChange={(voiceId) =>
               onChange({
@@ -275,7 +275,7 @@ export function NpcEditorFields({
                 voice: voiceId ? { voiceId, speed: draft.voice?.speed ?? 1 } : null,
               })
             }
-            noneLabel="The narrator's voice"
+            noneLabel={t("campaign.npcEditor.voice.narrator")}
             className="w-full"
           />
           </span>
@@ -283,10 +283,10 @@ export function NpcEditorFields({
             <>
               <VoicePreviewButton voice={draft.voice.voiceId} />
               <span className="flex items-center gap-2 text-xs text-stone-400">
-                Pace
+                {t("campaign.npcEditor.voice.pace")}
                 <span className="w-28">
                 <Slider
-                  label="Pace"
+                  label={t("campaign.npcEditor.voice.pace")}
                   min={0.7}
                   max={1.4}
                   step={0.05}
@@ -306,40 +306,38 @@ export function NpcEditorFields({
           with someone (issue 731); a person hostile to the party has none. */}
       {knownBeforeOpen && draft.attitude !== "hostile" ? (
         <section className="panel space-y-2 rounded-xl p-3" data-tour="cast-known-before">
-          <SectionHead title="Before the story" glyph="tab-bonds" className="mb-0" />
+          <SectionHead title={t("campaign.npcEditor.known.title")} glyph="tab-bonds" className="mb-0" />
           <p id={knownLabelId} className="text-xs text-stone-300">
-            Does the whole party already know them when the story begins?
+            {t("campaign.npcEditor.known.question")}
           </p>
           <span className="block sm:max-w-md" aria-describedby={knownLabelId}>
             <Select<KnownBeforeGrade | "none">
-              label="Does the whole party already know them when the story begins?"
+              label={t("campaign.npcEditor.known.question")}
               value={known?.grade ?? "none"}
               onChange={(grade) =>
                 onChange({ ...draft, knownBefore: grade === "none" ? null : { grade, how: known?.how ?? "" } })
               }
-              options={KNOWN_BEFORE_OPTIONS.map((option) => ({ ...option, icon: { kind: "glyph" as const, key: option.value === "none" ? "attitude-neutral" : "tab-bonds" } }))}
+              options={KNOWN_BEFORE_OPTIONS.map((option) => ({ ...option, label: t(option.label as never), hint: t(option.hint as never), icon: { kind: "glyph" as const, key: option.value === "none" ? "attitude-neutral" : "tab-bonds" } }))}
             />
           </span>
           {known ? (
             <div className="pop-in space-y-1">
               <label htmlFor={howId} className="block text-xs text-stone-300">
-                How the party knows them
+                {t("campaign.npcEditor.known.how")}
               </label>
               <input
                 id={howId}
                 value={known.how}
                 maxLength={KNOWN_BEFORE_HOW_CHARS}
                 onChange={(event) => onChange({ ...draft, knownBefore: { grade: known.grade, how: event.target.value } })}
-                placeholder="She hired you twice to guard her caravans"
+                placeholder={t("campaign.npcEditor.known.placeholder")}
                 aria-describedby={howHintId}
                 aria-invalid={!known.how.trim()}
                 className={ui.input}
               />
               <p id={howHintId} className="text-[11px] text-stone-500">
-                {known.how.trim() ? "" : "Needed. "}
-                Use only what the adventure&apos;s opening says the whole party shares. Every hero in the party as the
-                story begins starts with this bond, and this line is its first memory on the Bonds tab and for the GM. A
-                hero who joins later meets them fresh.
+                {known.how.trim() ? "" : t("campaign.npcEditor.known.required") + " "}
+                {t("campaign.npcEditor.known.help")}
               </p>
             </div>
           ) : null}
@@ -347,18 +345,18 @@ export function NpcEditorFields({
       ) : null}
 
       <section className="panel space-y-2 rounded-xl p-3">
-        <SectionHead title="Who they are" glyph="tab-bonds" className="mb-0" aside={suggest("personality")} />
+        <SectionHead title={t("campaign.npcEditor.personality.title")} glyph="tab-bonds" className="mb-0" aside={suggest("personality")} />
         <PersonalitySliders draft={draft} onChange={onChange} />
       </section>
 
       <section className="panel space-y-2 rounded-xl p-3">
-        <SectionHead title="What they want" glyph="quest-active" className="mb-0" />
+        <SectionHead title={t("campaign.npcEditor.goals.title")} glyph="quest-active" className="mb-0" />
         {GOAL_FIELDS.map(([field, placeholder]) => (
           <div key={field} className="flex items-center gap-1.5">
             <input
               value={goalText(draft, field)}
               onChange={(event) => onChange(setGoal(draft, field, event.target.value))}
-              placeholder={placeholder}
+              placeholder={t(field === "scene" ? "campaign.npcEditor.goals.scene" : field === "session" ? "campaign.npcEditor.goals.session" : "campaign.npcEditor.goals.ambition")}
               className={cn(ui.input, "min-w-0 flex-1")}
             />
             {field === "session" && draft.goals.session ? (
@@ -370,13 +368,12 @@ export function NpcEditorFields({
           </div>
         ))}
         <p className="text-[11px] text-stone-500">
-          The middle one advances on background dice at the end of a chapter, so its progress is
-          the engine&apos;s to move, not yours.
+          {t("campaign.npcEditor.goals.sessionNote")}
         </p>
       </section>
 
       <section className="panel space-y-2 rounded-xl p-3">
-        <SectionHead title="How they feel about other people" glyph="attitude-wary" className="mb-0" />
+        <SectionHead title={t("campaign.npcEditor.relations.title")} glyph="attitude-wary" className="mb-0" />
         <RelationEditor draft={draft} graph={graph} others={others} onChange={onChange} />
       </section>
     </>
