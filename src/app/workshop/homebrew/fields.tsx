@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, type ReactNode } from "react";
+import { useT } from "@/lib/i18n/provider";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui";
 import { Select } from "@/components/ui/Select";
@@ -77,6 +78,7 @@ export function TextField({
   suggestions?: readonly AddOption[];
   glossary?: FieldGlossary;
 }) {
+  const t = useT();
   const listId = useId();
   return (
     <Field label={label} hint={hint} className={className} glossary={glossary}>
@@ -89,7 +91,7 @@ export function TextField({
           onChange={(event) => onChange(event.target.value)}
           className={cn(ui.input, "min-w-32 flex-1")}
         />
-        {suggestions ? <AddFromList prompt="Pick" options={suggestions} onPick={onChange} /> : null}
+        {suggestions ? <AddFromList prompt={t("workshop.homebrew.pick")} options={suggestions} onPick={onChange} /> : null}
       </div>
       {suggestions ? <Suggestions id={listId} options={suggestions} /> : null}
     </Field>
@@ -224,6 +226,7 @@ export function ToggleChips<T extends string>({
   labels?: Partial<Record<T, string>>;
   max?: number;
 }) {
+  const t = useT();
   const full = max !== undefined && selected.length >= max;
   return (
     <div className={cn("stagger-pop", chipRow)}>
@@ -250,7 +253,7 @@ export function ToggleChips<T extends string>({
       })}
       {full ? (
         <p role="status" className="live-in basis-full text-[11px] text-stone-400">
-          {selected.length} of {max} picked, the most it keeps. Untick one to pick another.
+          {t("workshop.homebrew.picked.limit", { count: selected.length, max })}
         </p>
       ) : null}
     </div>
