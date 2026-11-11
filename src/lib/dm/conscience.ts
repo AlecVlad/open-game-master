@@ -390,7 +390,7 @@ export function conscienceSecretLines(campaign: Campaign, sheets: readonly Chara
 
 export type ConscienceView = {
   rung: ConscienceRung;
-  ultimatum: { condition: string; due: string; left: string } | null;
+  ultimatum: { condition: string; due: string; left: string; leftMinutes: number } | null;
   // For whoever runs the story (issue 615): a move the table has not heard
   // yet, and unease kept in, with the characters who noticed it.
   unheard?: true;
@@ -432,6 +432,7 @@ export function conscienceViews(campaign: Campaign, viewer: ConscienceViewer): M
               condition: conscience.ultimatum.condition,
               due: formatDate(campaign.clock.calendar, conscience.ultimatum.due),
               left: durationLabel(minutesLeft(conscience.ultimatum, now)),
+              leftMinutes: minutesLeft(conscience.ultimatum, now),
             }
           : null,
       ...(sight.unheard ? { unheard: true as const } : {}),
