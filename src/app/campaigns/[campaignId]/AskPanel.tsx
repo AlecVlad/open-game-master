@@ -36,20 +36,7 @@ import { nameChoices } from "@/app/campaigns/[campaignId]/name-menu-logic";
 // campaign_messages row and no dm_turns row (src/lib/dm/ask.ts), and nothing
 // here is rendered into MessageList.
 
-const SCOPE_LABELS: Record<string, string> = {
-  story: "Story",
-  rules: "Rules",
-  sheet: "Sheet",
-};
-
-// The picker offers "auto" on top of the stored scopes, and names the sheet
-// scope from the asker's point of view.
-const SCOPE_PICKER_LABELS: Record<AskScope | "auto", string> = {
-  auto: "Auto",
-  story: "Story",
-  rules: "Rules",
-  sheet: "My sheet",
-};
+// Scope names are translated at the point of use; stored values remain stable IDs.
 
 // The painted glyph for what a question was about.
 const SCOPE_GLYPHS: Record<string, string> = { auto: "tab-reference", story: "tab-story", rules: "system-rules", sheet: "tab-characters" };
@@ -137,7 +124,7 @@ function AskDockInner({
   cast: CastMember[];
   places: CampaignState["locations"];
 }) {
-  const { t, tp, lang } = useI18n();
+  const { t, lang } = useI18n();
   const [question, setQuestion] = useState("");
   const [scope, setScope] = useState<AskScope | "auto">("auto");
   const [visibility, setVisibility] = useState<AskVisibility>("private");
@@ -264,7 +251,7 @@ function AskDockInner({
                 className="pk-pill pk-tap motion-press"
               >
                 <GameIcon icon={{ kind: "glyph", key: SCOPE_GLYPHS[option] }} size="size-4" />
-                {SCOPE_PICKER_LABELS[option]}
+                {t((`campaign.session.ask.scope.${option}`) as MessageKey)}
               </button>
             ))}
             </span>
