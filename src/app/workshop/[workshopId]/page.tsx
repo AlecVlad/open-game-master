@@ -298,6 +298,9 @@ function WorkshopPageInner({ workshopId }: { workshopId: string }) {
       : []),
   ];
   const tourSteps = tour === HUB_TOUR_ID ? HUB_TOUR : tour ? SYSTEM_TOURS[tour.replace(/^workshop-/, "")] ?? [] : [];
+  const tourTranslationScope = tour === HUB_TOUR_ID
+    ? "hub"
+    : tour ? `system.${tour.replace(/^workshop-/, "")}` : undefined;
 
   if (loading) {
     return (
@@ -354,6 +357,7 @@ function WorkshopPageInner({ workshopId }: { workshopId: string }) {
           <GuidedTour
             open={tour !== null}
             steps={tourSteps}
+            translationScope={tourTranslationScope}
             onPrepare={requestTourPrepare}
             onClose={closeTour}
           />
