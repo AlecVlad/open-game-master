@@ -280,5 +280,6 @@ export const enCampaignSession = {
   "campaign.nameMenu.keyboard.insert": "insert",
   "campaign.nameMenu.keyboard.close": "close",
   "campaign.nameMenu.keyboard.or": "or",
+  "campaign.pregenPicker.heading": "Or take a ready-made hero",
   "campaign.nameMenu.unmet": "Not introduced yet",
 } satisfies Record<string, string>;
