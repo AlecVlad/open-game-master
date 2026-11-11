@@ -136,7 +136,7 @@ export function ArrivalCard({
       </span>
       {still ? (
         <button type="button" className="moment-arrival-dismiss" onClick={onDismiss}>
-          Dismiss
+          {dismissLabel}
         </button>
       ) : null}
     </div>
