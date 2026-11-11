@@ -4721,4 +4721,5 @@ export const enCampaignPanels = {
   "campaign.session.arrival.line": "{name} takes a seat",
   "campaign.session.arrival.dismiss": "Dismiss",
 
+  "campaign.session.pact.cardAria": "{summary}, from {source}",
 } satisfies Record<string, string>;
