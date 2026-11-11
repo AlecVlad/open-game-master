@@ -3298,4 +3298,6 @@ export const enCampaignPanels = {
   "campaign.session.roll.and": "and",
 
   "campaign.session.roll.rollDigital": "Roll digitally",
+  "campaign.session.roll.waitingFor": "Waiting for {name} to roll {expression}",
+
 } satisfies Record<string, string>;
