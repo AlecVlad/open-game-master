@@ -4729,4 +4729,27 @@ export const ruCampaignPanels: Partial<Record<keyof typeof enCampaignPanels, str
   "campaign.session.loreCheck.error.network": "Не удалось связаться с сервером.",
 
 
+  "campaign.session.sideChat.title": "Личные чаты",
+  "campaign.session.sideChat.chime.muted": "Звук уведомлений выключен",
+  "campaign.session.sideChat.chime.on": "Звук уведомлений включён",
+  "campaign.session.sideChat.chime.mutedHint": "Звук уведомлений выключен. Нажмите, чтобы включить сигнал о новом личном сообщении.",
+  "campaign.session.sideChat.chime.onHint": "При новом личном сообщении прозвучит сигнал. Нажмите, чтобы отключить его.",
+  "campaign.session.sideChat.new": "Создать",
+  "campaign.session.sideChat.privacy": "Переписку видят только участники чата. Ведущий игры не имеет к ней доступа.",
+  "campaign.session.sideChat.empty": "Личных чатов пока нет. Напишите участнику группы с его карточки или создайте чат здесь.",
+  "campaign.session.sideChat.someone": "кто-то",
+  "campaign.session.sideChat.error.open": "Не удалось открыть чат.",
+  "campaign.session.sideChat.error.create": "Не удалось создать чат.",
+  "campaign.session.sideChat.error.pickMember": "Выберите хотя бы одного участника.",
+  "campaign.session.sideChat.error.send": "Не удалось отправить сообщение.",
+  "campaign.session.sideChat.error.network": "Не удалось связаться с сервером.",
+  "campaign.session.sideChat.form.title": "Кого добавить в чат?",
+  "campaign.session.sideChat.form.groupName": "Название группы (необязательно)",
+  "campaign.session.sideChat.form.cancel": "Отмена",
+  "campaign.session.sideChat.form.start": "Создать чат",
+  "campaign.session.sideChat.thread.all": "Все чаты",
+  "campaign.session.sideChat.thread.messagePlaceholder": "Сообщение для: {label}",
+  "campaign.session.sideChat.thread.messageAria": "Сообщение для: {label}",
+  "campaign.session.sideChat.thread.send": "Отправить",
+
 };
