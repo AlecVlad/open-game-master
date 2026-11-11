@@ -10,7 +10,6 @@ import { ui } from "@/lib/ui";
 import {
   IMPORT_KINDS,
   WORLD_RECORD_KINDS,
-  IMPORT_KIND_LABELS,
   SINGULAR_KINDS,
   standingUnsaid,
   type ImportKind,
@@ -386,8 +385,8 @@ export function ContentImportPicker({
             <div className="stagger space-y-1">
               {available.map((kind) => (
                 <div key={kind} className="flex min-h-9 items-center gap-2 text-sm text-stone-300">
-                  <Switch on={selection.select.includes(kind)} onChange={() => toggle(kind)} label={importKindLabel(kind, t)} />
-                  <span>{importKindLabel(kind, t)}</span>
+                  <Switch on={selection.select.includes(kind)} onChange={() => toggle(kind)} label={importKindLabel(kind, importMessages.t)} />
+                  <span>{importKindLabel(kind, importMessages.t)}</span>
                   {SINGULAR_KINDS.has(kind) ? null : (
                     <span className="text-xs text-stone-500">({chosen.contents[kind]})</span>
                   )}
