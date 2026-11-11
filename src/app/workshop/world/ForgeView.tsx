@@ -61,11 +61,13 @@ function forgeReportLines(applied: ForgeApplied, t: (key: string, params?: Recor
   ].filter(Boolean);
   const kept = applied.stubs ? tp("workshop.world.forge.report.count.stubs", applied.stubs) : "";
   const lines: Array<{ text: string; left: boolean }> = [{
-    text: added.length
-      ? t("workshop.world.forge.report.summary.added", { added: added.join(", "), kept })
-      : kept
-        ? t("workshop.world.forge.report.summary.onlyStubs", { kept })
-        : t("workshop.world.forge.report.summary.nothing"),
+    text: added.length && kept
+      ? t("workshop.world.forge.report.summary.addedWithStubs", { added: added.join(", "), kept })
+      : added.length
+        ? t("workshop.world.forge.report.summary.added", { added: added.join(", ") })
+        : kept
+          ? t("workshop.world.forge.report.summary.onlyStubs", { kept })
+          : t("workshop.world.forge.report.summary.nothing"),
     left: false,
   }];
   if (applied.made.length) {
@@ -138,18 +140,18 @@ export function ForgeView({ api, world, onOpen }: { api: WorldApi; world: WorldS
     setText("");
   }
 
-  const reportView = report ? forgeReportLines(report, t, (key, count) => tp(key as never, count)) : null;
+  const reportView = report ? forgeReportLines(report, (key, params) => t(key as never, params), (key, count) => tp(key as never, count)) : null;
 
   const set = (key: string, patch: Partial<Row>) => setRows((current) => current?.map((row) => (row.key === key ? { ...row, ...patch } : row)) ?? null);
 
   return (
     <div className="flex flex-col gap-3">
-      <p className="text-sm text-stone-400">Paste notes about the world and the forge lists what deserves an entry, and how those things stand with each other. You choose what to keep.</p>
-      <textarea className={cn(ui.input, "min-h-36")} placeholder="The warden Ivo keeps the sea wall at Gullhaven. Nobody knows he sold the sluice codes to the Grey Lantern smugglers..." aria-label="Notes to forge" maxLength={20_000} value={text} onChange={(event) => setText(event.target.value)} />
+      <p className="text-sm text-stone-400">{t("workshop.world.forge.intro")}</p>
+      <textarea className={cn(ui.input, "min-h-36")} placeholder={t("workshop.world.forge.notesPlaceholder")} aria-label={t("workshop.world.forge.notesAria")} maxLength={20_000} value={text} onChange={(event) => setText(event.target.value)} />
       <div className="flex flex-wrap items-center gap-2">
-        <input className={cn(ui.input, "max-w-md flex-1 text-xs")} placeholder="Steer it (optional): only the people, say" aria-label="Steer the forge" maxLength={300} value={hint} onChange={(event) => setHint(event.target.value)} />
+        <input className={cn(ui.input, "max-w-md flex-1 text-xs")} placeholder={t("workshop.world.forge.hintPlaceholder")} aria-label={t("workshop.world.forge.hintAria")} maxLength={300} value={hint} onChange={(event) => setHint(event.target.value)} />
         <KitButton tone="primary" busy={busy && !rows} disabled={busy || !text.trim()} onClick={forge} data-tour="world-forge">
-          {busy && !rows ? null : <Sparkles className="size-3.5" />} Forge
+          {busy && !rows ? null : <Sparkles className="size-3.5" />} {t("workshop.world.forge.button")}
         </KitButton>
       </div>
       {api.error ? <PanelError>{api.error}</PanelError> : null}
@@ -162,37 +164,37 @@ export function ForgeView({ api, world, onOpen }: { api: WorldApi; world: WorldS
       ) : null}
 
       {rows ? (
-        <section className="flex flex-col gap-2 animate-fade-up" aria-label="What the forge found">
-          <h3 className="eyebrow text-[10px] text-amber-400/80">Found {rows.length}: tick what to keep</h3>
+        <section className="flex flex-col gap-2 animate-fade-up" aria-label={t("workshop.world.forge.foundAria")}>
+          <h3 className="eyebrow text-[10px] text-amber-400/80">{t("workshop.world.forge.foundTitle", { count: rows.length })}</h3>
           <ul className="flex flex-col gap-1.5">
             {rows.map((row, index) => (
               <li key={row.key} className={cn("panel wf-rise flex flex-col gap-1.5 rounded-lg p-2.5", !row.keep && "opacity-60")} style={{ "--i": index } as React.CSSProperties}>
                 <div className="flex flex-wrap items-center gap-2">
-                  <input type="checkbox" className="accent-amber-400" aria-label={`Keep ${row.name}`} checked={row.keep} disabled={Boolean(row.existing)} onChange={(event) => set(row.key, { keep: event.target.checked })} />
-                  <input className={cn(ui.input, "w-48 py-1 text-sm")} aria-label="Name" maxLength={80} value={row.name} disabled={Boolean(row.existing)} onChange={(event) => set(row.key, { name: event.target.value })} />
+                  <input type="checkbox" className="accent-amber-400" aria-label={t("workshop.world.forge.keepNameAria" as never, { name: row.name })} checked={row.keep} disabled={Boolean(row.existing)} onChange={(event) => set(row.key, { keep: event.target.checked })} />
+                  <input className={cn(ui.input, "w-48 py-1 text-sm")} aria-label={t("workshop.world.forge.nameAria")} maxLength={80} value={row.name} disabled={Boolean(row.existing)} onChange={(event) => set(row.key, { name: event.target.value })} />
                   {row.existing ? (
-                    <button type="button" onClick={() => onOpen(row.existing)} className="pk-chip text-[11px] text-stone-400">already in the world</button>
+                    <button type="button" onClick={() => onOpen(row.existing)} className="pk-chip text-[11px] text-stone-400">{t("workshop.world.forge.alreadyInWorld")}</button>
                   ) : (
                     <div className="w-44">
-                      <Select label="Type" size="sm" value={row.typeId} onChange={(typeId) => set(row.key, { typeId })} options={doc.types.map((type) => ({ value: type.id, label: type.name }))} />
+                      <Select label={t("workshop.world.forge.type")} size="sm" value={row.typeId} onChange={(typeId) => set(row.key, { typeId })} options={doc.types.map((type) => ({ value: type.id, label: type.name }))} />
                     </div>
                   )}
                   {row.existing ? <TypeChip type={typeOf(doc, entities.find((entity) => entity.ref === row.existing)!)} /> : null}
                 </div>
                 {!row.existing ? (
-                  <textarea className={cn(ui.input, "min-h-12 text-xs")} aria-label={`${row.name}, summary`} maxLength={2_000} value={row.summary} onChange={(event) => set(row.key, { summary: event.target.value })} />
+                  <textarea className={cn(ui.input, "min-h-12 text-xs")} aria-label={t("workshop.world.forge.summaryAria" as never, { name: row.name })} maxLength={2_000} value={row.summary} onChange={(event) => set(row.key, { summary: event.target.value })} />
                 ) : null}
-                {row.hiddenTruth && !row.existing ? <p className="text-xs text-red-300">Hidden truth: {row.hiddenTruth}</p> : null}
+                {row.hiddenTruth && !row.existing ? <p className="text-xs text-red-300">{t("workshop.world.forge.hiddenTruth")} {row.hiddenTruth}</p> : null}
               </li>
             ))}
           </ul>
           {links.length ? (
             <>
-              <h3 className="eyebrow mt-1 text-[10px] text-amber-400/80">Links</h3>
+              <h3 className="eyebrow mt-1 text-[10px] text-amber-400/80">{t("workshop.world.forge.links")}</h3>
               <ul className="flex flex-col gap-1">
                 {links.map((link, index) => (
                   <li key={`${link.from}-${link.to}-${link.label}`} className="wf-rise flex items-center gap-2 text-sm text-stone-300" style={{ "--i": index } as React.CSSProperties}>
-                    <input type="checkbox" className="accent-amber-400" aria-label={`Keep ${nameOf(link.from)} ${link.label} ${nameOf(link.to)}`} checked={link.keep} onChange={(event) => setLinks((current) => current.map((entry, at) => (at === index ? { ...entry, keep: event.target.checked } : entry)))} />
+                    <input type="checkbox" className="accent-amber-400" aria-label={t("workshop.world.forge.keepLinkAria" as never, { from: nameOf(link.from), label: FORGE_LINK_KEYS[link.label] ? t(FORGE_LINK_KEYS[link.label] as never) : link.label, to: nameOf(link.to) })} checked={link.keep} onChange={(event) => setLinks((current) => current.map((entry, at) => (at === index ? { ...entry, keep: event.target.checked } : entry)))} />
                     {nameOf(link.from)} <span className="text-stone-500">{link.label}</span> {nameOf(link.to)}
                   </li>
                 ))}
@@ -201,12 +203,12 @@ export function ForgeView({ api, world, onOpen }: { api: WorldApi; world: WorldS
           ) : null}
           <label className="flex items-center gap-2 text-xs text-stone-400">
             <input type="checkbox" className="accent-amber-400" checked={stubTheRest} onChange={(event) => setStubTheRest(event.target.checked)} />
-            Keep the unticked names in To write
+            {t("workshop.world.forge.keepUnticked")}
           </label>
           <div className="flex justify-end gap-2">
-            <KitButton tone="small" onClick={() => { setRows(null); setLinks([]); }}>Throw it away</KitButton>
+            <KitButton tone="small" onClick={() => { setRows(null); setLinks([]); }}>{t("workshop.world.forge.discard")}</KitButton>
             <KitButton tone="primary" busy={busy} disabled={busy || !(rows.some((row) => row.keep && !row.existing) || links.some((link) => link.keep))} onClick={keep}>
-              {busy ? null : <Check className="size-3.5" />} Add the ticked
+              {busy ? null : <Check className="size-3.5" />} {t("workshop.world.forge.addTicked")}
             </KitButton>
           </div>
         </section>
