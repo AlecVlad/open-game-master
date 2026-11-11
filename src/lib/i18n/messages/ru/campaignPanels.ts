@@ -3521,4 +3521,8 @@ export const ruCampaignPanels: Partial<Record<keyof typeof enCampaignPanels, str
   "campaign.session.hand.group.noun.use": "применения",
   "campaign.session.hand.group.slotNote.pactLevel": "Осталось {left} из {total} ячеек договора (уровень {level})",
 
+  // Follow-up wording for hand arrangements and filters.
+  "campaign.session.hand.arrange.urgentWithDisplaced": "Срочные карты ({urgent}) заняли места первыми. Вытесненные карты ({displaced}) остаются среди остальных, пока снова не понадобятся. Выбранный порядок сохранён.",
+  "campaign.session.hand.group.filterChip": "{label}: {count}",
+
 };
