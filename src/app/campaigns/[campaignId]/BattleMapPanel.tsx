@@ -1087,7 +1087,7 @@ export function BattleMapPanel({
           void board({ do: "remove", tokenId: hudToken.id });
           setHudTokenId(null);
         },
-      }), ...details];
+      }, t), ...details];
     }
     // The same engine questions the Hand asks (src/lib/battlemap/hand-hud.ts),
     // so a sigil the engine would refuse says so instead of composing.
@@ -1099,6 +1099,7 @@ export function BattleMapPanel({
       (mode) => setTargeting(mode),
       mySheet && !scene ? boardHudGates(mySheet, encounter ?? null, { myTurn, currentName: view.currentTurnName }) : undefined,
       (reason) => setError(reason),
+      t,
     );
     return [...(nativeHudSupported ? actions.map(action => action.disabled ? action : { ...action, onPick: () => {
       window.dispatchEvent(new CustomEvent(HAND_BOARD_ACTION_EVENT, { detail: { campaignId, action: action.id as HandBoardAction, nativeChoices: nativeBattlefieldActive } }));
@@ -1106,7 +1107,7 @@ export function BattleMapPanel({
     } }) : actions), ...details];
     // `board` is a closure over state; the actions are rebuilt per token.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hudToken, canDirect, onCompose, mySheet, encounter, myTurn, view.currentTurnName, scene, nativeHudSupported, nativeHudActive, nativeBattlefieldActive, campaignId]);
+  }, [hudToken, canDirect, onCompose, mySheet, encounter, myTurn, view.currentTurnName, scene, nativeHudSupported, nativeHudActive, nativeBattlefieldActive, campaignId, t]);
 
   const closeHud = useCallback(() => {
     setNativeSelection(null); setPlateTokenId(null); setPlatePinned(false);
