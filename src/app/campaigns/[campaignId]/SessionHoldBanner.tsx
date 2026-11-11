@@ -7,7 +7,6 @@ import { Dialog } from "@/components/ui/Dialog";
 import { GameIcon } from "@/components/ui/GameIcon";
 import { SessionBanner, bannerButtonClass } from "@/app/campaigns/[campaignId]/SessionBanner";
 import {
-  nextSessionWords,
   pickNextSession,
   sessionWhenLocal,
   type NextSession,
