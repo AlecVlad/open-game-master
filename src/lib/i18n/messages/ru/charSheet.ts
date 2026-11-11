@@ -348,4 +348,6 @@ export const ruCharSheet: Partial<Record<keyof typeof enCharSheet, string>> & Re
   "charSheet.owed.kind.spell_mastery_1": "Мастерство заклинаний (1-й уровень)",
   "charSheet.owed.kind.spell_mastery_2": "Мастерство заклинаний (2-й уровень)",
   "charSheet.owed.kind.signature_spell": "Фирменные заклинания",
+  "common.lengthNote.upTo": "До {count} символов.",
+  "common.lengthNote.over": "Превышение лимита на {count}: сократите текст перед отправкой.",
 };
