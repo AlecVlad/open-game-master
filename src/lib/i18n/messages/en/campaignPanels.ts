@@ -3312,4 +3312,10 @@ export const enCampaignPanels = {
   "campaign.session.hand.share.unit.creature.one": "creature",
   "campaign.session.hand.share.unit.creature.other": "creatures",
 
+  // Collective forms used by the area-share control.
+  "campaign.session.hand.share.unit.dart.collective": "darts",
+  "campaign.session.hand.share.unit.ray.collective": "rays",
+  "campaign.session.hand.share.unit.beam.collective": "beams",
+  "campaign.session.hand.share.unit.creature.collective": "creatures",
+
 } satisfies Record<string, string>;
