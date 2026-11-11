@@ -268,4 +268,11 @@ export const ruCharSheet: Partial<Record<keyof typeof enCharSheet, string>> & Re
   "charSheet.spells.changeFailed": "Не удалось изменить это заклинание (HTTP {status}).",
   "charSheet.spells.network": "Не удалось связаться с сервером.",
   "charSheet.spells.fromSpeciesOnly": "От происхождения",
+  "charSheet.choice.refused": "Выбор отклонён.",
+  "charSheet.choice.network": "Не удалось связаться с сервером.",
+  "charSheet.choice.playerChooses": "Выбор делает сам игрок персонажа.",
+  "charSheet.choice.outsideCombat": "Выбор можно сделать вне боя.",
+  "charSheet.choice.sent": "Отправлено. Ведущий должен подтвердить выбор.",
+  "charSheet.choice.select": "Выбрать: {option}",
+  "charSheet.choice.fightingStyle": "Боевой стиль",
 };
