@@ -74,8 +74,13 @@ Single restore point for Russian localization. After a chat interruption, read o
 - Added 8 EN/RU hub-page keys and 98 EN/RU Create-chooser keys. Static checks: all references resolve, no duplicates, no missing pairs and no placeholder mismatches.
 - The original choice IDs, step routing data (prepare, href, system), model checks and server capability logic are unchanged. No TypeScript, lint, tests, build or visual checks were run.
 
+## Workshop header — 11 November 2026
+- `WorkshopHeader.tsx`: localized back link, rename labels, help tooltip/accessibility text, duplicate/delete labels and confirmation, and bundle-import label.
+- Added 11 EN/RU keys in `workshop.ts`; dynamic workshop names keep matching placeholders. API routes and workshop titles remain unchanged.
+- No TypeScript, lint, tests, build or visual checks were run.
+
 ## Next work
-Continue with `WorkshopHeader.tsx`, `SystemView.tsx` and the command-palette command data. Then review the guided-tour copy and remaining Workshop editors. Preserve server values, plugin-supplied text and user-authored content. Planner-generated import warnings/notes still need stable reason codes and a localized renderer. Do not sync upstream or merge branches during translation.
+Continue with `SystemView.tsx` and the command-palette command data, including the dynamic system-count phrases. Then review the guided-tour copy and remaining Workshop editors. Preserve server values, plugin-supplied text and user-authored content. Planner-generated import warnings/notes still need stable reason codes and a localized renderer. Do not sync upstream or merge branches during translation.
 
 ## Low-token work protocol
 - Read this file, then only the next target source file(s) and exact dictionary sections needed.
