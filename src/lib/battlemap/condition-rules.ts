@@ -8,6 +8,8 @@
 //
 // Pure and small: the plate imports it on the client.
 import { textKey } from "@/lib/language/text-logic";
+import type { useI18n } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages/index";
 
 const EXHAUSTION_REST = " A long rest with food and drink lowers it by one level.";
 // Exhaustion's levels, each on top of every level below it: what a creature
@@ -50,6 +52,25 @@ const CONDITION_RULES: Record<string, string> = {
 
 // A stage row's id ("prone", "concentrating", "exhaustion 2"; a "Dying 1/2"
 // row is "unconscious"), or a bare condition name.
-export function conditionRule(id: string): string | null {
-  return CONDITION_RULES[textKey(id)] ?? null;
+const CONDITION_RULE_KEYS: Record<string, MessageKey> = {
+  blinded: "campaign.session.condition.rule.blinded", charmed: "campaign.session.condition.rule.charmed",
+  deafened: "campaign.session.condition.rule.deafened", frightened: "campaign.session.condition.rule.frightened",
+  grappled: "campaign.session.condition.rule.grappled", incapacitated: "campaign.session.condition.rule.incapacitated",
+  invisible: "campaign.session.condition.rule.invisible", paralyzed: "campaign.session.condition.rule.paralyzed",
+  petrified: "campaign.session.condition.rule.petrified", poisoned: "campaign.session.condition.rule.poisoned",
+  prone: "campaign.session.condition.rule.prone", restrained: "campaign.session.condition.rule.restrained",
+  stunned: "campaign.session.condition.rule.stunned", unconscious: "campaign.session.condition.rule.unconscious",
+  concentrating: "campaign.session.condition.rule.concentrating", dodging: "campaign.session.condition.rule.dodging",
+  raging: "campaign.session.condition.rule.raging", hidden: "campaign.session.condition.rule.hidden",
+  exhaustion: "campaign.session.condition.rule.exhaustion",
+  "exhaustion 1": "campaign.session.condition.rule.exhaustion1", "exhaustion 2": "campaign.session.condition.rule.exhaustion2",
+  "exhaustion 3": "campaign.session.condition.rule.exhaustion3", "exhaustion 4": "campaign.session.condition.rule.exhaustion4",
+  "exhaustion 5": "campaign.session.condition.rule.exhaustion5", "exhaustion 6": "campaign.session.condition.rule.exhaustion6",
+};
+
+type Translator = ReturnType<typeof useI18n>["t"];
+export function conditionRule(id: string, t?: Translator): string | null {
+  const normalized = textKey(id);
+  const key = CONDITION_RULE_KEYS[normalized];
+  return key && t ? t(key) : CONDITION_RULES[normalized] ?? null;
 }
