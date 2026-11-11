@@ -120,7 +120,8 @@ export function readScenes(input: {
     .map((scene) => {
       const title = text(scene.title, TITLE_MAX);
       const lost: string[] = [];
-      if (text(scene.title, 1_000).length > TITLE_MAX) lost.push(`the end of its title (a card's title holds ${TITLE_MAX} characters)`);
+      const details: SceneLossDetail[] = [];
+      if (text(scene.title, 1_000).length > TITLE_MAX) addSceneLoss(lost, details, `the end of its title (a card's title holds ${TITLE_MAX} characters)`, 'workshop.world.sceneLoss.import.titleTooLong', { limit: TITLE_MAX });
       // The gist and the scene's written text, one after the other on the
       // card when both fit; the gist alone when they do not.
       const gist = text(scene.gist, Infinity);
@@ -128,10 +129,10 @@ export function readScenes(input: {
       let body = gist && written && gist !== written ? `${gist}\n\n${written}` : gist || written;
       if (body.length > BODY_MAX) {
         if (gist && written && gist.length <= BODY_MAX) {
-          lost.push(`its written text (${written.length.toLocaleString("en")} characters), which does not fit on a card beside its gist`);
+          addSceneLoss(lost, details, `its written text (${written.length.toLocaleString('en')} characters), which does not fit on a card beside its gist`, 'workshop.world.sceneLoss.import.writtenTextTooLong', { count: written.length });
           body = gist;
         } else {
-          lost.push(`the end of its text (a card holds ${BODY_MAX.toLocaleString("en")} characters)`);
+          addSceneLoss(lost, details, `the end of its text (a card holds ${BODY_MAX.toLocaleString('en')} characters)`, 'workshop.world.sceneLoss.import.bodyTooLong', { limit: BODY_MAX });
           body = body.slice(0, BODY_MAX).trimEnd();
         }
       }
@@ -139,8 +140,8 @@ export function readScenes(input: {
       const pick = (value: unknown, shelf: "npc" | "location", what: string, needs: string) => {
         if (!key(value)) return "";
         const ref = refOf(value);
-        if (!ref) lost.push(`its ${what}, which names an entry the file does not have`);
-        else if (parseRef(ref)?.shelf !== shelf) lost.push(`its ${what}, ${quoted(nameOf(ref) ?? "an entry")}, which is not ${needs}`);
+        if (!ref) addSceneLoss(lost, details, `its ${what}, which names an entry the file does not have`, 'workshop.world.sceneLoss.import.referenceMissing', { field: what === 'point of view' ? 'pov' : 'place' });
+        else if (parseRef(ref)?.shelf !== shelf) addSceneLoss(lost, details, `its ${what}, ${quoted(nameOf(ref) ?? 'an entry')}, which is not ${needs}`, 'workshop.world.sceneLoss.import.referenceWrongKind', { field: what === 'point of view' ? 'pov' : 'place', name: nameOf(ref) ?? 'an entry', expected: shelf });
         return ref;
       };
       const pov = pick(scene.povEntityId, "npc", "point of view", "a Cast member");
@@ -149,9 +150,9 @@ export function readScenes(input: {
       const cast = [...new Set(listed.filter((id) => key(id)).map((id) => refOf(id) || `?${key(id)}`))].filter((ref) => ref !== pov);
       if (cast.length) {
         const named = cast.map((ref) => (nameOf(ref) !== undefined ? quoted(nameOf(ref)!) : "an entry the file does not have"));
-        lost.push(`its cast beyond its point of view: ${named.join(", ")} (a card names one Who)`);
+        addSceneLoss(lost, details, `its cast beyond its point of view: ${named.join(', ')} (a card names one Who)`, 'workshop.world.sceneLoss.import.extraCast', { names: named.join(', ') });
       }
-      if (lost.length) sceneLosses.push({ scene: title, lost });
+      if (lost.length) sceneLosses.push({ scene: title, lost, details });
       return { wfId: key(scene.id), title, body, story: input.stories.get(key(scene.storyId)) ?? "", order: scene.order as number, pov, place };
     });
   return { beats, sceneLosses, leftOut: input.scenes.length - placed.length };
