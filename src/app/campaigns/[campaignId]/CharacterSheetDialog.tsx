@@ -407,15 +407,14 @@ export function CharacterSheetDialog({
           {sheet.wildShape ? (
             <div className="reveal mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border border-lime-800/60 bg-lime-950/40 px-3 py-2 text-sm text-lime-200">
               <span className="flex items-center gap-1.5 font-medium capitalize">
-                <PawPrint className="size-4" /> Wild Shaped: {sheet.wildShape.form}
+                <PawPrint className="size-4" /> {t("charSheet.wildShape.title", { form: sheet.wildShape.form })}
               </span>
               <span className="font-mono text-xs">
-                {sheet.wildShape.beastHp}/{sheet.wildShape.beastMaxHp} beast HP
+                {t("charSheet.wildShape.hp", { current: sheet.wildShape.beastHp, maximum: sheet.wildShape.beastMaxHp })}
               </span>
-              <span className="font-mono text-xs">AC {sheet.wildShape.beastAc}</span>
+              <span className="font-mono text-xs">{t("charSheet.wildShape.ac", { ac: sheet.wildShape.beastAc })}</span>
               <span className="w-full text-xs text-lime-400/80">
-                Damage hits the beast&apos;s hit points first. The {sheet.currentHp}/{hp.max} HP
-                above is what {sheet.name} returns to when the form breaks.
+                {t("charSheet.wildShape.damageNote", { name: sheet.name, current: sheet.currentHp, maximum: hp.max })}
               </span>
             </div>
           ) : null}
@@ -435,10 +434,10 @@ export function CharacterSheetDialog({
 
           <SheetBlock
             className="mt-4"
-            title="Abilities"
+            title={t("charSheet.abilities")}
             aside={
               <>
-                <GameTerm id="saving_throw">Saving throws</GameTerm> ride each tile
+                <GameTerm id="saving_throw">Saving throws</GameTerm> {t("charSheet.savingThrowsHint")}
               </>
             }
           >
@@ -459,24 +458,24 @@ export function CharacterSheetDialog({
             />
           </SheetBlock>
 
-          <SheetBlock className="mt-4" title="Languages and training">
+          <SheetBlock className="mt-4" title={t("charSheet.training")}>
             <TrainingLines proficiencies={sheet.proficiencies} />
           </SheetBlock>
 
           {sheet.spellcasting ? (
             <SheetBlock
               className="mt-4"
-              title="Spellcasting"
+              title={t("charSheet.spellcasting")}
               hint={
                 derived.parts.spellSaveDc.length
-                  ? `Save DC: ${explainParts(derived.parts.spellSaveDc)}. To hit: ${explainParts(derived.parts.spellAttack)}`
+                  ? t("charSheet.spellcasting.hint", { save: explainParts(derived.parts.spellSaveDc), attack: explainParts(derived.parts.spellAttack) })
                   : undefined
               }
               aside={
                 <>
                   {sheet.spellcasting.ability.toUpperCase()}
-                  {derived.spellSaveDc ? ` · DC ${derived.spellSaveDc}` : ""}
-                  {derived.spellAttack !== null ? ` · ${formatModifier(derived.spellAttack)} to hit` : ""}
+                  {derived.spellSaveDc ? ` · ${t("charSheet.spellcasting.dc", { dc: derived.spellSaveDc })}` : ""}
+                  {derived.spellAttack !== null ? ` · ${t("charSheet.spellcasting.toHit", { modifier: formatModifier(derived.spellAttack) })}` : ""}
                 </>
               }
             >
@@ -485,13 +484,13 @@ export function CharacterSheetDialog({
                   <p className="flex items-center gap-1 text-stone-400">
                     <GameIcon icon={{ kind: "glyph", key: "rest-spell-slot" }} size="size-5" />
                     <GameTerm id="spell_slot">Spell slots</GameTerm>
-                    <span className="text-stone-500">: the magic left today</span>
+                    <span className="text-stone-500">: {t("charSheet.spellSlots.remaining")}</span>
                   </p>
                   <div className="flex flex-wrap gap-1.5">
                     {Object.entries(sheet.spellcasting.slots).map(([slotLevel, slot]) => (
                       <SlotRow
                         key={slotLevel}
-                        label={`Level ${ROMAN[Number(slotLevel)] ?? slotLevel}`}
+                        label={t("charSheet.spellSlots.level", { level: ROMAN[Number(slotLevel)] ?? slotLevel })}
                         left={slot.max - slot.used}
                         max={slot.max}
                         spends={spends}
@@ -503,7 +502,7 @@ export function CharacterSheetDialog({
                     ))}
                     {sheet.spellcasting.pact ? (
                       <SlotRow
-                        label={`Pact, level ${ROMAN[sheet.spellcasting.pact.level] ?? sheet.spellcasting.pact.level}`}
+                        label={t("charSheet.spellSlots.pact", { level: ROMAN[sheet.spellcasting.pact.level] ?? sheet.spellcasting.pact.level })}
                         left={sheet.spellcasting.pact.max - sheet.spellcasting.pact.used}
                         max={sheet.spellcasting.pact.max}
                         spends={spends}
@@ -515,14 +514,12 @@ export function CharacterSheetDialog({
                     ) : null}
                   </div>
                   <p className="text-[11px] leading-snug text-stone-500">
-                    Casting a spell of level I or higher uses up one slot of that level (or a higher
-                    one, to cast it stronger); cantrips never use one. Filled marks are slots still
-                    available, empty ones are spent. They all come back after a long rest
-                    {sheet.class === "warlock" || sheet.spellcasting.pact ? " (a warlock's pact slots after a short rest too)" : ""}.
+                    {t("charSheet.spellSlots.explanation")}{" "}
+                    {sheet.class === "warlock" || sheet.spellcasting.pact ? t("charSheet.spellSlots.warlockRest") + " " : ""}
                     {corrects
-                      ? " The GM marks them as spells are cast; the buttons correct the count."
+                      ? t("charSheet.spellSlots.dmCorrection")
                       : mine
-                        ? " The GM marks them as you cast; the button marks one the count missed."
+                        ? t("charSheet.spellSlots.playerCorrection")
                         : ""}
                   </p>
                 </div>
@@ -538,7 +535,7 @@ export function CharacterSheetDialog({
           {/* A character with no Spellcasting may still cast its species'
               spells (issue #833): a tiefling fighter's hellish rebuke. */}
           {!sheet.spellcasting && speciesSpellsShown(sheet).length ? (
-            <SheetBlock className="mt-4" title="Spells">
+            <SheetBlock className="mt-4" title={t("charSheet.spells")}>
               <div className="reveal">
                 <SheetSpells sheet={sheet} editable={mine} />
               </div>
@@ -546,7 +543,7 @@ export function CharacterSheetDialog({
           ) : null}
 
           {spends || Object.keys(sheet.resources).length ? (
-            <SheetBlock className="mt-4" title="Hit dice and resources">
+            <SheetBlock className="mt-4" title={t("charSheet.hitDiceAndResources")}>
               <div className="space-y-1.5 text-xs text-stone-300">
                 <div className="flex items-start gap-2">
                   <span className="w-36 shrink-0 pt-1 text-stone-400">
@@ -562,7 +559,7 @@ export function CharacterSheetDialog({
                       type="button"
                       className={STEP_BUTTON}
                       disabled={busy || sheet.hitDice.spent >= sheet.hitDice.total}
-                      title="Correction: mark a hit die as spent"
+                      title={t("charSheet.hitDice.correctSpend")}
                       onClick={() => adjustUsage({ hitDiceSpent: sheet.hitDice.spent + 1 })}
                     >
                       <Minus className="size-3" />
@@ -573,7 +570,7 @@ export function CharacterSheetDialog({
                       type="button"
                       className={STEP_BUTTON}
                       disabled={busy || sheet.hitDice.spent <= 0}
-                      title="Correction: give a hit die back"
+                      title={t("charSheet.hitDice.correctRecover")}
                       onClick={() => adjustUsage({ hitDiceSpent: sheet.hitDice.spent - 1 })}
                     >
                       <Plus className="size-3" />
@@ -596,15 +593,13 @@ export function CharacterSheetDialog({
                   />
                 ))}
                 {foretoldLeft(sheet).length ? (
-                  <p className="text-xs">Foretold rolls: {foretoldLeft(sheet).join(", ")}</p>
+                  <p className="text-xs">{t("charSheet.foretoldRolls", { rolls: foretoldLeft(sheet).join(", ") })}</p>
                 ) : null}
               </div>
               {spends ? (
                 <p className="reveal mt-1.5 text-[11px] text-stone-500">
-                  {corrects
-                    ? "Minus spends, plus hands a use back as a correction."
-                    : "Minus marks a use spent. Uses come back at rests; the GM or the party lead corrects a wrong count."}{" "}
-                  Changes are logged to the session event log.
+                  {corrects ? t("charSheet.resources.correction") : t("charSheet.resources.player")}{" "}
+                  {t("charSheet.resources.logged")}
                 </p>
               ) : null}
               {refusal?.at === "usage" ? (
@@ -616,7 +611,7 @@ export function CharacterSheetDialog({
           ) : null}
 
           {sheet.equipment.length ? (
-            <SheetBlock className="mt-4" title="Equipment" aside={`Attuned ${attunedCount}/${attunementSlotsFor(sheet)}`}>
+            <SheetBlock className="mt-4" title={t("charSheet.equip")} aside={t("charSheet.equipment.attuned", { count: attunedCount, max: attunementSlotsFor(sheet) })}>
               <EquipmentChips
                 equipment={sheet.equipment}
                 extra={(index) => {
@@ -627,22 +622,25 @@ export function CharacterSheetDialog({
               {(mine || corrects) && wearable.length ? (
                 <div className="reveal mt-2 space-y-1">
                   <p className="text-[11px] text-stone-500">
-                    Worn gear sets {mine ? "your" : "their"} AC ({sheet.acOverride ? "pinned by hand" : armor.parts.join(" + ")}
-                    ). Attuned {attunedCount}/{attunementSlotsFor(sheet)}.
+                    {t("charSheet.gear.wornSummary", {
+                      ac: sheet.acOverride ? t("charSheet.gear.pinned") : armor.parts.join(" + "),
+                      count: attunedCount,
+                      max: attunementSlotsFor(sheet),
+                    })}
                   </p>
                   {magic.sources.length ? (
                     <p className="reveal text-[11px] text-sky-400/80">
-                      Active magic:{" "}
+                      {t("charSheet.gear.activeMagic")}:{" "}
                       {[
-                        magic.acBonus ? `+${magic.acBonus} AC` : null,
-                        magic.saveBonus ? `+${magic.saveBonus} saves` : null,
+                        magic.acBonus ? t("charSheet.gear.acBonus", { bonus: magic.acBonus }) : null,
+                        magic.saveBonus ? t("charSheet.gear.saveBonus", { bonus: magic.saveBonus }) : null,
                         ...Object.entries(magic.abilitySet).map(
-                          ([ability, score]) => `${ability.toUpperCase()} ${score}`,
+                          ([ability, score]) => t("charSheet.gear.abilitySet", { ability: t(`charSheet.ability.${ability}` as never), score }),
                         ),
-                        magic.resistances.length ? `resist ${magic.resistances.join(", ")}` : null,
+                        magic.resistances.length ? t("charSheet.gear.resistances", { types: magic.resistances.join(", ") }) : null,
                       ]
                         .filter(Boolean)
-                        .join(" \u00b7 ") || "worn"}
+                        .join(" \u00b7 ") || t("charSheet.gear.worn")}
                     </p>
                   ) : null}
                   <SheetGearRows
@@ -674,25 +672,25 @@ export function CharacterSheetDialog({
           ) : null}
 
           {owedChoices(sheet).length ? (
-            <SheetBlock className="mt-4" title="Choices owed">
+            <SheetBlock className="mt-4" title={t("charSheet.choicesOwed")}>
               <OwedPicks sheet={sheet} mine={mine} />
             </SheetBlock>
           ) : null}
           {sheet.features.length ? (
-            <SheetBlock className="mt-4" title="Features and traits">
+            <SheetBlock className="mt-4" title={t("charSheet.features")}>
               <FeatureChips features={sheet.features} classId={sheet.class} subclass={sheet.subclass} />
               <FeatureChoicePicker sheet={sheet} mine={mine} inCombat={inCombat} />
             </SheetBlock>
           ) : null}
 
           {sheet.feats.length ? (
-            <SheetBlock className="mt-4" title="Feats">
+            <SheetBlock className="mt-4" title={t("charSheet.feats")}>
               <FeatChips feats={sheet.feats} classId={sheet.class} subclass={sheet.subclass} />
             </SheetBlock>
           ) : null}
 
           {sheet.backstory ? (
-            <SheetBlock className="mt-4" title="Backstory">
+            <SheetBlock className="mt-4" title={t("charSheet.backstory")}>
               <p className="whitespace-pre-wrap font-serif text-sm leading-relaxed text-stone-300">{sheet.backstory}</p>
             </SheetBlock>
           ) : null}
@@ -700,7 +698,7 @@ export function CharacterSheetDialog({
           {sheet.isCompanion ? null : <StoryHopes sheet={sheet} mine={mine} />}
 
           {mine && sheet.notes ? (
-            <SheetBlock className="mt-4" title="Notes" aside="only you see these">
+            <SheetBlock className="mt-4" title={t("charSheet.notes")} aside={t("charSheet.notesPrivate")}>
               <p className="whitespace-pre-wrap text-xs text-stone-300">{sheet.notes}</p>
             </SheetBlock>
           ) : null}
@@ -711,18 +709,18 @@ export function CharacterSheetDialog({
               onClick={handleDownloadPdf}
               disabled={pdfBusy}
               className={ui.btnSmall}
-              title="Download this character sheet as a fillable PDF"
+              title={t("charSheet.pdf.title")}
             >
-              <FileDown className="size-3.5" /> {pdfBusy ? "Preparing..." : "Download PDF"}
+              <FileDown className="size-3.5" /> {pdfBusy ? t("charSheet.pdf.preparing") : t("charSheet.pdf.download")}
             </button>
             {steersStory && onAdjust ? (
               <button
                 type="button"
                 onClick={onAdjust}
                 className={ui.btnSmall}
-                title="Party lead: correct this character's stats, items, and spells"
+                title={t("charSheet.adjust.title")}
               >
-                <Wrench className="size-3.5" /> Adjust
+                <Wrench className="size-3.5" /> {t("charSheet.adjust.label")}
               </button>
             ) : null}
           </div>
