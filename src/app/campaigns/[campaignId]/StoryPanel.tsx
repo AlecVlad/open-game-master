@@ -10,6 +10,7 @@ import { GameIcon } from "@/components/ui/GameIcon";
 import { SectionHead } from "@/components/ui/SectionHead";
 import { KitButton, LoadFailed, PanelError, panelField, PanelLoading, RowMenu } from "./PanelKit";
 import { Fragment, useEffect, useMemo, useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/cn";
 import { offerCorrectionReason } from "@/lib/correction-offer";
 import { ui } from "@/lib/ui";
@@ -39,6 +40,7 @@ function ConfirmRewindDialog({
   onConfirm: () => void;
   onCancel: () => void;
 }) {
+  const { t } = useI18n();
   return (
     <AlertDialog.Root open onOpenChange={(open) => !open && onCancel()}>
       <AlertDialog.Portal>
@@ -50,11 +52,10 @@ function ConfirmRewindDialog({
           )}
         >
           <AlertDialog.Title className="gold-title font-display text-lg tracking-wide">
-            Rewind to Chapter {chapterIndex}?
+            {t("campaign.story.rewind.title", { chapter: chapterIndex })}
           </AlertDialog.Title>
           <AlertDialog.Description className="mt-2 text-xs text-stone-400">
-            The story returns to the start of Chapter {chapterIndex}. Sheets, NPCs, facts, and the
-            world roll back with it. This cannot be undone.
+            {t("campaign.story.rewind.description", { chapter: chapterIndex })}
           </AlertDialog.Description>
           <ul className="stagger mt-2 space-y-1">
             {warnings.slice(0, 8).map((warning, index) => (
@@ -64,9 +65,9 @@ function ConfirmRewindDialog({
             ))}
           </ul>
           <div className="mt-4 flex justify-end gap-2">
-            <AlertDialog.Cancel className={ui.btnSmall}>Cancel</AlertDialog.Cancel>
+            <AlertDialog.Cancel className={ui.btnSmall}>{t("campaign.story.rewind.cancel")}</AlertDialog.Cancel>
             <button type="button" onClick={onConfirm} disabled={busy} aria-busy={busy} className={ui.btnPrimary}>
-              {busy ? <Loader2 className="size-4 animate-spin" /> : null} Rewind
+              {busy ? <Loader2 className="size-4 animate-spin" /> : null} {t("campaign.story.rewind.confirm")}
             </button>
           </div>
         </AlertDialog.Content>
@@ -79,12 +80,13 @@ function ConfirmRewindDialog({
 // caps on a gold hairline, its name, and the recap the table heard when
 // it ended. Reveals with the list's stagger.
 function ActHeading({ act, title, recap }: { act: number; title: string; recap: string }) {
+  const { t } = useI18n();
   return (
     <li className="reveal pt-2">
       <div className="flex items-center gap-2">
         <span className="h-px flex-1 bg-gradient-to-r from-transparent to-amber-500/60" aria-hidden="true" />
         <span className="font-display text-[11px] uppercase tracking-[0.22em] text-amber-300">
-          Act {romanNumeral(act)}
+          {t("campaign.story.act", { act: romanNumeral(act) })}
         </span>
         <span className="h-px flex-1 bg-gradient-to-l from-transparent to-amber-500/60" aria-hidden="true" />
       </div>
