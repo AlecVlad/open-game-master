@@ -3,6 +3,7 @@
 import { Check, Globe2, Link2, Undo2, Unlink, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { cn } from "@/lib/cn";
+import { useI18n } from "@/lib/i18n/provider";
 import { KitButton } from "@/app/campaigns/[campaignId]/PanelKit";
 import type { BackdropPlan, PlacePlan, Placement, RegionBridge } from "@/lib/db/atlas-region";
 import type { Cell } from "@/lib/worldforge/atlas-frame";
@@ -32,7 +33,7 @@ export type RegionStep =
 
 export type RegionNotice = { text: string; undo?: () => Promise<unknown> };
 
-export const cellText = (cell: Cell | null) => (cell ? `column ${cell.x + 1}, row ${cell.y + 1}` : "not on the Region yet");
+export const cellText = (cell: Cell | null, t: ReturnType<typeof useI18n>["t"]) => (cell ? t("workshop.world.atlas.cell.position", { column: cell.x + 1, row: cell.y + 1 }) : t("workshop.world.atlas.cell.notOnRegion"));
 
 // A pin can be placed when it names a place and stands on the map over the
 // Region.
@@ -40,6 +41,7 @@ export const namesPlace = (pin: Pick<Pin, "ref">) => parseRef(pin.ref)?.shelf ==
 export const isBound = (pin: Pin, atlas: AtlasMap | null) => Boolean(atlas?.role === "region" && pin.mapId === atlas.id && pin.regionLink && pin.regionLink === pin.ref);
 
 export function useAtlasRegion(api: WorldApi, world: WorldState) {
+  const { t } = useI18n();
   const [bridge, setBridge] = useState<RegionBridge | null>(null);
   const [step, setStep] = useState<RegionStep | null>(null);
   const [busy, setBusy] = useState(false);
@@ -93,7 +95,7 @@ export function useAtlasRegion(api: WorldApi, world: WorldState) {
       if (step.kind === "backdrop") {
         const done = (await region("POST", "backdrop", { mapId: step.plan.map.id, apply: true })) as BackdropPlan | null;
         if (!done) return;
-        setNotice({ text: `${done.map.name} is now the Region's picture.${done.placements.length ? ` ${movedText(done.placements)}` : ""}` });
+        setNotice({ text: t("workshop.world.atlas.region.notice.backdropSet", { name: done.map.name, moved: done.placements.length ? movedText(done.placements, t) : "" }) });
       } else if (step.kind === "places") {
         // Undo is for pins this step bound: they are released, then their
         // places go back. A pin that was bound already stays bound.
@@ -102,13 +104,13 @@ export function useAtlasRegion(api: WorldApi, world: WorldState) {
         if (!done) return;
         const undone = done.placements.filter((placement) => fresh.has(placement.pinId));
         setNotice({
-          text: done.placements.length === 1 ? `${done.placements[0].name} is placed in the Region and moves with its pin.` : `${done.placements.length} places are placed in the Region and move with their pins.`,
+          text: done.placements.length === 1 ? t("workshop.world.atlas.region.notice.placed.one", { name: done.placements[0].name }) : t("workshop.world.atlas.region.notice.placed.other", { count: done.placements.length }),
           undo: undone.length && undone.length === done.placements.length ? () => unplace(undone) : undefined,
         });
       } else {
         const done = await region("DELETE", "backdrop", undefined, choice?.clear ? "?clear=1" : "");
         if (!done) return;
-        setNotice({ text: `${step.map.name} no longer stands over the Region. Every place stayed where it is.` });
+        setNotice({ text: t("workshop.world.atlas.region.notice.backdropRemoved", { name: step.map.name }) });
       }
       setStep(null);
     });
@@ -128,7 +130,7 @@ export function useAtlasRegion(api: WorldApi, world: WorldState) {
   const release = (pinIds: string[]) =>
     run(async () => {
       const done = (await region("DELETE", "places", { pinIds })) as { released?: unknown[] } | null;
-      if (done?.released?.length) setNotice({ text: "Released from the Region. The place stays where it is, and the pin no longer moves it." });
+      if (done?.released?.length) setNotice({ text: t("workshop.world.atlas.region.notice.released") });
     });
 
   // An out-of-step pin: the review of its place going back under it.
@@ -152,43 +154,44 @@ export async function moveAnchor(campaignId: string, locationId: string, at: Cel
   return Boolean(response?.ok);
 }
 
-export function movedText(moves: Placement[]): string {
+export function movedText(moves: Placement[], t: ReturnType<typeof useI18n>["t"]): string {
   if (moves.length === 1) {
     const [move] = moves;
-    return `${move.name}'s Region marker moved with it, from ${cellText(move.before)} to ${cellText(move.after)}.`;
+    return t("workshop.world.atlas.region.moved.one", { name: move.name, before: cellText(move.before, t), after: cellText(move.after, t) });
   }
-  return `${moves.length} places' Region markers moved with their pins.`;
+  return t("workshop.world.atlas.region.moved.other", { count: moves.length });
 }
 
 // What the current map is to the Region, and the steps it offers.
 export function RegionBar({ region, atlas, pins }: { region: AtlasRegion; atlas: AtlasMap; pins: Pin[] }) {
+  const { t } = useI18n();
   const over = atlas.role === "region";
   const placeable = pins.filter(namesPlace);
   if (over) {
     return (
       <div className="flex flex-wrap items-center gap-1.5" data-testid="atlas-region-bar">
         <span className="pk-chip text-[11px] text-emerald-200" data-testid="atlas-over-region">
-          <Globe2 className="size-3.5" /> Over the Region
+          <Globe2 className="size-3.5" /> {t("workshop.world.atlas.region.overRegion")}
         </span>
         {region.bridge && !region.bridge.backdropIsMap ? (
           <span className="flex flex-wrap items-center gap-1.5 text-[11px] text-stone-500">
-            The Region now shows another picture.
+            {t("workshop.world.atlas.region.anotherPicture")}
             {atlas.image && isUploadedImagePath(atlas.image) ? (
               // A replaced picture (map settings) or one chosen in the
               // Region's own tools: this map's can go back, reviewed.
               <KitButton tone="link" disabled={region.busy} onClick={() => void region.reviewBackdrop(atlas.id)} data-testid="atlas-region-reshow">
-                Show this map&apos;s picture there
+                {t("workshop.world.atlas.region.showPicture")}
               </KitButton>
             ) : null}
           </span>
         ) : null}
         {placeable.length ? (
           <KitButton tone="small" disabled={region.busy} onClick={() => void region.reviewPlaces(null)} data-testid="atlas-place-all">
-            Place every pinned place
+            {t("workshop.world.atlas.region.placeEveryPinnedPlace")}
           </KitButton>
         ) : null}
         <KitButton tone="link" disabled={region.busy} onClick={() => region.askUnlink(atlas)} data-testid="atlas-region-unlink">
-          Stop using as the Region
+          {t("workshop.world.atlas.region.stopUsing")}
         </KitButton>
       </div>
     );
@@ -197,20 +200,21 @@ export function RegionBar({ region, atlas, pins }: { region: AtlasRegion; atlas:
   return (
     <div className="flex flex-wrap items-center gap-1.5" data-testid="atlas-region-bar">
       <KitButton tone="small" busy={region.busy} disabled={region.busy} onClick={() => void region.reviewBackdrop(atlas.id)} data-testid="atlas-use-as-region">
-        {region.busy ? null : <Globe2 className="size-3.5" />} Use as Region backdrop
+        {region.busy ? null : <Globe2 className="size-3.5" />} {t("workshop.world.atlas.region.useBackdrop")}
       </KitButton>
     </div>
   );
 }
 
 export function PlacementList({ placements }: { placements: Placement[] }) {
+  const { t } = useI18n();
   return (
     <ul className="flex flex-col gap-0.5" data-testid="atlas-region-placements">
       {placements.map((placement) => (
         <li key={placement.pinId}>
           <span className="text-stone-100">{placement.name}</span>:{" "}
-          {sameCell(placement.before, placement.after) ? `stays at ${cellText(placement.after)}` : `${cellText(placement.before)} to ${cellText(placement.after)}`}
-          {placement.onPicture ? null : <span className="text-amber-300"> (its pin is off the picture, so the place goes to the picture&apos;s nearest edge)</span>}
+          {sameCell(placement.before, placement.after) ? t("workshop.world.atlas.placement.staysAt", { cell: cellText(placement.after, t) }) : t("workshop.world.atlas.placement.fromTo", { before: cellText(placement.before, t), after: cellText(placement.after, t) })}
+          {placement.onPicture ? null : <span className="text-amber-300"> ({t("workshop.world.atlas.placement.offPicture")})</span>}
         </li>
       ))}
     </ul>
