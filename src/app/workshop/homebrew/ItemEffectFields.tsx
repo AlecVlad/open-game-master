@@ -7,6 +7,7 @@
 // Without them a copied item lost what it does on a sheet.
 
 import type { ComponentProps } from "react";
+import { useT } from "@/lib/i18n/provider";
 import { IMMUNE_CONDITIONS, SPEED_MODES } from "@/lib/homebrew/item-data";
 import type { MagicItemEffect } from "@/lib/srd/magic-items";
 import { SRD_WEAPONS, UNARMED_STRIKE_KEY } from "@/lib/srd/weapons";
@@ -18,11 +19,11 @@ import { NumberStepper } from "@/components/ui/NumberStepper";
 import { Select } from "@/components/ui/Select";
 
 const ABILITIES = ["str", "dex", "con", "int", "wis", "cha"] as const;
-const SPEED_LABELS: Record<(typeof SPEED_MODES)[number], string> = { fly: "Flying", swim: "Swimming", climb: "Climbing" };
+
 // The unarmed strike, then the SRD's own weapons, by the key the attack engine
 // matches them on.
 const WEAPON_KEYS = [UNARMED_STRIKE_KEY, ...SRD_WEAPONS.filter((weapon) => weapon.category === "simple" || weapon.category === "martial").map((weapon) => textKey(weapon.name))];
-const WEAPON_LABELS = { [UNARMED_STRIKE_KEY]: "Unarmed strike", ...Object.fromEntries(SRD_WEAPONS.map((weapon) => [textKey(weapon.name), weapon.name])) };
+
 
 export const MORE_EFFECT_LABELS = {
   increase_ability: "Raises an ability score",
@@ -80,52 +81,56 @@ const abilityOptions = ABILITIES.map((ability) => ({
 }));
 
 export function MoreEffectFields({ effect, update }: { effect: MagicItemEffect; update: (next: MagicItemEffect) => void }) {
+  const t = useT();
+  const weaponLabels = { [UNARMED_STRIKE_KEY]: t("workshop.homebrew.item.unarmedStrike"), ...Object.fromEntries(SRD_WEAPONS.map((weapon) => [textKey(weapon.name), weapon.name])) };
+  const damageLabels = Object.fromEntries(DAMAGE_TYPES.map((type) => [type, t(`workshop.homebrew.item.damage.${type}`)]));
+  const conditionLabels = Object.fromEntries(IMMUNE_CONDITIONS.map((condition) => [condition, t(`workshop.homebrew.item.condition.${condition}`)]));
   switch (effect.kind) {
     case "increase_ability":
       return (
         <>
           <span className="w-32">
-            <Select value={effect.ability} label="Ability" options={abilityOptions} onChange={(ability) => update({ ...effect, ability })} />
+            <Select value={effect.ability} label={t("workshop.homebrew.item.effects.ability")} options={abilityOptions} onChange={(ability) => update({ ...effect, ability })} />
           </span>
-          <EffectStepper label="Raised by" value={effect.amount} min={1} max={4} onChange={(amount) => update({ ...effect, amount })} />
-          <EffectStepper label="To at most" value={effect.max} min={3} max={30} onChange={(max) => update({ ...effect, max })} />
+          <EffectStepper label={t("workshop.homebrew.item.effects.raisedBy")} value={effect.amount} min={1} max={4} onChange={(amount) => update({ ...effect, amount })} />
+          <EffectStepper label={t("workshop.homebrew.item.effects.toAtMost")} value={effect.max} min={3} max={30} onChange={(max) => update({ ...effect, max })} />
         </>
       );
     case "immunity":
-      return <ToggleChips options={DAMAGE_TYPES} selected={effect.types} onChange={(types) => update({ ...effect, types })} />;
+      return <ToggleChips options={DAMAGE_TYPES} labels={damageLabels} selected={effect.types} onChange={(types) => update({ ...effect, types })} />;
     case "condition_immunity":
-      return <ToggleChips options={IMMUNE_CONDITIONS} selected={effect.conditions} onChange={(conditions) => update({ ...effect, conditions })} />;
+      return <ToggleChips options={IMMUNE_CONDITIONS} labels={conditionLabels} selected={effect.conditions} onChange={(conditions) => update({ ...effect, conditions })} />;
     case "speed":
       return (
         <>
           <span className="w-36">
             <Select
               value={effect.mode}
-              label="Speed"
-              options={SPEED_MODES.map((mode) => ({ value: mode, label: SPEED_LABELS[mode] }))}
+              label={t("workshop.homebrew.item.effects.speed")}
+              options={SPEED_MODES.map((mode) => ({ value: mode, label: t(`workshop.homebrew.item.speed.${mode}`) }))}
               onChange={(mode) => update({ ...effect, mode })}
             />
           </span>
           <CheckField
-            label="Equal to walking speed"
+            label={t("workshop.homebrew.item.effects.walkingSpeed")}
             checked={effect.feet === "walk"}
             onChange={(on) => update({ ...effect, feet: on ? "walk" : 30 })}
           />
           {effect.feet === "walk" ? null : (
-            <EffectStepper label="Feet" value={effect.feet} min={5} max={120} step={5} onChange={(feet) => update({ ...effect, feet })} />
+            <EffectStepper label={t("workshop.homebrew.item.effects.feet")} value={effect.feet} min={5} max={120} step={5} onChange={(feet) => update({ ...effect, feet })} />
           )}
         </>
       );
     case "weapon_rider":
       return (
         <>
-          <ToggleChips options={WEAPON_KEYS} selected={effect.weapons} labels={WEAPON_LABELS} max={8} onChange={(weapons) => update({ ...effect, weapons, ranged: weapons.includes(UNARMED_STRIKE_KEY) ? undefined : effect.ranged })} />
-          <CheckField label="Trained with them" checked={effect.proficient === true} onChange={(on) => update({ ...effect, proficient: on || undefined })} />
-          <EffectStepper label="Bonus to hit" value={effect.attack ?? 0} min={0} max={3} onChange={(attack) => update({ ...effect, attack: attack || undefined })} />
-          <EffectStepper label="Extra damage" value={effect.damage ?? 0} min={0} max={3} onChange={(damage) => update({ ...effect, damage: damage || undefined })} />
+          <ToggleChips options={WEAPON_KEYS} selected={effect.weapons} labels={weaponLabels} max={8} onChange={(weapons) => update({ ...effect, weapons, ranged: weapons.includes(UNARMED_STRIKE_KEY) ? undefined : effect.ranged })} />
+          <CheckField label={t("workshop.homebrew.item.effects.trained")} checked={effect.proficient === true} onChange={(on) => update({ ...effect, proficient: on || undefined })} />
+          <EffectStepper label={t("workshop.homebrew.item.effects.attack")} value={effect.attack ?? 0} min={0} max={3} onChange={(attack) => update({ ...effect, attack: attack || undefined })} />
+          <EffectStepper label={t("workshop.homebrew.item.effects.extraDamage")} value={effect.damage ?? 0} min={0} max={3} onChange={(damage) => update({ ...effect, damage: damage || undefined })} />
           {/* A fist is never at range: left on, the effect would silently never apply. */}
           {effect.weapons.includes(UNARMED_STRIKE_KEY) ? null : (
-            <CheckField label="Only at range" checked={effect.ranged === true} onChange={(on) => update({ ...effect, ranged: on || undefined })} />
+            <CheckField label={t("workshop.homebrew.item.effects.onlyRange")} checked={effect.ranged === true} onChange={(on) => update({ ...effect, ranged: on || undefined })} />
           )}
         </>
       );
