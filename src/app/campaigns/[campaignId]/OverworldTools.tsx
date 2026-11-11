@@ -130,13 +130,13 @@ const idle = "";
 const active = "border-amber-500/60 bg-amber-400/10 text-amber-100";
 
 const MODES = [
-  ["pin", "Add pin", MapPin],
-  ["party", "Place the party", Users],
-  ["place", "Move a place", Move],
-  ["paint", "Paint terrain", Brush],
-  ["line", "Draw a line", PenLine],
-  ["label", "Write a label", Type],
-  ["erase", "Erase", Eraser],
+  ["pin", "campaign.overworld.mode.addPin", MapPin],
+  ["party", "campaign.overworld.mode.placeParty", Users],
+  ["place", "campaign.overworld.mode.movePlace", Move],
+  ["paint", "campaign.overworld.mode.paintTerrain", Brush],
+  ["line", "campaign.overworld.mode.drawLine", PenLine],
+  ["label", "campaign.overworld.mode.writeLabel", Type],
+  ["erase", "campaign.overworld.mode.erase", Eraser],
 ] as const;
 
 export function ModeBar({
@@ -161,9 +161,10 @@ export function ModeBar({
   regenBusy: boolean;
   onRegenerate: () => void;
 }) {
+  const { t } = useI18n();
   return (
     <div className="flex flex-wrap items-center gap-1.5" data-tour="region-modes">
-      {MODES.filter(([value]) => partyTool || value !== "party").map(([value, label, Icon]) => (
+      {MODES.filter(([value]) => partyTool || value !== "party").map(([value, labelKey, Icon]) => (
         <button
           key={value}
           type="button"
@@ -171,40 +172,73 @@ export function ModeBar({
           onClick={() => onMode(mode === value ? "look" : value)}
           className={cn(chip, mode === value ? active : idle)}
         >
-          <Icon className="size-3.5" /> {mode === value ? "Tap the map..." : label}
+          <Icon className="size-3.5" /> {mode === value ? t("campaign.overworld.map.tapHint") : t(labelKey)}
         </button>
       ))}
       {partyPlaced ? (
         <button type="button" onClick={onPartyTransit} className={cn(chip, idle)}>
-          Party is in transit
+          {t("campaign.overworld.map.partyTransit")}
         </button>
       ) : null}
       {pinsCount ? (
         <button type="button" onClick={onClearPins} className={cn(chip, idle)}>
-          <X className="size-3.5" /> Clear pins
+          <X className="size-3.5" /> {t("campaign.overworld.map.clearPins")}
         </button>
       ) : null}
       <button
         type="button"
         onClick={onRegenerate}
         disabled={regenBusy}
-        title="Reroll the terrain. Locations keep their spots where the new ground allows."
+        title={t("campaign.overworld.map.reroll")}
         className={cn(chip, idle, "disabled:opacity-50")}
       >
         {regenBusy ? <Loader2 className="size-3.5 animate-spin" /> : <RefreshCw className="size-3.5" />}
-        Regenerate
+        {t("campaign.overworld.map.regenerate")}
       </button>
     </div>
   );
 }
 
+const TERRAIN_LABEL_KEYS = {
+  Water: "campaign.overworld.terrain.water",
+  Plains: "campaign.overworld.terrain.plains",
+  Forest: "campaign.overworld.terrain.forest",
+  Hills: "campaign.overworld.terrain.hills",
+  Mountains: "campaign.overworld.terrain.mountains",
+  Swamp: "campaign.overworld.terrain.swamp",
+  "Black water": "campaign.overworld.terrain.blackWater",
+  Moors: "campaign.overworld.terrain.moors",
+  Darkwood: "campaign.overworld.terrain.darkwood",
+  Mire: "campaign.overworld.terrain.mire",
+  "Cold sea": "campaign.overworld.terrain.coldSea",
+  Fields: "campaign.overworld.terrain.fields",
+  "Old growth": "campaign.overworld.terrain.oldGrowth",
+  "Fog marsh": "campaign.overworld.terrain.fogMarsh",
+  Canals: "campaign.overworld.terrain.canals",
+  "Low blocks": "campaign.overworld.terrain.lowBlocks",
+  Sprawl: "campaign.overworld.terrain.sprawl",
+  Uptown: "campaign.overworld.terrain.uptown",
+  Arcologies: "campaign.overworld.terrain.arcologies",
+  Undercity: "campaign.overworld.terrain.undercity",
+  Farmland: "campaign.overworld.terrain.farmland",
+  "Foundry hills": "campaign.overworld.terrain.foundryHills",
+  "Iron peaks": "campaign.overworld.terrain.ironPeaks",
+  "Dead water": "campaign.overworld.terrain.deadWater",
+  Wastes: "campaign.overworld.terrain.wastes",
+  Ruins: "campaign.overworld.terrain.ruins",
+  Dunes: "campaign.overworld.terrain.dunes",
+  Crags: "campaign.overworld.terrain.crags",
+  "Toxic bog": "campaign.overworld.terrain.toxicBog",
+} as const;
+
 export function TileLegend({ skin }: { skin: Record<OverworldTile, TileSkin> }) {
+  const { t } = useI18n();
   return (
     <div className="stagger-pop flex flex-wrap gap-x-3 gap-y-1">
       {(Object.keys(skin) as OverworldTile[]).map((tile) => (
         <span key={tile} className="flex items-center gap-1 text-[11px] text-stone-400">
           <span className="inline-block size-3 rounded-sm border border-black/30" style={{ backgroundColor: skin[tile].fill }} />
-          {skin[tile].label}
+          {t(TERRAIN_LABEL_KEYS[skin[tile].label as keyof typeof TERRAIN_LABEL_KEYS])}
         </span>
       ))}
     </div>
