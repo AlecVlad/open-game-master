@@ -114,7 +114,7 @@ export function HandArrange({
             <span className="min-w-0 flex-1 truncate text-sm text-stone-200">{card.name}</span>
             <span className="hand-cost shrink-0" data-cost={card.cost}>{costLabel(card.cost, t)}</span>
             {seat >= 0 ? (
-              <span className="shrink-0 text-[10px] uppercase tracking-wider text-amber-200">In Hand · seat {seat + 1}</span>
+              <span className="shrink-0 text-[10px] uppercase tracking-wider text-amber-200">{t("campaign.session.hand.arrange.inHand", { seat: seat + 1 })}</span>
             ) : (
               seatButton(card)
             )}
@@ -162,7 +162,7 @@ export function HandArrange({
             {group ? (
               <span className="block text-[11px] text-stone-400">{handGroupSummary(group, t, tp)}</span>
             ) : (
-              <span className="hand-cost mt-0.5" data-cost={(card as HandCard).cost}>{costLabel((card as HandCard).cost)}</span>
+              <span className="hand-cost mt-0.5" data-cost={(card as HandCard).cost}>{costLabel((card as HandCard).cost, t)}</span>
             )}
           </span>
           {place === "hand" ? (
