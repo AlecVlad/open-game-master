@@ -116,8 +116,13 @@ Single restore point for Russian localization. After a chat interruption, read o
 - Added 58 EN/RU keys covering concurrent-edit clashes and values kept from an earlier import. Dynamic names, type labels, custom field labels/options, campaign text and field values remain unchanged.
 - Static check: all 58 source keys exist in both dictionaries; placeholders match; no duplicate keys. Reviewed JSX balance for the changed conflict/kept notices. TypeScript and runtime checks remain unrun.
 
+## WorldForge entry page — 12 November 2026
+- `EntityPage.tsx`: localized fixed labels, actions, deletion confirmation, image-generation states and hints, accessibility text, table facts, links, events, secrets, hidden truth and author notes.
+- Added 57 EN/RU keys in `workshop.ts`, including shelf/tool names and fixed table labels. User-created names, aliases, custom field values, event titles, secret titles and article content remain unchanged.
+- Static verification: all 57 keys exist in both dictionaries; placeholders match; no duplicate keys were introduced. TypeScript, lint, tests, build and visual checks remain deferred.
+
 ## Next work
-Continue the WorldForge audit with `EntityPage.tsx`, then the Atlas, Timeline, Secrets and Wiki views. Localize fixed interface text and accessibility labels, while leaving user-created names, custom type/field names and content alone. Inspect `useWorld.ts` error messages before translating API errors. Then continue the remaining Workshop editors. Do not sync upstream or merge branches during translation.
+Continue the WorldForge audit with `AtlasView.tsx` and its directly used components, then `TimelineView.tsx`, `SecretsView.tsx` and `WikiView.tsx`. Localize fixed interface text and accessibility labels, while leaving user-created names, custom type/field names and content alone. Inspect `useWorld.ts` error messages before translating API errors. Then continue the remaining Workshop editors. Do not sync upstream or merge branches during translation.
 
 ## Low-token work protocol
 - Read this file, then only the next target source file(s) and exact dictionary sections needed.
