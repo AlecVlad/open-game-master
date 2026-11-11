@@ -152,7 +152,8 @@ export function readWorldForge(raw: unknown): WorldImport | { error: string } {
   // A text longer than its limit: cut, and said so.
   const cut = (value: unknown, max: number, name: string, field: string) => {
     if (typeof value === "string" && value.trim().length > max) {
-      addLoss(name + ": " + field + " is cut to " + max.toLocaleString("en") + " characters.", "workshop.world.import.loss.cut", { field, limit: max, name });
+      const legacyField = field === "hiddenTruth" ? "hidden truth" : field;
+      addLoss(name + ": its " + legacyField + " is cut to " + max.toLocaleString("en") + " characters.", "workshop.world.import.loss.cut", { field, limit: max, name });
     }
     return str(value, max);
   };
