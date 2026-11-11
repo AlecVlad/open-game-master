@@ -2,6 +2,7 @@
 
 import { ArrowDown, ArrowUp } from "lucide-react";
 import { useRef, useState, type CSSProperties } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { SectionHead } from "@/components/ui/SectionHead";
 import { cn } from "@/lib/cn";
 import { formationView, type FormationChange } from "@/lib/dm/formation-logic";
@@ -29,6 +30,25 @@ export function TravelFormation({
   meUserId: string;
   arranges: boolean;
 }) {
+  const { t } = useI18n();
+
+  const formationErrorKeys: Record<string, string> = {
+    "Say what to change about the formation.": "campaign.session.formation.error.invalidRequest",
+    "Only the party lead arranges the travel formation. Ask for a change on your own character instead.": "campaign.session.formation.error.onlyLead",
+    "That is not one of your characters.": "campaign.session.formation.error.notYourCharacter",
+    "Put at least one character in the formation.": "campaign.session.formation.error.minimumOne",
+    "A character holds one place in the formation; that order names one twice.": "campaign.session.formation.error.duplicate",
+    "That order names a character who is not in this party. Reload the Party panel and arrange it again.": "campaign.session.formation.error.notInParty",
+    "That is the formation already.": "campaign.session.formation.error.alreadySet",
+    "There is no formation change to answer.": "campaign.session.formation.error.noChangeToAnswer",
+    "That change does not move this character, so there is nothing to answer for them.": "campaign.session.formation.error.characterNotAffected",
+    "There is no proposed formation to make active.": "campaign.session.formation.error.noProposal",
+    "There is no formation change to withdraw.": "campaign.session.formation.error.noChangeToWithdraw",
+  };
+  const localizeFormationError = (message: string) => {
+    const key = formationErrorKeys[message];
+    return key ? t(key as never) : message;
+  };
   const [editing, setEditing] = useState<string[] | null>(null);
   const [moved, setMoved] = useState<{ id: string; seq: number } | null>(null);
   const [busy, setBusy] = useState(false);
@@ -40,7 +60,7 @@ export function TravelFormation({
   const change: FormationChange | null = party?.formationChange ?? null;
   const { placed, unplaced } = formationView(order, partyIds);
   const byId = new Map(sheets.map((sheet) => [sheet.id, sheet]));
-  const nameOf = (id: string) => byId.get(id)?.name ?? "someone";
+  const nameOf = (id: string) => byId.get(id)?.name ?? t("campaign.session.formation.someone");
 
   if (sheets.length < 2) {
     return null;
@@ -61,12 +81,12 @@ export function TravelFormation({
       });
       if (!response.ok) {
         const data = (await response.json().catch(() => ({}))) as { error?: string };
-        say(data.error || "Could not change the formation.");
+        say(localizeFormationError(data.error || t("campaign.session.formation.error.change")));
         return false;
       }
       return true;
     } catch {
-      say("Could not reach the server.");
+      say(t("campaign.session.formation.error.network"));
       return false;
     } finally {
       setBusy(false);
@@ -75,10 +95,10 @@ export function TravelFormation({
 
   // Where a character stands, said for a list read aloud as much as seen.
   const rankWord = (index: number, length: number) =>
-    length < 2 ? "" : index === 0 ? "Front" : index === length - 1 ? "Rear" : "Middle";
+    length < 2 ? "" : index === 0 ? t("campaign.session.formation.rank.front") : index === length - 1 ? t("campaign.session.formation.rank.rear") : t("campaign.session.formation.rank.middle");
   const who = (id: string) => {
     const sheet = byId.get(id);
-    return sheet?.isCompanion ? "ally the GM plays" : sheet?.userId === meUserId ? "yours" : "";
+    return sheet?.isCompanion ? t("campaign.session.formation.ally") : sheet?.userId === meUserId ? t("campaign.session.formation.yours") : "";
   };
 
   const list = (ids: string[], tone: "active" | "proposed") => (
@@ -120,7 +140,7 @@ export function TravelFormation({
                     : "border-stone-600 text-stone-400",
               )}
             >
-              {answer?.answer === "agree" ? "Agreed" : answer?.answer === "change" ? "Asked for a change" : "Waiting"}
+              {answer?.answer === "agree" ? t("campaign.session.formation.answer.agreed") : answer?.answer === "change" ? t("campaign.session.formation.answer.changeRequested") : t("campaign.session.formation.answer.waiting")}
             </span>
             {answer?.note ? <span className="ml-1 italic text-stone-300">&ldquo;{answer.note}&rdquo;</span> : null}
             {mine ? (
@@ -131,8 +151,8 @@ export function TravelFormation({
                     onChange={(event) => setAsking({ id, note: event.target.value.slice(0, 160) })}
                     maxLength={160}
                     rows={2}
-                    aria-label={`What to change for ${nameOf(id)}`}
-                    placeholder="I would rather scout ahead."
+                    aria-label={t("campaign.session.formation.note.aria", { name: nameOf(id) })}
+                    placeholder={t("campaign.session.formation.note.placeholder")}
                     className={cn(ui.input, "text-xs")}
                   />
                   <span className="flex gap-1.5">
@@ -144,10 +164,10 @@ export function TravelFormation({
                         if (await send({ do: "answer", characterId: id, answer: "change", note: asking.note })) setAsking(null);
                       }}
                     >
-                      Send
+                      {t("campaign.session.formation.send")}
                     </button>
                     <button type="button" className={cn(ui.btnSmall, "text-xs")} onClick={() => setAsking(null)}>
-                      Cancel
+                      {t("campaign.session.formation.cancel")}
                     </button>
                   </span>
                 </span>
@@ -159,10 +179,10 @@ export function TravelFormation({
                     className={cn(ui.btnSmall, "text-xs")}
                     onClick={() => void send({ do: "answer", characterId: id, answer: "agree" })}
                   >
-                    Agree
+                    {t("campaign.session.formation.agree")}
                   </button>
                   <button type="button" disabled={busy} className={cn(ui.btnSmall, "text-xs")} onClick={() => setAsking({ id, note: "" })}>
-                    Ask for a change
+                    {t("campaign.session.formation.askChange")}
                   </button>
                 </span>
               )
@@ -188,21 +208,21 @@ export function TravelFormation({
   };
   async function save(mode: "set" | "propose") {
     if (!draft.length) {
-      say("Put at least one character in the formation.");
+      say(t("campaign.session.formation.error.minimumOne"));
       return;
     }
     if (await send({ do: mode, order: draft })) setEditing(null);
   }
 
   return (
-    <section className="formation reveal space-y-2" aria-label="Travel formation">
-      <SectionHead title="Travel formation" glyph="cue-travel" level="h3" aside={placed.length ? `${placed.length}` : undefined} />
+    <section className="formation reveal space-y-2" aria-label={t("campaign.session.formation.title")}>
+      <SectionHead title={t("campaign.session.formation.title")} glyph="cue-travel" level="h3" aside={placed.length ? `${placed.length}` : undefined} />
       <p ref={noticeRef} role="alert" className={cn("text-xs text-red-300", notice ? "" : "hidden")}>
         {notice}
       </p>
       {editing ? (
         <div className="formation-editor space-y-2 rounded-xl border border-amber-500/30 bg-stone-900/60 p-2.5">
-          <p className="text-xs text-stone-400">Front first. The GM reads this order on every turn; it places the party and grants no bonus.</p>
+          <p className="text-xs text-stone-400">{t("campaign.session.formation.editorHint")}</p>
           <ol className="flex flex-col gap-1">
             {draft.map((id, index) => (
               <li
@@ -213,10 +233,10 @@ export function TravelFormation({
               >
                 <span className="formation-rank font-mono text-[11px] text-amber-200/90">{index + 1}</span>
                 <span className="min-w-0 flex-1 truncate text-sm text-stone-100">{nameOf(id)}</span>
-                <button type="button" className="formation-step motion-press" aria-label={`Move ${nameOf(id)} toward the front`} disabled={index === 0} onClick={() => step(id, -1)}>
+                <button type="button" className="formation-step motion-press" aria-label={t("campaign.session.formation.moveFront", { name: nameOf(id) })} disabled={index === 0} onClick={() => step(id, -1)}>
                   <ArrowUp className="size-4" />
                 </button>
-                <button type="button" className="formation-step motion-press" aria-label={`Move ${nameOf(id)} toward the rear`} disabled={index === draft.length - 1} onClick={() => step(id, 1)}>
+                <button type="button" className="formation-step motion-press" aria-label={t("campaign.session.formation.moveRear", { name: nameOf(id) })} disabled={index === draft.length - 1} onClick={() => step(id, 1)}>
                   <ArrowDown className="size-4" />
                 </button>
                 <button
@@ -225,14 +245,14 @@ export function TravelFormation({
                   aria-label={`Leave ${nameOf(id)} out of the formation`}
                   onClick={() => setEditing(draft.filter((entry) => entry !== id))}
                 >
-                  Out
+                  {t("campaign.session.formation.out")}
                 </button>
               </li>
             ))}
           </ol>
           {left.length ? (
             <div className="flex flex-wrap items-center gap-1.5 text-xs text-stone-400">
-              <span>Not placed:</span>
+              <span>{t("campaign.session.formation.notPlaced")}</span>
               {left.map((id) => (
                 <button
                   key={id}
@@ -243,25 +263,24 @@ export function TravelFormation({
                     setMoved((current) => ({ id, seq: (current?.seq ?? 0) + 1 }));
                   }}
                 >
-                  + {nameOf(id)} at the rear
+                  + {t("campaign.session.formation.addAtRear", { name: nameOf(id) })}
                 </button>
               ))}
             </div>
           ) : null}
           <div className="flex flex-wrap gap-1.5 pt-1">
             <button type="button" disabled={busy} className={cn(ui.btnPrimary, "text-xs")} onClick={() => void save("set")}>
-              Save now
+              {t("campaign.session.formation.saveNow")}
             </button>
             <button type="button" disabled={busy} className={cn(ui.btnSecondary, "text-xs")} onClick={() => void save("propose")}>
-              Propose to the party
+              {t("campaign.session.formation.propose")}
             </button>
             <button type="button" className={cn(ui.btnSmall, "text-xs")} onClick={() => setEditing(null)}>
-              Cancel
+              {t("campaign.session.formation.cancel")}
             </button>
           </div>
           <p className="text-[11px] text-stone-500">
-            Save now puts it in force at once; Propose waits until the players it moves agree, or until you make it active.
-            Either way they are asked.
+            {t("campaign.session.formation.saveHint")}
           </p>
         </div>
       ) : (
@@ -270,29 +289,29 @@ export function TravelFormation({
             list(placed, "active")
           ) : (
             <p className="text-xs text-stone-500">
-              No travel formation yet.{" "}
-              {arranges ? "Arrange one so the GM knows who walks first." : "The party lead arranges it."}
+              {t("campaign.session.formation.none")}{" "}
+              {arranges ? t("campaign.session.formation.none.arranger") : t("campaign.session.formation.none.viewer")}
             </p>
           )}
           {unplaced.length ? (
             <p className="text-xs text-stone-400">
-              Not placed yet: {unplaced.map(nameOf).join(", ")}. The GM places them where the story has them until the party does.
+              {t("campaign.session.formation.unplacedSummary", { names: unplaced.map(nameOf).join(", ") })}
             </p>
           ) : null}
           {change?.status === "proposed" ? (
             <div className="formation-proposal rounded-xl border border-dashed border-amber-400/50 bg-amber-400/5 p-2.5">
               <p className="mb-1.5 text-[11px] uppercase tracking-[0.18em] text-amber-200/90">
-                Proposed by {change.byName || "the party lead"}, not in force yet
+                {t("campaign.session.formation.proposedBy", { name: change.byName || t("campaign.session.formation.partyLead") })}
               </p>
               {list(change.order, "proposed")}
               {answers(change)}
               {arranges ? (
                 <span className="mt-2 flex flex-wrap gap-1.5">
                   <button type="button" disabled={busy} className={cn(ui.btnSmall, "text-xs")} onClick={() => void send({ do: "activate" })}>
-                    Make it active now
+                    {t("campaign.session.formation.activate")}
                   </button>
                   <button type="button" disabled={busy} className={cn(ui.btnSmall, "text-xs")} onClick={() => void send({ do: "withdraw" })}>
-                    Withdraw
+                    {t("campaign.session.formation.withdraw")}
                   </button>
                 </span>
               ) : null}
@@ -300,12 +319,12 @@ export function TravelFormation({
           ) : change && change.affected.length ? (
             <div className="formation-moved rounded-xl border border-stone-700/60 bg-stone-900/50 p-2.5">
               <p className="text-xs text-stone-300">
-                {change.byName || "The party lead"} moved {change.affected.map(nameOf).join(", ")} in the formation in force.
+                {t("campaign.session.formation.movedSummary", { name: change.byName || t("campaign.session.formation.partyLead"), names: change.affected.map(nameOf).join(", ") })}
               </p>
               {answers(change)}
               {arranges ? (
                 <button type="button" disabled={busy} className={cn(ui.btnSmall, "mt-2 text-xs")} onClick={() => void send({ do: "withdraw" })}>
-                  Clear the answers
+                  {t("campaign.session.formation.clearAnswers")}
                 </button>
               ) : null}
             </div>
@@ -319,7 +338,7 @@ export function TravelFormation({
                 setEditing([...placed, ...unplaced]);
               }}
             >
-              {placed.length ? "Rearrange the formation" : "Arrange the formation"}
+              {placed.length ? t("campaign.session.formation.rearrange") : t("campaign.session.formation.arrange")}
             </button>
           ) : null}
         </>
