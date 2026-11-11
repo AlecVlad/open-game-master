@@ -2548,7 +2548,7 @@ export const enCampaignPanels = {
   "campaign.storyboard.compile.refusal.noPremise": "The story arc needs a premise. Add a place or a piece of history first.",
   "campaign.storyboard.compile.refusal.tooFew": "An arc needs at least {min} events; this board has {count}.",
   "campaign.storyboard.compile.refusal.existingArc": "This campaign already has a story arc. The existing arc will be left untouched.",
-  "campaign.storyboard.overflow": "The text is {length} characters; the limit is {max}. The part that would be lost: {lost}",
+  "campaign.storyboard.overflow": "The text is {length} characters; the limit is {max}. The part that would be lost{lost}",
   "campaign.storyboard.prose.joined": "{count} places look like a missing space after a sentence.",
   "campaign.storyboard.prose.longRun": "{count} stretches contain {letters} or more letters with no spaces.",
   "campaign.storyboard.prose.fewSpaces": "This text has unusually few spaces for its length.",
