@@ -241,7 +241,7 @@ export function PaintTools({
               className="size-2.5 rounded-sm"
               style={{ backgroundColor: skin[OVERWORLD_BRUSH_TILES[value]].fill }}
             />
-            {OVERWORLD_BRUSH_LABELS[value]}
+            {t(`campaign.overworld.paint.brush.${value}` as never)}
           </button>
         ))}
       </div>
@@ -318,7 +318,7 @@ export function LineTools({
             onClick={() => onKind(value)}
             className={cn(chip, kind === value ? active : idle, "disabled:opacity-40")}
           >
-            {PATH_KIND_LABELS[value]}
+            {t(`campaign.overworld.line.${value}` as never)}
           </button>
         ))}
         <input
