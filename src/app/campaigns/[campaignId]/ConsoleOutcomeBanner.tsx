@@ -1,6 +1,7 @@
 "use client";
 
 import { X } from "lucide-react";
+import { useI18n } from "@/lib/i18n/provider";
 import { useEffect, useSyncExternalStore } from "react";
 import { cn } from "@/lib/cn";
 import type { ResultLine } from "@/lib/dm/catalog-result";
@@ -36,6 +37,7 @@ function dismiss() {
 }
 
 export function ConsoleOutcomeBanner({ campaignId, encounterId = null }: { campaignId: string; encounterId?: string | null }) {
+  const { t } = useI18n();
   const shown = useSyncExternalStore(subscribe, () => held, () => null);
   useEffect(() => {
     if (!shown || shown.campaignId !== campaignId) return;
@@ -58,7 +60,7 @@ export function ConsoleOutcomeBanner({ campaignId, encounterId = null }: { campa
         <button
           type="button"
           onClick={dismiss}
-          aria-label="Dismiss the result"
+          aria-label={t("campaign.dmAction.result.dismiss")}
           className="motion-press flex size-7 items-center justify-center rounded-md text-stone-500 hover:text-amber-200"
         >
           <X className="size-3.5" />
