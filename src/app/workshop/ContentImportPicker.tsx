@@ -50,6 +50,30 @@ function importKindLabel(kind: ImportKind, t: (key: string, params?: Record<stri
   return t(IMPORT_KIND_KEYS[kind]);
 }
 
+function importNoticeText(
+  notice: ImportPlan["warnings"][number],
+  t: (key: string, params?: Record<string, string | number>) => string,
+): string {
+  if (!notice.code) return notice.message;
+  const params: Record<string, string | number> = { ...notice.params };
+  const kindParam = (value: string) =>
+    Object.prototype.hasOwnProperty.call(IMPORT_KIND_KEYS, value)
+      ? importKindLabel(value as ImportKind, t)
+      : value;
+  for (const key of ["kind", "otherKind", "linkKind", "from", "to"]) {
+    const value = params[key];
+    if (typeof value === "string") params[key] = kindParam(value);
+  }
+  if (typeof params.kinds === "string") {
+    params.kinds = params.kinds
+      .split(",")
+      .filter(Boolean)
+      .map(kindParam)
+      .join(", ");
+  }
+  return t(notice.code as never, params);
+}
+
 export type ImportSelection = {
   sourceId: string;
   select: ImportKind[];
@@ -464,7 +488,7 @@ export function ContentImportPicker({
                     className="flex items-start gap-1.5 text-xs text-amber-300/90"
                   >
                     <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
-                    <span>{warning.message}</span>
+                    <span>{importNoticeText(warning, t)}</span>
                   </li>
                 ))}
               </ul>
@@ -475,7 +499,7 @@ export function ContentImportPicker({
                 {plan.notes.map((note, index) => (
                   <li key={index} className="flex items-start gap-1.5 text-xs text-stone-400">
                     <Info className="mt-0.5 size-3.5 shrink-0 text-sky-300/70" />
-                    <span>{note.message}</span>
+                    <span>{importNoticeText(note, t)}</span>
                   </li>
                 ))}
               </ul>
