@@ -57,6 +57,8 @@ import type { InputKind } from "@/lib/campaign-types";
 import type { Floor } from "@/lib/db/campaigns";
 import type { PublicEncounter } from "@/lib/db/encounter-view";
 import type { CharacterSheet } from "@/lib/schemas/sheet";
+import { useI18n } from "@/lib/i18n/provider";
+type Translator = ReturnType<typeof useI18n>["t"];
 
 // The Hand: on your turn in a fight, your options as cards above the message
 // box (docs/visual-overhaul-plan.md 5.2, 5.3, 5.7). It adds to the composer
@@ -101,7 +103,7 @@ function writeFlag(key: string, on: boolean) {
 // The board-native panel's mirror of the aim bar's share row (HandShares):
 // one more or one fewer dart, ray or beam on a creature, or a creature taken
 // or let go, as "id:+" and "id:-".
-function shareControl(card: HandCard, aim: HandAim, offered: HandTargetChip[], shares: HandShare[]): BoardControl {
+function shareControl(card: HandCard, aim: HandAim, offered: HandTargetChip[], shares: HandShare[], t: Translator): BoardControl {
   const rule = card.shares!;
   const list = shareList(card, aim, { shares });
   const count = (id: string) => list.find((share) => share.id === id)?.count ?? 0;
@@ -109,14 +111,14 @@ function shareControl(card: HandCard, aim: HandAim, offered: HandTargetChip[], s
   const others = offered.filter((target) => target.id !== aim.id);
   const options = rule.stack
     ? others.flatMap((target) => [
-        { value: `${target.id}:+`, label: `One more ${rule.unit} on ${target.name} (${count(target.id)})`, disabled: left > 0 ? null : `Every ${rule.unit} is placed.` },
-        { value: `${target.id}:-`, label: `One fewer ${rule.unit} on ${target.name}`, disabled: count(target.id) ? null : `${target.name} has none.` },
+        { value: `${target.id}:+`, label: t("campaign.session.hand.share.moreOne", { unit: rule.unit, name: target.name, count: count(target.id) }), disabled: left > 0 ? null : t("campaign.session.hand.share.everyUnitPlaced", { unit: rule.unit }) },
+        { value: `${target.id}:-`, label: t("campaign.session.hand.share.fewer", { unit: rule.unit, name: target.name }), disabled: count(target.id) ? null : t("campaign.session.hand.share.targetHasNone", { name: target.name }) },
       ])
     : others.map((target) => {
         const taken = count(target.id) > 0;
-        return { value: `${target.id}:${taken ? "-" : "+"}`, label: `${taken ? "✓ " : ""}${target.name}`, disabled: taken || left > 0 ? null : "Every place is taken." };
+        return { value: `${target.id}:${taken ? "-" : "+"}`, label: `${taken ? "✓ " : ""}${target.name}`, disabled: taken || left > 0 ? null : t("campaign.session.hand.share.everyPlaceTaken") };
       });
-  return { id: "hand-share", label: rule.stack ? `Share out the ${rule.unit}s` : `Who else it takes (up to ${rule.count})`, disabled: null, options };
+  return { id: "hand-share", label: rule.stack ? t("campaign.session.hand.share.distribute", { unit: rule.unit }) : t("campaign.session.hand.share.whoElse", { count: rule.count }), disabled: null, options };
 }
 
 // No reaction waits on the GM: the same empty list each render, so the memos
@@ -205,6 +207,7 @@ function HandInner({
   reactionsSent?: readonly string[];
   onReactionSent?: (characterId: string) => void;
 }) {
+  const { t } = useI18n();
   const turnId = turnCharacterId(encounter);
   const capabilities = useCapabilities();
   // A companion's reactions, for its commander or the GM seat that plays it
@@ -519,7 +522,7 @@ function HandInner({
   const commit = useCallback(async () => {
     if (!picked || !sheet || sending || commitBusy.current) return;
     if (inputBlocked && picked.cost !== "reaction" && picked.intent.card !== "reaction") { say(blockedReason); return; }
-    if (!handReady(picked, aim, choices)) { say(picked.asks === "trigger" && !choices.trigger?.trim() ? "Name the trigger first." : picked.summon && !choices.choice ? "Choose the creature first." : "Pick a target or an area first."); return; }
+    if (!handReady(picked, aim, choices)) { say(picked.asks === "trigger" && !choices.trigger?.trim() ? t("campaign.session.hand.aim.nameTrigger") : picked.summon && !choices.choice ? t("campaign.session.hand.aim.chooseCreature") : t("campaign.session.hand.board.pickTargetArea")); return; }
     if (picked.compose) {
       toComposer(sentence);
       return;
@@ -558,17 +561,17 @@ function HandInner({
             ? await new Promise<ConcentrationSwap | null>(resolve => { swapReply.current = resolve; swapTurn.current = `${campaignId}:${sheet.id}:${signature}`; setBoardSwap(swap); })
             : await askConcentrationSwap(data);
           if (!ack) {
-            say(`Kept ${(data as { confirmConcentration?: { current?: string } }).confirmConcentration?.current ?? "your spell"}; nothing was spent.`);
+            say(t("campaign.session.hand.board.keptSpell", { name: (data as { confirmConcentration?: { current?: string } }).confirmConcentration?.current ?? t("campaign.session.hand.board.yourSpell") }));
             return;
           }
           response = await post(ack);
           if (!response.ok) {
             const again = (await response.json().catch(() => ({}))) as { error?: string };
-            say(again.error || "Could not send your action.");
+            say(again.error || t("campaign.session.hand.board.sendFailed"));
             return;
           }
         } else {
-          say(data.error || "Could not send your action.");
+          say(data.error || t("campaign.session.hand.board.sendFailed"));
           return;
         }
       }
@@ -607,7 +610,7 @@ function HandInner({
       window.clearTimeout(playedTimer.current);
       playedTimer.current = window.setTimeout(() => setPlayed(null), PLAYED_MS);
     } catch {
-      say("Could not reach the server.");
+      say(t("campaign.session.hand.board.serverUnreachable"));
     } finally {
       commitBusy.current = false;
       setSending(false);
@@ -616,28 +619,28 @@ function HandInner({
 
   const nativePanel = useMemo<BoardPanel | null>(() => {
     if (!boardNative) return null;
-    const close = { id: "panel-close" as const, label: "Close", disabled: null };
-    if (boardSwap) return { title: `Replace ${boardSwap.current}?`, lines: [`Casting ${boardSwap.next} ends concentration on ${boardSwap.current} and its effects. Keep it to spend nothing.`], controls: [{ id: "hand-confirm", label: `Cast ${boardSwap.next}`, disabled: null }, { id: "hand-keep", label: `Keep ${boardSwap.current}`, disabled: null }, close] };
+    const close = { id: "panel-close" as const, label: t("campaign.session.hand.board.close"), disabled: null };
+    if (boardSwap) return { title: t("campaign.session.hand.board.replaceTitle", { name: boardSwap.current }), lines: [t("campaign.session.hand.board.replaceDescription", { next: boardSwap.next, current: boardSwap.current })], controls: [{ id: "hand-confirm", label: t("campaign.session.hand.board.cast", { name: boardSwap.next }), disabled: null }, { id: "hand-keep", label: t("campaign.session.hand.board.keep", { name: boardSwap.current }), disabled: null }, close] };
     if (boardChoices) {
       const matches = cards.filter(card => card.intent.card === (boardChoices === "attack" ? "attack" : "spell"));
-      return { title: boardChoices === "attack" ? "Choose a weapon" : "Choose a spell", lines: ["Choose the action, then its target and options. Nothing is sent until you play it.", ...(!matches.length ? ["No matching cards are available yet; spell details may still be loading."] : []), ...(notice ? [notice] : [])], controls: [{ id: "hand-card", label: boardChoices === "attack" ? "Weapon" : "Spell", disabled: null, options: matches.map(card => ({ value: card.id, label: `${card.name} · ${card.cost}${card.resource ? ` · ${card.resource}` : ""}${card.dice ? ` · ${card.dice}` : ""}`, disabled: card.disabled })) }, close] };
+      return { title: boardChoices === "attack" ? t("campaign.session.hand.board.chooseWeapon") : t("campaign.session.hand.board.chooseSpell"), lines: [t("campaign.session.hand.board.actionHint"), ...(!matches.length ? [t("campaign.session.hand.board.noCards")] : []), ...(notice ? [notice] : [])], controls: [{ id: "hand-card", label: boardChoices === "attack" ? t("campaign.session.hand.board.weapon") : t("campaign.session.hand.board.spell"), disabled: null, options: matches.map(card => ({ value: card.id, label: `${card.name} · ${card.cost}${card.resource ? ` · ${card.resource}` : ""}${card.dice ? ` · ${card.dice}` : ""}`, disabled: card.disabled })) }, close] };
     }
     if (!picked) return null;
     const option = (value: string, label: string, disabled: string | null = null) => ({ value, label, disabled });
-    return { title: picked.name, boardInput: true, lines: [picked.description ?? picked.rules, ...rows.map(row => `${row.key}: ${row.value}`), ...(picked.area ? [pickHint(picked.area, barProps.areaPick), ...(hasPick(picked.area, barProps.areaPick) ? [describePick(picked.area, barProps.areaPick)] : [])] : []), `Sends: ${sentence}`, ...(notice ? [notice] : [])], controls: [
-      ...(offered.length ? [{ id: "hand-target" as const, label: "Target", value: aim?.id, disabled: null, options: offered.map(target => option(target.id, `${target.name}${target.note ? ` · ${target.note}` : ""}`)) }] : []),
-      ...(barProps.options.length ? [{ id: "hand-option" as const, label: "Attack options (choose to toggle)", disabled: null, options: barProps.options.map(entry => option(entry.id, `${barProps.chosen.includes(entry.id) ? "✓ " : ""}${entry.label}`, entry.disabled ?? null)) }] : []),
-      ...(picked.intent.card === "attack" && cards.some(card => card.type === "rider") ? [{ id: "hand-rider" as const, label: "Riders (choose to toggle)", disabled: null, options: cards.filter(card => card.type === "rider").map(card => option(card.id, `${attachedRiders.some(rider => rider.id === card.id) ? "✓ " : ""}${card.name}`, card.disabled)) }] : []),
+    return { title: picked.name, boardInput: true, lines: [picked.description ?? picked.rules, ...rows.map(row => `${row.key}: ${row.value}`), ...(picked.area ? [pickHint(picked.area, barProps.areaPick), ...(hasPick(picked.area, barProps.areaPick) ? [describePick(picked.area, barProps.areaPick)] : [])] : []), t("campaign.session.hand.board.sends", { sentence }), ...(notice ? [notice] : [])], controls: [
+      ...(offered.length ? [{ id: "hand-target" as const, label: t("campaign.session.hand.board.target"), value: aim?.id, disabled: null, options: offered.map(target => option(target.id, `${target.name}${target.note ? ` · ${target.note}` : ""}`)) }] : []),
+      ...(barProps.options.length ? [{ id: "hand-option" as const, label: t("campaign.session.hand.board.attackOptions"), disabled: null, options: barProps.options.map(entry => option(entry.id, `${barProps.chosen.includes(entry.id) ? "✓ " : ""}${entry.label}`, entry.disabled ?? null)) }] : []),
+      ...(picked.intent.card === "attack" && cards.some(card => card.type === "rider") ? [{ id: "hand-rider" as const, label: t("campaign.session.hand.board.riders"), disabled: null, options: cards.filter(card => card.type === "rider").map(card => option(card.id, `${attachedRiders.some(rider => rider.id === card.id) ? "✓ " : ""}${card.name}`, card.disabled)) }] : []),
       ...(picked.choice && !picked.summon?.mix ? [{ id: "hand-choice" as const, label: picked.choice.label, value: barProps.choice ?? picked.choice.fallback ?? picked.choice.options[0]?.value, disabled: null, options: picked.choice.options.map(entry => option(entry.value, entry.label)) }] : []),
       // A summoning card's number and each target's form (issue 685).
       ...summonBoardControls(picked, { form: barProps.choice, ...(barProps.count !== null ? { count: barProps.count } : {}), mix: barProps.mix }),
-      ...(splits && picked.shares && aim && offered.some(target => target.id !== aim.id) ? [shareControl(picked, aim, offered, barProps.shares)] : []),
-      ...(barProps.trigger !== null ? [{ id: "hand-trigger" as const, label: "Trigger", disabled: null, input: { value: barProps.trigger } }] : []),
-      ...(picked.area && hasPick(picked.area, barProps.areaPick) ? [{ id: "hand-area-clear" as const, label: "Clear area", disabled: null }] : []),
-      { id: "hand-play", label: picked.compose ? "Write in chat" : `Play ${picked.name}`, disabled: inputBlocked && picked.cost !== "reaction" && picked.intent.card !== "reaction" ? blockedReason : handReady(picked, aim, { trigger: barProps.trigger ?? "", area: barProps.areaPick, ...(barProps.choice !== null ? { choice: barProps.choice } : {}), mix: barProps.mix }) ? null : picked.summon ? "Choose the creature first." : "Choose a target, area or trigger first." },
-      { id: "hand-edit", label: "Edit in chat", disabled: null }, { id: "hand-back", label: "Back", disabled: null }, close,
+      ...(splits && picked.shares && aim && offered.some(target => target.id !== aim.id) ? [shareControl(picked, aim, offered, barProps.shares, t)] : []),
+      ...(barProps.trigger !== null ? [{ id: "hand-trigger" as const, label: t("campaign.session.hand.board.trigger"), disabled: null, input: { value: barProps.trigger } }] : []),
+      ...(picked.area && hasPick(picked.area, barProps.areaPick) ? [{ id: "hand-area-clear" as const, label: t("campaign.session.hand.board.clearArea"), disabled: null }] : []),
+      { id: "hand-play", label: picked.compose ? t("campaign.session.hand.board.writeInChat") : t("campaign.session.hand.board.play", { name: picked.name }), disabled: inputBlocked && picked.cost !== "reaction" && picked.intent.card !== "reaction" ? blockedReason : handReady(picked, aim, { trigger: barProps.trigger ?? "", area: barProps.areaPick, ...(barProps.choice !== null ? { choice: barProps.choice } : {}), mix: barProps.mix }) ? null : picked.summon ? t("campaign.session.hand.board.chooseCreature") : t("campaign.session.hand.board.chooseTarget") },
+      { id: "hand-edit", label: t("campaign.session.hand.board.editInChat"), disabled: null }, { id: "hand-back", label: t("campaign.session.hand.board.back"), disabled: null }, close,
     ] };
-  }, [boardNative, boardSwap, boardChoices, cards, picked, rows, sentence, offered, aim, attachedRiders, barProps.options, barProps.chosen, barProps.choice, barProps.count, barProps.mix, barProps.trigger, barProps.areaPick, barProps.shares, splits, notice, inputBlocked, blockedReason]);
+  }, [boardNative, boardSwap, boardChoices, cards, picked, rows, sentence, offered, aim, attachedRiders, barProps.options, barProps.chosen, barProps.choice, barProps.count, barProps.mix, barProps.trigger, barProps.areaPick, barProps.shares, splits, notice, inputBlocked, blockedReason, t]);
   const nativeSignature = JSON.stringify([campaignId, sheet?.id, signature, nativePanel, sending && !boardSwap]);
   useEffect(() => {
     if (swapReply.current && swapTurn.current !== `${campaignId}:${sheet?.id}:${signature}`) {
@@ -646,7 +649,7 @@ function HandInner({
   }, [campaignId, sheet?.id, signature]);
 
   useEffect(() => {
-    window.dispatchEvent(new CustomEvent(HAND_BOARD_STATUS_EVENT, { detail: { campaignId, sending: sending && !boardSwap, notice: notice || (waiting ? `Waiting for the DM to resolve ${waiting.name}.` : ""), panel: nativePanel, signature: nativeSignature } }));
+    window.dispatchEvent(new CustomEvent(HAND_BOARD_STATUS_EVENT, { detail: { campaignId, sending: sending && !boardSwap, notice: notice || (waiting ? t("campaign.session.hand.board.waitingDM", { name: waiting.name }) : ""), panel: nativePanel, signature: nativeSignature } }));
   }, [campaignId, sending, boardSwap, notice, waiting, nativePanel, nativeSignature]);
 
   useEffect(() => {
@@ -706,7 +709,7 @@ function HandInner({
     const receive = (event: Event) => {
       const detail = (event as CustomEvent<HandBoardActionDetail>).detail;
       if (!detail || detail.campaignId !== campaignId) return;
-      if (sending || commitBusy.current || boardRequest.current) { say("Please wait for the current action."); return; }
+      if (sending || commitBusy.current || boardRequest.current) { say(t("campaign.session.hand.board.waitPlease")); return; }
       if (inputBlocked) { say(blockedReason); return; }
       setBoardNative(detail.nativeChoices === true);
       boardTarget.current = targets.some(target => target.id === detail.targetId) ? detail.targetId! : null;
@@ -714,13 +717,13 @@ function HandInner({
       setArranging(false);
       setNoticeEntry(null);
       if (detail.action === "attack" || detail.action === "cast") {
-        if (!detail.nativeChoices && !cards.some(card => card.intent.card === (detail.action === "attack" ? "attack" : "spell"))) { say("No matching cards are available in your hand."); return; }
+        if (!detail.nativeChoices && !cards.some(card => card.intent.card === (detail.action === "attack" ? "attack" : "spell"))) { say(t("campaign.session.hand.board.noCardsInHand")); return; }
         setBoardChoices(detail.action);
         setMoreOpen(true);
         return;
       }
       const card = cards.find(card => card.intent.card === "basic" && card.intent.action === detail.action && card.cost === "action");
-      if (!card) { say("That action is not available in your hand."); return; }
+      if (!card) { say(t("campaign.session.hand.board.actionUnavailable")); return; }
       if (card.disabled) { say(card.disabled); return; }
       setRiderIds([]);
       resetChoices();
@@ -796,7 +799,7 @@ function HandInner({
       data-tour="battle-hand"
       data-tutorial={showTutorial ? "true" : undefined}
       data-group-open={openGroup ? "true" : undefined}
-      aria-label="Your hand"
+      aria-label={t("campaign.session.hand.heading.yourHand")}
       onKeyDown={(event) => {
         if (event.key !== "Escape") return;
         // Escape in a group's search box clears the words first.
@@ -818,27 +821,27 @@ function HandInner({
           key={myTurn ? "mine" : (currentName ?? "other")}
           className="hand-label min-w-0 break-words font-display text-[11px] uppercase tracking-[0.22em] text-amber-200/90"
         >
-          {reactionsOnly ? (sheet.isCompanion ? "Companions' reactions" : "Your heroes' reactions") : myTurn ? "Your hand" : `${currentName ?? "Another hero"}'s turn`}
+          {reactionsOnly ? (sheet.isCompanion ? t("campaign.session.hand.heading.companionReactions") : t("campaign.session.hand.heading.heroReactions")) : myTurn ? t("campaign.session.hand.heading.yourHand") : t("campaign.session.hand.heading.turnOf", { name: currentName ?? t("campaign.session.hand.heading.anotherHero") })}
         </span>
         <span className="hidden text-[11px] text-stone-500 sm:inline">
-          {reactionsOnly ? `${sheet.isCompanion ? "A companion you play" : "A hero of yours"} was hit: answer it now or let it pass.` : myTurn ? "Play a card, or type your move below." : "Look your cards over while you wait."}
+          {reactionsOnly ? (sheet.isCompanion ? t("campaign.session.hand.description.companionHit") : t("campaign.session.hand.description.heroHit")) : myTurn ? t("campaign.session.hand.description.play") : t("campaign.session.hand.description.wait")}
         </span>
         <span className="ml-auto flex items-center gap-1">
           {reactionsOnly ? null : <HandPips pips={pips} flurryStrikes={turn.flurryStrikes} />}
-          <Tooltip content="How the hand works">
+          <Tooltip content={t("campaign.session.hand.help")}>
             <button
               type="button"
               onClick={() => {
                 if (collapsed) writeFlag(COLLAPSED_KEY, false);
                 setTutorialAsked(true);
               }}
-              aria-label="How the hand works"
+              aria-label={t("campaign.session.hand.help")}
               className="flex size-9 items-center justify-center rounded-lg text-stone-500 hover:text-amber-200 sm:size-7"
             >
               <CircleHelp className="size-4" />
             </button>
           </Tooltip>
-          <Tooltip content="Customize your hand: choose which cards stay in it">
+          <Tooltip content={t("campaign.session.hand.customizeHint")}>
             <button
               type="button"
               onClick={() => {
@@ -847,13 +850,13 @@ function HandInner({
                 setArranging(true);
                 setMoreOpen(true);
               }}
-              aria-label="Customize your hand"
+              aria-label={t("campaign.session.hand.customize")}
               className="flex size-9 items-center justify-center rounded-lg text-stone-500 hover:text-amber-200 sm:size-7"
             >
               <SlidersHorizontal className="size-4" />
             </button>
           </Tooltip>
-          <Tooltip content={collapsed ? "Show your hand" : "Put your hand away. The message box stays."}>
+          <Tooltip content={collapsed ? t("campaign.session.hand.show") : t("campaign.session.hand.hideHint")}>
             <button
               type="button"
               onClick={() => {
@@ -872,7 +875,7 @@ function HandInner({
                 }, FOLD_MS);
               }}
               aria-expanded={!collapsed}
-              aria-label={collapsed ? "Show your hand" : "Hide your hand"}
+              aria-label={collapsed ? t("campaign.session.hand.show") : t("campaign.session.hand.hide")}
               className="flex size-9 items-center justify-center rounded-lg text-stone-500 hover:text-amber-200 sm:size-7"
             >
               <ChevronDown className={cn("chevron-turn size-4", collapsed && "rotate-180")} />
@@ -934,7 +937,7 @@ function HandInner({
             data-more={more.length ? "true" : undefined}
             data-folding={folding || leaving ? "true" : undefined}
             role="group"
-            aria-label="Cards"
+            aria-label={t("campaign.session.hand.cards")}
           >
             {shown.map((unit, index) =>
               isGroup(unit) ? (
@@ -973,9 +976,9 @@ function HandInner({
                 className="hand-more"
                 style={{ "--i": shown.length } as CSSProperties}
                 onClick={() => setMoreOpen(true)}
-                aria-label={`${more.length} more cards`}
+                aria-label={t("campaign.session.hand.moreCards", { count: more.length })}
               >
-                +{more.length} more
+                +{more.length} {t("campaign.session.hand.more")}
               </button>
             ) : null}
           </div>
@@ -1009,7 +1012,7 @@ function HandInner({
             />
           ) : riders.length ? (
             <p className="mt-1 animate-fade-up text-xs text-amber-200/80">
-              {riders.map((rider) => rider.name).join(", ")} will ride your next attack card. Press it again to take it off.
+              {t("campaign.session.hand.ridersAttached", { names: riders.map((rider) => rider.name).join(", ") })}
             </p>
           ) : null}
         </>
