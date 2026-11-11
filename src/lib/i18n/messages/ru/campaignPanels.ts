@@ -4114,4 +4114,18 @@ export const ruCampaignPanels: Partial<Record<keyof typeof enCampaignPanels, str
   "campaign.session.characterMenu.mute": "Отключить звук игрока",
   "campaign.session.characterMenu.report": "Пожаловаться на игрока",
   "campaign.session.characterMenu.block": "Заблокировать игрока",
+
+  "campaign.session.characterNotes.note": "Заметка",
+  "campaign.session.characterNotes.save": "Сохранить",
+  "campaign.session.characterNotes.cancel": "Отмена",
+  "campaign.session.characterNotes.edit": "Изменить заметку",
+  "campaign.session.characterNotes.delete": "Удалить заметку",
+  "campaign.session.characterNotes.you": "Вы",
+  "campaign.session.characterNotes.unknown": "Неизвестный пользователь",
+  "campaign.session.characterNotes.title": "Заметки о персонаже: {name}",
+  "campaign.session.characterNotes.close": "Закрыть заметки",
+  "campaign.session.characterNotes.party": "Заметки группы",
+  "campaign.session.characterNotes.emptyParty": "У персонажа {name} пока нет заметок группы.",
+  "campaign.session.characterNotes.private": "Мои заметки (видны только вам)",
+  "campaign.session.characterNotes.emptyPrivate": "Личных заметок пока нет.",
 };
