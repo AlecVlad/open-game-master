@@ -247,7 +247,7 @@ export function DmNpcForgePanel({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
         }),
-        "That did not save.",
+        t("campaign.dmNpcForge.error.save"),
       );
       if (sent.error !== null) {
         failed(sent);
@@ -359,7 +359,7 @@ export function DmNpcForgePanel({
       }
       await patch({ portraitUrl: payload.url });
     } catch {
-      setError("That image would not upload.");
+      setError(t("campaign.dmNpcForge.error.upload"));
     } finally {
       setBusy(false);
     }
