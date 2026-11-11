@@ -12,6 +12,7 @@ import {
   translatePlural,
 } from "../src/lib/i18n/core.ts";
 import { DICTIONARIES } from "../src/lib/i18n/messages/index.ts";
+import { localizeStoryboardError } from "../src/lib/workshop/storyboard-api-i18n.ts";
 
 // Language choice: the cookie wins, then Accept-Language, then English.
 assert.equal(pickLang("ru", "en-US,en;q=0.9"), "ru");
@@ -283,6 +284,67 @@ for (const key of setupMessages) {
   assert.ok(key in DICTIONARIES.en, `English setup message missing: ${key}`);
   assert.ok(key in DICTIONARIES.ru, `Russian setup message missing: ${key}`);
 }
+
+// Storyboard: every kind and hint is translated, and its counts use
+// the complete English/Russian plural sets.
+const storyboardKinds = ["setting", "backstory", "event", "encounter", "hook", "secret", "npcMoment"];
+for (const kind of storyboardKinds) {
+  for (const family of ["kind", "hint"]) {
+    const key = `campaign.storyboard.${family}.${kind}`;
+    assert.ok(key in DICTIONARIES.en, `English Storyboard message missing: ${key}`);
+    assert.ok(key in DICTIONARIES.ru, `Russian Storyboard message missing: ${key}`);
+    assert.notEqual(translate(DICTIONARIES, "ru", key), key, `Russian Storyboard message fell back to its key: ${key}`);
+  }
+}
+const storyboardPluralKeys = [
+  "campaign.storyboard.missingPicks",
+  "campaign.storyboard.leadsTo",
+  "campaign.storyboard.routesToChoose",
+  "campaign.storyboard.optionalRoutes",
+  "campaign.storyboard.shared.chapterDraws",
+  "campaign.storyboard.compile.lore",
+  "campaign.storyboard.compile.quests",
+  "campaign.storyboard.compile.encounters",
+  "campaign.storyboard.compile.notes",
+  "campaign.storyboard.compile.moments",
+  "campaign.storyboard.compile.arc",
+  "campaign.storyboard.error.lostCharacters",
+];
+for (const key of storyboardPluralKeys) {
+  for (const suffix of ["one", "other"]) {
+    assert.ok(`${key}.${suffix}` in DICTIONARIES.en, `English plural form missing: ${key}.${suffix}`);
+  }
+  for (const suffix of ["one", "few", "many", "other"]) {
+    assert.ok(`${key}.${suffix}` in DICTIONARIES.ru, `Russian plural form missing: ${key}.${suffix}`);
+  }
+  for (const count of [1, 2, 5]) {
+    const rendered = translatePlural(DICTIONARIES, "ru", key, count);
+    assert.ok(!rendered.includes("{count}"), `Russian plural placeholder was not filled: ${key}, ${count}`);
+    assert.notEqual(rendered, key, `Russian plural message fell back to its key: ${key}`);
+  }
+}
+
+// The API boundary translates the stable diagnostics without changing the
+// pure checkBeat() messages used by the board logic and its tests.
+assert.equal(
+  localizeStoryboardError("A card needs a title, even a bad one.", "ru"),
+  translate(DICTIONARIES, "ru", "campaign.storyboard.error.titleRequired"),
+);
+assert.equal(
+  localizeStoryboardError("No such card.", "ru"),
+  translate(DICTIONARIES, "ru", "campaign.storyboard.error.missingCard"),
+);
+const overflow = localizeStoryboardError(
+  'This card\'s text is 4,001 characters; the limit is 4,000. The last 1 would be lost: "слово".',
+  "ru",
+);
+assert.ok(overflow.includes("1 лишний символ"), "single-character overflow must use the singular form");
+assert.ok(overflow.includes("«слово»"), "overflow excerpt must be preserved");
+const overflowMany = localizeStoryboardError(
+  'This card\'s text is 4,005 characters; the limit is 4,000. The last 5 would be lost.',
+  "ru",
+);
+assert.ok(overflowMany.includes("5 лишних символов"), "multi-character overflow must use the many form");
 
 // Report (not fail on) what Russian still lacks, so progress is visible.
 const missing = Object.keys(DICTIONARIES.en).filter((key) => !(key in DICTIONARIES.ru));
