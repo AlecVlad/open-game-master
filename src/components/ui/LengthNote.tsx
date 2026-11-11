@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/cn";
+import { useI18n } from "@/lib/i18n/provider";
 import { formatCount } from "@/lib/text-limits";
 
 // A text box's limit, said before anything is sent (issue 207): the count
@@ -26,11 +27,12 @@ export function LengthNote({
   idle?: string;
   className?: string;
 }) {
+  const { t } = useI18n();
   const over = length - max;
   if (over <= 0 && length < max * from) {
     return (
       <span id={id} className="sr-only">
-        Up to {formatCount(max)} characters.
+        {t("common.lengthNote.upTo", { count: formatCount(max) })}
       </span>
     );
   }
@@ -53,7 +55,7 @@ export function LengthNote({
       <span aria-live="polite">
         {over > 0 ? (
           <span key="over" className="live-in font-medium">
-            {formatCount(over)} over the limit: shorten it to send.
+            {t("common.lengthNote.over", { count: formatCount(over) })}
           </span>
         ) : null}
       </span>
