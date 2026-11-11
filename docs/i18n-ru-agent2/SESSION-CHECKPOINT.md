@@ -32,13 +32,14 @@ Single restore point for Russian localization. After a chat interruption, read o
 - `CharacterVoices.tsx`: voice groups, voice picker/pace labels, automatic voice assignment, descriptions, empty/loading states and generic save/network fallbacks localized. Voice IDs and roster names remain data.
 - `CompanionCommand.tsx`: turn-control options, current-controller hint, group accessibility label and generic save/network errors localized; `commandedBy` values and account names remain unchanged.
 - `CompanionBuilderDialog.tsx`: title, descriptions, library list, confirmation, actions, close label, submit button and generic API fallbacks localized. Companion IDs, sheets, levels and builder payloads remain unchanged; the embedded shared `CharacterBuilder` is not modified.
+- `CompanionKeepButton.tsx` and `CompanionPaintButton.tsx`: save-to-library labels/tooltips, saved states, portrait generation labels/tooltips and generic errors localized. Companion IDs, portrait URLs and image queue polling remain unchanged.
 - `NameMenu.tsx`: mention list accessibility label, party/people/place groups, no-match state, keyboard hints and not-yet-introduced marker localized. Search matching, insertion behavior and actual names remain unchanged.
 - `PregenPicker.tsx`: default heading localized; pre-generated hero names, taglines and descriptions remain content data.
 - The existing `campaignSession.ts` EN/RU pair was extended: dice dialogs added 40 keys, context trace has 80 keys, report dialog added 31 keys, voice controls added 20 keys. Voice dictionaries are 20 EN / 20 RU, no missing pairs, duplicates or placeholder differences. The two plural base keys are `tp()` groups with `.one/.few/.many/.other` variants in both dictionaries; validate their suffixed forms rather than treating the base key as missing.
 - Do not repeat these components unless a targeted defect is found.
 
 ## Next work
-Audit `src/app/campaigns/[campaignId]/CompanionKeepButton.tsx` and `CompanionPaintButton.tsx`, then continue the remaining Block 1 component scan. Both companion controls lacked `useI18n()` at the last audit; translate only fixed UI labels, confirmation text, loading/error states and accessibility text. Preserve companion IDs, image backend values and all save behavior.
+Continue the remaining Block 1 scan with `DmEnemyHpCard.tsx`, `DmDelegationPanel.tsx`, `DmMapLibraryPanel.tsx`, `DmMapStudioPanel.tsx` and nearby DM controls. Check only components not already localized; translate their fixed interface labels, tooltips and fallback errors while preserving map IDs, monster data, API values and all game behavior.
 
 ## Low-token work protocol
 - Read this file, then only the next target source file(s) and exact dictionary sections needed.
