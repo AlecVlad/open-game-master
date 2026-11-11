@@ -991,4 +991,5 @@ export const ruWorkshop: Partial<Record<keyof typeof enWorkshop, string>> = {
   "workshop.world.sceneLoss.beatKind.npcMoment": "Момент персонажа",
   "workshop.world.sceneLoss.routeKind.choice": "Один из нескольких вариантов",
   "workshop.world.sceneLoss.routeKind.optional": "Только при условии…",
+  "workshop.world.sceneLoss.loses": "теряет",
 };
