@@ -330,29 +330,28 @@ export function LeadEditDialog({
           <div className="mb-3 flex items-center justify-between">
             <Dialog.Title className="flex items-center gap-2 font-display text-lg tracking-wide">
               <GameIcon icon={{ kind: "glyph", key: "tab-lead" }} size="size-7" />
-              <span className="gold-title">Adjust {sheet.name}</span>
+              <span className="gold-title">{t("campaign.session.leadEdit.title", { name: sheet.name })}</span>
             </Dialog.Title>
-            <Dialog.Close aria-label="Close" className="pk-tap rounded p-1 text-stone-500 hover:text-amber-200 motion-nudge">
+            <Dialog.Close aria-label={t("campaign.session.leadEdit.close")} className="pk-tap rounded p-1 text-stone-500 hover:text-amber-200 motion-nudge">
               <X className="size-4" />
             </Dialog.Close>
           </div>
           <p className="mb-3 text-xs text-stone-500">
-            Party lead correction of stats, scores, skills, items, and spells. Changes are logged to the session
-            event log.
+            {t("campaign.session.leadEdit.description")}
           </p>
-          <SectionHead title="Numbers" glyph="rest-hp" level="h3" />
+          <SectionHead title={t("campaign.session.leadEdit.numbers")} glyph="rest-hp" level="h3" />
           <div className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-3">
             {(
               [
-                ["HP", currentHp, setCurrentHp, "rest-hp"],
-                ["Temp HP", tempHp, setTempHp, "rest-temp-hp"],
-                ["Max HP", maxHp, setMaxHp, "rest-hp"],
+                [t("campaign.session.leadEdit.number.hp"), currentHp, setCurrentHp, "rest-hp"],
+                [t("campaign.session.leadEdit.number.tempHp"), tempHp, setTempHp, "rest-temp-hp"],
+                [t("campaign.session.leadEdit.number.maxHp"), maxHp, setMaxHp, "rest-hp"],
                 // A purse holds no fewer than none of a coin: stepping
                 // Silver below 0 showed "-1" and saved as nothing.
-                ["Gold", gold, setGold, "coin-gp", 0],
-                ["Silver", silver, setSilver, "coin-sp", 0],
-                ["Copper", copper, setCopper, "coin-cp", 0],
-                ["XP", xp, setXp, "rest-xp"],
+                [t("campaign.session.leadEdit.number.gold"), gold, setGold, "coin-gp", 0],
+                [t("campaign.session.leadEdit.number.silver"), silver, setSilver, "coin-sp", 0],
+                [t("campaign.session.leadEdit.number.copper"), copper, setCopper, "coin-cp", 0],
+                [t("campaign.session.leadEdit.number.xp"), xp, setXp, "rest-xp"],
               ] as Array<[string, string, (value: string) => void, string, number?]>
             ).map(([label, value, setter, glyph, min]) => (
               <div key={label} className="space-y-1">
@@ -366,58 +365,58 @@ export function LeadEditDialog({
           <div className="mt-2 space-y-1.5 rounded-lg border border-stone-700/50 bg-stone-950/40 p-2 text-xs">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="flex items-center gap-1 text-stone-400">
-                <GameIcon icon={{ kind: "glyph", key: "rest-ac" }} size="size-4" /> AC
+                <GameIcon icon={{ kind: "glyph", key: "rest-ac" }} size="size-4" /> {t("campaign.session.leadEdit.ac.short")}
               </span>
-              <Switch on={pinned} onChange={setPinned} label="Pin the armor class by hand" />
+              <Switch on={pinned} onChange={setPinned} label={t("campaign.session.leadEdit.ac.pin")} />
             </div>
             {pinned ? (
               <div className="reveal flex flex-wrap items-center gap-2">
-                <NumberStepper size="sm" value={Number(ac) || 0} min={1} max={40} onChange={(next) => setAc(String(next))} label="AC" />
+                <NumberStepper size="sm" value={Number(ac) || 0} min={1} max={40} onChange={(next) => setAc(String(next))} label={t("campaign.session.leadEdit.ac.short")} />
                 <span className="text-[11px] text-stone-500">
-                  Pinned. Armor would set {derived.ac}. Unpin to hand it back.
+                  {t("campaign.session.leadEdit.ac.pinned", { armor: derived.ac })}
                 </span>
               </div>
             ) : (
               <p className="reveal text-[11px] text-stone-400">
-                Armor sets it: <span className="text-stone-100">{derived.ac}</span>
+                {t("campaign.session.leadEdit.ac.automatic", { ac: derived.ac })}
                 {derived.parts.length ? ` (${derived.parts.join(", ")})` : ""}
               </p>
             )}
             {facing !== (pinned ? Number(ac) : derived.ac) ? (
               <p className="live-in text-[11px] text-sky-300/90">
-                Attacks face {facing} right now: spells and forms on top ride along.
+                {t("campaign.session.leadEdit.ac.facing", { ac: facing })}
               </p>
             ) : null}
           </div>
           <label className="mt-2 block space-y-1 text-xs">
-            <span className="text-stone-400">Conditions (comma separated)</span>
+            <span className="text-stone-400">{t("campaign.session.leadEdit.conditions.label")}</span>
             <input
               value={conditions}
               onChange={(event) => setConditions(event.target.value)}
-              placeholder="poisoned, prone"
+              placeholder={t("campaign.session.leadEdit.conditions.placeholder")}
               className={field}
             />
           </label>
 
           <div className="mt-3 space-y-2 text-xs">
-            <SectionHead title="Scores and training" glyph="rest-level-up" level="h3" />
+            <SectionHead title={t("campaign.session.leadEdit.scoresAndTraining")} glyph="rest-level-up" level="h3" />
             <div className="grid grid-cols-3 gap-2">
               {ABILITIES.map((ability) => (
                 <div key={ability} className="space-y-1">
-                  <span className="text-stone-400">{ABILITY_NAMES[ability]}</span>
+                  <span className="text-stone-400">{abilityNames[ability]}</span>
                   <NumberStepper
                     size="sm"
                     value={abilities[ability]}
                     min={1}
                     max={30}
                     onChange={(next) => setAbilities((scores) => ({ ...scores, [ability]: next }))}
-                    label={ABILITY_NAMES[ability]}
+                    label={abilityNames[ability]}
                   />
                 </div>
               ))}
             </div>
             <div className="space-y-1">
-              <span className="text-stone-400">Saving throws</span>
+              <span className="text-stone-400">{t("campaign.session.leadEdit.savingThrows")}</span>
               <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 sm:grid-cols-3">
                 {ABILITIES.map((ability) => (
                   // The whole row is the switch's label, a finger's height
@@ -426,32 +425,32 @@ export function LeadEditDialog({
                     <Switch
                       on={saves.includes(ability)}
                       onChange={(on) => setSaves((list) => (on ? [...list, ability] : list.filter((entry) => entry !== ability)))}
-                      label={`${ABILITY_NAMES[ability]} saving throw`}
+                      label={t("campaign.session.leadEdit.savingThrowLabel", { ability: abilityNames[ability] })}
                     />
-                    <span className="text-stone-300">{ABILITY_NAMES[ability]}</span>
+                    <span className="text-stone-300">{abilityNames[ability]}</span>
                   </label>
                 ))}
               </div>
             </div>
             <div className="space-y-1">
               <span className="flex items-baseline justify-between gap-2 text-stone-400">
-                Skills
+                {t("campaign.session.leadEdit.skills")}
                 <span className="text-[11px] text-stone-500">
-                  Expert in {experts}; {(sheet.classes?.length ?? 0) > 1 ? "their classes give" : "their class gives"} {earned || "none"}
+                  {t("campaign.session.leadEdit.expertise.summary", { count: experts, earned: earned || t("campaign.session.leadEdit.expertise.none") })}
                 </span>
               </span>
               <ul className="divide-y divide-stone-800/60">
                 {SRD_SKILLS.map((skill) => (
                   <li key={skill.id} className="flex items-center justify-between gap-2 py-1">
                     <span className="min-w-0 text-stone-200">
-                      {skill.name} <span className="text-stone-500">{ABILITY_SHORT[skill.ability]}</span>
+                      {skillNames[skill.id] ?? skill.name} <span className="text-stone-500">{abilityShort[skill.ability]}</span>
                     </span>
                     <SegmentedControl
-                      options={SKILL_LEVELS}
+                      options={skillLevelOptions}
                       value={skillLevels[skill.id] ?? "none"}
                       onChange={(level) => setSkillLevels((levels) => ({ ...levels, [skill.id]: level }))}
                       size="sm"
-                      label={skill.name}
+                      label={skillNames[skill.id] ?? skill.name}
                       className="shrink-0"
                       optionClassName="pointer-coarse:min-h-10"
                     />
@@ -462,7 +461,7 @@ export function LeadEditDialog({
           </div>
 
           <div className="mt-3 space-y-1 text-xs">
-            <SectionHead title="Items" glyph="tab-loot" level="h3" aside={items.length || null} />
+            <SectionHead title={t("campaign.session.leadEdit.items")} glyph="tab-loot" level="h3" aside={items.length || null} />
             {items.map((row, index) => (
               <div key={index} className="live-in space-y-0.5">
               <div className="flex items-center gap-2">
@@ -473,12 +472,12 @@ export function LeadEditDialog({
                   <input
                     value={row.name}
                     onChange={(event) => setItem(index, { name: event.target.value })}
-                    placeholder="Item name"
+                    placeholder={t("campaign.session.leadEdit.itemName")}
                     className={field}
                   />
                 )}
-                <NumberStepper size="sm" min={1} value={Number(row.qty) || 1} onChange={(next) => setItem(index, { qty: String(next) })} label={`Quantity of ${row.name || "item"}`} className="shrink-0" />
-                <KitButton tone="iconDanger" always onClick={() => setItems((rows) => rows.filter((_, i) => i !== index))} className="shrink-0" aria-label="Remove item">
+                <NumberStepper size="sm" min={1} value={Number(row.qty) || 1} onChange={(next) => setItem(index, { qty: String(next) })} label={t("campaign.session.leadEdit.quantityLabel", { name: row.name || t("campaign.session.leadEdit.item") })} className="shrink-0" />
+                <KitButton tone="iconDanger" always onClick={() => setItems((rows) => rows.filter((_, i) => i !== index))} className="shrink-0" aria-label={t("campaign.session.leadEdit.removeItem")}>
                   <Trash2 className="size-4" />
                 </KitButton>
               </div>
@@ -489,7 +488,7 @@ export function LeadEditDialog({
             <div className="mt-1">
               <MultiContentPicker
                 kind="items"
-                placeholder="Search items to add"
+                placeholder={t("campaign.session.leadEdit.searchItems")}
                 selectedNames={items.map((row) => row.name)}
                 onAdd={(entries) =>
                   setItems((rows) => [
