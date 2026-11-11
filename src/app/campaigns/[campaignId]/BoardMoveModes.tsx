@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { cn } from "@/lib/cn";
 import { useI18n } from "@/lib/i18n/provider";
-import type { MessageKey, Params } from "@/lib/i18n/messages/index";
+import type { MessageKey } from "@/lib/i18n/messages/index";
+import type { Params } from "@/lib/i18n/core";
 import { formatMeasurementText, type MeasurementSystem } from "@/lib/measurement-system";
 import { dragReach } from "@/lib/battlemap/board-move";
 import type { PlayerMapView } from "@/lib/battlemap/view";
@@ -181,7 +182,7 @@ export function BoardMoveHints({
           <BoardMoveModes mode={moveMode} moves={moves} onMode={onMode} measurementSystem={measurementSystem} tableLanguage={tableLanguage} />
           {moveModeHint(moveMode, moves, t) ? (
             <p key={moveMode} className="animate-fade-up text-[11px] leading-4 text-amber-200/80">
-              {formatMeasurementText(moveModeHint(moveMode, moves), measurementSystem, tableLanguage)}
+              {formatMeasurementText(moveModeHint(moveMode, moves, t), measurementSystem, tableLanguage)}
             </p>
           ) : null}
         </div>
