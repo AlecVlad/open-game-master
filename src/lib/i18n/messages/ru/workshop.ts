@@ -275,4 +275,16 @@ export const ruWorkshop: Partial<Record<keyof typeof enWorkshop, string>> = {
   "workshop.maps.theme.interior": "Помещение",
   "workshop.maps.theme.field": "Открытая местность",
 
+  "workshop.targetParty.buildingFor": "Подготовка для группы из",
+  "workshop.targetParty.size": "Размер группы",
+  "workshop.targetParty.hero.one": "герой",
+  "workshop.targetParty.hero.few": "героя",
+  "workshop.targetParty.hero.many": "героев",
+  "workshop.targetParty.hero.other": "героя",
+  "workshop.targetParty.atLevel": "уровня",
+  "workshop.targetParty.level": "Уровень группы",
+  "workshop.targetParty.save": "Сохранить",
+  "workshop.targetParty.saved": "Сохранено",
+  "workshop.targetParty.budget": "Для одного столкновения лёгкий порог — до {easy} XP, средний — до {medium}, тяжёлый — до {hard}, смертельно опасный — выше {deadly}. Порог учитывает количество существ в отряде противников.",
+
 };
