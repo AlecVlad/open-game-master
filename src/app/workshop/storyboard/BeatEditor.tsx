@@ -79,7 +79,7 @@ export function BeatEditor({
     ? t("campaign.storyboard.overflow", {
         length: tp("campaign.storyboard.characters", trimmedBody.length, { count: trimmedBody.length.toLocaleString(lang) }),
         max: tp("campaign.storyboard.characters", BODY_MAX, { count: BODY_MAX.toLocaleString(lang) }),
-        lost: shownLoss ? `: «${shownLoss}»` : "",
+        lost: shownLoss ? (lang === "ru" ? `: «${shownLoss}»` : `: "${shownLoss}"`) : "",
       })
     : "";
   const prose = checkProse(edit.body);
