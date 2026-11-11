@@ -142,11 +142,12 @@ function describeRow(row: Row, t: ResultT, lang: Lang): ResultLine | null {
   return { text: `${who}: ${once.join(", ") || t("campaign.dmAction.result.noEffect")}`, tone: bad ? "bad" : "info" };
 }
 
-function concentrationLine(value: unknown, t: ResultT): ResultLine | null {
+function concentrationLine(value: unknown, t: ResultT, lang: Lang): ResultLine | null {
   if (!isRecord(value)) {
     return null;
   }
-  const spell = scalar(value.spell) ?? t("campaign.dmAction.result.defaultSpell");
+  const rawSpell = scalar(value.spell);
+  const spell = rawSpell ? (lang === "ru" ? `«${rawSpell}»` : rawSpell) : t("campaign.dmAction.result.defaultSpell");
   const rolled = typeof value.rolled === "number" ? t("campaign.dmAction.result.rolled", { value: value.rolled }) : null;
   const dc = typeof value.dc === "number" ? t("campaign.dmAction.result.dc", { value: value.dc }) : null;
   const held = value.held === true || value.kept === true || value.broken === false;
@@ -209,11 +210,11 @@ export function describeAdjudicationResult(result: unknown, lang: Lang = "en"): 
   if (typeof broken === "string" && broken) {
     lines.push({ text: t("campaign.dmAction.result.concentrationBroken", { spell: broken }), tone: "bad" });
   }
-  const concentration = concentrationLine(take("concentration"), t);
+  const concentration = concentrationLine(take("concentration"), t, lang);
   if (concentration) {
     lines.push(concentration);
   }
-  const enemyConcentration = concentrationLine(take("enemyConcentration"), t);
+  const enemyConcentration = concentrationLine(take("enemyConcentration"), t, lang);
   if (enemyConcentration) {
     lines.push(enemyConcentration);
   }
