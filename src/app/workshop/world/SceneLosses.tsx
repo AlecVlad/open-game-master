@@ -48,7 +48,7 @@ export function SceneLosses({ scenes, label }: { scenes: SceneLoss[]; label: str
       <ul className="flex flex-col gap-1 pl-1" aria-label={label}>
         {scenes.map((scene, index) => (
           <li key={`${index}-${scene.scene}`} data-testid="scene-loss">
-            <span className="text-stone-100">“{scene.scene}”</span> loses
+            <span className="text-stone-100">“{scene.scene}”</span> {t("workshop.world.sceneLoss.loses")}
             <ul className="list-disc pl-5 text-amber-100/90">
               {(scene.details?.length === scene.lost.length
                 ? scene.details.map((detail) => detailText(detail))
