@@ -2894,6 +2894,12 @@ export const ruCampaignPanels: Partial<Record<keyof typeof enCampaignPanels, str
   "campaign.story.export.odtHint": "LibreOffice Writer",
   "campaign.story.export.docx": "Word (.docx)",
   "campaign.story.export.docxHint": "Microsoft Word",
+
+  "campaign.book.close": "Закрыть книгу",
+  "campaign.book.empty": "Здесь пока ничего не написано.",
+  "campaign.book.earlier": "Назад",
+  "campaign.book.later": "Далее",
+  "campaign.book.progress": "{current} из {total}",
 }; группа: {characters}. {note}",
   "campaign.dmWorkbench.budget.creaturesAgainstParty.few": "Состав противников: {count}; группа: {characters}. {note}",
   "campaign.dmWorkbench.budget.creaturesAgainstParty.many": "Состав противников: {count}; группа: {characters}. {note}",
