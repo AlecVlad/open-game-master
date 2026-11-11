@@ -308,4 +308,5 @@ export const enCharSheet = {
   "charSheet.owed.dynamic.expertise.many": "expertise in {count} more proficiencies",
   "charSheet.owed.dynamic.skill.one": "{className}: one skill proficiency",
   "charSheet.owed.dynamic.skill.many": "{className}: {count} skill proficiencies",
+
 } satisfies Record<string, string>;
