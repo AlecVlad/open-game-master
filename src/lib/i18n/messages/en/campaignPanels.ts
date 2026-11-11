@@ -3494,7 +3494,7 @@ export const enCampaignPanels = {
   "campaign.session.side.withParty": "with the party",
   "campaign.session.side.badge.against": "Against the party",
   "campaign.session.side.badge.with": "With the party",
-  "campaign.session.side.notice.dominated": "{name} is dominated: the GM plays {name} until the charm ends.",
+  "campaign.session.side.notice.dominated": "{name} is dominated and the GM plays them until the charm ends.",
   "campaign.session.side.notice.fights": "{name} fights {side}.",
   "campaign.session.side.notice.freed": "{name} is yours again.",
   "campaign.session.side.line": "{name} fights {side}. ",
