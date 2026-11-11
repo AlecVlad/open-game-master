@@ -761,7 +761,9 @@ export async function postContentImport(campaignId: string, selection: ImportSel
     });
     const data = (await response.json().catch(() => ({}))) as Record<string, unknown>;
     if (!response.ok) {
-      return { ok: false, error: typeof data.error === "string" && data.error ? data.error : messages?.t("workshop.contentImport.error.refused") ?? "The import was refused." };
+      const errorCode = typeof data.errorCode === "string" ? data.errorCode : "";
+      const translated = errorCode && messages ? messages.t(errorCode) : "";
+      return { ok: false, error: translated || (typeof data.error === "string" && data.error ? data.error : messages?.t("workshop.contentImport.error.refused") ?? "The import was refused.") };
     }
     return { ok: true, copied: Number(data.copied) || 0, note: importNote(data, messages) };
   } catch {
