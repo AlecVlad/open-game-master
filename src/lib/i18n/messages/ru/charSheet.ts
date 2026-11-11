@@ -121,4 +121,10 @@ export const ruCharSheet: Partial<Record<keyof typeof enCharSheet, string>> & Re
   "charSheet.pdf.download": "Скачать PDF",
   "charSheet.adjust.title": "Руководитель группы: исправить показатели, предметы и заклинания персонажа",
   "charSheet.adjust.label": "Изменить",
+  "charSheet.ability.str": "Сила",
+  "charSheet.ability.dex": "Ловкость",
+  "charSheet.ability.con": "Телосложение",
+  "charSheet.ability.int": "Интеллект",
+  "charSheet.ability.wis": "Мудрость",
+  "charSheet.ability.cha": "Харизма",
 };
