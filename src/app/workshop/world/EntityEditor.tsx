@@ -213,7 +213,7 @@ export function EntityEditor({
             {conflicts.map((conflict) => (
               <li key={conflict.key} className="flex flex-wrap items-center gap-2">
                 <span>
-                  <strong>{t("workshop.world.entityEditor.conflict.field", { label: conflict.label, value: describeValue(conflict.theirs) })}
+                  {t("workshop.world.entityEditor.conflict.field", { label: conflict.label, value: describeValue(conflict.theirs) })}
                 </span>
                 <KitButton tone="small" onClick={() => takeTheirs(conflict)}>
                   {t("workshop.world.entityEditor.conflict.useTheirs")}
@@ -239,7 +239,7 @@ export function EntityEditor({
               {kept.map((item) => (
                 <li key={item.key} className="flex flex-col gap-1.5">
                   <span>
-                    <strong>{t("workshop.world.entityEditor.importKept.fieldHint", { label: item.label })}
+                    {t("workshop.world.entityEditor.importKept.fieldHint", { label: item.label })}
                   </span>
                   <KeptValueText value={item.theirs} said={item.shown?.theirs} />
                   <span>
