@@ -739,7 +739,7 @@ export function applyForge(campaignId: string, input: { entities: unknown; links
           ? { limit: LIMITS.links }
           : {};
     if (why) {
-      linksLeft.push({ ...said, why, whyCode, whyParams });
+      linksLeft.push({ ...said, why, ...(whyCode ? { whyCode, whyParams } : {}) });
       continue;
     }
     known.add(`${from}|${to}|${label}`);
