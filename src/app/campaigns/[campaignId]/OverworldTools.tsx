@@ -17,6 +17,7 @@ import {
   X,
 } from "lucide-react";
 import { useRef, useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/cn";
 import { encodeImageForUpload } from "@/lib/image-encode";
 import { SectionHead } from "@/components/ui/SectionHead";
@@ -27,7 +28,6 @@ import type { OverworldTile, TileSkin } from "@/lib/overworld/logic";
 import {
   MAX_BRUSH_RADIUS,
   OVERWORLD_BRUSHES,
-  OVERWORLD_BRUSH_LABELS,
   OVERWORLD_BRUSH_TILES,
   type OverworldBrush,
 } from "@/lib/overworld/paint";
@@ -35,7 +35,6 @@ import {
   FEATURE_LIMITS,
   OVERWORLD_SIZES,
   PATH_KINDS,
-  PATH_KIND_LABELS,
   type LabelSize,
   type OverworldSize,
   type PathKind,
@@ -44,6 +43,8 @@ import {
 // The region map's toolbars (docs/workshop-parity-audit.md phase 15). Each
 // is a small stateless strip; OverworldPanel holds the state and decides
 // what a tap on the canvas means under the mode chosen here.
+
+type Translator = ReturnType<typeof useI18n>["t"];
 
 // What the panel's own dialog asks for, by what a tap meant.
 export type OverworldAsk =
@@ -55,34 +56,35 @@ export function askCopy(
   ask: OverworldAsk | null,
   labelSize: LabelSize,
   heldName: string,
+  t: Translator,
 ): { title: string; label: string; defaultValue: string; maxLength: number; allowEmpty: boolean; submitLabel: string } {
   if (ask?.kind === "rename") {
     return {
-      title: "Rename this place",
-      label: "What is this place called?",
+      title: t("campaign.overworld.rename.title"),
+      label: t("campaign.overworld.rename.question"),
       defaultValue: heldName,
       maxLength: 80,
       allowEmpty: false,
-      submitLabel: "Rename",
+      submitLabel: t("campaign.overworld.rename.button"),
     };
   }
   if (ask?.kind === "label") {
     return {
-      title: labelSize === "large" ? "Name the region" : "Name the place",
-      label: "The words written on the map here.",
+      title: t(labelSize === "large" ? "campaign.overworld.rename.region" : "campaign.overworld.rename.place"),
+      label: t("campaign.overworld.rename.mapText"),
       defaultValue: "",
       maxLength: FEATURE_LIMITS.labelLength,
       allowEmpty: false,
-      submitLabel: "Write it",
+      submitLabel: t("campaign.overworld.rename.write"),
     };
   }
   return {
-    title: "Label the pin",
-    label: "Leave it empty for a plain marker.",
+    title: t("campaign.overworld.pin.label"),
+    label: t("campaign.overworld.pin.optional"),
     defaultValue: "",
     maxLength: 60,
     allowEmpty: true,
-    submitLabel: "Place the pin",
+    submitLabel: t("campaign.overworld.pin.place"),
   };
 }
 
@@ -93,6 +95,7 @@ export async function importAzgaarFiles<Data extends { map: { width: number; hei
   campaignId: string,
   files: string[],
   size: OverworldSize,
+  t: Translator,
 ): Promise<{ data: Data; note: string } | { error: string }> {
   const response = await fetch(`/api/campaigns/${campaignId}/overworld/import`, {
     method: "POST",
@@ -101,12 +104,12 @@ export async function importAzgaarFiles<Data extends { map: { width: number; hei
   });
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) {
-    return { error: (payload as { error?: string }).error ?? "That map could not be read." };
+    return { error: t("campaign.overworld.errors.mapRead") };
   }
   const { summary, ...data } = payload as Data & { summary: ImportSummary };
   return {
     data: data as unknown as Data,
-    note: `Read ${summary.cells} cells into a ${data.map.width} by ${data.map.height} map, with ${summary.places} places, ${summary.routes} roads and ${summary.rivers} rivers.`,
+    note: t("campaign.overworld.import.summary", { cells: summary.cells, width: data.map.width, height: data.map.height, places: summary.places, roads: summary.routes, rivers: summary.rivers }),
   };
 }
 
