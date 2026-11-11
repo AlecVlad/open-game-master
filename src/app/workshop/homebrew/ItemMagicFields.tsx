@@ -1,6 +1,7 @@
 "use client";
 
 import { Plus, Trash2 } from "lucide-react";
+import { useT } from "@/lib/i18n/provider";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui";
 import { ContentPick } from "@/components/ui/ContentPick";
@@ -22,7 +23,7 @@ type Props = { data: Mech; set: (patch: Mech) => void };
 
 const CREATURE_WORDS = CREATURE_TYPES.map((type) => type as string);
 const SKILL_LABELS = Object.fromEntries(SKILL_IDS.map((id) => [id, id.replace(/_/g, " ")])) as Record<(typeof SKILL_IDS)[number], string>;
-const RIDER_TYPES = [{ value: "weapon", label: "the weapon's own" }, ...DAMAGE_TYPES.map((value) => ({ value, label: value }))];
+
 const optional = (value: number | ""): number | undefined => (value === "" || value === 0 ? undefined : value);
 const clean = (value: Mech): Mech | undefined => {
   const out = Object.fromEntries(Object.entries(value).filter(([, entry]) => entry !== undefined && entry !== "" && !(Array.isArray(entry) && !entry.length)));
@@ -30,26 +31,28 @@ const clean = (value: Mech): Mech | undefined => {
 };
 
 function DiceRows({ title, rows, onChange }: { title: string; rows: Mech[]; onChange: (next: Mech[]) => void }) {
+  const t = useT();
+  const riderTypes = [{ value: "weapon", label: t("workshop.homebrew.itemMagic.dice.weaponType") }, ...DAMAGE_TYPES.map((value) => ({ value, label: t(`workshop.homebrew.item.damage.${value}`) }))];
   return (
     <div className="col-span-2 space-y-1.5 sm:col-span-4">
       <span className="text-[11px] text-stone-400">{title}</span>
       {rows.map((row, index) => (
         <div key={index} className="live-in flex flex-wrap items-end gap-2">
-          <TextField label="Dice" value={String(row.dice ?? "")} onChange={(dice) => onChange(rows.map((entry, at) => (at === index ? { ...entry, dice } : entry)))} maxLength={40} className="w-24" />
-          <SelectField label="Type" value={String(row.type ?? "weapon")} options={RIDER_TYPES} onChange={(type) => onChange(rows.map((entry, at) => (at === index ? { ...entry, type } : entry)))} className="w-40" />
-          <CheckField label="Ranged only" checked={row.ranged === true} onChange={(ranged) => onChange(rows.map((entry, at) => (at === index ? { ...entry, ranged: ranged || undefined } : entry)))} />
-          <button type="button" aria-label="Remove these dice" onClick={() => onChange(rows.filter((_, at) => at !== index))} className={cn(ui.iconAction, rowIcon, "hover:text-red-300")}>
+          <TextField label={t("workshop.homebrew.itemMagic.dice.dice")} value={String(row.dice ?? "")} onChange={(dice) => onChange(rows.map((entry, at) => (at === index ? { ...entry, dice } : entry)))} maxLength={40} className="w-24" />
+          <SelectField label={t("workshop.homebrew.itemMagic.dice.type")} value={String(row.type ?? "weapon")} options={riderTypes} onChange={(type) => onChange(rows.map((entry, at) => (at === index ? { ...entry, type } : entry)))} className="w-40" />
+          <CheckField label={t("workshop.homebrew.itemMagic.dice.ranged")} checked={row.ranged === true} onChange={(ranged) => onChange(rows.map((entry, at) => (at === index ? { ...entry, ranged: ranged || undefined } : entry)))} />
+          <button type="button" aria-label={t("workshop.homebrew.itemMagic.dice.remove")} onClick={() => onChange(rows.filter((_, at) => at !== index))} className={cn(ui.iconAction, rowIcon, "hover:text-red-300")}>
             <Trash2 className="size-3.5" />
           </button>
           <div className="basis-full">
-            <span className="text-[11px] text-stone-500">Only against</span>
+            <span className="text-[11px] text-stone-500">{t("workshop.homebrew.itemMagic.dice.onlyAgainst")}</span>
             <ToggleChips options={CREATURE_WORDS} selected={list(row.vs)} onChange={(vs) => onChange(rows.map((entry, at) => (at === index ? { ...entry, vs: vs.length ? vs : undefined } : entry)))} />
           </div>
         </div>
       ))}
       {rows.length < 4 ? (
         <button type="button" onClick={() => onChange([...rows, { dice: "1d6", type: "fire" }])} className={cn(ui.btnSmall, addChip, "w-fit")}>
-          <Plus className="size-3" /> Dice
+          <Plus className="size-3" /> {t("workshop.homebrew.itemMagic.dice.add")}
         </button>
       ) : null}
     </div>
@@ -57,6 +60,7 @@ function DiceRows({ title, rows, onChange }: { title: string; rows: Mech[]; onCh
 }
 
 export function WeaponRidersBlock({ data, set }: Props) {
+  const t = useT();
   const riders = sub(data.weaponRiders);
   const put = (patch: Mech) => set({ weaponRiders: clean({ ...riders, ...patch }) });
   const extra = Array.isArray(riders.extra) ? (riders.extra as Mech[]) : [];
@@ -64,14 +68,14 @@ export function WeaponRidersBlock({ data, set }: Props) {
   const bonusVs = sub(riders.bonusVs);
   const summary = [num(riders.bonus) ? `+${num(riders.bonus)}` : "", ...extra.map((row) => `+${String(row.dice)} ${String(row.type)}`)].filter(Boolean).join(", ");
   return (
-    <MechGroup title="What the weapon's magic adds" summary={summary || "nothing yet"} open={Object.keys(riders).length > 0}>
-      <NumberField label="Bonus to hit and damage" value={num(riders.bonus)} min={0} max={3} onChange={(bonus) => put({ bonus: optional(bonus) })} />
-      <SelectField label="Damage type becomes" value={String(riders.damageType ?? "")} options={[{ value: "", label: "unchanged" }, ...DAMAGE_TYPES.map((value) => ({ value, label: value }))]} onChange={(damageType) => put({ damageType: damageType || undefined })} />
-      <NumberField label="Thrown range (ft)" value={num(riders.rangeFt)} min={0} max={600} step={5} onChange={(rangeFt) => put({ rangeFt: optional(rangeFt) })} />
-      <NumberField label="Long range (ft)" value={num(riders.longRangeFt)} min={0} max={1200} step={5} onChange={(longRangeFt) => put({ longRangeFt: optional(longRangeFt) })} />
-      <DiceRows title="Extra dice on every hit" rows={extra} onChange={(next) => put({ extra: next.length ? next : undefined })} />
-      <DiceRows title="Extra dice on a critical hit" rows={crit} onChange={(next) => put({ critExtra: next.length ? next : undefined })} />
-      <NumberField label="More to hit and damage against" value={num(bonusVs.bonus)} min={0} max={3} onChange={(bonus) => put({ bonusVs: bonus ? { types: list(bonusVs.types), bonus } : undefined })} />
+    <MechGroup title={t("workshop.homebrew.itemMagic.magic.weaponRiders.title")} summary={summary || t("workshop.homebrew.itemMagic.magic.nothing")} open={Object.keys(riders).length > 0}>
+      <NumberField label={t("workshop.homebrew.itemMagic.magic.weaponRiders.bonus")} value={num(riders.bonus)} min={0} max={3} onChange={(bonus) => put({ bonus: optional(bonus) })} />
+      <SelectField label={t("workshop.homebrew.itemMagic.magic.damageTypeBecomes")} value={String(riders.damageType ?? "")} options={[{ value: "", label: t("workshop.homebrew.itemMagic.magic.unchanged") }, ...DAMAGE_TYPES.map((value) => ({ value, label: t(`workshop.homebrew.item.damage.${value}`) }))]} onChange={(damageType) => put({ damageType: damageType || undefined })} />
+      <NumberField label={t("workshop.homebrew.itemMagic.magic.thrownRange")} value={num(riders.rangeFt)} min={0} max={600} step={5} onChange={(rangeFt) => put({ rangeFt: optional(rangeFt) })} />
+      <NumberField label={t("workshop.homebrew.itemMagic.magic.longRange")} value={num(riders.longRangeFt)} min={0} max={1200} step={5} onChange={(longRangeFt) => put({ longRangeFt: optional(longRangeFt) })} />
+      <DiceRows title={t("workshop.homebrew.itemMagic.magic.extraHitDice")} rows={extra} onChange={(next) => put({ extra: next.length ? next : undefined })} />
+      <DiceRows title={t("workshop.homebrew.itemMagic.magic.extraCritDice")} rows={crit} onChange={(next) => put({ critExtra: next.length ? next : undefined })} />
+      <NumberField label={t("workshop.homebrew.itemMagic.magic.bonusAgainst")} value={num(bonusVs.bonus)} min={0} max={3} onChange={(bonus) => put({ bonusVs: bonus ? { types: list(bonusVs.types), bonus } : undefined })} />
       {riders.bonusVs ? (
         <div className="col-span-2 sm:col-span-3">
           <ToggleChips options={CREATURE_WORDS} selected={list(bonusVs.types)} onChange={(types) => put({ bonusVs: { ...bonusVs, types } })} />
@@ -82,16 +86,17 @@ export function WeaponRidersBlock({ data, set }: Props) {
 }
 
 export function ArmorRidersBlock({ data, set }: Props) {
+  const t = useT();
   const riders = sub(data.armorRiders);
   const put = (patch: Mech) => set({ armorRiders: clean({ ...riders, ...patch }) });
   return (
-    <MechGroup title="What the armour's magic adds" summary={num(riders.bonus) ? `+${num(riders.bonus)} AC` : "nothing yet"} open={Object.keys(riders).length > 0}>
-      <NumberField label="Bonus to AC" value={num(riders.bonus)} min={0} max={3} onChange={(bonus) => put({ bonus: optional(bonus) })} />
+    <MechGroup title={t("workshop.homebrew.itemMagic.magic.armorRiders.title")} summary={num(riders.bonus) ? `+${num(riders.bonus)} AC` : t("workshop.homebrew.itemMagic.magic.nothing")} open={Object.keys(riders).length > 0}>
+      <NumberField label={t("workshop.homebrew.itemMagic.magic.armorBonus")} value={num(riders.bonus)} min={0} max={3} onChange={(bonus) => put({ bonus: optional(bonus) })} />
       <div className="col-span-2 flex flex-wrap items-end gap-3 pb-1 sm:col-span-3">
-        <CheckField label="No Strength requirement" checked={riders.noStrength === true} onChange={(on) => put({ noStrength: on || undefined })} />
-        <CheckField label="No Stealth disadvantage" checked={riders.noStealthPenalty === true} onChange={(on) => put({ noStealthPenalty: on || undefined })} />
-        <CheckField label="Worn as if trained" checked={riders.proficientAnyway === true} onChange={(on) => put({ proficientAnyway: on || undefined })} />
-        <CheckField label="Critical hits become normal hits" checked={riders.critProof === true} onChange={(on) => put({ critProof: on || undefined })} />
+        <CheckField label={t("workshop.homebrew.itemMagic.magic.noStrength")} checked={riders.noStrength === true} onChange={(on) => put({ noStrength: on || undefined })} />
+        <CheckField label={t("workshop.homebrew.itemMagic.magic.noStealthDisadvantage")} checked={riders.noStealthPenalty === true} onChange={(on) => put({ noStealthPenalty: on || undefined })} />
+        <CheckField label={t("workshop.homebrew.itemMagic.magic.wornAsTrained")} checked={riders.proficientAnyway === true} onChange={(on) => put({ proficientAnyway: on || undefined })} />
+        <CheckField label={t("workshop.homebrew.itemMagic.magic.critBecomeNormal")} checked={riders.critProof === true} onChange={(on) => put({ critProof: on || undefined })} />
       </div>
     </MechGroup>
   );
