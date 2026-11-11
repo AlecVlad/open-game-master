@@ -26,15 +26,26 @@ import { heldInspiration } from "@/lib/dm/roll-riders";
 import { INSPIRED_KINDS } from "@/lib/dm/pending-inspiration";
 import { canWaitOnRoll } from "@/lib/dm/after-roll-logic";
 import { foretoldLeft } from "@/lib/dm/foretold-logic";
-import { ROLL_KIND_LABELS } from "@/lib/roll-labels";
+import { useI18n } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages/index";
 
-const ABILITY_NAMES: Record<string, string> = {
-  str: "Strength",
-  dex: "Dexterity",
-  con: "Constitution",
-  int: "Intelligence",
-  wis: "Wisdom",
-  cha: "Charisma",
+const ABILITY_NAME_KEYS: Record<string, MessageKey> = {
+  str: "campaign.session.roll.ability.str",
+  dex: "campaign.session.roll.ability.dex",
+  con: "campaign.session.roll.ability.con",
+  int: "campaign.session.roll.ability.int",
+  wis: "campaign.session.roll.ability.wis",
+  cha: "campaign.session.roll.ability.cha",
+};
+
+const ROLL_KIND_KEYS: Record<string, MessageKey> = {
+  skill_check: "campaign.session.roll.kind.skillCheck",
+  saving_throw: "campaign.session.roll.kind.savingThrow",
+  ability_check: "campaign.session.roll.kind.abilityCheck",
+  attack: "campaign.session.roll.kind.attack",
+  damage: "campaign.session.roll.kind.damage",
+  initiative: "campaign.session.roll.kind.initiative",
+  custom: "campaign.session.roll.kind.roll",
 };
 
 const OWNER_FALLBACK_AFTER_MS = 3 * 60 * 1000;
@@ -72,6 +83,7 @@ export function PendingRollCard({
   meUserId: string;
   steersStory: boolean;
 }) {
+  const { t } = useI18n();
   const [values, setValues] = useState<Record<number, string>>({});
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -148,7 +160,7 @@ export function PendingRollCard({
 
   const character = sheets.find((sheet) => sheet.id === pending.characterId);
   const detailText = pending.detail.replaceAll("_", " ");
-  const label = `${character?.name ?? "Someone"}: ${pending.kind.replaceAll("_", " ")}${
+  const label = `${character?.name ?? t("campaign.session.roll.someone")}: ${t(ROLL_KIND_KEYS[pending.kind] ?? "campaign.session.roll.kind.roll")}${
     detailText ? ` (${detailText})` : ""
   }`;
   // Plain-words instruction: "Roll 2× d20 and 1× d8" from the faces list.
@@ -164,19 +176,19 @@ export function PendingRollCard({
       ([sides, count]) => `${count} × d${sides}`,
     );
     return parts.length > 1
-      ? `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}`
+      ? `${parts.slice(0, -1).join(", ")} ${t("campaign.session.roll.and")} ${parts[parts.length - 1]}`
       : parts[0];
   })();
   // Enter raw die faces only; any flat bonus applies server-side.
   const flatModifier = /([+-]\d+)$/.exec(pending.expression.replaceAll(" ", ""))?.[1];
   const modifierNote = flatModifier
-    ? `Enter the bare die numbers; the ${flatModifier} is added for you.`
+    ? t("campaign.session.roll.modifierNote", { modifier: flatModifier })
     : "";
   const advantageNote =
     pending.advantage === "advantage"
-      ? "advantage: roll both, highest counts"
+      ? t("campaign.session.roll.advantage")
       : pending.advantage === "disadvantage"
-        ? "disadvantage: roll both, lowest counts"
+        ? t("campaign.session.roll.disadvantage")
         : "";
   const stale = mountedAt - new Date(pending.createdAt).getTime() > OWNER_FALLBACK_AFTER_MS;
   // A digital face is always ready (the server fills it); everything else
@@ -205,10 +217,10 @@ export function PendingRollCard({
       );
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        setError(data.error || "Could not submit the roll.");
+        setError(data.error || t("campaign.session.roll.submitFailed"));
       }
     } catch {
-      setError("Could not reach the server.");
+      setError(t("campaign.session.roll.serverUnreachable"));
     } finally {
       setBusy(false);
     }
@@ -266,7 +278,7 @@ export function PendingRollCard({
       });
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        setError(data.error || "Could not use your Portent.");
+        setError(data.error || t("campaign.session.roll.portentFailed"));
       }
     } catch {
       setError("Could not reach the server.");
@@ -282,7 +294,7 @@ export function PendingRollCard({
       const response = await fetch(`/api/campaigns/${campaignId}/pending-rolls/${pending.id}/inspiration`, { method: "POST" });
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        setError(data.error || "Could not spend your Inspiration.");
+        setError(data.error || t("campaign.session.roll.inspirationFailed"));
       }
     } catch {
       setError("Could not reach the server.");
@@ -301,7 +313,7 @@ export function PendingRollCard({
 
   // What the card is about, for its head: the kind, the DC the table was
   // sent, and the ability behind a skill ("Athletics" is Strength).
-  const title = ROLL_KIND_LABELS[pending.kind] ?? "Roll";
+  const title = t(ROLL_KIND_KEYS[pending.kind] ?? "campaign.session.roll.kind.roll");
   const skillId = pending.detail.trim().toLowerCase().replace(/[\s-]+/g, "_");
   const abilityId =
     pending.kind === "skill_check"
@@ -309,7 +321,7 @@ export function PendingRollCard({
       : pending.kind === "saving_throw" || pending.kind === "ability_check"
         ? skillId.slice(0, 3)
         : undefined;
-  const abilityName = abilityId ? ABILITY_NAMES[abilityId] : undefined;
+  const abilityName = abilityId && ABILITY_NAME_KEYS[abilityId] ? t(ABILITY_NAME_KEYS[abilityId]) : undefined;
 
   if (!mine) {
     return (
@@ -317,8 +329,7 @@ export function PendingRollCard({
         <span className="flex min-w-0 items-center gap-2">
           <CheckDie state="waiting" sides={faces[0] ?? 20} size="size-7" />
           <span className="min-w-0">
-            Waiting for {character?.name ?? "a player"} to roll {pending.expression}
-            {heldOnly ? "" : " with real dice"}
+            {t("campaign.session.roll.waitingFor", { name: character?.name ?? t("campaign.session.roll.someone"), expression: pending.expression })}{heldOnly ? "" : t("campaign.session.roll.withRealDice")}
           </span>
         </span>
         {steersStory && stale ? (
@@ -328,7 +339,7 @@ export function PendingRollCard({
             onClick={() => submit({ fallback: "digital" })}
             className="motion-press shrink-0 font-medium underline decoration-dotted underline-offset-2 disabled:opacity-50"
           >
-            Roll digitally
+            {t("campaign.session.roll.rollDigital")}
           </button>
         ) : null}
       </CheckFrame>
@@ -346,13 +357,13 @@ export function PendingRollCard({
               {title}
             </span>
             {pending.dc !== null ? (
-              <span className="check-well check-dim px-2 py-0.5 font-mono text-[11px]">Difficulty Class: {pending.dc}</span>
+              <span className="check-well check-dim px-2 py-0.5 font-mono text-[11px]">{t("campaign.session.roll.difficultyClass", { dc: pending.dc })}</span>
             ) : null}
             <ModifierBreakdown expression={pending.expression} caption={abilityName} />
           </div>
           <p className="mt-1 flex items-center gap-2 text-sm">
             <Dices className="size-4 shrink-0" style={{ color: "var(--check-vine)" }} />
-            <span className="min-w-0">Your roll: {label}</span>
+            <span className="min-w-0">{t("campaign.session.roll.yourRoll", { label })}</span>
           </p>
           {pending.reason ? <p className="check-dim mt-0.5 text-xs">{pending.reason}</p> : null}
           {canInspire ? (
@@ -360,25 +371,25 @@ export function PendingRollCard({
               type="button"
               disabled={busy}
               onClick={() => void inspire()}
-              title="Spend your Inspiration: advantage on this roll."
+              title={t("campaign.session.roll.spendInspirationHint")}
               className="motion-pop motion-press mt-1.5 inline-flex min-h-9 items-center gap-1.5 rounded-full border border-amber-400/60 bg-amber-500/10 px-3 text-xs text-amber-100 transition-colors duration-150 hover:bg-amber-500/20 disabled:opacity-50 sm:min-h-8"
             >
-              <Sparkles className="size-3.5" /> Spend Inspiration
+              <Sparkles className="size-3.5" /> {t("campaign.session.roll.spendInspiration")}
             </button>
           ) : null}
           {foretold.length ? (
-            <div role="group" aria-label="Use a number Portent foretold" className="mt-1.5 flex flex-wrap items-center gap-1.5">
-              <span className="text-xs">Portent, instead of rolling:</span>
+            <div role="group" aria-label={t("campaign.session.roll.usePortent")} className="mt-1.5 flex flex-wrap items-center gap-1.5">
+              <span className="text-xs">{t("campaign.session.roll.portentInstead")}</span>
               {foretold.map((value) => (
                 <button
                   key={value}
                   type="button"
                   disabled={busy}
                   onClick={() => void foretell(value)}
-                  title={`The foretold ${value} becomes this roll's d20, and is gone until your next long rest.`}
+                  title={t("campaign.session.roll.portentHint", { value })}
                   className="motion-press inline-flex min-h-10 items-center justify-center rounded-full border border-amber-400/60 px-3 py-1 text-xs font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/70 disabled:opacity-50"
                 >
-                  Use the {value}
+                  {t("campaign.session.roll.useValue", { value })}
                 </button>
               ))}
             </div>
@@ -392,11 +403,11 @@ export function PendingRollCard({
             {shakeActive ? (
               <span className="flex items-center gap-2 text-sm">
                 <Smartphone className="size-5 animate-bounce" style={{ color: "var(--check-vine)" }} />
-                Shake to roll {diceSummary}
+                {t("campaign.session.roll.shakeDice", { dice: diceSummary })}
               </span>
             ) : foretelling ? null : (
               <span className="text-xs">
-                Your rolls wait for you{canShake ? "" : " (shake to roll is on on your phone)"}.
+                {t("campaign.session.roll.rollsWait")}{canShake ? "" : t("campaign.session.roll.shakePhoneHint")}.
               </span>
             )}
             <button
@@ -405,7 +416,7 @@ export function PendingRollCard({
               onClick={() => submit({ fallback: "digital" })}
               className={SUBMIT_BUTTON}
             >
-              {busy ? <Loader2 className="size-4 animate-spin" /> : "Roll now"}
+              {busy ? <Loader2 className="size-4 animate-spin" /> : t("campaign.session.roll.rollNow")}
             </button>
             {!shakeActive && !foretelling ? (
               <button
@@ -414,7 +425,7 @@ export function PendingRollCard({
                 onClick={() => void stopHolding()}
                 className="check-dim text-xs hover:underline disabled:opacity-50"
               >
-                Stop holding my rolls
+                {t("campaign.session.roll.stopHolding")}
               </button>
             ) : null}
           </div>
@@ -424,10 +435,8 @@ export function PendingRollCard({
       {!heldOnly && diceSummary ? (
         <p className="mt-1 text-xs">
           {fullyAutomatic
-            ? `Roll ${diceSummary}. Your assigned dice fill in on their own.`
-            : `Roll ${diceSummary} at your table and enter each die below.${
-                modifierNote ? ` ${modifierNote}` : ""
-              } The game waits for your result.`}
+            ? t("campaign.session.roll.automaticSummary", { dice: diceSummary })
+            : `${t("campaign.session.roll.manualSummary", { dice: diceSummary })}${modifierNote ? ` ${modifierNote}` : ""} ${t("campaign.session.roll.waitForResult")}`}
         </p>
       ) : null}
       {!heldOnly && advantageNote ? (
@@ -435,7 +444,7 @@ export function PendingRollCard({
       ) : null}
       {!heldOnly && shakeActive ? (
         <p className="check-dim mt-0.5 flex items-center gap-1.5 text-xs">
-          <Smartphone className="size-3.5" /> Or shake to roll it digitally.
+          <Smartphone className="size-3.5" /> {t("campaign.session.roll.shakeDigitally")}
         </p>
       ) : null}
 
@@ -450,10 +459,10 @@ export function PendingRollCard({
             return (
               <div key={index} className="block">
                 <span className="mb-0.5 block text-center text-[10px] text-sky-300/80">
-                  d{sides} · auto
+                  d{sides} · {t("campaign.session.roll.auto")}
                 </span>
                 <div
-                  aria-label={`d${sides} rolled for you`}
+                  aria-label={t("campaign.session.roll.rolledForYou", { die: sides })}
                   className="flex h-[34px] w-14 items-center justify-center rounded-md border border-sky-800/70 bg-sky-950/30 text-sm text-sky-100"
                 >
                   <Dices className="size-4 text-sky-300/80" />
@@ -500,7 +509,7 @@ export function PendingRollCard({
           onClick={() => submit({ dice: submissionDice() })}
           className={SUBMIT_BUTTON}
         >
-          {busy ? <Loader2 className="size-4 animate-spin" /> : "Submit roll"}
+          {busy ? <Loader2 className="size-4 animate-spin" /> : t("campaign.session.roll.submit")}
         </button>
         <button
           type="button"
@@ -508,7 +517,7 @@ export function PendingRollCard({
           onClick={() => submit({ fallback: "digital" })}
           className="check-dim text-xs hover:underline disabled:opacity-50"
         >
-          Roll digitally instead
+          {t("campaign.session.roll.digitalInstead")}
         </button>
       </div>
       )}
