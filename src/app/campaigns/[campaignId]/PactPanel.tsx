@@ -163,7 +163,7 @@ function SecretActionForm({ campaignId, pact, sheets, meUserId, onDone }: { camp
           secret: { kind, text: text.trim(), ...(kind === "scheme" || kind === "harm" ? { skill } : {}), ...(needsTarget ? { targetId } : {}), ...(kind === "steal" ? { item } : {}) },
         }),
       });
-      const data = await response.json().catch(() => ({}));
+      await response.json().catch(() => ({}));
       if (!response.ok) {
         setError(t("campaign.relationship.pact.form.error"));
         return;
