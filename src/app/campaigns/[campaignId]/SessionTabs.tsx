@@ -1,6 +1,7 @@
 "use client";
 
 import type { LucideIcon } from "lucide-react";
+import type { MessageKey } from "@/lib/i18n/messages/index";
 import { memo, useState } from "react";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui";
@@ -15,6 +16,7 @@ import {
   type TableTabInput,
 } from "@/lib/dm/table-tabs";
 import { Sheet } from "@/components/ui/Sheet";
+import { useI18n } from "@/lib/i18n/provider";
 
 // The id list is owned by src/lib/dm/table-tabs.ts, where the visibility
 // rules are testable without React; this alias keeps the name the rest of
@@ -127,8 +129,11 @@ const TAB_PRESENTATION: Record<PanelTab, [string, LucideIcon, string]> = {
 // Single source of truth for the panel tab list, shared by the desktop rail
 // strip and the mobile bottom bar. The gating flags are documented on
 // TableTabInput (src/lib/dm/table-tabs.ts).
-export function buildPanelTabs(input: TableTabInput): PanelTabDef[] {
-  return visiblePanelTabs(input).map((id) => [id, ...TAB_PRESENTATION[id]]);
+export function buildPanelTabs(input: TableTabInput, t: (key: MessageKey) => string): PanelTabDef[] {
+  return visiblePanelTabs(input).map((id) => {
+    const [, , Icon] = TAB_PRESENTATION[id];
+    return [id, t(`campaign.session.tab.${id}` as MessageKey), Icon, t(`campaign.session.tab.${id}.hint` as MessageKey)];
+  });
 }
 
 // The lead tab is the one place in the rail that is not the DM's gold: the
@@ -230,6 +235,7 @@ function BottomTabBarInner({
   // quiet.
   steersStory: boolean;
 }) {
+  const { t } = useI18n();
   const [moreOpen, setMoreOpen] = useState(false);
   const byId = new Map(tabs.map((def) => [def[0], def]));
   const { bar, more } = phoneBarSplit(tabs.map(([id]) => id));
@@ -255,7 +261,7 @@ function BottomTabBarInner({
           className={cn(ui.railCell, "min-w-0 shrink-0 grow basis-0", mobileView === "chat" && ui.railCellActive)}
         >
           <TableIcon />
-          <span className="eyebrow whitespace-nowrap text-[9px] leading-none">Table</span>
+          <span className="eyebrow whitespace-nowrap text-[9px] leading-none">{t("campaign.session.tabs.table")}</span>
         </button>
         {bar.map((value) => {
           const def = byId.get(value);
@@ -300,14 +306,14 @@ function BottomTabBarInner({
                 <i />
               </span>
             )}
-            <span className="eyebrow whitespace-nowrap text-[9px] leading-none">{shownActive ? shownActive[1] : "More"}</span>
+            <span className="eyebrow whitespace-nowrap text-[9px] leading-none">{shownActive ? shownActive[1] : t("campaign.session.tabs.more")}</span>
             {moreWaiting ? <span className="absolute right-1.5 top-1 size-1.5 rounded-full bg-amber-400" /> : null}
           </button>
         ) : null}
       </nav>
       {more.length ? (
-        <Sheet open={moreOpen} onOpenChange={setMoreOpen} title="More of the table">
-          <ul className="stagger-up space-y-1.5 overflow-y-auto pb-1" aria-label="Every other tab">
+        <Sheet open={moreOpen} onOpenChange={setMoreOpen} title={t("campaign.session.tabs.moreTitle")}>
+          <ul className="stagger-up space-y-1.5 overflow-y-auto pb-1" aria-label={t("campaign.session.tabs.other")}>
             {more.map((value) => {
               const def = byId.get(value);
               if (!def) return null;
@@ -334,7 +340,7 @@ function BottomTabBarInner({
                       <span className="block text-xs text-stone-400">{hint}</span>
                     </span>
                     {count(value) ? <span className={cn(tabBadgeClass(value), "static px-1.5 text-[10px]")}>{count(value)}</span> : null}
-                    {!count(value) && due(value) ? <span className="size-2 rounded-full bg-amber-400" aria-label="Waiting on you" /> : null}
+                    {!count(value) && due(value) ? <span className="size-2 rounded-full bg-amber-400" aria-label={t("campaign.session.tabs.waiting")} /> : null}
                   </button>
                 </li>
               );
