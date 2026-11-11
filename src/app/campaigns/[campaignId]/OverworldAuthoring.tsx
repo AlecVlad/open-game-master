@@ -44,7 +44,7 @@ export function OverworldAuthoring({
   data: OverworldData;
   onData: (next: OverworldData) => void;
 }) {
-  const { t } = useI18n();
+  const { t, tp } = useI18n();
   const [open, setOpen] = useState(false);
   const [description, setDescription] = useState("");
   const [plan, setPlan] = useState<Plan | null>(null);
@@ -78,7 +78,7 @@ export function OverworldAuthoring({
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError((payload as { error?: string }).error ?? "That did not work.");
+        setError(t("campaign.overworld.errors.generic"));
         return false;
       }
       onData(payload as OverworldData);
@@ -115,7 +115,7 @@ export function OverworldAuthoring({
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError((payload as { error?: string }).error ?? "The model had nothing for that.");
+        setError(t("campaign.overworld.errors.modelDescription"));
         return;
       }
       const described = (payload as { plan: Plan }).plan;
@@ -137,7 +137,7 @@ export function OverworldAuthoring({
         className="flex w-full items-center gap-1.5 text-left text-xs font-medium uppercase tracking-wide text-stone-500 hover:text-stone-300"
       >
         <Wand2 className="size-3.5" />
-        Shape the region
+        {t("campaign.overworld.authoring.title")}
       </button>
 
       {open ? (
@@ -148,7 +148,7 @@ export function OverworldAuthoring({
                 value={description}
                 onChange={(event) => setDescription(event.target.value)}
                 rows={2}
-                placeholder="A chain of islands off a storm coast, pine forest inland."
+                placeholder={t("campaign.overworld.authoring.descriptionPlaceholder")}
                 className="w-full rounded-md border border-stone-700 bg-stone-950 px-2 py-1 text-sm text-stone-200"
               />
               <button
@@ -158,11 +158,11 @@ export function OverworldAuthoring({
                 className="flex items-center gap-1 rounded-md border border-stone-700 px-2 py-1 text-xs text-stone-300 hover:bg-stone-900 disabled:opacity-40"
               >
                 {busy ? <Loader2 className="size-3 animate-spin" /> : <Sparkles className="size-3" />}
-                Read it into the dials
+                {t("campaign.overworld.authoring.readDials")}
               </button>
               {plan ? (
                 <p className="reveal text-[11px] text-stone-500">
-                  {plan.note || "Dials set."} Reroll below until the coastline falls where you want it.
+                  {plan.note || t("campaign.overworld.authoring.dialsSet")} {t("campaign.overworld.authoring.rerollHint")}
                 </p>
               ) : null}
             </>
@@ -188,14 +188,14 @@ export function OverworldAuthoring({
               type="button"
               disabled={busy} aria-busy={busy}
               onClick={() => void patch({ regenerate: true, params, ...size })}
-              title="Reroll the terrain under these dials, at this size. Places, pins, lines and notes stay."
+              title={t("campaign.overworld.authoring.rerollTitle")}
               className="rounded-md border border-amber-700 bg-amber-950/50 px-2 py-1 text-xs text-amber-100 disabled:opacity-40"
             >
-              Roll a world
+              {t("campaign.overworld.authoring.rerollButton")}
             </button>
             <Select
               value={sizeId as string}
-              label="Size of the next roll"
+              label={t("campaign.overworld.authoring.sizeLabel")}
               size="sm"
               onChange={(next) => {
                 const preset = OVERWORLD_SIZES.find((entry) => entry.id === next);
@@ -207,7 +207,7 @@ export function OverworldAuthoring({
                 ...(sizeId === "custom" ? [{ value: "custom", label: sizeLabel(size) }] : []),
                 ...OVERWORLD_SIZES.map((entry) => ({
                   value: entry.id as string,
-                  label: `${entry.label} (${entry.width} by ${entry.height})`,
+                  label: `${t(`campaign.overworld.size.${entry.id}` as never)} (${entry.width} × ${entry.height})`,
                 })),
               ]}
             />
@@ -221,7 +221,7 @@ export function OverworldAuthoring({
                   "hover:bg-stone-900 disabled:opacity-40",
                 )}
               >
-                Add {plan.places.length} place{plan.places.length === 1 ? "" : "s"}
+                {tp("campaign.overworld.authoring.addPlaceCount", plan.places.length)}
               </button>
             ) : null}
           </div>
@@ -237,20 +237,20 @@ export function OverworldAuthoring({
           ) : null}
 
           <div className="space-y-1">
-            <span className="text-[11px] uppercase tracking-wide text-stone-500">Add a place</span>
+            <span className="text-[11px] uppercase tracking-wide text-stone-500">{t("campaign.overworld.authoring.addPlace")}</span>
             <input
               value={placeName}
               maxLength={80}
               onChange={(event) => setPlaceName(event.target.value)}
-              placeholder="The Salt Wharf"
+              placeholder={t("campaign.overworld.authoring.placeNamePlaceholder")}
               className="w-full rounded-md border border-stone-700 bg-stone-950 px-2 py-1 text-sm text-stone-200"
             />
-            <DictateField single label="What a traveller would say" onTranscript={(text) => setPlaceBlurb((current) => appendDictation(current, text, 300))}>
+            <DictateField single label={t("campaign.overworld.authoring.placeBlurbLabel")} onTranscript={(text) => setPlaceBlurb((current) => appendDictation(current, text, 300))}>
               <input
                 value={placeBlurb}
                 maxLength={300}
                 onChange={(event) => setPlaceBlurb(event.target.value)}
-                placeholder="What a traveller would say about it (optional)"
+                placeholder={t("campaign.overworld.authoring.placeBlurbPlaceholder")}
                 className="w-full rounded-md border border-stone-700 bg-stone-950 px-2 py-1 text-sm text-stone-200"
               />
             </DictateField>
@@ -260,18 +260,18 @@ export function OverworldAuthoring({
               onClick={() => void addPlace()}
               className="rounded-md border border-stone-700 px-2 py-1 text-xs text-stone-300 hover:bg-stone-900 disabled:opacity-40"
             >
-              Put it on the map
+              {t("campaign.overworld.authoring.putOnMap")}
             </button>
           </div>
 
           <div>
             <label htmlFor="region-notes" className="text-[11px] uppercase tracking-wide text-stone-500">
-              Notes on the region
+              {t("campaign.overworld.authoring.regionNotes")}
             </label>
             {/* Typed notes save when the field lets go of focus; spoken ones
                 save as they land, since no blur follows them. */}
             <DictateField
-              label="Notes on the region"
+              label={t("campaign.overworld.authoring.regionNotes")}
               className="mt-0.5"
               onTranscript={(text) => {
                 const next = appendDictation(notes, text);
@@ -289,11 +289,11 @@ export function OverworldAuthoring({
                   }
                 }}
                 rows={2}
-                placeholder="What lies past the edge. Which roads are watched."
+                placeholder={t("campaign.overworld.authoring.regionNotesPlaceholder")}
                 className="w-full rounded-md border border-stone-700 bg-stone-950 px-2 py-1 text-sm text-stone-200"
               />
             </DictateField>
-            <span className="text-[10px] text-stone-600">Yours alone; players never see this.</span>
+            <span className="text-[10px] text-stone-600">{t("campaign.overworld.authoring.privateNote")}</span>
           </div>
 
           {error ? <p className="motion-shake text-[11px] text-red-400">{error}</p> : null}
