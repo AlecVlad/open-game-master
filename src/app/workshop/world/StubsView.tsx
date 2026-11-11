@@ -115,7 +115,7 @@ export function StubsView({ api, world, onOpen }: { api: WorldApi; world: WorldS
                     </button>
                   ) : null}
                   <span className="ml-auto flex gap-1">
-                    {done ? null : <KitButton tone="small" onClick={() => setWriting(writing === stub.id ? null : stub.id)}><PenLine className="size-3.5" /> Write it</KitButton>}
+                    {done ? null : <KitButton tone="small" onClick={() => setWriting(writing === stub.id ? null : stub.id)}><PenLine className="size-3.5" /> {t("workshop.world.stubs.writeIt")}</KitButton>}
                     <KitButton tone="icon" always aria-label={t(done ? "workshop.world.stubs.clear" : "workshop.world.stubs.dismiss", { name: stub.name })} onClick={() => api.patch({ stubs: done ? doc.stubs.filter((entry) => entry.id !== stub.id) : doc.stubs.map((entry) => (entry.id === stub.id ? { ...entry, status: "dismissed" } : entry)) })}>
                       <X className="size-3.5" />
                     </KitButton>
