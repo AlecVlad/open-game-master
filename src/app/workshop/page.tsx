@@ -189,7 +189,7 @@ export default function WorkshopListPage() {
           },
         ]}
       />
-      <GuidedTour open={touring} steps={SHELF_TOUR} onClose={closeTour} />
+      <GuidedTour open={touring} steps={SHELF_TOUR} translationScope="shelf" onClose={closeTour} />
 
       <section className="mb-6">
         {creating ? (
