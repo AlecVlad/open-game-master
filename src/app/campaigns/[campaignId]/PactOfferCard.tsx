@@ -2,6 +2,7 @@
 
 import { VenetianMask, X } from "lucide-react";
 import { useId, useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/cn";
 import { CharacterPortrait } from "@/lib/ui";
 import { characterPlaceholder } from "@/lib/placeholders";
@@ -73,12 +74,13 @@ function PactOfferCard({
   leaving: boolean;
   onError: (message: string) => void;
 }) {
+  const { t } = useI18n();
   const [busy, setBusy] = useState("");
   const hintBase = useId();
   const from = proposal.from;
-  const who = from?.name || "Someone";
+  const who = from?.name || t("campaign.session.pact.unknownSource");
   const face = characterPlaceholder({ race: from?.look.race || "human", class: from?.look.class || "fighter", gender: from?.look.gender || "" });
-  const characterName = character?.name ?? "a character";
+  const characterName = character?.name ?? t("campaign.session.pact.unknownCharacter");
   const choices = proposal.choices ?? [];
 
   async function answer(choice: string) {
@@ -92,10 +94,10 @@ function PactOfferCard({
       });
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        onError(String(data.error ?? "That did not work."));
+        onError(String(data.error ?? t("campaign.session.pact.error")));
       }
     } catch {
-      onError("Could not reach the server.");
+      onError(t("campaign.session.pact.network"));
     } finally {
       setBusy("");
     }
@@ -118,12 +120,12 @@ function PactOfferCard({
             </p>
             {proposal.reason ? <p className="mt-1 text-sm italic leading-snug text-stone-200">&ldquo;{proposal.reason}&rdquo;</p> : null}
             {mine ? (
-              <p className="mt-1 text-[11px] text-stone-400">Only you see this, and only you answer. Nobody else at the table knows it was asked.</p>
+              <p className="mt-1 text-[11px] text-stone-400">{t("campaign.session.pact.onlyYou")}</p>
             ) : null}
           </div>
         </div>
         {mine ? (
-          <div role="group" aria-label={`Your answer for ${characterName}`} className="mt-2 grid gap-1.5 sm:grid-cols-2">
+          <div role="group" aria-label={t("campaign.session.pact.answerAria", { character: characterName })} className="mt-2 grid gap-1.5 sm:grid-cols-2">
             {choices.map((choice, index) => (
               <KitButton
                 key={choice.id}
@@ -143,11 +145,11 @@ function PactOfferCard({
           </div>
         ) : (
           <div className="mt-1.5 flex flex-wrap items-center justify-end gap-1.5">
-            <span className="text-[11px] italic text-stone-500">waiting on {characterName}&apos;s player</span>
+            <span className="text-[11px] italic text-stone-500">{t("campaign.session.pact.waiting", { character: characterName })}</span>
             {steersStory ? (
               <KitButton className="min-h-10" onClick={() => void answer("cancel")} disabled={Boolean(busy) || leaving} busy={busy === "cancel"}>
                 {busy === "cancel" ? null : <X className="size-3.5" aria-hidden="true" />}
-                Withdraw
+                {t("campaign.session.pact.withdraw")}
               </KitButton>
             ) : null}
           </div>
