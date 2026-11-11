@@ -3,6 +3,7 @@
 import { ChevronDown, ChevronRight, Crown, Shield, Skull, Swords, Wind } from "lucide-react";
 import { appConfirm } from "@/components/ui/ConfirmDialog";
 import { useMemo, useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/cn";
 import { MonsterTile } from "@/lib/ui";
 import { HEALTH_COLORS } from "@/lib/bestiary/health";
@@ -46,6 +47,7 @@ export function EncounterPanel({
   // the monsters'. Without them a player's row falls back to an initial.
   sheets?: CharacterSheet[];
 }) {
+  const { t } = useI18n();
   const [ending, setEnding] = useState(false);
   const [openGroups, setOpenGroups] = useState<string[]>([]);
 
@@ -85,7 +87,7 @@ export function EncounterPanel({
   }, [sheets, encounter.enemies, genre]);
 
   async function forceEnd() {
-    if (!await appConfirm("End this encounter without a resolution? No XP is awarded.")) {
+    if (!await appConfirm(t("campaign.session.encounter.endWithoutResolution"))) {
       return;
     }
     setEnding(true);
@@ -102,7 +104,7 @@ export function EncounterPanel({
   // table reached for this button and got no XP and the combat music still
   // playing. The abort stays offered when the engine will not end it.
   async function endFight() {
-    if (!await appConfirm("End the fight now? XP is awarded and the board clears; it cannot be reopened.", { title: "End the fight", actionLabel: "End it" })) {
+    if (!await appConfirm(t("campaign.session.encounter.endConfirm"), { title: t("campaign.session.encounter.endTitle"), actionLabel: t("campaign.session.encounter.endAction") })) {
       return;
     }
     setEnding(true);
@@ -114,7 +116,7 @@ export function EncounterPanel({
       });
       if (!response.ok) {
         const body = (await response.json().catch(() => ({}))) as { error?: string };
-        if (await appConfirm(`${body.error ?? "The engine would not end the fight."} Force-end it without XP instead?`, { actionLabel: "Force-end" })) {
+        if (await appConfirm(`${body.error ?? t("campaign.session.encounter.engineRefusal")} ${t("campaign.session.encounter.forceEndConfirm")}`, { actionLabel: t("campaign.session.encounter.forceEnd") })) {
           await fetch(`/api/campaigns/${campaignId}/encounter`, { method: "DELETE" });
         }
       }
@@ -133,10 +135,10 @@ export function EncounterPanel({
       <header className="mb-2 flex items-center justify-between">
         <h2 className="flex items-center gap-1.5 text-sm font-semibold text-red-300">
           <Swords className="size-4" />
-          Combat{encounter.orderReady ? ` · Round ${encounter.round}` : " · Rolling initiative"}
+          {t("campaign.session.encounter.combat")}{encounter.orderReady ? ` · ${t("campaign.session.encounter.round", { round: encounter.round })}` : ` · ${t("campaign.session.encounter.rollingInitiative")}`}
           {encounter.lair ? (
             <span className={cn("ml-1.5 text-[10px] uppercase tracking-wide", encounter.lair.usedThisRound ? "text-stone-600" : "text-violet-300")}>
-              {encounter.lair.usedThisRound ? "lair acted" : "lair awake"}
+              {t(encounter.lair.usedThisRound ? "campaign.session.encounter.lairActed" : "campaign.session.encounter.lairAwake")}
             </span>
           ) : null}
         </h2>
@@ -146,9 +148,9 @@ export function EncounterPanel({
             onClick={canEditOrder ? endFight : forceEnd}
             disabled={ending}
             className="text-xs text-stone-500 hover:text-red-300 disabled:opacity-50 motion-press"
-            title={canEditOrder ? "End the fight: XP and the after-the-fight card" : "Force-end the encounter (lead only)"}
+            title={canEditOrder ? t("campaign.session.encounter.endFightHint") : t("campaign.session.encounter.forceEndHint")}
           >
-            End encounter
+            {t("campaign.session.encounter.endEncounter")}
           </button>
         ) : null}
       </header>
@@ -172,8 +174,7 @@ export function EncounterPanel({
                         className="flex w-full items-center gap-1 text-xs text-stone-500 hover:text-stone-300"
                       >
                         <ChevronDown className="size-3.5" />
-                        {group.members[0].name.replace(/\s+\d+$/, "")} · {standing.length} of{" "}
-                        {group.members.length} standing
+                        {group.members[0].name.replace(/\s+\d+$/, "")} · {t("campaign.session.encounter.groupStanding", { current: standing.length, total: group.members.length })}
                       </button>
                     </li>,
                   ];
@@ -209,7 +210,7 @@ export function EncounterPanel({
                   </span>
                 </span>
                 <span className="ml-2 shrink-0 text-[10px] text-stone-500">
-                  {standing.length} standing
+                  {t("campaign.session.encounter.groupStanding", { current: standing.length, total: group.members.length })}
                 </span>
               </button>
             </li>,
@@ -269,7 +270,7 @@ export function EncounterPanel({
                   )}
                   title={
                     enemy.knockedOut
-                      ? "Alive at 0 hit points after a blow meant to knock it out: out of the fight, not dying."
+                      ? t("campaign.session.encounter.aliveAtZero")
                       : enemy.regenerating
                         ? regeneratingNote(enemy.regenerating.stopped)
                         : undefined
@@ -278,13 +279,13 @@ export function EncounterPanel({
                   {/* A nonlethal blow leaves it alive at 0 (src/lib/dm/knockout.ts);
                       a troll lies at 0 until its turn (src/lib/dm/regeneration.ts). */}
                   {enemy.status === "fled"
-                    ? "fled"
+                    ? t("campaign.session.encounter.fled")
                     : enemy.knockedOut
-                      ? "knocked out"
+                      ? t("campaign.session.encounter.knockedOut")
                       : enemy.regenerating
                         ? enemy.regenerating.stopped
-                          ? "down, burning"
-                          : "down, regenerating"
+                          ? t("campaign.session.encounter.downBurning")
+                          : t("campaign.session.encounter.downRegenerating")
                         : enemy.health}
                 </span>
                 {enemy.regenerating ? (
@@ -298,7 +299,7 @@ export function EncounterPanel({
                         : "border-emerald-700/50 bg-emerald-950/30 text-emerald-200",
                     )}
                   >
-                    {enemy.regenerating.stopped ? "dies at its turn" : "regenerates at its turn"}
+                    {t(enemy.regenerating.stopped ? "campaign.session.encounter.diesAtTurn" : "campaign.session.encounter.regeneratesAtTurn")}
                   </span>
                 ) : null}
                 {/* DM only: publicEncounter attaches these for the seat that
@@ -312,7 +313,7 @@ export function EncounterPanel({
               {/* A creature the party dominates (issue 503, SideBadge.tsx). */}
               <SideBadge side={offSide(encounter, enemy.id, "enemy")} className="mt-1" />
               {enemy.legendary ? (
-                <div className="mt-1 flex items-center gap-1" title="Legendary actions this round and resistances this fight">
+                <div className="mt-1 flex items-center gap-1" title={t("campaign.session.encounter.legendaryHint")}>
                   {Array.from({ length: enemy.legendary.actionsMax }, (_, index) => (
                     <Crown
                       key={`a${index}`}
