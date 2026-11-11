@@ -1,7 +1,6 @@
 "use client";
 
 import { Loader2, Minus, Plus } from "lucide-react";
-import { useI18n } from "@/lib/i18n/provider";
 import { useUndoRing } from "@/lib/use-undo-ring";
 import { terrainDiffStrokes } from "@/lib/overworld/undo";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -84,7 +83,6 @@ export function OverworldPanel({
   // under its place), so a map left open during play follows the story.
   placesKey?: string;
 }) {
-  const { t } = useI18n();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [data, setData] = useState<OverworldData | null>(null);
