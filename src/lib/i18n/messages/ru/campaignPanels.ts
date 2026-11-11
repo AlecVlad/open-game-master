@@ -3439,7 +3439,7 @@ export const ruCampaignPanels: Partial<Record<keyof typeof enCampaignPanels, str
   "campaign.session.hand.group.cantrips": "Заговоры",
   "campaign.session.hand.group.level": "Уровень {level}",
   "campaign.session.hand.group.slotNote.slots": "Осталось {left} из {total} ячеек",
-  "campaign.session.hand.group.slotNote.pact": "Осталось {left} из {total} ячеек договора{levelPart}",
+  "campaign.session.hand.group.slotNote.pact": "Осталось {left} из {total} ячеек договора",
   "campaign.session.hand.group.slotNote.openLevel": "Доступны ячейки уровня {level}",
   "campaign.session.hand.group.slotNote.castLevel": "Можно применить, потратив ячейку уровня {level}",
   "campaign.session.hand.group.slotNote.none": "Ячеек не осталось",
