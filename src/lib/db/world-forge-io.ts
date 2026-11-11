@@ -410,7 +410,7 @@ export function applyWorldImport(campaignId: string, account: UploadAccount, par
         lossDetails: parsed.lossDetails,
         sceneLosses: parsed.sceneLosses,
         notes: [...parsed.notes, ...bridge.notes],
-        noteDetails: parsed.noteDetails,
+        noteDetails: [...parsed.noteDetails, ...bridge.noteDetails],
       };
     })();
   } catch (error) {
@@ -487,10 +487,10 @@ export function exportWorldForge(campaignId: string): Record<string, unknown> {
 // What a WorldForge file of this workshop would not carry, named before it
 // is written (audit WF-19): what each storyboard card loses as a scene. The
 // whole adventure travels in a workshop bundle instead.
-export function checkWorldForgeExport(campaignId: string): { scenes: SceneLoss[]; notes: string[] } {
+export function checkWorldForgeExport(campaignId: string): { scenes: SceneLoss[]; notes: string[]; noteDetails: WorldNoticeDetail[] } {
   const { entities } = worldView(campaignId);
   const plan = planBoardExport(campaignId, new Set(entities.map((entity) => entity.ref)));
-  return { scenes: plan.scenes, notes: plan.notes };
+  return { scenes: plan.scenes, notes: plan.notes, noteDetails: plan.notes.length ? [{ code: "workshop.world.export.note.storyboardOrder", params: {} }] : [] };
 }
 
 // The WorldForge of one campaign copied into another, its refs rewritten to
