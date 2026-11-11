@@ -28,6 +28,7 @@ import {
 import { useOpenOnArrival } from "@/app/workshop/world/WorldEntryLink";
 import { OpenTestFightCard, useTestFight } from "@/app/workshop/encounters/OpenTestFight";
 import { TestFightSheet } from "@/app/workshop/encounters/TestFightSheet";
+import { useI18n } from "@/lib/i18n/provider";
 
 // Prepared encounters: the roster a DM writes down before the session and
 // deploys in one action.
@@ -48,24 +49,24 @@ import { TestFightSheet } from "@/app/workshop/encounters/TestFightSheet";
 // cuts a fight beyond the party down to fit, or holds it when even its
 // strongest creature is too much (src/lib/dm/prepared-fit.ts); a DM's own
 // Deploy is refused as written, for the DM to change.
-function refusedLine(readout: TemplateReadout, cue: boolean): string {
+function refusedLine(readout: TemplateReadout, cue: boolean, t: ReturnType<typeof useI18n>["t"]): string {
   if (!readout.tooDeadly) {
     return "";
   }
   if (cue && readout.held) {
-    return ". Beyond the party even cut down: the storyteller holds it until they are stronger.";
+    return ` ${t("campaign.session.encounterPrep.difficulty.held")}`;
   }
   if (cue && readout.scaledWithout) {
-    return `. The storyteller cuts it to fit: it runs without ${readout.scaledWithout}.`;
+    return ` ${t("campaign.session.encounterPrep.difficulty.scaledWithout", { monster: readout.scaledWithout })}`;
   }
-  return ". The engine will refuse this as written.";
+  return ` ${t("campaign.session.encounterRows.refused")}`;
 }
 
-function DifficultyLine({ readout, cue }: { readout: TemplateReadout; cue: boolean }) {
+function DifficultyLine({ readout, cue, t, tp }: { readout: TemplateReadout; cue: boolean; t: ReturnType<typeof useI18n>["t"]; tp: ReturnType<typeof useI18n>["tp"] }) {
   if (readout.unknownMonster) {
     return (
       <p className="text-[11px] text-red-400">
-        Nothing in this world is called &quot;{readout.unknownMonster}&quot;.
+        {t("campaign.session.encounterRows.unknownMonsterBudget", { name: readout.unknownMonster })}
       </p>
     );
   }
@@ -76,11 +77,14 @@ function DifficultyLine({ readout, cue }: { readout: TemplateReadout; cue: boole
         !readout.tooDeadly ? "text-stone-400" : cue && readout.scaledWithout && !readout.held ? "text-amber-400" : "text-red-400",
       )}
     >
-      {readout.count} creature{readout.count === 1 ? "" : "s"}, {readout.verdict} ({readout.adjustedXp} XP
-      against a {readout.ceiling} ceiling)
-      {refusedLine(readout, cue)}
+      {t("campaign.session.encounterPrep.difficulty.summary", { count: tp("campaign.session.encounterRows.creatures", readout.count), verdict: difficultyLabel(readout.verdict, t), xp: readout.adjustedXp, ceiling: readout.ceiling })}{refusedLine(readout, cue, t)}
     </p>
   );
+}
+
+function difficultyLabel(verdict: string, t: ReturnType<typeof useI18n>["t"]): string {
+  const key = verdict.startsWith("trivial") ? "trivial" : verdict.startsWith("easy") ? "easy" : verdict.startsWith("medium") ? "medium" : verdict.startsWith("hard") ? "hard" : verdict.startsWith("beyond deadly") ? "beyondDeadly" : verdict.startsWith("deadly") ? "deadly" : "";
+  return key ? t(`campaign.session.encounterRows.difficulty.${key}` as never) : verdict.replace(/ for this party$/, "");
 }
 
 export function DmEncounterPrepPanel({
@@ -115,6 +119,7 @@ export function DmEncounterPrepPanel({
   // src/lib/workshop/test-fight.ts).
   testFight?: { workshopId: string };
 }) {
+  const { t, tp } = useI18n();
   const [testing, setTesting] = useState<PreparedEncounter | null>(null);
   const test = useTestFight(testFight?.workshopId ?? null);
   const [templates, setTemplates] = useState<PreparedEncounter[]>([]);
@@ -137,7 +142,7 @@ export function DmEncounterPrepPanel({
   const { loaded, loadError, settle } = useLoadStatus();
   const load = useCallback(
     () =>
-      readLoad<{ templates: PreparedEncounter[] }>(fetch(`/api/campaigns/${campaignId}/dm/encounter-templates`), "The prepared fights").then(
+      readLoad<{ templates: PreparedEncounter[] }>(fetch(`/api/campaigns/${campaignId}/dm/encounter-templates`), t("campaign.session.encounterPrep.resource")).then(
         (outcome) => {
           if (outcome.payload) {
             setTemplates(outcome.payload.templates);
@@ -146,7 +151,7 @@ export function DmEncounterPrepPanel({
           return outcome.payload?.templates ?? null;
         },
       ),
-    [campaignId, settle],
+    [campaignId, settle, t],
   );
 
   // The map drawer, for the "On which map" link. Same load-once shape as the
@@ -245,16 +250,16 @@ export function DmEncounterPrepPanel({
             extras: draft.extras,
           }),
         }),
-        "That could not be saved.",
+        t("campaign.session.encounterPrep.error.save"),
       );
       if (sent.error !== null) {
         if (sent.unanswered && !editingId) {
           const name = draft.name.trim();
           const found = await findLostCreate(loaded ? templates : null, load, (template) => template.name === name);
           const prepared = lostCreate(found, {
-            made: "Prepared. The server's answer was lost on the way, so the list was read again to make sure.",
-            missing: "The server did not answer and the fight is not in the list, so it was not prepared. Your roster is kept; press Prepare it again.",
-            unknown: "The server could not be reached, so it is not known yet whether the fight was prepared. Your roster is kept. Check the list before preparing it again.",
+            made: t("campaign.session.encounterPrep.lostCreate.made"),
+            missing: t("campaign.session.encounterPrep.lostCreate.missing"),
+            unknown: t("campaign.session.encounterPrep.lostCreate.unknown"),
           });
           if (prepared) {
             setDraft(EMPTY_ENCOUNTER_DRAFT);
@@ -263,7 +268,7 @@ export function DmEncounterPrepPanel({
           }
           return;
         }
-        setError(sent.unanswered ? `${sent.error} Your changes are kept here; the list was read again.` : sent.error);
+        setError(sent.unanswered ? t("campaign.session.encounterPrep.error.keptAfterRead", { error: sent.error }) : sent.error);
         // An edit with no answer may have landed all the same.
         if (sent.unanswered) await load();
         return;
@@ -289,7 +294,7 @@ export function DmEncounterPrepPanel({
     setError("");
     setNote("");
     try {
-      const name = `${template.name} (copy)`.slice(0, TEMPLATE_NAME_MAX);
+      const name = t("campaign.session.encounterPrep.copyName", { name: template.name }).slice(0, TEMPLATE_NAME_MAX);
       const sent = await readWrite(
         fetch(`/api/campaigns/${campaignId}/dm/encounter-templates`, {
           method: "POST",
@@ -303,16 +308,16 @@ export function DmEncounterPrepPanel({
             extras: template.extras,
           }),
         }),
-        "That could not be copied.",
+        t("campaign.session.encounterPrep.error.copy"),
       );
       if (sent.error !== null) {
         if (sent.unanswered) {
           const copy = name.trim();
           const found = await findLostCreate(loaded ? templates : null, load, (row) => row.name === copy);
           lostCreate(found, {
-            made: "Copied. The server's answer was lost on the way, so the list was read again to make sure.",
-            missing: "The server did not answer and the copy is not in the list, so it was not made. Duplicate it again.",
-            unknown: "The server could not be reached, so it is not known yet whether the copy was made. Check the list before duplicating it again.",
+            made: t("campaign.session.encounterPrep.lostCopy.made"),
+            missing: t("campaign.session.encounterPrep.lostCopy.missing"),
+            unknown: t("campaign.session.encounterPrep.lostCopy.unknown"),
           });
           return;
         }
@@ -328,12 +333,12 @@ export function DmEncounterPrepPanel({
   // Asks first, and a refusal is shown rather than swallowed.
   async function remove(template: PreparedEncounter) {
     const id = template.id;
-    if (!(await appConfirm(`Delete the prepared fight "${template.name}"?`, { actionLabel: "Delete" }))) {
+    if (!(await appConfirm(t("campaign.session.encounterPrep.confirmDelete", { name: template.name }), { actionLabel: t("campaign.session.encounterPrep.delete") }))) {
       return;
     }
     setError("");
     setNote("");
-    const sent = await readWrite(fetch(`/api/campaigns/${campaignId}/dm/encounter-templates/${id}`, { method: "DELETE" }), "That could not be deleted.");
+    const sent = await readWrite(fetch(`/api/campaigns/${campaignId}/dm/encounter-templates/${id}`, { method: "DELETE" }), t("campaign.session.encounterPrep.error.delete"));
     if (sent.error !== null) {
       setError(sent.error);
       // No answer: it may be gone all the same, and the list says which.
@@ -351,8 +356,8 @@ export function DmEncounterPrepPanel({
   // roster and plan make it again, at a test and at a table.
   async function removeSetup(template: PreparedEncounter) {
     if (
-      !(await appConfirm(`Remove the saved set-up of "${template.name}"? Its tests and tables open as the roster and plan make it again. The map it kept stays.`, {
-        actionLabel: "Remove the set-up",
+      !(await appConfirm(t("campaign.session.encounterPrep.confirmRemoveSetup", { name: template.name }), {
+        actionLabel: t("campaign.session.encounterPrep.removeSetup"),
       }))
     ) {
       return;
@@ -361,7 +366,7 @@ export function DmEncounterPrepPanel({
     setNote("");
     const sent = await readWrite(
       fetch(`/api/campaigns/${campaignId}/dm/encounter-templates/${template.id}/setup`, { method: "DELETE" }),
-      "The set-up could not be removed.",
+      t("campaign.session.encounterPrep.error.removeSetup"),
     );
     if (sent.error !== null) {
       setError(sent.error);
@@ -382,12 +387,12 @@ export function DmEncounterPrepPanel({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(cue ? { cue: cueIt } : {}),
         }),
-        "That could not be deployed.",
+        t("campaign.session.encounterPrep.error.deploy"),
       );
       if (sent.error !== null) {
         // A deploy with no answer may have put the fight on the table; a
         // second press would put it there twice.
-        setError(sent.unanswered ? `${sent.error} The fight may already be on the table; look before deploying it again.` : sent.error);
+        setError(sent.unanswered ? t("campaign.session.encounterPrep.error.maybeDeployed", { error: sent.error }) : sent.error);
         if (sent.unanswered) await load();
         return;
       }
@@ -395,16 +400,16 @@ export function DmEncounterPrepPanel({
       if (payload.cued !== undefined) {
         setNote(
           payload.cued
-            ? "Cued. The storyteller runs it, map and plan included, as soon as the scene allows. The players are not told."
-            : "Cue taken back.",
+            ? t("campaign.session.encounterPrep.cued")
+            : t("campaign.session.encounterPrep.cueWithdrawn"),
         );
         await load();
         return;
       }
       setNote(
         payload.mapError
-          ? `The fight is on the table. Its saved map could not be used: ${payload.mapError}`
-          : "The fight is on the table. Ask the party for initiative.",
+          ? t("campaign.session.encounterPrep.deployedMapError", { error: payload.mapError })
+          : t("campaign.session.encounterPrep.deployed"),
       );
     } finally {
       setBusy(false);
@@ -428,8 +433,8 @@ export function DmEncounterPrepPanel({
   if (only) {
     const editing = templates.find((template) => template.id === editingId) ?? null;
     return (
-      <Sheet open={editorOpen} onOpenChange={showEditor} title={editing ? editing.name : "Encounter"} className="lg:w-[min(92vw,40rem)]">
-        <EncounterForm campaignId={campaignId} value={draft} onChange={setDraft} maps={maps} busy={busy} submitLabel="Save" onSubmit={() => void save()} variant="sheet" />
+      <Sheet open={editorOpen} onOpenChange={showEditor} title={editing ? editing.name : t("campaign.session.encounterPrep.encounter")} className="lg:w-[min(92vw,40rem)]">
+        <EncounterForm campaignId={campaignId} value={draft} onChange={setDraft} maps={maps} busy={busy} submitLabel={t("campaign.session.encounterPrep.save")} onSubmit={() => void save()} variant="sheet" />
         <div ref={sheetFeedback} className="mt-2">{feedback}</div>
       </Sheet>
     );
@@ -442,7 +447,7 @@ export function DmEncounterPrepPanel({
       <div className="space-y-3">
         <DmWorkbenchPanel campaignId={campaignId} collapsible />
         {testFight ? <OpenTestFightCard workshopId={testFight.workshopId} info={test.info} onEnded={test.reload} /> : null}
-        <Listed loaded={loaded} error={loadError} onRetry={() => void load()} loading="Opening the fights...">
+        <Listed loaded={loaded} error={loadError} onRetry={() => void load()} loading={t("campaign.session.encounterPrep.loading")}>
           <EncounterRows
             encounters={templates}
             maps={maps}
@@ -459,7 +464,7 @@ export function DmEncounterPrepPanel({
               test.reload();
               setTesting(template);
             }}
-            deployLabel={testFight ? "Test fight" : undefined}
+            deployLabel={testFight ? t("campaign.session.encounterPrep.testFight") : undefined}
             onDuplicate={(template) => void duplicate(template)}
             onDelete={(template) => void remove(template)}
             onRemoveSetup={(template) => void removeSetup(template)}
@@ -472,7 +477,7 @@ export function DmEncounterPrepPanel({
         <Sheet
           open={editorOpen}
           onOpenChange={showEditor}
-          title={editing ? editing.name : "New encounter"}
+          title={editing ? editing.name : t("campaign.session.encounterPrep.newEncounter")}
           className="lg:w-[min(92vw,40rem)]"
         >
           <EncounterForm
@@ -481,7 +486,7 @@ export function DmEncounterPrepPanel({
             onChange={setDraft}
             maps={maps}
             busy={busy}
-            submitLabel={editing ? "Save" : "Prepare it"}
+            submitLabel={editing ? t("campaign.session.encounterPrep.save") : t("campaign.session.encounterPrep.prepare")}
             onSubmit={() => void save()}
             variant="sheet"
           />
@@ -495,17 +500,17 @@ export function DmEncounterPrepPanel({
     <div className="space-y-3">
       <section>
         <SectionHead
-          title="Prepared encounters"
+          title={t("campaign.session.encounterPrep.title")}
           glyph="system-encounters"
           aside={templates.length ? <span key={templates.length} className="count-pop">{templates.length}</span> : undefined}
         />
-        <Listed loaded={loaded} error={loadError} onRetry={() => void load()} loading="Opening the fights...">
+        <Listed loaded={loaded} error={loadError} onRetry={() => void load()} loading={t("campaign.session.encounterPrep.loading")}>
         {templates.length ? (
           <ul className="stagger space-y-1.5">
             {templates.map((template) => {
               // Deploy stays the row's one visible button; the two that were
               // icons keep the names they announced, in the row's menu.
-              const deployLabel = cue ? (template.cued ? "Take back the cue" : "Cue the storyteller") : "Deploy";
+              const deployLabel = cue ? (template.cued ? t("campaign.session.encounterPrep.takeBackCue") : t("campaign.session.encounterPrep.cueStoryteller")) : t("campaign.session.encounterRows.deploy");
               const items: ContextMenuItem[] = [
                 {
                   id: "deploy",
@@ -514,8 +519,8 @@ export function DmEncounterPrepPanel({
                   disabled: busy,
                   onSelect: () => void deploy(template.id, !template.cued),
                 },
-                { id: "duplicate", label: `Duplicate ${template.name}`, glyph: "ui-duplicate", disabled: busy, onSelect: () => void duplicate(template) },
-                { id: "delete", label: `Delete ${template.name}`, glyph: "ui-delete", tone: "danger", separated: true, onSelect: () => void remove(template) },
+                { id: "duplicate", label: t("campaign.session.encounterPrep.duplicateNamed", { name: template.name }), glyph: "ui-duplicate", disabled: busy, onSelect: () => void duplicate(template) },
+                { id: "delete", label: t("campaign.session.encounterPrep.deleteNamed", { name: template.name }), glyph: "ui-delete", tone: "danger", separated: true, onSelect: () => void remove(template) },
               ];
               return (
                 <ContextMenu key={template.id} as="li" items={items} label={template.name} className={panelRow}>
@@ -526,15 +531,15 @@ export function DmEncounterPrepPanel({
                         {template.name}
                         {cue && template.cued ? (
                           <span className="live-in ml-1.5 rounded-sm border border-amber-500/40 px-1 text-[10px] text-amber-300">
-                            cued
+                            {t("campaign.session.encounterPrep.cuedBadge")}
                           </span>
                         ) : null}
                       </p>
                       <p className="truncate text-xs text-stone-400">
                         {rosterSummary(template.enemies, template.readout.names)}
-                        {template.battlefield ? ` on ${template.battlefield}` : ""}
+                        {template.battlefield ? ` · ${t("campaign.session.encounterRows.onBattlefield", { place: template.battlefield })}` : ""}
                       </p>
-                      <DifficultyLine readout={template.readout} cue={cue} />
+                      <DifficultyLine readout={template.readout} cue={cue} t={t} tp={tp} />
                       {template.notes ? (
                         <p className="reveal mt-0.5 whitespace-pre-wrap text-[11px] text-stone-500">
                           {template.notes}
@@ -562,8 +567,8 @@ export function DmEncounterPrepPanel({
           <EmptyState
             size="sm"
             art="map"
-            title="Nothing prepared. Write a roster below and it is one button at the table."
-            hint="Pick monsters from the Bestiary or the rulebook and a map to fight on; the difficulty is measured against the party."
+            title={t("campaign.session.encounterPrep.emptyTitle")}
+            hint={t("campaign.session.encounterPrep.emptyHint")}
           />
         )}
         </Listed>
@@ -575,7 +580,7 @@ export function DmEncounterPrepPanel({
         onChange={setDraft}
         maps={maps}
         busy={busy}
-        submitLabel="Prepare it"
+        submitLabel={t("campaign.session.encounterPrep.prepare")}
         onSubmit={() => void save()}
       />
 
