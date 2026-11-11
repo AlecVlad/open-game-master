@@ -288,7 +288,7 @@ function ActLine({ bond, act }: { bond: RelationshipView; act: NonNullable<Relat
           : t("campaign.relationship.act.hidden", { tier: shownTier, approval: `${act.shown > 0 ? "+" : ""}${act.shown}` })}
         {act.motive ? `. ${t("campaign.relationship.act.motive", { motive: act.motive })}` : ""}
         {act.seenThroughBy.length && !act.revealed ? `. ${t("campaign.relationship.act.seenBy", { names: act.seenThroughBy.join(", ") })}` : ""}.
-        <span className="sr-only"> Only you see this.</span>
+        <span className="sr-only"> {t("campaign.relationship.private.onlyYou")}</span>
       </span>
     </p>
   );
