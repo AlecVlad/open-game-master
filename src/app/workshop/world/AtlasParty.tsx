@@ -103,7 +103,9 @@ export function PartyBar({ api, atlas, region }: { api: WorldApi; atlas: AtlasMa
             </p>
           ) : null}
           <p className="text-stone-400">{t("workshop.world.atlas.party.review.hideFirst")}</p>
-          {plan.notes.map((note) => (
+          {plan.noteDetails?.length ? plan.noteDetails.map((detail, index) => (
+            <p key={index} className="text-stone-400">{t(detail.code as never, detail.params)}</p>
+          )) : plan.notes.map((note) => (
             <p key={note} className="text-stone-400">{note}</p>
           ))}
           <span className="flex justify-end gap-1.5">
