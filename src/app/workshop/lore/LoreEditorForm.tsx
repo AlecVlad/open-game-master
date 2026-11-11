@@ -76,11 +76,13 @@ export function LoreEditorForm({
     lost: (draft.body.length - LORE_BODY_MAX).toLocaleString(),
     excerpt: shownLostText ? `: “${shownLostText}”` : "",
   });
+  const prose = checkProse(draft.body);
+  const proseKey = prose.map((warning) => warning.kind).join(",");
   const proseMessages = prose.map((warning) => {
-    const count = Number(warning.message.match(/^\\d+/)?.[0] ?? 0);
+    const count = Number(warning.message.match(/^(\d+)/)?.[1] ?? 0);
     if (warning.kind === "joined-sentences") return t("campaign.lore.editor.prose.joined", { count });
     if (warning.kind === "long-run") {
-      const minimum = Number(warning.message.match(/of (\\d+) or more/)?.[1] ?? 28);
+      const minimum = Number(warning.message.match(/of (\d+) or more/)?.[1] ?? 28);
       return t("campaign.lore.editor.prose.longRun", { count, minimum });
     }
     return t("campaign.lore.editor.prose.fewSpaces");
@@ -89,8 +91,6 @@ export function LoreEditorForm({
     warnings: proseMessages.join(" "),
     example: prose[0]?.samples[0] ? t("campaign.lore.editor.prose.example", { sample: prose[0].samples[0] }) : "",
   });
-  const prose = checkProse(draft.body);
-  const proseKey = prose.map((warning) => warning.kind).join(",");
   const [dismissed, setDismissed] = useState("");
 
   function insertLink(title: string) {
