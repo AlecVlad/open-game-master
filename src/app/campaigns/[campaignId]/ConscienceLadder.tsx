@@ -68,7 +68,11 @@ export function ConscienceLadder({ name, conscience }: { name: string; conscienc
   const { t } = useI18n();
   const step = CONSCIENCE_RUNGS.indexOf(conscience.rung);
   const rungLabel = t(`campaign.relationship.conscience.rung.${conscience.rung}` as never);
-  const left = conscience.ultimatum?.leftMinutes === undefined ? conscience.ultimatum?.left : localizedDuration(conscience.ultimatum.leftMinutes, t);
+  const left = conscience.ultimatum
+    ? conscience.ultimatum.leftMinutes === undefined
+      ? conscience.ultimatum.left
+      : localizedDuration(conscience.ultimatum.leftMinutes, t)
+    : "";
   return (
     <div className="mt-1.5" data-conscience-ladder={name} data-rung={conscience.rung}>
       <p className="flex items-baseline gap-1.5 text-[11px] leading-4">
