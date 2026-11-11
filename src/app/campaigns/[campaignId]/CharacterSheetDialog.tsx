@@ -45,7 +45,7 @@ import { speciesSpellsShown } from "@/lib/srd/species-spell-view";
 import { SummonDoor } from "@/app/campaigns/[campaignId]/SummonDoor";
 import { DefensesLine, HitDiceSpend, StateTags } from "@/components/sheet/SheetState";
 import { SheetBetween } from "@/components/sheet/SheetBetween";
-import { conditionDetail, hitDiceLine, itemStatus, maxHpView, otherSpeedsLine, speedView, wearableGear } from "@/components/sheet/sheet-state";
+import { conditionDetail, hitDiceLine, itemStatus, maxHpView, speedView, wearableGear } from "@/components/sheet/sheet-state";
 import { FeatureChoicePicker, OtherSpeeds } from "@/components/sheet/SheetChoices";
 import { OwedPicks } from "@/components/sheet/OwedPicks";
 import { SheetGearRows, type PendingWear } from "@/components/sheet/SheetGearRow";
@@ -182,6 +182,7 @@ export function CharacterSheetDialog({
   const speedState = speedView(sheet, { encumbrance: encumbranceRule });
   const speed = speedState.speed;
   const hp = maxHpView(sheet);
+  const hpNote = hpMaximumNote(hp.note, t);
   const nameOf = namesLookup(names);
   const dead = Boolean(sheet.deathSaves?.dead);
   // The same load speedFor weighs (size and a Belt of Giant Strength count),
@@ -193,7 +194,22 @@ export function CharacterSheetDialog({
     size: sizeForRace(sheet.race),
     wearer: sheet,
   });
-  const speedNote = speedState.notes.length ? speedState.notes.join(" ") : "Their walking speed.";
+  const speedNote = speedState.notes.length
+    ? speedState.notes.map((note) => {
+        const base = note.match(/^Base (\\d+) ft, (\\d+) ft with what they wear and carry\\.$/);
+        if (base) return t("charSheet.speed.worn", { base: base[1], worn: base[2] });
+        const zero = note.match(/^(.+): speed 0\\.$/);
+        if (zero) return t("charSheet.speed.conditionZero", { condition: zero[1] });
+        const changed = note.match(/^Effects on them change it to (\\d+) ft\\.$/);
+        if (changed) return t("charSheet.speed.changed", { speed: changed[1] });
+        const tired = note.match(/^Exhaustion (\\d+): (speed 0|speed halved)\\.$/);
+        if (tired) return t("charSheet.speed.exhaustion", {
+          level: tired[1],
+          effect: t(tired[2] === "speed 0" ? "charSheet.speed.zero" : "charSheet.speed.halved"),
+        });
+        return t("charSheet.speed.note");
+      }).join(" ")
+    : t("charSheet.speed.walk");
   const [busy, setBusy] = useState(false);
   const [pdfBusy, setPdfBusy] = useState(false);
   // The Carried tile's breakdown (issue #206), drawn from the same sheet and
@@ -307,7 +323,7 @@ export function CharacterSheetDialog({
           </div>
 
           <div className="space-y-1.5">
-            <HpBar current={sheet.currentHp} max={hp.max} temp={sheet.tempHp ?? 0} note={hp.note} />
+            <HpBar current={sheet.currentHp} max={hp.max} temp={sheet.tempHp ?? 0} note={hpNote} />
             <VitalTiles
               vitals={[
                 {
@@ -320,7 +336,12 @@ export function CharacterSheetDialog({
                   glyph: "rest-speed",
                   label: t("charSheet.speed"),
                   value: formatFeet(speed, measurementSystem, tableLanguage),
-                  title: formatMeasurementText([speedNote, ...otherSpeedsLine(derived.speeds)].join(" "), measurementSystem, tableLanguage),
+                  title: formatMeasurementText([
+                    speedNote,
+                    ...(derived.speeds?.fly ? [t("charSheet.speed.other", { type: t("charSheet.speed.fly"), speed: derived.speeds.fly })] : []),
+                    ...(derived.speeds?.swim ? [t("charSheet.speed.other", { type: t("charSheet.speed.swim"), speed: derived.speeds.swim })] : []),
+                    ...(derived.speeds?.climb ? [t("charSheet.speed.other", { type: t("charSheet.speed.climb"), speed: derived.speeds.climb })] : []),
+                  ].join(" "), measurementSystem, tableLanguage),
                   tone: speed < speedState.base ? "warn" : "plain",
                 },
                 {
@@ -352,13 +373,19 @@ export function CharacterSheetDialog({
                   // Past the capacity (Strength x 15) the load can only be
                   // dragged at 5 feet, whatever the table's encumbrance rule
                   // (src/lib/dm/load-rules.ts, speedFor).
-                  title: formatMeasurementText(`${
+                  title: formatMeasurementText(t(
                     load.overCapacity
-                      ? `Past their carrying capacity of ${load.capacityLb} lb: they can only drag this load, at a speed of 5 feet, and nothing more can be given to them.`
+                      ? "charSheet.load.overCapacity"
                       : encumbranceRule
-                        ? `${load.note ?? "Not encumbered"}. Capacity ${load.capacityLb} lb.`
-                        : `Carrying capacity ${load.capacityLb} lb. Encumbrance is off for this table, so weight up to the capacity costs nothing.`
-                  }${load.unweighed ? ` ${load.unweighed} item${load.unweighed === 1 ? "" : "s"} of unknown weight are not counted.` : ""}`, measurementSystem, tableLanguage),
+                        ? "charSheet.load.encumbered"
+                        : "charSheet.load.unencumbered",
+                    {
+                      capacity: load.capacityLb,
+                      note: load.note ? t("charSheet.load.encumbrance", { tier: load.note }) : t("charSheet.load.notEncumbered"),
+                      unweighed: load.unweighed,
+                      unweighedWord: load.unweighed === 1 ? t("charSheet.load.item") : t("charSheet.load.items"),
+                    },
+                  ), measurementSystem, tableLanguage),
                   onOpen: () => setLoadOpen(true),
                   opens: t("charSheet.load.showBreakdown"),
                 },
