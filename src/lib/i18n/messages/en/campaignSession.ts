@@ -309,4 +309,6 @@ export const enCampaignSession = {
   "campaign.summonDoor.ritualTitle": "Ten minutes longer, and no spell slot spent.",
   "campaign.summonDoor.ritual": "Cast as a ritual",
   "campaign.summonDoor.sent": "Sent.",
+  "campaign.summonDoor.error.refused": "The casting was refused.",
+  "campaign.summonDoor.error.server": "Could not reach the server.",
 } satisfies Record<string, string>;
