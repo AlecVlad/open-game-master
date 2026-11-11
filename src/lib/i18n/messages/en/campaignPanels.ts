@@ -4738,7 +4738,8 @@ export const enCampaignPanels = {
   "campaign.session.proposals.summary.healSpellAmount": "Heal {character} with {spell} ({amount})",
   "campaign.session.proposals.summary.heal": "Heal {character} for {amount}",
   "campaign.session.proposals.summary.condition": "Make {character} {condition}",
-  "campaign.session.proposals.summary.conditionRounds": "{character}: {condition} for {rounds} rounds",
+  "campaign.session.proposals.summary.conditionRounds.one": "Make {character} {condition} for {count} round",
+  "campaign.session.proposals.summary.conditionRounds.other": "Make {character} {condition} for {count} rounds",
   "campaign.session.proposals.summary.clearCondition": "Clear {condition} from {character}",
   "campaign.session.proposals.summary.trade": "{from} offers {give} to {to} for {want}",
 
