@@ -18,6 +18,7 @@ import type { DepartingSheet } from "@/app/campaigns/[campaignId]/departing";
 import { KitButton, SettingToggle } from "./PanelKit";
 import { PartyOrderBar, PartyOrderHandle, usePartyOrder } from "./PartyOrder";
 import { useEffect, useId, useState, Suspense, lazy } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/cn";
 import { CountPop } from "@/components/ui/Reveal";
 import { CharacterPortrait } from "@/lib/ui";
@@ -70,6 +71,7 @@ function RealDiceToggle({
   campaignId: string;
   member: CampaignMember;
 }) {
+  const { t } = useI18n();
   const [busy, setBusy] = useState(false);
   async function toggle() {
     setBusy(true);
@@ -89,16 +91,16 @@ function RealDiceToggle({
       onToggle={() => void toggle()}
       disabled={busy}
       aria-busy={busy}
-      label="Physical dice"
+      label={t("campaign.session.party.realDice")}
       title={
         member.useRealDice
-          ? "The game pauses on your rolls and asks for your real dice results. Click to switch back to automatic digital rolls."
-          : "Roll your own physical dice: the game will tell you what to roll and wait for your result. Click to opt in."
+          ? t("campaign.session.party.realDiceOnHint")
+          : t("campaign.session.party.realDiceOffHint")
       }
       className="w-full text-xs"
     >
       <GameIcon icon={{ kind: "glyph", key: "die-d20" }} size="size-4" className="mr-1 inline-block align-middle" />
-      {member.useRealDice ? "Physical dice: ON" : "Physical dice: off"}
+      {member.useRealDice ? t("campaign.session.party.realDiceOn") : t("campaign.session.party.realDiceOff")}
     </SettingToggle>
   );
 }
@@ -106,6 +108,7 @@ function RealDiceToggle({
 // Nudges the DM to write an AI companion into the story (the DM decides who
 // arrives and how); shown while the table is below its companion cap.
 function RequestCompanionButton({ campaignId }: { campaignId: string }) {
+  const { t } = useI18n();
   const [state, setState] = useState<"idle" | "sending" | "sent">("idle");
   async function request() {
     setState("sending");
@@ -127,11 +130,11 @@ function RequestCompanionButton({ campaignId }: { campaignId: string }) {
       onClick={request}
       disabled={state !== "idle"}
       busy={state === "sending"}
-      title="Ask the GM to write an ally with a real character sheet into the story"
+      title={t("campaign.session.party.requestCompanionHint")}
       className="w-full disabled:opacity-60"
     >
       {state === "sending" ? null : <GameIcon icon={{ kind: "glyph", key: "system-party" }} size="size-5" />}
-      {state === "sent" ? "The GM has been asked" : "Request a companion"}
+      {state === "sent" ? t("campaign.session.party.companionRequested") : t("campaign.session.party.requestCompanion")}
     </KitButton>
   );
 }
@@ -177,6 +180,7 @@ function HandToDmButton({
   blocked: LastingCompanionBlock | null;
   onOpenSettings?: () => void;
 }) {
+  const { t } = useI18n();
   const [state, setState] = useState<"idle" | "sending">("idle");
   const [error, setError] = useState("");
   const whyId = useId();
@@ -191,10 +195,10 @@ function HandToDmButton({
       });
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        setError(data.error || "Could not hand the character to the GM.");
+        setError(data.error || t("campaign.session.party.handToGmFailed"));
       }
     } catch {
-      setError("Could not reach the server.");
+      setError(t("campaign.session.party.serverUnavailable"));
     } finally {
       setState("idle");
     }
@@ -254,6 +258,7 @@ function HandToDmButton({
 // only; the library keeps its own level (issue #36), and the button says so
 // for a moment instead of a bare "Saved".
 function SaveToLibraryButton({ campaignId, sheetId }: { campaignId: string; sheetId: string }) {
+  const { t } = useI18n();
   const [state, setState] = useState<"idle" | "saving" | "saved">("idle");
   const [keptLevel, setKeptLevel] = useState<number | null>(null);
   async function save() {
@@ -287,7 +292,7 @@ function SaveToLibraryButton({ campaignId, sheetId }: { campaignId: string; shee
             <Check className="motion-pop size-3.5 text-emerald-400" /> {keptLevel === null ? "Saved" : "Gear and notes saved"}
           </>
         ) : state === "saving" ? (
-          "Save to library"
+          t("campaign.session.party.saveToLibrary")
         ) : (
           <>
             <Save className="size-3.5" /> Save to library
@@ -418,6 +423,7 @@ export function PartyPanel({
   activeSheetId?: string;
   multiCharacter?: "off" | "one_active" | "all_active";
 }) {
+  const { t, tp } = useI18n();
   const packArt = usePackArt(worldPack);
   // A companion's "Paint a portrait" only where the server can paint, and
   // where the host has the route (an app's screens may be newer than it).
@@ -504,7 +510,7 @@ export function PartyPanel({
       )}
     >
       {embedded ? null : (
-        <SectionHead title="Party" glyph="tab-party" level="h2" aside={sheets.length} />
+        <SectionHead title={t("campaign.session.party.heading")} glyph="tab-party" level="h2" aside={sheets.length} />
       )}
       {switchError ? <p role="alert" className="text-sm text-red-300">{switchError}</p> : null}
       <PartyOrderBar
@@ -573,7 +579,7 @@ export function PartyPanel({
               <button
                 type="button"
                 onClick={() => setViewingSheetId(sheet.id)}
-                title="View full character sheet"
+                title={t("campaign.session.party.viewSheet")}
                 className="party-card-heading flex min-w-0 flex-1 items-center gap-2.5 rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/40 motion-press"
               >
               <CharacterPortrait
@@ -617,7 +623,7 @@ export function PartyPanel({
                   ) : null}
                   {!sheet.isCompanion && onlineUserIds.includes(sheet.userId) ? (
                     <span
-                      title="Online now"
+                      title={t("campaign.session.party.onlineNow")}
                       className="size-2 shrink-0 rounded-full bg-emerald-400 shadow-[0_0_4px_rgba(52,211,153,0.7)]"
                     />
                   ) : null}
@@ -627,7 +633,7 @@ export function PartyPanel({
                   {sheet.isCompanion && !offSide(encounter, sheet.id, "pc") ? (
                     <Bot
                       className="size-3.5 shrink-0 text-sky-300"
-                      aria-label="AI companion"
+                      aria-label={t("campaign.session.party.aiCompanion")}
                     />
                   ) : null}
                 </span>
@@ -639,7 +645,7 @@ export function PartyPanel({
               {publicNoteCount ? (
                 <KitButton
                   onClick={() => setNotesSheetId(sheet.id)}
-                  title={`${publicNoteCount} party ${publicNoteCount === 1 ? "note" : "notes"} on ${sheet.name}`}
+                  title={tp("campaign.session.party.notesTitle", publicNoteCount, { name: sheet.name })}
                   className="shrink-0 gap-0.5 rounded-full px-1.5 py-0.5 text-[11px]"
                 >
                   <GameIcon icon={{ kind: "glyph", key: "tab-notes" }} size="size-4" /> {publicNoteCount}
@@ -708,7 +714,7 @@ export function PartyPanel({
               {shape ? (
                 <span
                   className="font-mono text-xs text-lime-300"
-                  title={`Beast form hit points. ${sheet.name}'s own: ${sheet.currentHp}/${hp.max}`}
+                  title={t("campaign.session.party.beastHpHint", { name: sheet.name, current: sheet.currentHp, max: hp.max })}
                 >
                   {shape.beastHp}
                   {sheet.tempHp ? `+${sheet.tempHp}` : ""}/{shape.beastMaxHp}
@@ -768,7 +774,7 @@ export function PartyPanel({
                         : "border-red-700 bg-red-950/50 text-red-300",
                   )}
                 >
-                  {sheet.deathSaves.dead ? "Dead" : sheet.deathSaves.stable ? "Stable" : "Dying"}
+                  {sheet.deathSaves.dead ? t("campaign.session.party.dead") : sheet.deathSaves.stable ? t("campaign.session.party.stable") : t("campaign.session.party.dying")}
                 </span>
                 {!sheet.deathSaves.dead && !sheet.deathSaves.stable ? (
                   <span className="flex items-center gap-1.5" title="Death saves: successes and failures">
@@ -842,7 +848,7 @@ export function PartyPanel({
                   <span
                     key={id}
                     className="rounded-full border border-stone-700/50 bg-stone-950/60 px-2 py-0.5 text-[10px] text-stone-300"
-                    title="Limited-use resource: remaining/max"
+                    title={t("campaign.session.party.limitedResource")}
                   >
                     {resourceName(id)} {state.max - state.used}/{state.max}
                   </span>
@@ -880,7 +886,7 @@ export function PartyPanel({
                 {inspired(sheet) ? (
                   <span
                     className="motion-pop inline-flex items-center gap-1 rounded-full bg-amber-950 px-2 py-0.5 text-xs text-amber-200"
-                    title="Inspiration: spent for advantage on one attack, save or check."
+                    title={t("campaign.session.party.inspirationHint")}
                   >
                     <GameIcon icon={{ kind: "glyph", key: "rest-inspiration" }} size="size-4" />
                     Inspiration
@@ -889,7 +895,7 @@ export function PartyPanel({
                 {sheet.concentratingOn ? (
                   <span
                     className="inline-flex items-center gap-1 rounded-full bg-sky-950 px-2 py-0.5 text-xs text-sky-300"
-                    title="Concentrating on this spell"
+                    title={t("campaign.session.party.concentrating")}
                   >
                     <GameIcon icon={{ kind: "spell", key: sheet.concentratingOn }} size="size-4" />
                     {sheet.concentratingOn}
@@ -902,7 +908,7 @@ export function PartyPanel({
               <KitButton
                 tone="primary"
                 onClick={onLevelUp}
-                title="You have the experience for a new level"
+                title={t("campaign.session.party.levelUpReady")}
                 className="reveal mt-2 w-full justify-center"
               >
                 <Sparkles className="size-3.5" /> Level up to {levelUpLevel}
@@ -931,7 +937,7 @@ export function PartyPanel({
                     dialog remains for corrections. */}
                 <KitButton onClick={() => setCroppingSheetId(sheet.id)} className="w-full justify-center">
                   <ImagePlus className="size-3.5" />
-                  {sheet.portrait ? "Change portrait" : "Add portrait"}
+                  {sheet.portrait ? t("campaign.session.party.changePortrait") : t("campaign.session.party.addPortrait")}
                 </KitButton>
                 {campaignId && sheet.isCompanion && steersStory && canPaint ? (
                   <CompanionPaintButton campaignId={campaignId} sheet={sheet} />
@@ -985,7 +991,7 @@ export function PartyPanel({
 
       {partyStory && campaignId && (party?.backstory || partyStory.canWrite) ? (
         <section className="mt-4 space-y-2">
-          <SectionHead title="Party story" glyph="tab-party" level="h3" />
+          <SectionHead title={t("campaign.session.party.partyStory")} glyph="tab-party" level="h3" />
           <PartyStory
             campaignId={campaignId}
             party={party}
@@ -1088,9 +1094,9 @@ function RomanceNote({ sheet }: { sheet: CharacterSheet }) {
   return (
     <p className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-stone-400" data-romance-note={sheet.id}>
       {drawn ? <span>Drawn to {drawn}</span> : null}
-      {more ? <span data-open-relationship-note>Open to more than one partner</span> : null}
+      {more ? <span data-open-relationship-note>{t("campaign.session.party.openToMore")}</span> : null}
       {open ? (
-        <span className="rounded-full border border-rose-500/40 bg-rose-500/10 px-1.5 text-rose-200">Open to advances</span>
+        <span className="rounded-full border border-rose-500/40 bg-rose-500/10 px-1.5 text-rose-200">{t("campaign.session.party.openToAdvances")}</span>
       ) : null}
     </p>
   );
@@ -1101,8 +1107,8 @@ function LightBar({ light }: { light: { remaining: number; total: number } }) {
   const low = light.remaining <= 15;
   return (
     <span
-      title={`Light: ${light.remaining} minutes left`}
-      aria-label={`Light: ${light.remaining} minutes left`}
+      title={t("campaign.session.party.lightRemaining", { minutes: light.remaining })}
+      aria-label={t("campaign.session.party.lightRemaining", { minutes: light.remaining })}
       className="flex h-1.5 w-8 shrink-0 items-center overflow-hidden rounded-full border border-amber-900/60 bg-stone-900"
     >
       <span
