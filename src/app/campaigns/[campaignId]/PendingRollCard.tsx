@@ -281,7 +281,7 @@ export function PendingRollCard({
         setError(data.error || t("campaign.session.roll.portentFailed"));
       }
     } catch {
-      setError("Could not reach the server.");
+      setError(t("campaign.session.roll.serverUnreachable"));
     } finally {
       setBusy(false);
     }
@@ -297,7 +297,7 @@ export function PendingRollCard({
         setError(data.error || t("campaign.session.roll.inspirationFailed"));
       }
     } catch {
-      setError("Could not reach the server.");
+      setError(t("campaign.session.roll.serverUnreachable"));
     } finally {
       setBusy(false);
     }
