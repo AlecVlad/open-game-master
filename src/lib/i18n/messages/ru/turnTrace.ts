@@ -52,9 +52,9 @@ export const ruTurnTrace = {
   "campaign.session.turnTrace.modelCalls.one": "{count} вызов модели",
   "campaign.session.turnTrace.modelCalls.few": "{count} вызова модели",
   "campaign.session.turnTrace.modelCalls.many": "{count} вызовов модели",
-  "campaign.session.turnTrace.modelCalls.other": "{count} вызова модели",
+  "campaign.session.turnTrace.modelCalls.other": "{count} вызовов модели",
   "campaign.session.turnTrace.rolls.one": "{count} бросок",
   "campaign.session.turnTrace.rolls.few": "{count} броска",
   "campaign.session.turnTrace.rolls.many": "{count} бросков",
-  "campaign.session.turnTrace.rolls.other": "{count} броска",
+  "campaign.session.turnTrace.rolls.other": "{count} бросков",
 } as const;
