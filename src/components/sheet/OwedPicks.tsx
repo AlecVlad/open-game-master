@@ -8,8 +8,8 @@ import { replayAnimation } from "@/lib/motion/replay";
 import { STANDARD_LANGUAGES } from "@/lib/content/mechanics";
 import type { CharacterSheet } from "@/lib/schemas/sheet";
 import { fightingStyleFeatureName } from "@/lib/srd/feature-effects";
-import { optionCost, optionFeatureName, remainingWords, slotTakes, type OptionSlot } from "@/lib/srd/options";
-import { owedChoiceGroups, owedChoicesSentences } from "@/lib/srd/owed-choices";
+import { optionCost, optionFeatureName, slotTakes, type OptionSlot } from "@/lib/srd/options";
+import { owedChoiceGroups } from "@/lib/srd/owed-choices";
 import { owedPickSlots } from "@/lib/srd/owed-picks-logic";
 import { subclassChoicePickName, subclassChoiceSummary } from "@/lib/content/subclass-choices";
 import { hostOffers, useCapabilities } from "@/lib/use-capabilities";
@@ -32,7 +32,75 @@ export function OwedPicks({ sheet, mine }: { sheet: CharacterSheet; mine: boolea
   const offered = hostOffers(useCapabilities(), "owedPicks");
   const owed = owedPickSlots(sheet);
   const where = !mine ? "owner" : offered ? "here" : "level-up";
-  const sentences = owedChoicesSentences(owedChoiceGroups(sheet), where);
+  const groups = owedChoiceGroups(sheet);
+  const classNames: Record<string, string> = {
+    barbarian: t("charSheet.class.barbarian"),
+    bard: t("charSheet.class.bard"),
+    cleric: t("charSheet.class.cleric"),
+    druid: t("charSheet.class.druid"),
+    fighter: t("charSheet.class.fighter"),
+    monk: t("charSheet.class.monk"),
+    paladin: t("charSheet.class.paladin"),
+    ranger: t("charSheet.class.ranger"),
+    rogue: t("charSheet.class.rogue"),
+    sorcerer: t("charSheet.class.sorcerer"),
+    warlock: t("charSheet.class.warlock"),
+    wizard: t("charSheet.class.wizard"),
+    artificer: t("charSheet.class.artificer"),
+  };
+  const optionLabels: Record<OptionSlot["kind"], string> = {
+    invocation: t("charSheet.owed.kind.invocation"),
+    maneuver: t("charSheet.owed.kind.maneuver"),
+    metamagic: t("charSheet.owed.kind.metamagic"),
+    pact_boon: t("charSheet.owed.kind.pact_boon"),
+    infusion: t("charSheet.owed.kind.infusion"),
+    rune: t("charSheet.owed.kind.rune"),
+    discipline: t("charSheet.owed.kind.discipline"),
+    hunters_prey: t("charSheet.owed.kind.hunters_prey"),
+    defensive_tactics: t("charSheet.owed.kind.defensive_tactics"),
+    hunter_multiattack: t("charSheet.owed.kind.hunter_multiattack"),
+    superior_hunters_defense: t("charSheet.owed.kind.superior_hunters_defense"),
+    dragon_ancestor: t("charSheet.owed.kind.dragon_ancestor"),
+    favored_enemy: t("charSheet.owed.kind.favored_enemy"),
+    favored_terrain: t("charSheet.owed.kind.favored_terrain"),
+    land_circle: t("charSheet.owed.kind.land_circle"),
+    spell_mastery_1: t("charSheet.owed.kind.spell_mastery_1"),
+    spell_mastery_2: t("charSheet.owed.kind.spell_mastery_2"),
+    signature_spell: t("charSheet.owed.kind.signature_spell"),
+  };
+  const levelUpLines = groups.levelUp.map((line) => localizeLevelUpLine(line, t, classNames));
+  const onSheetLines = [
+    ...owed.options.map((slot) => `${optionLabels[slot.kind]}: ${remainingText(slot.remaining, t)}`),
+    ...owed.choices.map((choice) => t("charSheet.owed.choice", { subclass: choice.subclass, label: choice.label })),
+    ...(owed.styles.count
+      ? [t(owed.styles.count === 1 ? "charSheet.owed.styles.one" : "charSheet.owed.styles.many", { count: owed.styles.count })]
+      : []),
+    ...owed.training.map((grant) =>
+      t(grant.spec.languages === 1 ? "charSheet.owed.training.one" : "charSheet.owed.training.many", {
+        grant: grant.name,
+        count: grant.spec.languages,
+      }),
+    ),
+  ];
+  const sentences = [
+    ...(levelUpLines.length
+      ? [t("charSheet.owed.sentences.levelUp", { choices: levelUpLines.join("; ") })]
+      : []),
+    ...(onSheetLines.length
+      ? [
+          t(
+            where === "here"
+              ? "charSheet.owed.sentences.here"
+              : where === "owner"
+                ? "charSheet.owed.sentences.owner"
+                : "charSheet.owed.sentences.levelUpOnly",
+            {
+              list: `${t(levelUpLines.length ? "charSheet.owed.sentences.onSheetLead" : "charSheet.owed.sentences.onSheetOnly")}: ${onSheetLines.join("; ")}.`,
+            },
+          ),
+        ]
+      : []),
+  ];
   const pickers = where === "here" && (owed.options.length > 0 || owed.choices.length > 0 || owed.styles.count > 0 || owed.training.length > 0);
   return (
     <>
@@ -47,6 +115,7 @@ export function OwedPicks({ sheet, mine }: { sheet: CharacterSheet; mine: boolea
 }
 
 function OwedPickers({ sheet, owed }: { sheet: CharacterSheet; owed: ReturnType<typeof owedPickSlots> }) {
+  const { t } = useI18n();
   return (
     <div className="reveal mt-3 space-y-3">
       {owed.options.map((slot) => (
@@ -78,7 +147,7 @@ function OwedPickers({ sheet, owed }: { sheet: CharacterSheet; owed: ReturnType<
           sheet={sheet}
           slot={{
             kind: "invocation",
-            label: "Fighting style",
+            label: t("charSheet.owed.fightingStyle"),
             total: owed.styles.count,
             chosen: [],
             remaining: owed.styles.count,
@@ -116,6 +185,39 @@ async function sendOwed(sheet: CharacterSheet, body: Record<string, unknown>, t:
   }
 }
 
+
+
+function localizeLevelUpLine(
+  line: string,
+  t: SheetTranslator,
+  classNames: Record<string, string>,
+): string {
+  const ability = /^(\\d+) Ability Score Improvements? \\(two points, or a feat\\)$/i.exec(line);
+  if (ability) return t("charSheet.owed.dynamic.asi", { count: Number(ability[1]) });
+  const expertiseOne = /^expertise in one more proficiency$/i.test(line);
+  if (expertiseOne) return t("charSheet.owed.dynamic.expertise.one");
+  const expertiseMany = /^expertise in (\\d+) more proficiencies$/i.exec(line);
+  if (expertiseMany) return t("charSheet.owed.dynamic.expertise.many", { count: Number(expertiseMany[1]) });
+  const skills = /^(\\d+) (.+) skills?$/i.exec(line);
+  if (skills) {
+    const id = skills[2].trim().toLowerCase().replace(/\\s+/g, "_");
+    const className = classNames[id] ?? skills[2];
+    return t(Number(skills[1]) === 1 ? "charSheet.owed.dynamic.skill.one" : "charSheet.owed.dynamic.skill.many", {
+      className,
+      count: Number(skills[1]),
+    });
+  }
+  const subclass = /^a subclass for (.+) \\(due at (.+) level (\\d+)\\)$/i.exec(line);
+  if (subclass) {
+    const first = subclass[1].trim().toLowerCase().replace(/\\s+/g, "_");
+    const second = subclass[2].trim().toLowerCase().replace(/\\s+/g, "_");
+    return t("charSheet.owed.dynamic.subclass", {
+      className: classNames[first] ?? classNames[second] ?? subclass[1],
+      level: Number(subclass[3]),
+    });
+  }
+  return line;
+}
 
 function remainingText(remaining: number, t: SheetTranslator): string {
   const whole = Math.floor(remaining);
