@@ -298,4 +298,13 @@ export const enWorkshop = {
   "workshop.systems.description": "Use only the tools your game needs; nothing here has to be filled in before you play. WorldForge, Cast, Region, Factions and Lore are views of the same records, so a change in one shows in all of them. A workshop stays yours until you bring it into a campaign; Plugin turns it into a world pack, one file any server can install so a campaign can be played in your setting.",
   "workshop.systems.footer": "Everything here is yours alone. Import any of it into a campaign when you start one.",
 
+  "workshop.hub.tour.label": "Tour the workshop",
+  "workshop.hub.tour.detail": "The hub: the party bar, the tool cards and the actions on the workshop.",
+  "workshop.hub.tour.system.label": "Tour {name}",
+  "workshop.hub.tour.system.detail": "This tool's controls, one at a time.",
+  "workshop.hub.backToWorkshop": "Workshop",
+  "workshop.hub.error.notFound": "That workshop does not exist, or is not yours.",
+  "workshop.hub.commands.title": "Workshop commands",
+  "workshop.hub.commands.placeholder": "Jump to, or create",
+
 } satisfies Record<string, string>;
