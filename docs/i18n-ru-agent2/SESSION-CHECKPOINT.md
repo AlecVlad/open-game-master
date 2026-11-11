@@ -154,5 +154,10 @@ Continue the Atlas audit with `AtlasRegion.tsx`, `AtlasEdit.tsx`, `AtlasParty.ts
 - Reveal date uses the active interface language (`ru-RU` / `en-CA`). Success messages interpolate the player-facing lore entry title; secret titles, notes, keeper names, subject names, reveal text, and backend record IDs remain data.
 - Added 44 EN/RU messages in `workshop.ts`, including two plural groups for open and learned secret counts. Static audit: 31 direct source keys covered; both plural groups have EN `.one/.other` and RU `.one/.few/.many/.other` forms; no missing keys, duplicate keys, or placeholder mismatches. TypeScript, lint, tests, production build and visual checks remain deferred.
 
+## WorldForge — Wiki / Encyclopaedia — 12 November 2026
+- `WikiView.tsx`: localized entry creation, shelf/category labels, type and folder navigation, folder removal confirmation, search, empty states, help text and text-model setup guidance.
+- `EntryList.tsx`: localized list accessibility label and hidden-truth indicator label. `CreateButton` continues to use its own existing localization. User-defined type names, folder names, entry names and contents remain data.
+- Added 44 EN/RU messages in `workshop.ts`, covering four shelves and all seven lore categories. Static audit: 30 direct source keys covered; dynamic shelf/category keys and conditional empty-state/scope keys exist in both dictionaries; no duplicate keys, missing keys, or placeholder mismatches. TypeScript, lint, tests, production build and visual checks remain deferred.
+
 ## Resume
-Continue with `WikiView.tsx`. Verify the branch HEAD before editing. Import/export reports, `EntityEditor.tsx`, `EntityPage.tsx`, all six Atlas components, `TimelineView.tsx` and `SecretsView.tsx` are localized. Block 1 remains formally open; do not merge, open a PR or create its DONE flag.
+WorldForge screens in the current localization pass are covered: `EntityEditor.tsx`, `EntityPage.tsx`, all six Atlas components, `TimelineView.tsx`, `SecretsView.tsx`, `WikiView.tsx` and `EntryList.tsx`. Next, review remaining WorldForge support surfaces and any translation gaps found by the project audit. Verify branch HEAD before editing. Block 1 remains formally open; do not merge, open a PR or create its DONE flag.
