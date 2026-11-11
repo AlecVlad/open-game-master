@@ -3,6 +3,7 @@
 import { ChevronLeft, Eye, EyeOff, Map as MapIcon, MapPin, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/cn";
+import { useI18n } from "@/lib/i18n/provider";
 import { KitButton } from "@/app/campaigns/[campaignId]/PanelKit";
 import { SectionHead } from "@/components/ui/SectionHead";
 import { polygonCentroid } from "@/lib/worldforge/tree";
@@ -20,6 +21,7 @@ import type { WorldApi } from "./useWorld";
 // ---- the DM's side ----
 
 export function PartyBar({ api, atlas, region }: { api: WorldApi; atlas: AtlasMap; region: AtlasRegion }) {
+  const { t, tp } = useI18n();
   const [plan, setPlan] = useState<ShowPlan | null>(null);
   const [busy, setBusy] = useState(false);
   const shown = atlas.party === "shown";
@@ -41,12 +43,12 @@ export function PartyBar({ api, atlas, region }: { api: WorldApi; atlas: AtlasMa
       const done = (await api.party("POST", { mapId: atlas.id, apply: true })) as ShowPlan | null;
       if (!done?.applied) return;
       setPlan(null);
-      region.setNotice({ text: `${atlas.name} is on the party's Atlas now, in everyone's Map tab.` });
+      region.setNotice({ text: t("workshop.world.atlas.party.notice.shown", { name: atlas.name }) });
     });
   const hide = () =>
     run(async () => {
       const done = (await api.party("DELETE", { mapId: atlas.id })) as { hidden?: boolean } | null;
-      if (done?.hidden) region.setNotice({ text: `${atlas.name} is off the party's Atlas.` });
+      if (done?.hidden) region.setNotice({ text: t("workshop.world.atlas.party.notice.hidden", { name: atlas.name }) });
     });
 
   return (
@@ -55,36 +57,36 @@ export function PartyBar({ api, atlas, region }: { api: WorldApi; atlas: AtlasMa
         {shown ? (
           <>
             <span className="pk-chip text-[11px] text-sky-200" data-testid="atlas-party-shown">
-              <Eye className="size-3.5" /> Shown to the party
+              <Eye className="size-3.5" /> {t("workshop.world.atlas.party.shown")}
             </span>
             <KitButton tone="link" disabled={busy} onClick={() => void hide()} data-testid="atlas-party-hide">
-              <EyeOff className="size-3.5" /> Hide from the party
+              <EyeOff className="size-3.5" /> {t("workshop.world.atlas.party.hide")}
             </KitButton>
           </>
         ) : plan ? null : (
           <KitButton tone="small" busy={busy} disabled={busy} onClick={() => void review()} data-testid="atlas-party-show">
-            {busy ? null : <Eye className="size-3.5" />} Show to the party
+            {busy ? null : <Eye className="size-3.5" />} {t("workshop.world.atlas.party.show")}
           </KitButton>
         )}
       </div>
       {plan ? (
-        <div className="panel motion-pop flex flex-col gap-2 rounded-lg p-3 text-xs text-stone-300" role="dialog" aria-label={`Show ${plan.map.name} to the party?`} data-testid="atlas-party-review">
+        <div className="panel motion-pop flex flex-col gap-2 rounded-lg p-3 text-xs text-stone-300" role="dialog" aria-label={t("workshop.world.atlas.party.review.title", { name: plan.map.name })} data-testid="atlas-party-review">
           <div className="flex items-center gap-2">
-            <span className="eyebrow text-[10px] text-amber-400/80">Review</span>
-            <span className="text-sm text-amber-100">Show {plan.map.name} to the party?</span>
-            <KitButton tone="icon" always className="ml-auto" aria-label="Cancel" onClick={() => setPlan(null)}>
+            <span className="eyebrow text-[10px] text-amber-400/80">{t("workshop.world.atlas.review.heading")}</span>
+            <span className="text-sm text-amber-100">{t("workshop.world.atlas.party.review.title", { name: plan.map.name })}</span>
+            <KitButton tone="icon" always className="ml-auto" aria-label={t("workshop.cancel")} onClick={() => setPlan(null)}>
               <X className="size-4" />
             </KitButton>
           </div>
           <p>
-            Players will see {plan.seen.pins.length === 1 ? "one pin" : `${plan.seen.pins.length} pins`} and {plan.seen.regions.length === 1 ? "one region" : `${plan.seen.regions.length} regions`}:
+            {t("workshop.world.atlas.party.review.playersSee", { pins: tp("workshop.world.atlas.count.pins", plan.seen.pins.length), regions: tp("workshop.world.atlas.count.regions", plan.seen.regions.length) })}
           </p>
           {plan.seen.pins.length || plan.seen.regions.length ? (
             <ul className="flex flex-col gap-0.5" data-testid="atlas-party-seen">
               {plan.seen.pins.map((pin) => (
                 <li key={pin.id}>
                   <MapPin className="mr-1 inline size-3 text-red-300" />
-                  {pin.label || <span className="text-stone-500">a pin with no name</span>}
+                  {pin.label || <span className="text-stone-500">{t("workshop.world.atlas.party.unnamedPin")}</span>}
                 </li>
               ))}
               {plan.seen.regions.map((entry) => (
@@ -97,17 +99,17 @@ export function PartyBar({ api, atlas, region }: { api: WorldApi; atlas: AtlasMa
           ) : null}
           {plan.hiddenPins || plan.hiddenRegions ? (
             <p>
-              Staying hidden: {[plan.hiddenPins ? `${plan.hiddenPins} ${plan.hiddenPins === 1 ? "pin" : "pins"}` : "", plan.hiddenRegions ? `${plan.hiddenRegions} ${plan.hiddenRegions === 1 ? "region" : "regions"}` : ""].filter(Boolean).join(" and ")}.
+              {t("workshop.world.atlas.party.review.stayingHidden", { items: [plan.hiddenPins ? tp("workshop.world.atlas.count.pins", plan.hiddenPins) : "", plan.hiddenRegions ? tp("workshop.world.atlas.count.regions", plan.hiddenRegions) : ""].filter(Boolean).join(", ") })}
             </p>
           ) : null}
-          <p className="text-stone-400">To hide one first, cancel, open the pin or region, and tick Hidden from the party.</p>
+          <p className="text-stone-400">{t("workshop.world.atlas.party.review.hideFirst")}</p>
           {plan.notes.map((note) => (
             <p key={note} className="text-stone-400">{note}</p>
           ))}
           <span className="flex justify-end gap-1.5">
-            <KitButton tone="small" onClick={() => setPlan(null)}>Cancel</KitButton>
+            <KitButton tone="small" onClick={() => setPlan(null)}>{t("workshop.cancel")}</KitButton>
             <KitButton tone="primary" busy={busy} disabled={busy} onClick={() => void show()} data-testid="atlas-party-apply">
-              {busy ? null : <Eye className="size-3.5" />} Show it
+              {busy ? null : <Eye className="size-3.5" />} {t("workshop.world.atlas.party.showIt")}
             </KitButton>
           </span>
         </div>
@@ -120,6 +122,7 @@ export function PartyBar({ api, atlas, region }: { api: WorldApi; atlas: AtlasMa
 
 // The maps the DM has shown, read-only. Draws nothing while there are none.
 export function PartyAtlasPanel({ campaignId, refreshKey = 0 }: { campaignId: string; refreshKey?: number }) {
+  const { t } = useI18n();
   const [atlas, setAtlas] = useState<PartyAtlas | null>(null);
   const [mapId, setMapId] = useState("");
   useEffect(() => {
@@ -138,10 +141,10 @@ export function PartyAtlasPanel({ campaignId, refreshKey = 0 }: { campaignId: st
   const current = atlas.maps.find((entry) => entry.id === mapId) ?? atlas.maps.find((entry) => !entry.parentPinId) ?? atlas.maps[0];
   const parent = current.parentPinId ? atlas.maps.find((entry) => entry.pins.some((pin) => pin.id === current.parentPinId)) : undefined;
   return (
-    <section className="panel flex flex-col gap-2 rounded-xl p-3" aria-label="The party's Atlas" data-testid="party-atlas">
-      <SectionHead title="Atlas" />
+    <section className="panel flex flex-col gap-2 rounded-xl p-3" aria-label={t("workshop.world.atlas.party.panel")} data-testid="party-atlas">
+      <SectionHead title={t("workshop.world.atlas.party.panelTitle")} />
       {atlas.maps.length > 1 ? (
-        <div className="flex flex-wrap gap-1" role="tablist" aria-label="Maps">
+        <div className="flex flex-wrap gap-1" role="tablist" aria-label={t("workshop.world.atlas.map.list")}>
           {atlas.maps.map((entry) => (
             <button key={entry.id} type="button" role="tab" aria-selected={entry.id === current.id} onClick={() => setMapId(entry.id)} className={cn("pk-chip text-[11px]", entry.id === current.id && "border-amber-500/60 text-amber-100")}>
               <MapIcon className="size-3" /> {entry.name}
@@ -153,7 +156,7 @@ export function PartyAtlasPanel({ campaignId, refreshKey = 0 }: { campaignId: st
       )}
       {parent ? (
         <KitButton tone="link" onClick={() => setMapId(parent.id)}>
-          <ChevronLeft className="size-3.5" /> Back to {parent.name}
+          <ChevronLeft className="size-3.5" /> {t("workshop.world.atlas.party.backTo", { name: parent.name })}
         </KitButton>
       ) : null}
       <PartySurface map={current} onOpen={setMapId} />
@@ -162,6 +165,7 @@ export function PartyAtlasPanel({ campaignId, refreshKey = 0 }: { campaignId: st
 }
 
 function PartySurface({ map, onOpen }: { map: PartyMap; onOpen: (id: string) => void }) {
+  const { t } = useI18n();
   return (
     <div className="relative w-full overflow-hidden rounded-lg border border-stone-800" style={{ aspectRatio: String(map.frame.surface) }} data-testid="party-atlas-surface">
       {map.image ? (
@@ -192,11 +196,11 @@ function PartySurface({ map, onOpen }: { map: PartyMap; onOpen: (id: string) => 
         );
         const style = { left: `${pin.x * 100}%`, top: `${pin.y * 100}%` };
         return pin.opens ? (
-          <button key={pin.id} type="button" className="absolute flex -translate-x-1/2 -translate-y-full flex-col items-center" style={style} onClick={() => onOpen(pin.opens!)} aria-label={`${pin.label || "A pin"}: open its map`}>
+          <button key={pin.id} type="button" className="absolute flex -translate-x-1/2 -translate-y-full flex-col items-center" style={style} onClick={() => onOpen(pin.opens!)} aria-label={t("workshop.world.atlas.party.openPinMap", { name: pin.label || t("workshop.world.atlas.pin.fallback") })}>
             {marker}
           </button>
         ) : (
-          <span key={pin.id} className="absolute flex -translate-x-1/2 -translate-y-full flex-col items-center" style={style} role="img" aria-label={pin.label || "A pin"}>
+          <span key={pin.id} className="absolute flex -translate-x-1/2 -translate-y-full flex-col items-center" style={style} role="img" aria-label={pin.label || t("workshop.world.atlas.pin.fallback")}>
             {marker}
           </span>
         );
