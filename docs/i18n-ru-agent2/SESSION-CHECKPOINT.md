@@ -27,13 +27,16 @@ Single restore point for Russian localization. After a chat interruption, read o
 - `SessionHoldBanner.tsx`: ended-session title, schedule button/dialog, next-session line, countdown participant count, start-session action and body localized with locale-aware date formatting.
 - `SummonDoor.tsx`: summon section label, begin/finish/cast actions, round/slot status, ritual controls, missing-slot explanation, and generic request fallbacks localized. Spell/creature names and detailed cast-guard refusal diagnostics returned by shared game rules remain data.
 - `NarrationNote.tsx` (`NarrationNote` and `ImagesNote`): provider availability, model/network status and image backend explanations localized. Backend names, addresses and server settings remain technical data.
+- `AddonViewSwitch.tsx`: board view radio-group labels, built-in board hint, options button/dialog and device-specific explanation localized; add-on-provided titles/descriptions remain metadata.
+- `CharacterGate.tsx`: new-member and fallen-hero banner titles, descriptions and actions localized.
+- `CharacterVoices.tsx`: voice groups, voice picker/pace labels, automatic voice assignment, descriptions, empty/loading states and generic save/network fallbacks localized. Voice IDs and roster names remain data.
 - `NameMenu.tsx`: mention list accessibility label, party/people/place groups, no-match state, keyboard hints and not-yet-introduced marker localized. Search matching, insertion behavior and actual names remain unchanged.
 - `PregenPicker.tsx`: default heading localized; pre-generated hero names, taglines and descriptions remain content data.
 - The existing `campaignSession.ts` EN/RU pair was extended: dice dialogs added 40 keys, context trace has 80 keys, report dialog added 31 keys, voice controls added 20 keys. Voice dictionaries are 20 EN / 20 RU, no missing pairs, duplicates or placeholder differences. The two plural base keys are `tp()` groups with `.one/.few/.many/.other` variants in both dictionaries; validate their suffixed forms rather than treating the base key as missing.
 - Do not repeat these components unless a targeted defect is found.
 
 ## Next work
-Continue the Block 1 audit from the remaining session components. Use a bounded path scan to find the next components without `useI18n()` and visible fixed English labels; do not repeat completed files. Consult `PLAN.md` only if the block boundary is unclear.
+Inspect `src/app/campaigns/[campaignId]/CompanionCommand.tsx` and `CompanionBuilderDialog.tsx` (both lacked `useI18n()` at the last scan; command assignment has static labels/hints, while the companion builder needs a focused audit of its form fields and actions). Translate a coherent set of fixed UI strings without changing companion IDs or game rules. Continue the Block 1 audit after that.
 
 ## Low-token work protocol
 - Read this file, then only the next target source file(s) and exact dictionary sections needed.
