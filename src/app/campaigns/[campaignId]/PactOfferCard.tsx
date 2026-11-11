@@ -96,6 +96,7 @@ function PactOfferCard({
   const face = characterPlaceholder({ race: from?.look.race || "human", class: from?.look.class || "fighter", gender: from?.look.gender || "" });
   const characterName = character?.name ?? t("campaign.session.pact.unknownCharacter");
   const choices = proposal.choices ?? [];
+  const summary = t("campaign.session.pact.summary", { character: characterName });
 
   async function answer(choice: string) {
     setBusy(choice);
@@ -120,7 +121,7 @@ function PactOfferCard({
   return (
     <div className="advance-shell" data-leaving={leaving ? "" : undefined}>
       <section
-        aria-label={`${proposal.summary}, from ${who}`}
+        aria-label={t("campaign.session.pact.cardAria", { summary, source: who })}
         data-offer-card={proposal.id}
         data-pact-offer={proposal.id}
         className={cn("advance-card panel rounded-xl px-3 py-2.5 text-xs", mine ? "ornate border-violet-400/50" : "border-violet-900/40")}
@@ -130,7 +131,7 @@ function PactOfferCard({
           <div className="min-w-0 flex-1">
             <p className="flex items-center gap-1.5 text-[13px] font-medium text-violet-100">
               <VenetianMask className="size-3.5 shrink-0 text-violet-300" aria-hidden="true" />
-              <span className="min-w-0">{proposal.toolName === "pact_approach" ? t("campaign.session.pact.summary", { character: characterName }) : proposal.summary}</span>
+              <span className="min-w-0">{proposal.toolName === "pact_approach" ? summary : proposal.summary}</span>
             </p>
             {proposal.reason ? <p className="mt-1 text-sm italic leading-snug text-stone-200">&ldquo;{proposal.reason}&rdquo;</p> : null}
             {mine ? (
