@@ -68,8 +68,14 @@ Single restore point for Russian localization. After a chat interruption, read o
 - Added 40 EN keys and 42 RU entries in `workshop.ts`; two extra RU entries are plural variants. Static checks: all source key references resolve, no duplicate keys, missing pairs or placeholder mismatches.
 - TypeScript, lint, tests, production build and visual checks were not run.
 
+## Workshop page shell and Create chooser — 11 November 2026
+- `page.tsx`: localized hub tour/help labels, section-tour labels via stable system IDs, not-found state, back link and command-palette title/placeholder.
+- `CreateChooser.tsx`: localized all 14 choice cards and all 19 creation steps (labels, details, destinations), groups, creation methods, model requirements, unavailable-state explanations and modal chrome. Copy is looked up by stable choice ID and step position.
+- Added 8 EN/RU hub-page keys and 98 EN/RU Create-chooser keys. Static checks: all references resolve, no duplicates, no missing pairs and no placeholder mismatches.
+- The original choice IDs, step routing data (prepare, href, system), model checks and server capability logic are unchanged. No TypeScript, lint, tests, build or visual checks were run.
+
 ## Next work
-Continue with the Workshop page shell and Create chooser, then `WorkshopHeader` and the command palette. `SystemCards.tsx` and `TargetPartyBar.tsx` are now localized. The shared `AddonFields`, `RulesetLibrary`, list controls, bestiary/cast lists and map gallery are localized. Keep plugin-provided labels/help and user-authored data unchanged. Planner-generated import warnings/notes still need stable reason codes and a dedicated localized renderer. Do not sync upstream or merge branches during translation.
+Continue with `WorkshopHeader.tsx`, `SystemView.tsx` and the command-palette command data. Then review the guided-tour copy and remaining Workshop editors. Preserve server values, plugin-supplied text and user-authored content. Planner-generated import warnings/notes still need stable reason codes and a localized renderer. Do not sync upstream or merge branches during translation.
 
 ## Low-token work protocol
 - Read this file, then only the next target source file(s) and exact dictionary sections needed.
