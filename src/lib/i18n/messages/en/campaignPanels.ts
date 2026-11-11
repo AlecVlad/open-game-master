@@ -4320,4 +4320,7 @@ export const enCampaignPanels = {
   "campaign.relationship.pact.form.networkError": "Could not reach the server.",
   "campaign.relationship.pact.form.caught": "Your action was discovered.",
   "campaign.relationship.pact.form.done": "Your action remains secret.",
+
+  "campaign.relationship.pact.nobody": "nobody yet",
+  "campaign.relationship.private.storyteller": "Only whoever runs the story sees this.",
 } satisfies Record<string, string>;
