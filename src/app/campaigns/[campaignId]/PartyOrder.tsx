@@ -3,6 +3,7 @@
 import { ArrowDown, ArrowUp, Check, GripVertical, ListRestart, Rows3 } from "lucide-react";
 import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
 import { cn } from "@/lib/cn";
+import { useI18n } from "@/lib/i18n/provider";
 import type { CampaignMember } from "@/lib/campaign-types";
 import {
   moveInPartyOrder,
@@ -32,6 +33,7 @@ export function usePartyOrder<T extends { id: string }>({
   member: CampaignMember | undefined;
   cards: readonly T[];
 }) {
+  const { t } = useI18n();
   const saved = member?.partyOrder ?? EMPTY;
   const savedKey = saved.join("|");
   // The list as this seat last put it, shown ahead of the account's copy
@@ -85,11 +87,11 @@ export function usePartyOrder<T extends { id: string }>({
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
         setLocal(null);
-        setError(String(data.error ?? "The order could not be saved."));
+        setError(t("campaign.session.partyOrder.error.save"));
       }
     } catch {
       setLocal(null);
-      setError("Could not reach the server; the order was not saved.");
+      setError(t("campaign.session.partyOrder.error.network"));
     } finally {
       setInFlight((count) => {
         if (count === 1) {
@@ -145,6 +147,7 @@ export function PartyOrderBar({
   onToggle: () => void;
   onReset: () => void;
 }) {
+  const { t } = useI18n();
   if (count < 2) {
     return null;
   }
@@ -154,19 +157,19 @@ export function PartyOrderBar({
         <KitButton
           onClick={onToggle}
           aria-pressed={arranging}
-          title={arranging ? "Keep this order" : "Put the cards in your own order: it is yours alone, and changes nothing for the fight or the march"}
+          title={arranging ? t("campaign.session.partyOrder.keep") : t("campaign.session.partyOrder.arrange.title")}
           className="party-order-toggle"
         >
           {arranging ? <Check className="size-3.5" /> : <Rows3 className="size-3.5" />}
-          {arranging ? "Done" : "Arrange"}
+          {arranging ? t("campaign.session.partyOrder.done") : t("campaign.session.partyOrder.arrange")}
         </KitButton>
         {arranging && custom ? (
-          <KitButton onClick={onReset} title="Back to the table's own order" className="party-order-reset">
-            <ListRestart className="size-3.5" /> Reset order
+          <KitButton onClick={onReset} title={t("campaign.session.partyOrder.reset.title")} className="party-order-reset">
+            <ListRestart className="size-3.5" /> {t("campaign.session.partyOrder.reset")}
           </KitButton>
         ) : null}
         {arranging ? (
-          <span className="reveal text-[11px] text-stone-500">Drag a handle, or use the arrows.</span>
+          <span className="reveal text-[11px] text-stone-500">{t("campaign.session.partyOrder.hint")}</span>
         ) : null}
       </div>
       {error ? <PanelError>{error}</PanelError> : null}
@@ -195,6 +198,7 @@ export function PartyOrderHandle({
   onPlace: (id: string, targetId: string, side: "before" | "after") => void;
   onDrag: (drag: PartyDrag | null) => void;
 }) {
+  const { t } = useI18n();
   const dragging = drag?.id === id;
 
   // Where the pointer is over the list: the card under it and which half.
@@ -237,8 +241,8 @@ export function PartyOrderHandle({
       <button
         type="button"
         className={cn("party-grip motion-press", dragging && "party-grip-active")}
-        aria-label={`Drag to move ${name}; the arrow keys move it up or down`}
-        title="Drag to move; arrow keys move it up or down"
+        aria-label={t("campaign.session.partyOrder.drag.aria", { name })}
+        title={t("campaign.session.partyOrder.drag.title")}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
@@ -250,8 +254,8 @@ export function PartyOrderHandle({
       <KitButton
         onClick={() => onMove(id, -1)}
         disabled={index <= 0}
-        aria-label={`Move ${name} up`}
-        title="Move up"
+        aria-label={t("campaign.session.partyOrder.moveUp.aria", { name })}
+        title={t("campaign.session.partyOrder.moveUp.title")}
         className="party-order-step"
       >
         <ArrowUp className="size-3.5" />
@@ -259,8 +263,8 @@ export function PartyOrderHandle({
       <KitButton
         onClick={() => onMove(id, 1)}
         disabled={index >= count - 1}
-        aria-label={`Move ${name} down`}
-        title="Move down"
+        aria-label={t("campaign.session.partyOrder.moveDown.aria", { name })}
+        title={t("campaign.session.partyOrder.moveDown.title")}
         className="party-order-step"
       >
         <ArrowDown className="size-3.5" />
