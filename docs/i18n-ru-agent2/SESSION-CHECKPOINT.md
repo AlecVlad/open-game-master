@@ -111,8 +111,13 @@ Single restore point for Russian localization. After a chat interruption, read o
 - `ImportKept.tsx` was audited and already uses its 20 fixed i18n keys. Scene-loss tests were inspected for compatibility assertions; existing `scenes`, `losses`, `notes` and conflict strings are still returned. Tests were not executed.
 - TypeScript, lint, automated tests, production build and visual/browser checks have not been run.
 
+## WorldForge entry editor — 12 November 2026
+- `EntityEditor.tsx`: localized fixed labels and hints for canon state, type/folder, the main text/article, aliases/tags, image, hidden truth, author notes, calendar fields, AI drafting and save actions.
+- Added 58 EN/RU keys covering concurrent-edit clashes and values kept from an earlier import. Dynamic names, type labels, custom field labels/options, campaign text and field values remain unchanged.
+- Static check: all 58 source keys exist in both dictionaries; placeholders match; no duplicate keys. Reviewed JSX balance for the changed conflict/kept notices. TypeScript and runtime checks remain unrun.
+
 ## Next work
-Continue the WorldForge audit from `ImportKept.tsx`'s surrounding callers and the entity/atlas child views. Inspect `useWorld.ts` error messages and the remaining generated report details (especially skipped entries and bridge notes) for English that still reaches the UI. Then continue the remaining Workshop editors. Preserve record names, custom fields, imported content and identifiers. Do not sync upstream or merge branches during translation.
+Continue the WorldForge audit with `EntityPage.tsx`, then the Atlas, Timeline, Secrets and Wiki views. Localize fixed interface text and accessibility labels, while leaving user-created names, custom type/field names and content alone. Inspect `useWorld.ts` error messages before translating API errors. Then continue the remaining Workshop editors. Do not sync upstream or merge branches during translation.
 
 ## Low-token work protocol
 - Read this file, then only the next target source file(s) and exact dictionary sections needed.
@@ -124,4 +129,4 @@ Continue the WorldForge audit from `ImportKept.tsx`'s surrounding callers and th
 - TypeScript, lint, production build and visual checks remain deferred to Block 1.1 on the user's local machine. Do not claim these checks unless actually run.
 
 ## Resume
-Start by verifying the branch HEAD, then continue from the remaining WorldForge child views and `useWorld.ts` error/report strings. The import/export panel and structured loss/conflict summaries are localized; local technical checks remain deferred. Block 1 remains formally open. No questions about project, branch, scope or workflow are needed.
+Start by verifying the branch HEAD, then continue with `EntityPage.tsx` and other WorldForge views. Import/export reports and `EntityEditor.tsx` are localized; local technical checks remain deferred. Block 1 remains formally open. No questions about project, branch, scope or workflow are needed.
