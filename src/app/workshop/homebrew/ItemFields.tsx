@@ -1,6 +1,7 @@
 "use client";
 
 import { Plus, X } from "lucide-react";
+import { useT } from "@/lib/i18n/provider";
 import {
   ARMOR_CATEGORIES,
   EFFECT_KINDS,
@@ -82,20 +83,21 @@ function num(value: unknown): number | "" {
 }
 
 function WeaponBlock({ weapon, onChange }: { weapon: Weapon; onChange: (next: Weapon) => void }) {
+  const t = useT();
   const set = (patch: Weapon) => onChange({ ...weapon, ...patch });
   const properties = Array.isArray(weapon.properties) ? (weapon.properties as string[]) : [];
   return (
     <div className="panel space-y-2 rounded-xl p-3">
       <SectionHead
-        title="Weapon"
+        title={t("workshop.homebrew.item.weapon.section")}
         glyph="tab-battle"
         className="mb-1"
       />
       <div className="max-w-sm">
         <Select
           value=""
-          label="Start from an SRD weapon"
-          placeholder="Start from an SRD weapon..."
+          label={t("workshop.homebrew.item.weapon.start.label")}
+          placeholder={t("workshop.homebrew.item.weapon.start.placeholder")}
           options={SRD_WEAPONS.map((entry) => ({
             value: entry.name,
             label: entry.name,
@@ -118,17 +120,17 @@ function WeaponBlock({ weapon, onChange }: { weapon: Weapon; onChange: (next: We
       </div>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         <SelectField
-          label="Category"
+          label={t("workshop.homebrew.item.weapon.category")}
           value={String(weapon.category ?? "simple")}
-          options={WEAPON_CATEGORIES.map((value) => ({ value, label: value }))}
+          options={WEAPON_CATEGORIES.map((value) => ({ value, label: t(`workshop.homebrew.item.weapon.category.${value}`) }))}
           onChange={(category) => set({ category })}
         />
         <SelectField
-          label="Reach"
+          label={t("workshop.homebrew.item.weapon.reach")}
           value={String(weapon.kind ?? "melee")}
           options={[
-            { value: "melee", label: "melee" },
-            { value: "ranged", label: "ranged" },
+            { value: "melee", label: t("workshop.homebrew.item.weapon.reach.melee") },
+            { value: "ranged", label: t("workshop.homebrew.item.weapon.reach.ranged") },
           ]}
           onChange={(kind) => set({ kind })}
         />
@@ -137,7 +139,7 @@ function WeaponBlock({ weapon, onChange }: { weapon: Weapon; onChange: (next: We
             list the monster editor already offers, so nobody has to spell a
             damage type from memory. */}
         <TextField
-          label="Damage dice"
+          label={t("workshop.homebrew.item.weapon.damageDice")}
           value={splitDamage(String(weapon.damage ?? "")).dice}
           onChange={(dice) =>
             set({ damage: joinDamage(dice, splitDamage(String(weapon.damage ?? "")).type) })
@@ -146,18 +148,18 @@ function WeaponBlock({ weapon, onChange }: { weapon: Weapon; onChange: (next: We
           maxLength={20}
         />
         <SelectField
-          label="Damage type"
+          label={t("workshop.homebrew.item.weapon.damageType")}
           value={splitDamage(String(weapon.damage ?? "")).type}
           options={[
-            { value: "", label: "Pick a type..." },
-            ...DAMAGE_TYPES.map((value) => ({ value, label: value })),
+            { value: "", label: t("workshop.homebrew.item.weapon.damageType.placeholder") },
+            ...DAMAGE_TYPES.map((value) => ({ value, label: t(`workshop.homebrew.item.damage.${value}`) })),
           ]}
           onChange={(type) => set({ damage: joinDamage(splitDamage(String(weapon.damage ?? "")).dice, type) })}
-          hint="Slashing, piercing and bludgeoning are the weapon types; the rest are for enchanted blades."
+          hint={t("workshop.homebrew.item.weapon.damageType.hint")}
           glossary={{ title: "Damage types", entries: glossaryFor(DAMAGE_TYPES, DAMAGE_TYPE_BLURBS) }}
         />
         <NumberField
-          label="Range (ft)"
+          label={t("workshop.homebrew.item.weapon.range")}
           value={num(weapon.rangeFt)}
           min={0}
           max={600}
@@ -165,12 +167,13 @@ function WeaponBlock({ weapon, onChange }: { weapon: Weapon; onChange: (next: We
         />
       </div>
       <Field
-        label="Properties"
-        glossary={{ title: "Weapon properties", entries: glossaryFor(WEAPON_PROPERTIES, WEAPON_PROPERTY_BLURBS) }}
+        label={t("workshop.homebrew.item.weapon.properties")}
+        glossary={{ title: t("workshop.homebrew.item.weapon.properties.glossary"), entries: glossaryFor(WEAPON_PROPERTIES, WEAPON_PROPERTY_BLURBS).map((entry) => ({ ...entry, name: t(`workshop.homebrew.item.weapon.property.${entry.name}`) })) }}
       >
         <ToggleChips
           options={WEAPON_PROPERTIES}
           selected={properties}
+          labels={Object.fromEntries(WEAPON_PROPERTIES.map((value) => [value, t(`workshop.homebrew.item.weapon.property.${value}`)]))}
           onChange={(next) => set({ properties: next })}
         />
       </Field>
@@ -179,16 +182,17 @@ function WeaponBlock({ weapon, onChange }: { weapon: Weapon; onChange: (next: We
 }
 
 function ArmorBlock({ armor, onChange }: { armor: Armor; onChange: (next: Armor) => void }) {
+  const t = useT();
   const set = (patch: Armor) => onChange({ ...armor, ...patch });
   const category = String(armor.category ?? "light");
   return (
     <div className="panel space-y-2 rounded-xl p-3">
-      <SectionHead title="Armour" glyph="rest-ac" className="mb-1" />
+      <SectionHead title={t("workshop.homebrew.item.armor.section")} glyph="rest-ac" className="mb-1" />
       <div className="max-w-sm">
         <Select
           value=""
-          label="Start from SRD armour"
-          placeholder="Start from SRD armour..."
+          label={t("workshop.homebrew.item.armor.start.label")}
+          placeholder={t("workshop.homebrew.item.armor.start.placeholder")}
           options={SRD_ARMOR.map((entry) => ({
             value: entry.name,
             label: entry.name,
@@ -214,11 +218,11 @@ function ArmorBlock({ armor, onChange }: { armor: Armor; onChange: (next: Armor)
         <SelectField
           label="Category"
           value={category}
-          options={ARMOR_CATEGORIES.map((value) => ({ value, label: value }))}
+          options={ARMOR_CATEGORIES.map((value) => ({ value, label: t(`workshop.homebrew.item.armor.category.${value}`) }))}
           onChange={(next) => set({ category: next })}
         />
         <NumberField
-          label={category === "shield" ? "Adds to AC" : "Base AC"}
+          label={category === "shield" ? t("workshop.homebrew.item.armor.addsAC") : t("workshop.homebrew.item.armor.baseAC")}
           value={num(armor.baseAc)}
           min={category === "shield" ? 1 : GEAR_LIMITS.acMin}
           max={category === "shield" ? GEAR_LIMITS.shieldMax : GEAR_LIMITS.acMax}
@@ -226,17 +230,17 @@ function ArmorBlock({ armor, onChange }: { armor: Armor; onChange: (next: Armor)
         />
         {category === "medium" ? (
           <NumberField
-            label="DEX cap"
+            label={t("workshop.homebrew.item.armor.dexCap")}
             value={num(armor.dexCap) === "" ? 2 : num(armor.dexCap)}
             min={0}
             max={5}
             onChange={(dexCap) => set({ dexCap: dexCap === "" ? 2 : dexCap })}
-            hint="Medium armour lets this much DEX through."
+            hint={t("workshop.homebrew.item.armor.dexHint")}
           />
         ) : null}
         {category === "heavy" || category === "medium" ? (
           <NumberField
-            label="Strength needed"
+            label={t("workshop.homebrew.item.armor.strength")}
             value={num(armor.strengthRequirement)}
             min={0}
             max={30}
@@ -246,7 +250,7 @@ function ArmorBlock({ armor, onChange }: { armor: Armor; onChange: (next: Armor)
           />
         ) : null}
         <NumberField
-          label="Weight (lb)"
+          label={t("workshop.homebrew.item.weight")}
           value={num(armor.weightLb)}
           min={0}
           max={500}
@@ -255,7 +259,7 @@ function ArmorBlock({ armor, onChange }: { armor: Armor; onChange: (next: Armor)
       </div>
       {category !== "shield" ? (
         <CheckField
-          label="Disadvantage on Stealth"
+          label={t("workshop.homebrew.item.armor.stealthDisadvantage")}
           checked={armor.stealthDisadvantage === true}
           onChange={(stealthDisadvantage) => set({ stealthDisadvantage })}
         />
