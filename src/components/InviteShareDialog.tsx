@@ -137,7 +137,6 @@ export function RoomCodeHeldNotice({
         <span className="font-medium">{t("invite.codeHeld.title")}</span>
       </div>
       <p className="text-xs text-stone-300">
-        A friend who types it will not find this table.{" "}
         {onNewCode ? t("invite.codeHeld.newCodeHint") : t("invite.codeHeld.askLeadHint")}
       </p>
       {onNewCode ? (
