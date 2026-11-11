@@ -32,6 +32,7 @@ import { arrivingShelf, bringItems, bringMonsters } from "@/lib/db/import-monste
 import { importRowsOf, remapImportedRefs, tableRowsLeftBehind, type ImportReferenceNote } from "@/lib/db/content-import-refs";
 import { parseRef } from "@/lib/worldforge/model";
 import { copyWorldDoc } from "@/lib/db/world-forge-io";
+import type { WorldConflictDetail } from "@/lib/worldforge/import-merge";
 import { normalizeStock } from "@/lib/db/shops";
 import {
   LINK_KINDS,
@@ -370,6 +371,7 @@ export type ImportOutcome = {
   beatsAdded: number;
   // What both sides of a WorldForge reimport changed, kept as here (WF-03).
   worldConflicts?: string[];
+  worldConflictDetails?: WorldConflictDetail[];
   // Stat blocks and roster monsters nothing at this table answers to.
   unresolved?: string[];
   // Hand-built monsters copied into this table's bestiary for the NPCs and
@@ -449,6 +451,7 @@ export function runContentImport(input: {
   const counts = { copied: 0, kept: 0, unbound: 0 };
   // Links changed here and in the copied world (world-link-merge.ts).
   let worldConflicts: string[] = [];
+  let worldConflictDetails: WorldConflictDetail[] = [];
   const finalNames = new Map<string, string>(
     plan.items.map((item) => [`${item.kind}:${item.sourceId}`, item.finalName]),
   );
@@ -594,6 +597,7 @@ export function runContentImport(input: {
     counts.copied += world.count;
     counts.unbound += world.unbound;
     worldConflicts = world.conflicts;
+    worldConflictDetails = world.conflictDetails;
   }
 
   if (selected.has("lore") || storyboard) {
@@ -641,6 +645,7 @@ export function runContentImport(input: {
     unbound: counts.unbound,
     beatsAdded,
     ...(worldConflicts.length ? { worldConflicts } : {}),
+    ...(worldConflictDetails.length ? { worldConflictDetails } : {}),
     ...(unresolved.length ? { unresolved } : {}),
     ...(monsters.brought.length ? { monstersBrought: monsters.brought } : {}),
     ...(monsters.reused.length ? { monstersReused: monsters.reused } : {}),
