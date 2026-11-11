@@ -66,7 +66,7 @@ export function BeatEditor({
   onSave: () => void;
   onDelete?: () => void;
 }) {
-  const { t, lang } = useI18n();
+  const { t, tp, lang } = useI18n();
   // Over the cap is said here, with what would be lost, and the save is
   // held until it fits (issue #302): the server refuses it the same way.
   // The readability note is a heuristic the author may dismiss; the text
@@ -77,16 +77,16 @@ export function BeatEditor({
   const shownLoss = lost.length > 60 ? lost.slice(0, 60).trimEnd() + "..." : lost;
   const overflowText = overflow
     ? t("campaign.storyboard.overflow", {
-        length: trimmedBody.length.toLocaleString(lang),
-        max: BODY_MAX.toLocaleString(lang),
-        lost: shownLoss ? ': "' + shownLoss + '"' : "",
+        length: tp("campaign.storyboard.characters", trimmedBody.length, { count: trimmedBody.length.toLocaleString(lang) }),
+        max: tp("campaign.storyboard.characters", BODY_MAX, { count: BODY_MAX.toLocaleString(lang) }),
+        lost: shownLoss ? `: «${shownLoss}»` : "",
       })
     : "";
   const prose = checkProse(edit.body);
   const proseMessages = prose.map((warning) => {
     const count = Number(warning.message.match(/^\d+/)?.[0] ?? 0);
-    if (warning.kind === "joined-sentences") return t("campaign.storyboard.prose.joined", { count });
-    if (warning.kind === "long-run") return t("campaign.storyboard.prose.longRun", { count, letters: 28 });
+    if (warning.kind === "joined-sentences") return tp("campaign.storyboard.prose.joined", count);
+    if (warning.kind === "long-run") return tp("campaign.storyboard.prose.longRun", count, { letters: 28 });
     return t("campaign.storyboard.prose.fewSpaces");
   });
   const [dismissed, setDismissed] = useState("");
