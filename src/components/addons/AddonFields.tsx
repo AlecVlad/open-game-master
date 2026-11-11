@@ -4,6 +4,7 @@ import { Select } from "@/components/ui/Select";
 import { Switch } from "@/components/ui/Switch";
 import type { OptionField, SettingField } from "@/lib/addons/manifest";
 import { cn } from "@/lib/cn";
+import { useI18n } from "@/lib/i18n/provider";
 import { ui } from "@/lib/ui";
 
 // The controls an addon's manifest asks for: its settings on the admin's
@@ -38,6 +39,7 @@ export function AddonFields({
   secretsSet?: string[];
   idPrefix: string;
 }) {
+  const { t } = useI18n();
   if (!fields.length) return null;
   return (
     <div className="stagger space-y-3">
@@ -53,7 +55,7 @@ export function AddonFields({
         const label = (
           <>
             {field.label}
-            {required ? <span className="text-amber-300/90"> (required)</span> : null}
+            {required ? <span className="text-amber-300/90"> ({t("workshop.addonFields.required")})</span> : null}
           </>
         );
         if (field.type === "boolean") {
@@ -110,10 +112,10 @@ export function AddonFields({
                 placeholder={
                   field.type === "secret"
                     ? secretsSet.includes(field.key)
-                      ? "Saved. Leave blank to keep it."
-                      : "Not set"
+                      ? t("workshop.addonFields.secret.saved")
+                      : t("workshop.addonFields.secret.notSet")
                     : field.type === "path"
-                      ? "Blank looks for it on this computer"
+                      ? t("workshop.addonFields.path.blank")
                       : undefined
                 }
                 onChange={(event) =>
