@@ -3368,4 +3368,22 @@ export const ruCampaignPanels: Partial<Record<keyof typeof enCampaignPanels, str
 
   "campaign.session.floor.nextTurn": "следующий ход",
 
+  // Plural forms for shared attacks in the Hand.
+  "campaign.session.hand.share.unit.dart.one": "дротик",
+  "campaign.session.hand.share.unit.dart.few": "дротика",
+  "campaign.session.hand.share.unit.dart.many": "дротиков",
+  "campaign.session.hand.share.unit.dart.other": "дротика",
+  "campaign.session.hand.share.unit.ray.one": "луч",
+  "campaign.session.hand.share.unit.ray.few": "луча",
+  "campaign.session.hand.share.unit.ray.many": "лучей",
+  "campaign.session.hand.share.unit.ray.other": "луча",
+  "campaign.session.hand.share.unit.beam.one": "луч",
+  "campaign.session.hand.share.unit.beam.few": "луча",
+  "campaign.session.hand.share.unit.beam.many": "лучей",
+  "campaign.session.hand.share.unit.beam.other": "луча",
+  "campaign.session.hand.share.unit.creature.one": "существо",
+  "campaign.session.hand.share.unit.creature.few": "существа",
+  "campaign.session.hand.share.unit.creature.many": "существ",
+  "campaign.session.hand.share.unit.creature.other": "существа",
+
 };
