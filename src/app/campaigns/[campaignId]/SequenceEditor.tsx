@@ -3,6 +3,7 @@
 import { ArrowDown, ArrowUp, GripVertical, Link2, Unlink } from "lucide-react";
 import { useState, type DragEvent } from "react";
 import { cn } from "@/lib/cn";
+import { useI18n } from "@/lib/i18n/provider";
 import {
   joinPrevious,
   moveEarlier,
@@ -39,6 +40,7 @@ export function SequenceEditor({
   disabled?: boolean;
   label: string;
 }) {
+  const { t } = useI18n();
   const [dragging, setDragging] = useState<string | null>(null);
   const [over, setOver] = useState<Target | null>(null);
   const [said, setSaid] = useState("");
@@ -48,7 +50,7 @@ export function SequenceEditor({
     onChange(next);
     const at = next.findIndex((step) => step.includes(id));
     const mates = at >= 0 ? next[at].length - 1 : 0;
-    setSaid(`${nameOf(id)}: step ${at + 1} of ${next.length}${mates ? `, with ${mates} more` : ""}.`);
+    setSaid(t("campaign.session.sequenceEditor.announce", { name: nameOf(id), step: at + 1, steps: next.length, withMore: mates ? t("campaign.session.sequenceEditor.withMore", { count: mates }) : "" }));
   };
 
   const dragOver = (event: DragEvent, target: Target) => {
@@ -106,9 +108,9 @@ export function SequenceEditor({
             )}
           >
             <p className="mb-1 text-[10px] uppercase tracking-wide text-stone-500">
-              Step {index + 1}
-              {index > 0 ? ` · after step ${index}` : " · first"}
-              {ids.length > 1 ? " · at the same time" : ""}
+              {t("campaign.session.sequenceEditor.step.label", { step: index + 1 })}
+              {index > 0 ? t("campaign.session.sequenceEditor.step.after", { step: index }) : t("campaign.session.sequenceEditor.step.first")}
+              {ids.length > 1 ? t("campaign.session.sequenceEditor.step.sameTime") : ""}
             </p>
             <ul className="space-y-1">
               {ids.map((id) => {
@@ -137,14 +139,14 @@ export function SequenceEditor({
                     <GripVertical className="size-3.5 shrink-0 cursor-grab text-stone-500" aria-hidden="true" />
                     <span className="min-w-0 flex-1 truncate font-medium text-stone-200">
                       {name}
-                      {item?.companion ? <span className="text-[10px] font-normal text-stone-500"> companion</span> : null}
+                      {item?.companion ? <span className="text-[10px] font-normal text-stone-500"> {t("campaign.session.sequenceEditor.companion")}</span> : null}
                     </span>
                     <button
                       type="button"
                       disabled={disabled || (alone && index === 0)}
                       onClick={() => change(id, moveEarlier(sequence, id))}
-                      aria-label={`Move ${name} earlier`}
-                      title="Earlier"
+                      aria-label={t("campaign.session.sequenceEditor.earlier.aria", { name })}
+                      title={t("campaign.session.sequenceEditor.earlier.title")}
                       className={iconButton}
                       data-sequence-earlier
                     >
@@ -154,8 +156,8 @@ export function SequenceEditor({
                       type="button"
                       disabled={disabled || (alone && index === sequence.length - 1)}
                       onClick={() => change(id, moveLater(sequence, id))}
-                      aria-label={`Move ${name} later`}
-                      title="Later"
+                      aria-label={t("campaign.session.sequenceEditor.later.aria", { name })}
+                      title={t("campaign.session.sequenceEditor.later.title")}
                       className={iconButton}
                       data-sequence-later
                     >
@@ -166,8 +168,8 @@ export function SequenceEditor({
                         type="button"
                         disabled={disabled}
                         onClick={() => change(id, joinPrevious(sequence, id))}
-                        aria-label={`${name} acts at the same time as step ${index}`}
-                        title="At the same time as the step above"
+                        aria-label={t("campaign.session.sequenceEditor.join.aria", { name, step: index })}
+                        title={t("campaign.session.sequenceEditor.join.title")}
                         className={iconButton}
                         data-sequence-join
                       >
@@ -179,8 +181,8 @@ export function SequenceEditor({
                         type="button"
                         disabled={disabled}
                         onClick={() => change(id, ownStep(sequence, id))}
-                        aria-label={`${name} takes a step of their own`}
-                        title="A step of their own"
+                        aria-label={t("campaign.session.sequenceEditor.own.aria", { name })}
+                        title={t("campaign.session.sequenceEditor.own.title")}
                         className={iconButton}
                         data-sequence-split
                       >
