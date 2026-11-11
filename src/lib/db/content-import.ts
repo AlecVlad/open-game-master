@@ -29,7 +29,7 @@ import {
 import { getCommonWorkshop } from "@/lib/db/workshop-common";
 import { getWorldDoc, hasWorldDoc } from "@/lib/db/world-forge";
 import { arrivingShelf, bringItems, bringMonsters } from "@/lib/db/import-monsters";
-import { importRowsOf, remapImportedRefs, tableRowsLeftBehind } from "@/lib/db/content-import-refs";
+import { importRowsOf, remapImportedRefs, tableRowsLeftBehind, type ImportReferenceNote } from "@/lib/db/content-import-refs";
 import { parseRef } from "@/lib/worldforge/model";
 import { copyWorldDoc } from "@/lib/db/world-forge-io";
 import { normalizeStock } from "@/lib/db/shops";
@@ -385,6 +385,7 @@ export type ImportOutcome = {
   // Roll-table rows whose table, NPC or lore entry stayed behind, and what
   // each names here now (src/lib/db/content-import-refs.ts).
   referenceNotes?: string[];
+  referenceNoteDetails?: ImportReferenceNote[];
 };
 
 // Copies the planned rows. One transaction, so a constraint the planner
@@ -647,6 +648,7 @@ export function runContentImport(input: {
     ...(items.reused.length ? { itemsReused: items.reused } : {}),
     ...(spellsBrought.length ? { spellsBrought } : {}),
     ...(refs.notes.length ? { referenceNotes: refs.notes } : {}),
+    ...(refs.noteDetails.length ? { referenceNoteDetails: refs.noteDetails } : {}),
   };
 }
 
