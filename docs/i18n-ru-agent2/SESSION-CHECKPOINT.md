@@ -191,5 +191,13 @@ Continue the Atlas audit with `AtlasRegion.tsx`, `AtlasEdit.tsx`, `AtlasParty.ts
 - Performed a focused top-level screen scan of `AuthForm.tsx`, `ChangePasswordForm.tsx`, `CreateCampaignDialog.tsx`, `WorldSetupFields.tsx`, `page.tsx`, `settings/page.tsx` and `setup/page.tsx`. No further fixed English labels were found in the inspected candidates; product name and input-code masks are intentionally unchanged.
 - TypeScript, lint, tests, production build and visual checks were not run.
 
+## Campaign lobby and session end state — 12 November 2026
+- `Lobby.tsx`: added `useI18n`; localized prep mode, return/navigation labels, section headings, Story Setup warnings, voice-transcription notice, character/campaign confirmation prompts and fixed error fallbacks. Raw server-provided `data.error` values remain untouched because they are API payloads, not local UI copy.
+- `LobbyPieces.tsx`: localized the lobby hero eyebrow, campaign-settings tooltip, starting-level chip and physical-dice control copy.
+- `LobbyParty.tsx`: localized party count, DM/co-DM/party-lead/owner labels, ready and muted statuses, real-dice note, seat-management controls, character list, open-seat plural sentence and companion management.
+- `SessionView.tsx`: localized the completed-campaign banner title, return link and description.
+- Added 69 EN/RU dictionary entries under `campaign.lobby.*` and `campaign.ended.*`. English and Russian plural categories are present; placeholders match; no duplicate added keys. A focused scan found no remaining raw English UI labels in the three lobby components.
+- TypeScript, lint, unit/integration tests, production build and browser visual checks were not run.
+
 ## Resume
 The WorldForge component pass is complete across all 29 files in `src/app/workshop/world/`: core views, Atlas, timeline, secrets, wiki, Ask, outline generation, paint queue, relationship graph/editor, type manager, bound records, play fields and shared pickers. Continue with the broader app-level localization audit outside this folder and fix any remaining visible English UI. Verify branch HEAD before editing. Do not run TypeScript/build/lint/tests until Remote Desktop access is available. Block 1 remains formally open; do not merge, open a PR or create its DONE flag.
