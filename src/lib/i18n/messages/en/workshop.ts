@@ -247,4 +247,14 @@ export const enWorkshop = {
   "workshop.maps.theme.interior": "Indoors",
   "workshop.maps.theme.field": "Open ground",
 
+  "workshop.targetParty.buildingFor": "Building for",
+  "workshop.targetParty.size": "Party size",
+  "workshop.targetParty.hero.one": "hero",
+  "workshop.targetParty.hero.other": "heroes",
+  "workshop.targetParty.atLevel": "at level",
+  "workshop.targetParty.level": "Party level",
+  "workshop.targetParty.save": "Save",
+  "workshop.targetParty.saved": "Saved",
+  "workshop.targetParty.budget": "One fight is easy up to {easy} XP, medium to {medium}, hard to {hard}, and deadly beyond {deadly}. Adjusted for how many creatures you field.",
+
 } satisfies Record<string, string>;
