@@ -474,7 +474,7 @@ export function LorePanel({
         }
       />
       {loading ? (
-        <PanelLoading label="Loading..." />
+        <PanelLoading label={t("campaign.lore.loading")} />
       ) : null}
       {!loading && loadError ? <LoadFailed error={loadError} onRetry={retry} /> : null}
       {saveError && !editorOpen ? <PanelError className="mb-2">{saveError}</PanelError> : null}
