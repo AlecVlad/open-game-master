@@ -3386,4 +3386,10 @@ export const ruCampaignPanels: Partial<Record<keyof typeof enCampaignPanels, str
   "campaign.session.hand.share.unit.creature.many": "существ",
   "campaign.session.hand.share.unit.creature.other": "существа",
 
+  // Collective forms used by the area-share control.
+  "campaign.session.hand.share.unit.dart.collective": "дротики",
+  "campaign.session.hand.share.unit.ray.collective": "лучи",
+  "campaign.session.hand.share.unit.beam.collective": "лучи",
+  "campaign.session.hand.share.unit.creature.collective": "существа",
+
 };
