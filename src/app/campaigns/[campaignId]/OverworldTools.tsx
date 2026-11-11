@@ -394,14 +394,15 @@ export function LineTools({
 }
 
 export function LabelTools({ size, onSize }: { size: LabelSize; onSize: (size: LabelSize) => void }) {
+  const { t } = useI18n();
   return (
     <div data-pill-group="" className="panel reveal flex flex-wrap items-center gap-1.5 rounded-lg p-2.5 text-xs text-stone-500">
-      <span>Tap where the words go.</span>
+      <span>{t("campaign.overworld.label.hint")}</span>
       <button data-on={size === "small" ? "" : undefined} type="button" aria-pressed={size === "small"} onClick={() => onSize("small")} className={cn(chip, size === "small" ? active : idle)}>
-        Place name
+        {t("campaign.overworld.label.place")}
       </button>
       <button data-on={size === "large" ? "" : undefined} type="button" aria-pressed={size === "large"} onClick={() => onSize("large")} className={cn(chip, size === "large" ? active : idle)}>
-        Region name
+        {t("campaign.overworld.label.region")}
       </button>
     </div>
   );
@@ -434,6 +435,7 @@ export function FileTools({
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
   const [sizeId, setSizeId] = useState("current");
+  const { t } = useI18n();
 
   async function upload(file: File) {
     setUploading(true);
@@ -447,12 +449,12 @@ export function FileTools({
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError(payload.error || "That image would not upload.");
+        setError(t("campaign.overworld.errors.imageUpload"));
         return;
       }
       onBackdrop(payload.url);
     } catch {
-      setError("That image would not upload.");
+      setError(t("campaign.overworld.errors.imageUpload"));
     } finally {
       setUploading(false);
     }
@@ -470,7 +472,7 @@ export function FileTools({
 
   return (
     <div className="panel space-y-2 rounded-lg p-2.5">
-      <SectionHead title="The map as a file" glyph="tab-handout" level="h4" />
+      <SectionHead title={t("campaign.overworld.file.title")} glyph="tab-handout" level="h4" />
       <input
         ref={imageRef}
         type="file"
@@ -503,11 +505,11 @@ export function FileTools({
           className={cn(chip, idle, "disabled:opacity-50")}
         >
           {uploading ? <Loader2 className="size-3.5 animate-spin" /> : <ImageIcon className="size-3.5" />}
-          {backdropPath ? "Replace the picture" : "Use a picture instead of tiles"}
+          {backdropPath ? t("campaign.overworld.file.replace") : t("campaign.overworld.file.usePicture")}
         </button>
         {backdropPath ? (
           <button type="button" onClick={() => onBackdrop("")} className={cn(chip, idle)}>
-            <Trash2 className="size-3.5" /> Back to the tiles
+            <Trash2 className="size-3.5" /> {t("campaign.overworld.file.backToTiles")}
           </button>
         ) : null}
         <button
@@ -517,7 +519,7 @@ export function FileTools({
           className={cn(chip, idle, "disabled:opacity-50")}
         >
           {exporting ? <Loader2 className="size-3.5 animate-spin" /> : <Download className="size-3.5" />}
-          Save as PNG
+          {t("campaign.overworld.file.savePng")}
         </button>
       </div>
       <div className="flex flex-wrap items-center gap-1.5">
@@ -528,21 +530,21 @@ export function FileTools({
           className={cn(chip, idle, "disabled:opacity-50")}
         >
           {importing ? <Loader2 className="size-3.5 animate-spin" /> : <FileUp className="size-3.5" />}
-          Read an Azgaar map
+          {t("campaign.overworld.file.importAzgaar")}
         </button>
         <Select
           size="sm"
           value={sizeId}
           onChange={setSizeId}
-          label="Grid size for the imported map"
+          label={t("campaign.overworld.file.gridSize")}
           options={[
-            { value: "current", label: `At this size (${mapSize.width} by ${mapSize.height})` },
-            ...OVERWORLD_SIZES.map((entry) => ({ value: entry.id as string, label: `${entry.label} (${entry.width} by ${entry.height})` })),
+            { value: "current", label: t("campaign.overworld.file.currentSize", mapSize) },
+            ...OVERWORLD_SIZES.map((entry) => ({ value: entry.id as string, label: `${t(`campaign.overworld.size.${entry.id}` as never)} (${entry.width} × ${entry.height})` })),
           ]}
           className="min-w-0 max-w-full"
         />
         <span className="text-[11px] leading-4 text-stone-500">
-          Fantasy Map Generator: export Cells as GeoJSON, plus Burgs, Rivers and Routes if you like.
+          {t("campaign.overworld.file.description")}
         </span>
       </div>
       {importNote ? <p role="status" className="live-in text-xs text-emerald-300/90">{importNote}</p> : null}
