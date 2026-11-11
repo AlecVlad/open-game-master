@@ -2,11 +2,12 @@
 
 import { ArrowRight, Check, X } from "lucide-react";
 import { useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui";
 import { Select } from "@/components/ui/Select";
 import { KitButton } from "@/app/campaigns/[campaignId]/PanelKit";
-import { LINK_LABELS, VERACITIES, VERACITY_LABELS, newId, type Veracity, type WorldDoc, type WorldLink } from "@/lib/worldforge/model";
+import { LINK_LABELS, VERACITIES, newId, type Veracity, type WorldDoc, type WorldLink } from "@/lib/worldforge/model";
 import type { WorldEntity } from "@/lib/db/world-forge";
 import { EntityAvatar, EntityPicker, typeOf } from "./world-ui";
 import { playFieldOf } from "@/lib/worldforge/play-fields";
@@ -16,7 +17,6 @@ import { playFieldOf } from "@/lib/worldforge/play-fields";
 // build the family tree and the chart) or the DM's own, and the link can be
 // a hidden truth or a false belief, one way, and carry a rank.
 
-const VERACITY_WORDS: Record<Veracity, string> = { known: "Known", hidden: "Hidden truth", believed: "False belief" };
 const CUSTOM = "__custom";
 
 export function LinkEditor({
@@ -34,6 +34,17 @@ export function LinkEditor({
   onSave: (link: WorldLink) => void;
   onCancel: () => void;
 }) {
+  const { t } = useI18n();
+  const veracityWords: Record<Veracity, string> = {
+    known: t("workshop.world.link.veracity.known"),
+    hidden: t("workshop.world.link.veracity.hidden"),
+    believed: t("workshop.world.link.veracity.believed"),
+  };
+  const veracityLabels: Record<Veracity, string> = {
+    known: t("workshop.world.link.veracity.knownDescription"),
+    hidden: t("workshop.world.link.veracity.hiddenDescription"),
+    believed: t("workshop.world.link.veracity.believedDescription"),
+  };
   const [to, setTo] = useState(link?.to ?? "");
   const known = (LINK_LABELS as readonly string[]).includes(link?.label ?? "member of");
   const [label, setLabel] = useState(link?.label ?? "allied with");
@@ -50,22 +61,22 @@ export function LinkEditor({
         <span className="truncate font-medium text-amber-100">{from.name}</span>
         <ArrowRight className="size-3.5 shrink-0 text-stone-500" />
         {target ? (
-          <button type="button" onClick={() => setTo("")} className="flex min-w-0 items-center gap-1.5 rounded-md px-1 hover:bg-stone-800/70 motion-press" title="Pick someone else">
+          <button type="button" onClick={() => setTo("")} className="flex min-w-0 items-center gap-1.5 rounded-md px-1 hover:bg-stone-800/70 motion-press" title={t("workshop.world.link.pickSomeoneElse")}>
             <EntityAvatar entity={target} type={typeOf(doc, target)} size="size-5" />
             <span className="truncate text-amber-100">{target.name}</span>
           </button>
         ) : (
-          <span className="text-stone-500">who or what?</span>
+          <span className="text-stone-500">{t("workshop.world.link.whoOrWhat")}</span>
         )}
       </div>
       {!target ? (
-        <EntityPicker doc={doc} entities={entities} exclude={[from.ref]} label="the other end" autoFocus onPick={(entity) => setTo(entity.ref)} />
+        <EntityPicker doc={doc} entities={entities} exclude={[from.ref]} label={t("workshop.world.link.otherEnd")} autoFocus onPick={(entity) => setTo(entity.ref)} />
       ) : (
         <div className="grid gap-2 @lg:grid-cols-2">
           <div className="flex flex-col gap-1">
-            <span className="eyebrow text-[10px] text-stone-500">Words</span>
+            <span className="eyebrow text-[10px] text-stone-500">{t("workshop.world.link.words.heading")}</span>
             <Select
-              label="The link's words"
+              label={t("workshop.world.link.words.label")}
               size="sm"
               value={custom ? CUSTOM : label}
               onChange={(value) => {
@@ -78,60 +89,60 @@ export function LinkEditor({
                 }
               }}
               options={[
-                ...LINK_LABELS.map((words) => ({ value: words as string, label: words })),
-                { value: CUSTOM, label: "Other words...", hint: "Write your own" },
+                ...LINK_LABELS.map((words, index) => ({ value: words as string, label: t(`workshop.world.link.words.${index}`) })),
+                { value: CUSTOM, label: t("workshop.world.link.words.other"), hint: t("workshop.world.link.words.writeYourOwn") },
               ]}
             />
             {custom ? (
-              <input className={cn(ui.input, "text-xs motion-pop")} maxLength={60} placeholder="sworn to" aria-label="Your own words" value={label} onChange={(event) => setLabel(event.target.value)} autoFocus />
+              <input className={cn(ui.input, "text-xs motion-pop")} maxLength={60} placeholder={t("workshop.world.link.words.example")} aria-label={t("workshop.world.link.words.customAria")} value={label} onChange={(event) => setLabel(event.target.value)} autoFocus />
             ) : null}
           </div>
           <div className="flex flex-col gap-1">
-            <span className="eyebrow text-[10px] text-stone-500">Who knows it</span>
-            <div className="flex flex-wrap gap-1" role="radiogroup" aria-label="Who knows it">
+            <span className="eyebrow text-[10px] text-stone-500">{t("workshop.world.link.whoKnows")}</span>
+            <div className="flex flex-wrap gap-1" role="radiogroup" aria-label={t("workshop.world.link.whoKnows")}>
               {VERACITIES.map((value) => (
                 <button
                   key={value}
                   type="button"
                   role="radio"
                   aria-checked={veracity === value}
-                  title={VERACITY_LABELS[value]}
+                  title={veracityLabels[value]}
                   onClick={() => setVeracity(value)}
                   className={cn(ui.btnSmall, "px-2 py-1 text-xs", veracity === value && "border-amber-500/60 bg-amber-400/10 text-amber-100")}
                 >
-                  {VERACITY_WORDS[value]}
+                  {veracityWords[value]}
                 </button>
               ))}
             </div>
-            <p className="text-[11px] text-stone-500">{VERACITY_LABELS[veracity]}</p>
+            <p className="text-[11px] text-stone-500">{veracityLabels[veracity]}</p>
           </div>
           {label === "member of" ? (
             <label className="flex flex-col gap-1 motion-pop">
-              <span className="eyebrow text-[10px] text-stone-500">Rank or title</span>
-              <input className={cn(ui.input, "text-xs")} maxLength={60} placeholder="Second Warden" value={rank} onChange={(event) => setRank(event.target.value)} />
+              <span className="eyebrow text-[10px] text-stone-500">{t("workshop.world.link.rankOrTitle")}</span>
+              <input className={cn(ui.input, "text-xs")} maxLength={60} placeholder={t("workshop.world.link.rankExample")} value={rank} onChange={(event) => setRank(event.target.value)} />
             </label>
           ) : null}
           {from.shelf === "npc" && playFieldOf(label, target.shelf) ? (
             <p className="text-[11px] text-stone-500 @lg:col-span-2" data-testid="world-link-play-note">
-              {`Play keeps its own ${playFieldOf(label, target.shelf)} for ${from.name}. This link changes it only when you choose it under In play on this entry.`}
+              {t(playFieldOf(label, target.shelf) === "faction" ? "workshop.world.link.playNote.faction" : "workshop.world.link.playNote.home", { name: from.name })}
             </p>
           ) : null}
           <label className="flex items-center gap-2 text-xs text-stone-400">
             <input type="checkbox" checked={oneway} onChange={(event) => setOneway(event.target.checked)} className="accent-amber-400" />
-            One way: how {from.name} sees it, not returned
+            {t("workshop.world.link.oneWay", { name: from.name })}
           </label>
         </div>
       )}
       <div className="mt-3 flex justify-end gap-2">
         <KitButton tone="small" onClick={onCancel}>
-          <X className="size-3.5" /> Cancel
+          <X className="size-3.5" /> {t("workshop.cancel")}
         </KitButton>
         <KitButton
           tone="primary"
           disabled={!ready}
           onClick={() => ready && onSave({ id: link?.id ?? newId("l"), from: from.ref, to, label: label.trim(), veracity, oneway, rank: label === "member of" ? rank.trim() : "" })}
         >
-          <Check className="size-3.5" /> {link ? "Save link" : "Add link"}
+          <Check className="size-3.5" /> {link ? t("workshop.world.link.save") : t("workshop.world.link.add")}
         </KitButton>
       </div>
     </div>
