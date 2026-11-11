@@ -2,14 +2,14 @@
 
 import { X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages/index";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui";
 import { GameIcon } from "@/components/ui/GameIcon";
 import { Tooltip } from "@/components/ui/Tooltip";
 import {
   ONE_SHOT_EVENT_IDS,
-  oneShotLabel,
-  oneShotBlurb,
   type OneShotEventId,
 } from "@/lib/dm/director-logic";
 
@@ -34,6 +34,26 @@ const ONE_SHOT_GLYPH: Record<OneShotEventId, string> = {
   windfall: "cue-coin",
 };
 
+const ONE_SHOT_LABEL_KEYS: Record<OneShotEventId, MessageKey> = {
+  combat: "campaign.session.director.event.combat",
+  location: "campaign.session.director.event.location",
+  social: "campaign.session.director.event.social",
+  romance: "campaign.session.director.event.romance",
+  mystery: "campaign.session.director.event.mystery",
+  weird: "campaign.session.director.event.weird",
+  windfall: "campaign.session.director.event.windfall",
+};
+
+const ONE_SHOT_BLURB_KEYS: Record<OneShotEventId, MessageKey> = {
+  combat: "campaign.session.director.blurb.combat",
+  location: "campaign.session.director.blurb.location",
+  social: "campaign.session.director.blurb.social",
+  romance: "campaign.session.director.blurb.romance",
+  mystery: "campaign.session.director.blurb.mystery",
+  weird: "campaign.session.director.blurb.weird",
+  windfall: "campaign.session.director.blurb.windfall",
+};
+
 type ArmState = {
   armed: boolean;
   oneShot: OneShotEventId | null;
@@ -56,6 +76,7 @@ export function DirectorArmedBanner({
   // until the first event, which is why we also fetch once on mount.
   armed?: ArmState | null;
 }) {
+  const { t } = useI18n();
   // Two sources, and they carry different things. The stream says only
   // WHETHER something is armed, because that event reaches every player and
   // the directive's text is a spoiler. The directive itself comes from this
@@ -109,8 +130,8 @@ export function DirectorArmedBanner({
       />
       <span className="min-w-0 flex-1 truncate">
         {state.absoluteCommand
-          ? `Direction armed: "${state.absoluteCommand}"`
-          : `${state.oneShot ? oneShotLabel(state.oneShot) : "Event"} armed for the next turn`}
+          ? t("campaign.session.director.armed.command", { command: state.absoluteCommand })
+          : t("campaign.session.director.armed.event", { event: state.oneShot ? t(ONE_SHOT_LABEL_KEYS[state.oneShot]) : t("campaign.session.director.event.fallback") })}
       </span>
       {steersStory ? (
         <button
@@ -129,7 +150,7 @@ export function DirectorArmedBanner({
               .finally(() => setBusy(false));
           }}
           className={cn(ui.iconAction, "-my-1 shrink-0 disabled:opacity-50")}
-          aria-label="Disarm"
+          aria-label={t("campaign.session.director.disarm")}
         >
           <X className="size-3.5" />
         </button>
@@ -149,6 +170,7 @@ export function DirectorArmedBanner({
 // `romance`: the table plays romance and its safety tools allow it; without
 // it the Romance cue is not offered (issue 501).
 export function DirectorPresets({ campaignId, romance = true }: { campaignId: string; romance?: boolean }) {
+  const { t } = useI18n();
   const [busy, setBusy] = useState(false);
 
   const arm = useCallback(
@@ -173,7 +195,7 @@ export function DirectorPresets({ campaignId, romance = true }: { campaignId: st
   return (
     <>
       {ONE_SHOT_EVENT_IDS.filter((id) => romance || id !== "romance").map((id) => (
-        <Tooltip key={id} content={oneShotBlurb(id)}>
+        <Tooltip key={id} content={t(ONE_SHOT_BLURB_KEYS[id])}>
           <button
             type="button"
             disabled={busy} aria-busy={busy}
@@ -181,7 +203,7 @@ export function DirectorPresets({ campaignId, romance = true }: { campaignId: st
             className={cn(ui.btnSmall, "min-h-9 gap-1 py-1 pl-1.5 pr-2 text-[11px] disabled:opacity-50")}
           >
             <GameIcon icon={{ kind: "glyph", key: ONE_SHOT_GLYPH[id] }} size="size-5" />
-            {oneShotLabel(id)}
+            {t(ONE_SHOT_LABEL_KEYS[id])}
           </button>
         </Tooltip>
       ))}
