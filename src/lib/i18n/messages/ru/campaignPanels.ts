@@ -3527,4 +3527,6 @@ export const ruCampaignPanels: Partial<Record<keyof typeof enCampaignPanels, str
 
   "campaign.session.hand.react.promptWithoutReason": "Ответить реакцией на атаку?",
 
+  "campaign.session.hand.summon.eachTargetFor": "Формы для каждой цели карты «{name}»",
+
 };
