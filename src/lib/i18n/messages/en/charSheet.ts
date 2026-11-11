@@ -118,4 +118,10 @@ export const enCharSheet = {
   "charSheet.pdf.download": "Download PDF",
   "charSheet.adjust.title": "Party lead: correct this character's stats, items, and spells",
   "charSheet.adjust.label": "Adjust",
+  "charSheet.ability.str": "Strength",
+  "charSheet.ability.dex": "Dexterity",
+  "charSheet.ability.con": "Constitution",
+  "charSheet.ability.int": "Intelligence",
+  "charSheet.ability.wis": "Wisdom",
+  "charSheet.ability.cha": "Charisma",
 } satisfies Record<string, string>;
