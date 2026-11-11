@@ -301,7 +301,7 @@ export function OutlineView({ api, world, onOpen, onOpenSystem }: { api: WorldAp
                   </div>
                   {task.state === "made" && task.made ? (
                     <p className="text-xs text-stone-400">
-                      {t("workshop.world.outline.madeDetail", { name: task.made.name, lands: task.made.lands, detail: task.made.detail })}.{task.made.entryError ? ` {t("workshop.world.outline.entryNotMade", { error: task.made.entryError })}` : ""}
+                      {t("workshop.world.outline.madeDetail", { name: task.made.name, lands: task.made.lands, detail: task.made.detail })}{task.made.entryError ? ` ${t("workshop.world.outline.entryNotMade", { error: task.made.entryError })}` : ""}
                     </p>
                   ) : null}
                   {task.state === "failed" ? <p className="text-xs text-ember-300" role="alert">{task.error}</p> : null}
