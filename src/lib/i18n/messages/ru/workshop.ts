@@ -1858,4 +1858,6 @@ export const ruWorkshop: Partial<Record<keyof typeof enWorkshop, string>> = {
   "workshop.world.outline.asset.itemKind.gear": "Снаряжение",
   "workshop.world.outline.asset.itemKind.magic_item": "Магический предмет",
 
+  "workshop.world.web.edge.above": "выше",
+
 };
