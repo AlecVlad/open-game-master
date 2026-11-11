@@ -279,6 +279,7 @@ function NpcReviewCard({ campaignId }: { campaignId: string }) {
 // of what happened at the table rather than a plan, and the server refuses
 // those edits regardless; the UI just does not offer them.
 function ArcCard({ campaignId }: { campaignId: string }) {
+  const { t, tp } = useI18n();
   const [expanded, setExpanded] = useState(false);
   const [loadingRequest, setLoadingRequest] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
@@ -340,13 +341,13 @@ function ArcCard({ campaignId }: { campaignId: string }) {
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setBeatError(data.error ?? "That edit did not go through.");
+        setBeatError(t("campaign.story.arc.errors.edit"));
         return false;
       }
       setLoadedArc({ campaignId, arc: data.arc, dmOutline: outline });
       return true;
     } catch {
-      setBeatError("That edit did not go through.");
+      setBeatError(t("campaign.story.arc.errors.edit"));
       return false;
     } finally {
       setBeatBusy(false);
@@ -425,35 +426,35 @@ function ArcCard({ campaignId }: { campaignId: string }) {
         )}
         <span className="flex items-center gap-1.5">
           <GameIcon icon={{ kind: "glyph", key: "system-storyboard" }} size="size-6" />
-          <span className="section-head-title">GM story arc (secret)</span>
+          <span className="section-head-title">{t("campaign.story.arc.title")}</span>
         </span>
       </button>
       {expanded ? (
         <div className="reveal mt-2 space-y-2 pl-5">
           {loading ? (
-            <PanelLoading label="Loading..." rows={2} />
+            <PanelLoading label={t("campaign.story.loading")} rows={2} />
           ) : arc ? (
             <>
               {arc.saga ? (
                 <p className="reveal text-[11px] font-medium leading-4 text-amber-200">
-                  {arc.saga.sagaIndex > 1 ? `Saga ${arc.saga.sagaIndex} (sequel): ` : ""}
+                  {arc.saga.sagaIndex > 1 ? `${t("campaign.story.saga.sequel", { index: arc.saga.sagaIndex })} ` : ""}
                   &ldquo;{arc.saga.title}&rdquo;
                   <span className="font-normal text-stone-400">
                     {" "}
-                    &middot; act {currentAct} of {arc.saga.plannedActs}
+                    {t("campaign.story.actProgress", { current: currentAct, planned: arc.saga.plannedActs })}
                   </span>
                 </p>
               ) : null}
               <p className="text-xs leading-5 text-stone-300">{arc.premise}</p>
               {arc.stakes ? (
-                <p className="reveal text-xs leading-5 text-stone-400">Stakes: {arc.stakes}</p>
+                <p className="reveal text-xs leading-5 text-stone-400">{t("campaign.story.arc.stakes")} {arc.stakes}</p>
               ) : null}
               {arc.antagonist ? (
-                <p className="reveal text-xs leading-5 text-stone-400">Antagonist: {arc.antagonist}</p>
+                <p className="reveal text-xs leading-5 text-stone-400">{t("campaign.story.arc.antagonist")} {arc.antagonist}</p>
               ) : null}
               {actGroups.map((act) => (
                 <div key={act}>
-                  <SectionHead title={`Act ${act}`} glyph="tab-story" level="h4" className="mb-1" />
+                  <SectionHead title={t("campaign.story.act", { act })} glyph="tab-story" level="h4" className="mb-1" />
                   <ol className="mt-0.5 space-y-0.5">
                     {arc.beats.map((beat, index) => {
                       if (beat.act !== act) {
