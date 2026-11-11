@@ -5,6 +5,7 @@ import { Select } from "@/components/ui/Select";
 import { Switch } from "@/components/ui/Switch";
 import { FieldLabel } from "@/app/workshop/kit";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { ui } from "@/lib/ui";
 import {
   IMPORT_KINDS,
@@ -30,6 +31,25 @@ import type { ImportSourceSummary } from "@/app/workshop/types";
 // the collisions and overwrites. At campaign creation there is no campaign
 // yet, so there is nothing to collide with: a fresh table is empty, and the
 // counts from the source are the whole truth.
+
+const IMPORT_KIND_KEYS: Record<ImportKind, string> = {
+  lore: "workshop.contentImport.kind.lore",
+  locations: "workshop.contentImport.kind.locations",
+  overworld: "workshop.contentImport.kind.overworld",
+  encounters: "workshop.contentImport.kind.encounters",
+  tables: "workshop.contentImport.kind.tables",
+  npcs: "workshop.contentImport.kind.npcs",
+  factions: "workshop.contentImport.kind.factions",
+  shops: "workshop.contentImport.kind.shops",
+  maps: "workshop.contentImport.kind.maps",
+  storyboard: "workshop.contentImport.kind.storyboard",
+  world: "workshop.contentImport.kind.world",
+  houseRules: "workshop.contentImport.kind.houseRules",
+};
+
+function importKindLabel(kind: ImportKind, t: (key: string, params?: Record<string, string | number>) => string): string {
+  return t(IMPORT_KIND_KEYS[kind]);
+}
 
 export type ImportSelection = {
   sourceId: string;
@@ -92,6 +112,11 @@ export function ContentImportPicker({
   // warning.
   onChosen?: (chosen: { title: string; arcComing: boolean } | null) => void;
 }) {
+  const { t, tp } = useI18n();
+  const importMessages: ImportMessages = {
+    t: (key, params) => t(key as never, params),
+    tp: (key, count, params) => tp(key, count, params),
+  };
   const [sources, setSources] = useState<ImportSourceSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [plan, setPlan] = useState<ImportPlan | null>(null);
@@ -239,7 +264,7 @@ export function ContentImportPicker({
     setBusy(true);
     setNote(null);
     try {
-      const outcome = await postContentImport(campaignId, selection);
+      const outcome = await postContentImport(campaignId, selection, importMessages);
       if (!outcome.ok) {
         setNote({ tone: "error", text: outcome.error });
         return;
@@ -266,8 +291,7 @@ export function ContentImportPicker({
       <p role="alert" className="flex items-start gap-1.5 text-xs text-amber-300/90">
         <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
         <span>
-          Could not load what you can copy from. Check the connection and open this again; nothing has been
-          brought in.
+          {t("workshop.contentImport.sourcesError")}
         </span>
       </p>
     );
@@ -276,8 +300,7 @@ export function ContentImportPicker({
   if (!offered.length) {
     return (
       <p className="text-xs text-stone-500">
-        You have nothing to copy from yet. Build maps, lore and encounters in the Workshop, or run
-        a campaign, and you can bring any of it straight in here.
+        {t("workshop.contentImport.sourcesEmpty")}
       </p>
     );
   }
@@ -290,9 +313,7 @@ export function ContentImportPicker({
     <p className="flex items-start gap-1.5 text-xs text-stone-400" data-testid="import-party">
       <Info className="mt-0.5 size-3.5 shrink-0 text-sky-300/70" />
       <span>
-        Party: {offeredPregens.length} pregen{offeredPregens.length === 1 ? "" : "s"} offered to players who join
-        tables you run ({offeredPregens.join(", ")}). One player each; tick or untick them in the
-        workshop&apos;s Party panel.
+        {t("workshop.contentImport.partyOffer", { count: offeredPregens.length, names: offeredPregens.join(", ") })}
       </span>
     </p>
   ) : null;
@@ -308,7 +329,7 @@ export function ContentImportPicker({
         className={ui.btnSmall}
       >
         {busy ? <Loader2 className="size-3.5 animate-spin" /> : <Hammer className="size-3.5" />}
-        Bring it in
+        {t("workshop.contentImport.bringIn")}
       </button>
       {note ? (
         <span
@@ -321,8 +342,7 @@ export function ContentImportPicker({
     </div>
   ) : (
     <p className="text-xs text-stone-500">
-      This lands in the campaign right after it is created. Nothing is removed from
-      where it came from.
+      {t("workshop.contentImport.createdNotice")}
     </p>
   );
 
@@ -332,28 +352,28 @@ export function ContentImportPicker({
         <p className="flex items-start gap-1.5 text-xs text-amber-300/90" data-testid="import-kept-standing">
           <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
           <span>
-            Kept from an earlier import, until you choose on the entry in the World tab: {unsaid.join(" ")}
+            {t("workshop.contentImport.keptStanding", { names: unsaid.join(" ") })}
           </span>
         </p>
       ) : null}
       <div className="block">
-        <FieldLabel className="mb-1 block">Start from</FieldLabel>
+        <FieldLabel className="mb-1 block">{t("workshop.contentImport.source.label")}</FieldLabel>
         <Select
-          label="Start from"
+          label={t("workshop.contentImport.source.label")}
           value={selection.sourceId}
           onChange={(id) => choose(offered.find((source) => source.id === id) ?? null)}
           options={[
-            { value: "", label: "None" },
+            { value: "", label: t("workshop.contentImport.source.none") },
             ...workshops.map((source) => ({
               value: source.id,
               label: source.title,
-              group: "Workshops",
+              group: t("workshop.contentImport.source.workshops"),
               icon: { kind: "glyph" as const, key: "system-storyboard" },
             })),
             ...campaigns.map((source) => ({
               value: source.id,
               label: source.title,
-              group: "Campaigns",
+              group: t("workshop.contentImport.source.campaigns"),
               icon: { kind: "glyph" as const, key: "tab-campaigns" },
             })),
           ]}
@@ -366,14 +386,14 @@ export function ContentImportPicker({
             <div className="stagger space-y-1">
               {available.map((kind) => (
                 <div key={kind} className="flex min-h-9 items-center gap-2 text-sm text-stone-300">
-                  <Switch on={selection.select.includes(kind)} onChange={() => toggle(kind)} label={IMPORT_KIND_LABELS[kind]} />
-                  <span>{IMPORT_KIND_LABELS[kind]}</span>
+                  <Switch on={selection.select.includes(kind)} onChange={() => toggle(kind)} label={importKindLabel(kind, t)} />
+                  <span>{importKindLabel(kind, t)}</span>
                   {SINGULAR_KINDS.has(kind) ? null : (
                     <span className="text-xs text-stone-500">({chosen.contents[kind]})</span>
                   )}
                   {selection.select.includes("world") && (WORLD_RECORD_KINDS as readonly string[]).includes(kind) ? (
                     <span className="text-xs text-stone-500" data-testid={`import-world-needs-${kind}`}>
-                      {selection.select.includes(kind) ? "WorldForge needs these" : "Left out on purpose"}
+                      {selection.select.includes(kind) ? t("workshop.contentImport.world.needs") : t("workshop.contentImport.world.leftOut")}
                     </span>
                   ) : null}
                 </div>
@@ -384,14 +404,14 @@ export function ContentImportPicker({
 
             {selection.select.includes("houseRules") ? (
               <div className="block">
-                <FieldLabel className="mb-1 block">Existing house rules</FieldLabel>
+                <FieldLabel className="mb-1 block">{t("workshop.contentImport.houseRules.label")}</FieldLabel>
                 <Select<"replace" | "append">
-                  label="Existing house rules"
+                  label={t("workshop.contentImport.houseRules.label")}
                   value={selection.houseRules}
                   onChange={(houseRules) => onChange({ ...selection, houseRules })}
                   options={[
-                    { value: "replace", label: "Replace them" },
-                    { value: "append", label: "Keep them and add these" },
+                    { value: "replace", label: t("workshop.contentImport.houseRules.replace") },
+                    { value: "append", label: t("workshop.contentImport.houseRules.append") },
                   ]}
                 />
               </div>
@@ -399,21 +419,21 @@ export function ContentImportPicker({
 
             {selection.select.includes("storyboard") && plan?.board?.targetHasArc ? (
               <div className="reveal block">
-                <FieldLabel className="mb-1 block">The board&apos;s beats</FieldLabel>
+                <FieldLabel className="mb-1 block">{t("workshop.contentImport.boardBeats.label")}</FieldLabel>
                 <Select<"leave" | "append">
-                  label="The board's beats"
+                  label={t("workshop.contentImport.boardBeats.label")}
                   value={selection.arc ?? "leave"}
                   onChange={(arc) => onChange({ ...selection, arc })}
                   options={[
                     {
                       value: "leave",
-                      label: "Leave this campaign's arc alone",
-                      hint: "Places, quests, fights and notes still land.",
+                      label: t("workshop.contentImport.boardBeats.leave"),
+                      hint: t("workshop.contentImport.boardBeats.leaveHint"),
                     },
                     {
                       value: "append",
-                      label: `Add them as act ${plan.board.act}`,
-                      hint: "After the beats already played. Nothing played is changed.",
+                      label: t("workshop.contentImport.boardBeats.append", { act: plan.board.act }),
+                      hint: t("workshop.contentImport.boardBeats.appendHint"),
                     },
                   ]}
                 />
@@ -424,14 +444,14 @@ export function ContentImportPicker({
 
             {plan?.kept || selection.again === "copy" ? (
               <div className="reveal block">
-                <FieldLabel className="mb-1 block">Already brought in before</FieldLabel>
+                <FieldLabel className="mb-1 block">{t("workshop.contentImport.again.label")}</FieldLabel>
                 <Select<"skip" | "copy">
-                  label="Already brought in before"
+                  label={t("workshop.contentImport.again.label")}
                   value={selection.again ?? "skip"}
                   onChange={(again) => onChange({ ...selection, again })}
                   options={[
-                    { value: "skip", label: "Keep them as this campaign has them" },
-                    { value: "copy", label: "Bring second copies, numbered" },
+                    { value: "skip", label: t("workshop.contentImport.again.keep") },
+                    { value: "copy", label: t("workshop.contentImport.again.copy") },
                   ]}
                 />
               </div>
@@ -465,9 +485,9 @@ export function ContentImportPicker({
             {campaignId && planFailed ? (
               <p role="alert" className="flex flex-wrap items-center gap-1.5 text-xs text-amber-300/90">
                 <AlertTriangle className="size-3.5 shrink-0" />
-                <span>Could not check what this would bring in or replace here.</span>
+                <span>{t("workshop.contentImport.planFailed")}</span>
                 <button type="button" onClick={() => void refreshPlan()} className={`${ui.btnSmall} min-h-10`}>
-                  Check again
+                  {t("workshop.contentImport.checkAgain")}
                 </button>
               </p>
             ) : null}
@@ -488,8 +508,8 @@ export function ContentImportPicker({
                 // only those is not empty, and saying so sent people looking for
                 // a copy step that does not exist (workshop import audit F06).
                 // Its pregens come with choosing it once one is offered.
-                "That workshop has no campaign prep to copy: places, cast, maps, fights, lore, tables, shops, the storyboard, WorldForge or house rules. Its Homebrew needs no copy, since it already counts at every table you run. To offer its pregens to players here, tick Offer to players in its Party panel, then choose it again."
-              : "That campaign has no prep to copy yet."}
+                t("workshop.contentImport.emptyWorkshop")
+              : t("workshop.contentImport.emptyCampaign")}
           </p>
         )
       ) : null}
@@ -499,42 +519,55 @@ export function ContentImportPicker({
 
 export type ImportOutcome = { ok: true; copied: number; note: string } | { ok: false; error: string };
 
+type ImportMessages = {
+  t: (key: string, params?: Record<string, string | number>) => string;
+  tp: (key: string, count: number, params?: Record<string, string | number>) => string;
+};
+
 // What an import brought, in one line for the person who asked for it.
-function importNote(data: Record<string, unknown>): string {
+// Server-authored conflict and reference notes remain data; the surrounding
+// labels and every summary composed here follow the interface language.
+function importNote(data: Record<string, unknown>, messages?: ImportMessages): string {
   const copied = Number(data.copied) || 0;
   const names = (value: unknown) => (Array.isArray(value) ? value.map(String) : []);
   const unresolved = names(data.unresolved);
-  // The workshop's pregens its players can take here now; a choice that
-  // brought only those is not "0 items".
   const offered = names(data.pregensOffered);
+  if (!messages) {
+    const lines = [
+      copied || !offered.length ? `Brought ${copied} items across.` : "",
+      data.kept ? `Kept ${String(data.kept)} already here.` : "",
+      data.beatsAdded ? `${String(data.beatsAdded)} beats joined the arc.` : "",
+      unresolved.length ? `No monster here answers to ${unresolved.join(", ")}: add them to your bestiary, or point those NPCs and fights at another.` : "",
+      names(data.worldConflicts).join(" "),
+      names(data.referenceNotes).join(" "),
+      names(data.monstersBrought).length ? `Copied into this table's bestiary: ${names(data.monstersBrought).join(", ")}.` : "",
+      names(data.monstersReused).length ? `Already in this table's bestiary: ${names(data.monstersReused).join(", ")}.` : "",
+      names(data.itemsBrought).length ? `Copied into this table's Homebrew: ${names(data.itemsBrought).join(", ")}.` : "",
+      names(data.itemsReused).length ? `Already in this table's Homebrew: ${names(data.itemsReused).join(", ")}.` : "",
+      offered.length ? `Offered to players here: ${offered.join(", ")}.` : "",
+    ];
+    return lines.filter(Boolean).join(" ");
+  }
+  const { t, tp } = messages;
   const lines = [
-    copied || !offered.length ? `Brought ${copied} item${copied === 1 ? "" : "s"} across.` : "",
-    data.kept ? `Kept ${String(data.kept)} already here.` : "",
-    data.beatsAdded ? `${String(data.beatsAdded)} beat${data.beatsAdded === 1 ? "" : "s"} joined the arc.` : "",
-    // Names this table's Cast or fights use that nothing here answers to (a
-    // monster on another author's shelf), and links both worlds changed
-    // (src/lib/db/content-import.ts).
-    unresolved.length
-      ? `No monster here answers to ${unresolved.join(", ")}: add them to your bestiary, or point those NPCs and fights at another.`
-      : "",
+    copied || !offered.length ? tp("workshop.contentImport.note.items", copied) : "",
+    data.kept ? tp("workshop.contentImport.note.kept", Number(data.kept)) : "",
+    data.beatsAdded ? tp("workshop.contentImport.note.beats", Number(data.beatsAdded)) : "",
+    unresolved.length ? t("workshop.contentImport.note.unresolved", { names: unresolved.join(", ") }) : "",
     names(data.worldConflicts).join(" "),
-    // Roll-table rows whose table, NPC or lore entry stayed behind and that
-    // now name this campaign's own of that name, or nothing.
     names(data.referenceNotes).join(" "),
-    // Hand-built monsters and items this table's authors did not have,
-    // copied in so what names them still works (WF-07, WF-17).
-    names(data.monstersBrought).length ? `Copied into this table's bestiary: ${names(data.monstersBrought).join(", ")}.` : "",
-    names(data.monstersReused).length ? `Already in this table's bestiary: ${names(data.monstersReused).join(", ")}.` : "",
-    names(data.itemsBrought).length ? `Copied into this table's Homebrew: ${names(data.itemsBrought).join(", ")}.` : "",
-    names(data.itemsReused).length ? `Already in this table's Homebrew: ${names(data.itemsReused).join(", ")}.` : "",
-    offered.length ? `Offered to players here: ${offered.join(", ")}.` : "",
+    names(data.monstersBrought).length ? t("workshop.contentImport.note.monstersCopied", { names: names(data.monstersBrought).join(", ") }) : "",
+    names(data.monstersReused).length ? t("workshop.contentImport.note.monstersReused", { names: names(data.monstersReused).join(", ") }) : "",
+    names(data.itemsBrought).length ? t("workshop.contentImport.note.itemsCopied", { names: names(data.itemsBrought).join(", ") }) : "",
+    names(data.itemsReused).length ? t("workshop.contentImport.note.itemsReused", { names: names(data.itemsReused).join(", ") }) : "",
+    offered.length ? t("workshop.contentImport.note.pregensOffered", { names: offered.join(", ") }) : "",
   ];
   return lines.filter(Boolean).join(" ");
 }
 
 // One import, answered: what it brought, or why it brought nothing. A
 // refusal and a dropped connection are both failures the caller must show.
-export async function postContentImport(campaignId: string, selection: ImportSelection): Promise<ImportOutcome> {
+export async function postContentImport(campaignId: string, selection: ImportSelection, messages?: ImportMessages): Promise<ImportOutcome> {
   try {
     const response = await fetch(`/api/campaigns/${campaignId}/import`, {
       method: "POST",
@@ -543,11 +576,11 @@ export async function postContentImport(campaignId: string, selection: ImportSel
     });
     const data = (await response.json().catch(() => ({}))) as Record<string, unknown>;
     if (!response.ok) {
-      return { ok: false, error: typeof data.error === "string" && data.error ? data.error : "The import was refused." };
+      return { ok: false, error: typeof data.error === "string" && data.error ? data.error : messages?.t("workshop.contentImport.error.refused") ?? "The import was refused." };
     }
-    return { ok: true, copied: Number(data.copied) || 0, note: importNote(data) };
+    return { ok: true, copied: Number(data.copied) || 0, note: importNote(data, messages) };
   } catch {
-    return { ok: false, error: "Could not reach the server." };
+    return { ok: false, error: messages?.t("workshop.contentImport.error.connection") ?? "Could not reach the server." };
   }
 }
 
@@ -558,9 +591,9 @@ export async function postContentImport(campaignId: string, selection: ImportSel
 // a campaign that was made without the prep it was meant to start from is
 // not a finished campaign. A workshop whose pregens come with it is a
 // choice even with nothing ticked.
-export async function submitContentImport(campaignId: string, selection: ImportSelection): Promise<ImportOutcome | null> {
+export async function submitContentImport(campaignId: string, selection: ImportSelection, messages?: ImportMessages): Promise<ImportOutcome | null> {
   if (!bringsSomething(selection)) {
     return null;
   }
-  return postContentImport(campaignId, selection);
+  return postContentImport(campaignId, selection, messages);
 }
