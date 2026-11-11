@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type CSSProperties } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import type { CampaignMember } from "@/lib/campaign-types";
 import { cn } from "@/lib/cn";
 import type { CharacterSheet } from "@/lib/schemas/sheet";
@@ -27,20 +28,23 @@ export function CompanionCommand({
   // where a person does.
   canChoose: boolean;
 }) {
+  const { t } = useI18n();
   const [sending, setSending] = useState<string | null>(null);
   const [error, setError] = useState("");
   // The players who could command: everyone at the table with a character of
   // their own (the DM seats hold none).
   const players = members.filter((member) => sheets.some((entry) => !entry.isCompanion && entry.userId === member.userId));
   const commander = players.some((member) => member.userId === sheet.commandedBy) ? sheet.commandedBy ?? null : null;
-  const nameOf = (userId: string) => (userId === meUserId ? "You" : members.find((member) => member.userId === userId)?.username ?? "A player");
+  const nameOf = (userId: string) => (userId === meUserId ? t("campaign.companionCommand.you") : members.find((member) => member.userId === userId)?.username ?? t("campaign.companionCommand.player"));
   const options: Array<{ id: string | null; label: string }> = [
-    { id: null, label: "The GM" },
+    { id: null, label: t("campaign.companionCommand.gm") },
     ...players.map((member) => ({ id: member.userId, label: nameOf(member.userId) })),
   ];
   const hint = commander
-    ? `${commander === meUserId ? "You take" : `${nameOf(commander)} takes`} ${sheet.name}'s turns in fights. Out of fights the GM plays ${sheet.name}.`
-    : `The GM plays ${sheet.name}'s turns in fights, as everywhere else.`;
+    ? commander === meUserId
+      ? t("campaign.companionCommand.hint.you", { name: sheet.name })
+      : t("campaign.companionCommand.hint.player", { player: nameOf(commander), name: sheet.name })
+    : t("campaign.companionCommand.hint.gm", { name: sheet.name });
 
   async function choose(next: string | null) {
     if (next === commander || sending !== null) {
@@ -56,10 +60,10 @@ export function CompanionCommand({
       });
       if (!response.ok) {
         const data = (await response.json().catch(() => ({}))) as { error?: string };
-        setError(data.error || "Could not change who commands them.");
+        setError(data.error || t("campaign.companionCommand.error.change"));
       }
     } catch {
-      setError("Could not reach the server.");
+      setError(t("campaign.companionCommand.error.server"));
     } finally {
       setSending(null);
     }
@@ -71,10 +75,10 @@ export function CompanionCommand({
         <div
           className="flex flex-wrap items-center gap-1.5"
           role="radiogroup"
-          aria-label={`Who takes ${sheet.name}'s turns in fights`}
+          aria-label={t("campaign.companionCommand.groupAria", { name: sheet.name })}
           data-pill-group=""
         >
-          <span className="text-[10px] uppercase tracking-[0.18em] text-stone-500">In fights</span>
+          <span className="text-[10px] uppercase tracking-[0.18em] text-stone-500">{t("campaign.companionCommand.inFights")}</span>
           {options.map((option, index) => {
             const on = option.id === commander;
             return (
