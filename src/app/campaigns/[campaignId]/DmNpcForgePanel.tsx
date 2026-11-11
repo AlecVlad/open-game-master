@@ -369,7 +369,7 @@ export function DmNpcForgePanel({
       <button
         type="button"
         disabled={generating !== "" || busy}
-        title={`Ask the model for ${FIELD_LABELS[field].toLowerCase()}`}
+        title={t("campaign.dmNpcForge.suggest")}
         onClick={() => void suggest(field)}
         className={cn(ui.btnSmall, "shrink-0 gap-1 px-2 py-1 text-[10px]")}
       >
