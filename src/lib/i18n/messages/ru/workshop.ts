@@ -436,5 +436,16 @@ export const ruWorkshop: Partial<Record<keyof typeof enWorkshop, string>> = {
   "workshop.create.way.extract": "Извлечь из заметок",
   "workshop.create.model.story": "текстовая модель, которую администратор подключает в разделе «Администрирование → Настройки текстовой модели»",
   "workshop.create.model.images": "модуль генерации изображений, который администратор подключает в разделе «Администрирование → Генерация изображений»",
+  "workshop.header.allWorkshops": "Все мастерские",
+  "workshop.header.name": "Название мастерской",
+  "workshop.header.rename": "Переименовать мастерскую",
+  "workshop.header.help.aria": "Как устроена мастерская",
+  "workshop.header.help.title": "Руководства и обзоры",
+  "workshop.header.duplicate.aria": "Создать копию мастерской «{name}»",
+  "workshop.header.duplicate.title": "Создать копию мастерской вместе со всеми материалами",
+  "workshop.header.delete.aria": "Удалить мастерскую «{name}»",
+  "workshop.header.delete.title": "Удалить эту мастерскую",
+  "workshop.header.delete.confirm": "Удалить мастерскую «{name}»? Все карты, НИП, таблицы и заметки будут утрачены. Материалы, уже импортированные в кампании, сохранятся.",
+  "workshop.header.importBundle": "Импортировать набор",
 
 };
