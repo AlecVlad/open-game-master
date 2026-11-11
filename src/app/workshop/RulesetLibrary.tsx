@@ -296,7 +296,7 @@ export function RulesetLibrary({
               </div>
               {openId === ruleset.id ? (
                 <div className="reveal space-y-3 border-t border-stone-800/70 p-3">
-                  {activeVariantRules(ruleset.variantRules).length ? (
+                  {localizedVariantRules(ruleset.variantRules, translate).length ? (
                     <ul className="stagger text-xs text-stone-400">
                       {localizedVariantRules(ruleset.variantRules, translate).map((label) => (
                         <li key={label}>{label}</li>
