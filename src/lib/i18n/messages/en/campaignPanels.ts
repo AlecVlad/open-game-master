@@ -4440,4 +4440,14 @@ export const enCampaignPanels = {
   "campaign.lore.editor.save": "Save",
   "campaign.lore.editor.add": "Add",
   "campaign.lore.copySuffix": "copy",
+
+  "campaign.lore.search.placeholder": "Search the lore",
+  "campaign.lore.search.aria": "Search the lore by title, body or tag",
+  "campaign.lore.visibility.secretBadge": "Secret",
+  "campaign.lore.visibility.handoutBadge": "Handout",
+  "campaign.lore.body.pagesTitle": "{title} pages",
+  "campaign.lore.mention.kind.lore": "Lore",
+  "campaign.lore.mention.kind.npc": "NPC",
+  "campaign.lore.mention.kind.beat": "Story beat",
+  "campaign.lore.mention.kind.note": "Note",
 } satisfies Record<string, string>;
