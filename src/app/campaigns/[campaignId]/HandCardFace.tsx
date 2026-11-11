@@ -7,21 +7,25 @@ import { GameIcon } from "@/components/ui/GameIcon";
 import { cardArtwork } from "@/lib/battlemap/card-art";
 import type { HandCard, HandCardType, HandCost } from "@/lib/battlemap/hand";
 import { previewRows, type HandAim, type PreviewRow } from "@/lib/battlemap/hand-play";
+import { useI18n } from "@/lib/i18n/provider";
+
+type Translator = ReturnType<typeof useI18n>["t"];
+type I18nKey = Parameters<Translator>[0];
 
 // One card of the Hand and the outcome preview that floats over it. Styles
 // are in src/app/styles/hand.css; the tilt, the sheen and the art parallax
 // come from the shared pointer module through the motion-card class, so
 // nothing here listens to the pointer.
 
-const TYPE_LABEL: Record<HandCardType, string> = {
-  attack: "Attack",
-  rider: "Rider",
-  spell: "Spell",
-  control: "Control",
-  mend: "Mend",
-  ward: "Ward",
-  feature: "Feature",
-  basic: "Basic",
+const TYPE_LABEL_KEY: Record<HandCardType, I18nKey> = {
+  attack: "campaign.session.hand.type.attack",
+  rider: "campaign.session.hand.type.rider",
+  spell: "campaign.session.hand.type.spell",
+  control: "campaign.session.hand.type.control",
+  mend: "campaign.session.hand.type.mend",
+  ward: "campaign.session.hand.type.ward",
+  feature: "campaign.session.hand.type.feature",
+  basic: "campaign.session.hand.type.basic",
 };
 
 const TYPE_TONE: Record<HandCardType, string> = {
@@ -35,18 +39,22 @@ const TYPE_TONE: Record<HandCardType, string> = {
   basic: "#d6cfc2",
 };
 
-const COST_SHORT: Record<HandCost, string> = {
-  action: "Action",
-  bonus: "Bonus",
-  reaction: "Reaction",
-  rider: "Rider",
-  free: "Free",
-  legendary: "Legendary",
-  lair: "Lair",
+const COST_SHORT_KEY: Record<HandCost, I18nKey> = {
+  action: "campaign.session.hand.cost.action",
+  bonus: "campaign.session.hand.cost.bonus",
+  reaction: "campaign.session.hand.cost.reaction",
+  rider: "campaign.session.hand.cost.rider",
+  free: "campaign.session.hand.cost.free",
+  legendary: "campaign.session.hand.cost.legendary",
+  lair: "campaign.session.hand.cost.lair",
 };
 
-export function typeLabel(type: HandCardType): string {
-  return TYPE_LABEL[type];
+export function typeLabel(type: HandCardType, t: Translator): string {
+  return t(TYPE_LABEL_KEY[type]);
+}
+
+function costLabel(cost: HandCost, t: Translator): string {
+  return t(COST_SHORT_KEY[cost]);
 }
 
 export function typeTone(type: HandCardType): string {
@@ -74,11 +82,12 @@ export function HandPreviewRows({ rows }: { rows: PreviewRow[] }) {
 // mockup's card-play and card-spend, both in hand-motion.css. Decoration only,
 // the fan's own card is the one a screen reader hears about.
 export function HandPlayedCard({ card }: { card: HandCard }) {
+  const { t } = useI18n();
   return (
     <div className="hand-played" aria-hidden="true">
       <span className="hand-played-top">
         <span className="hand-cost" data-cost={card.cost}>
-          {COST_SHORT[card.cost]}
+          {costLabel(card.cost, t)}
         </span>
         <span className="hand-range">{card.range}</span>
       </span>
@@ -130,6 +139,7 @@ function HandCardFaceInner({
   fresh?: boolean;
   onPick: (card: HandCard) => void;
 }) {
+  const { t } = useI18n();
   const rows = useMemo(() => previewRows(card, aim, conditions), [card, aim, conditions]);
   const artwork = cardArtwork(card.icon, genre);
   const aimName = aim && card.target === "enemy" && aim.kind === "enemy" ? aim.name : "";
@@ -155,13 +165,13 @@ function HandCardFaceInner({
       // hover, which is how it says why it cannot be played.
       aria-disabled={card.disabled ? "true" : undefined}
       aria-pressed={card.type === "rider" ? attached : undefined}
-      aria-label={`${card.name}, ${COST_SHORT[card.cost]}${card.disabled ? `. ${card.disabled}` : ""}`}
+      aria-label={`${card.name}, ${costLabel(card.cost, t)}${card.disabled ? `. ${card.disabled}` : ""}`}
       onClick={() => onPick(card)}
     >
       <span className="hand-card-frame" />
       <span className="hand-card-foil" />
       <span className="hand-card-sheen" />
-      <span className="hand-card-ribbon">{TYPE_LABEL[card.type]}</span>
+      <span className="hand-card-ribbon">{typeLabel(card.type, t)}</span>
       <span className="hand-card-notch" aria-hidden="true" />
       <span className="hand-card-edge" aria-hidden="true" />
       <span className="hand-card-corner" data-at="tl" />
@@ -171,7 +181,7 @@ function HandCardFaceInner({
           <span className="hand-cost" data-cost={card.cost}>
             {COST_SHORT[card.cost]}
           </span>
-          {fresh ? <span className="hand-group-new">New</span> : <span className="hand-range">{card.range}</span>}
+          {fresh ? <span className="hand-group-new">{t("campaign.session.hand.new")}</span> : <span className="hand-range">{card.range}</span>}
         </span>
         <span className="hand-art">
           <GameIcon
