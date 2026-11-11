@@ -179,7 +179,7 @@ function HandCardFaceInner({
       <span className="hand-card-body">
         <span className="hand-card-top">
           <span className="hand-cost" data-cost={card.cost}>
-            {COST_SHORT[card.cost]}
+            {costLabel(card.cost, t)}
           </span>
           {fresh ? <span className="hand-group-new">{t("campaign.session.hand.new")}</span> : <span className="hand-range">{card.range}</span>}
         </span>
@@ -246,7 +246,7 @@ function HandCardFaceInner({
         <span className="hand-preview" aria-hidden="true">
           <span className="hand-preview-head">
             <span className="hand-type-chip" style={{ "--chip-tone": TYPE_TONE[card.type] } as CSSProperties}>
-              {TYPE_LABEL[card.type]}
+              {typeLabel(card.type, t)}
             </span>
             <span className="hand-preview-name">{aimName ? `${card.name} · ${aimName}` : card.name}</span>
           </span>
