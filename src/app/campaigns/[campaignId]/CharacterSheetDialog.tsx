@@ -81,6 +81,47 @@ function explainParts(parts: DerivedPart[]): string {
 
 const ROMAN = ["", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX"];
 
+type SheetTranslator = ReturnType<typeof useI18n>["t"];
+
+function hpMaximumNote(note: string | null, t: SheetTranslator): string | null {
+  if (!note) return null;
+  const exhaustion = note.match(/^Hit point maximum halved by exhaustion (\d+) \((\d+) without it\)\.$/);
+  if (exhaustion) return t("charSheet.hp.note.exhaustion", { level: exhaustion[1], max: exhaustion[2] });
+  const gear = note.match(/^Raised by worn, attuned gear that sets Constitution \((\d+) without it\)\.$/);
+  if (gear) return t("charSheet.hp.note.gear", { max: gear[1] });
+  const rules = note.match(/^The rules put the maximum at (\d+) right now \((\d+) on the sheet\)\.$/);
+  if (rules) return t("charSheet.hp.note.rules", { max: rules[1], sheet: rules[2] });
+  return t("charSheet.hp.note.generic");
+}
+
+function usageErrorText(message: string, t: SheetTranslator, name: string): string {
+  if (message === "Character not found.") return t("charSheet.error.characterNotFound");
+  if (message === "You have no character in this campaign.") return t("charSheet.error.noCharacter");
+  if (message === "Nothing to adjust.") return t("charSheet.error.nothingToAdjust");
+  if (message === "Invalid adjustment.") return t("charSheet.error.invalidAdjustment");
+  if (message.startsWith(name + " is dead and spends nothing.")) return t("charSheet.error.deadSpend");
+  if (message.startsWith("Spell slots, hit dice and class features come back at rests")) return t("charSheet.error.onlySpend");
+  if (message.startsWith("Hit dice are spent at the end of a short rest")) return t("charSheet.error.hitDiceRest");
+  if (message.startsWith(name + " does not carry one of those items.")) return t("charSheet.error.itemMissing");
+  if (message.startsWith(name + " is dead and cannot change what they wear")) return t("charSheet.error.deadGear");
+  if (message.startsWith("Armor takes minutes to put on or take off")) return t("charSheet.error.armorInCombat");
+  if (message.startsWith("Attuning to an item, or ending it, takes a short rest")) return t("charSheet.error.attuneInCombat");
+  if (message.startsWith("Putting on or taking off a shield takes an action")) return t("charSheet.error.shieldAction");
+  if (message.startsWith("Drawing, stowing or putting something on happens on")) return t("charSheet.error.gearOwnTurn");
+  return t("charSheet.error.refused");
+}
+
+function timePassedText(message: string, t: SheetTranslator): string {
+  return message.split(/(?<=\.)\s+/).map((line) => {
+    const attune = line.match(/^Ending the attunement to (.+) takes a short rest spent with it \(1 hour\)\.$/);
+    if (attune) return t("charSheet.gear.time.attunement", { name: attune[1] });
+    const puttingOn = line.match(/^Putting on (.+) takes ([0-9.]+) minutes?\.$/);
+    if (puttingOn) return t("charSheet.gear.time.putOn", { name: puttingOn[1], minutes: puttingOn[2] });
+    const takingOff = line.match(/^Taking off (.+?)(?: with help)? takes ([0-9.]+) minutes?\.$/);
+    if (takingOff) return t(line.includes(" with help ") ? "charSheet.gear.time.takeOffHelp" : "charSheet.gear.time.takeOff", { name: takingOff[1], minutes: takingOff[2] });
+    return t("charSheet.gear.time.generic");
+  }).join(" ");
+}
 export function CharacterSheetDialog({
   sheet,
   mine,
