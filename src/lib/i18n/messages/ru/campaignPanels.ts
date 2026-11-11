@@ -3511,4 +3511,14 @@ export const ruCampaignPanels: Partial<Record<keyof typeof enCampaignPanels, str
   "campaign.session.hand.pip.flurry": "Шквал ударов",
   "campaign.session.hand.pip.flurryLeft": "Осталось ударов «Шквала ударов»: {count}",
 
+  // Group noun forms and pact slot notes.
+  "campaign.session.hand.group.noun.spell": "заклинания",
+  "campaign.session.hand.group.noun.card": "карты",
+  "campaign.session.hand.group.noun.action": "действия",
+  "campaign.session.hand.group.noun.technique": "техники",
+  "campaign.session.hand.group.noun.maneuver": "приёмы",
+  "campaign.session.hand.group.noun.option": "варианты",
+  "campaign.session.hand.group.noun.use": "применения",
+  "campaign.session.hand.group.slotNote.pactLevel": "Осталось {left} из {total} ячеек договора (уровень {level})",
+
 };
