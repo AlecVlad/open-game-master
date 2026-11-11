@@ -169,6 +169,7 @@ export async function POST(
     // monsters nothing here answers to, and the hand-built monsters brought
     // into this table's bestiary. These were computed and then dropped here.
     ...(result.worldConflicts?.length ? { worldConflicts: result.worldConflicts } : {}),
+    ...(result.worldConflictDetails?.length ? { worldConflictDetails: result.worldConflictDetails } : {}),
     ...(result.referenceNoteDetails?.length ? { referenceNoteDetails: result.referenceNoteDetails } : {}),
     ...(result.unresolved?.length ? { unresolved: result.unresolved } : {}),
     ...(result.monstersBrought?.length ? { monstersBrought: result.monstersBrought } : {}),
