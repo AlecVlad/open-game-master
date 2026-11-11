@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useT } from "@/lib/i18n/provider";
 import { subclassLevelFor } from "@/lib/srd/features";
 import { Check, Plus, Search, X } from "lucide-react";
 import { cn } from "@/lib/cn";
@@ -43,6 +44,7 @@ const ABILITY_NAMES = { int: "Intelligence", wis: "Wisdom", cha: "Charisma" } as
 const casterClass = (classId: string) => !subclassMayCast(classId);
 
 function BorrowFeature({ onPick, taken, full }: { onPick: (feature: CatalogFeature) => void; taken: Set<string>; full: Set<number> }) {
+  const t = useT();
   const [query, setQuery] = useState("");
   const all = subclassFeatureCatalog();
   const results = useMemo(() => {
@@ -117,6 +119,7 @@ function SpellLists({
   classLabel: string;
   field?: keyof typeof SPELL_SECTIONS;
 }) {
+  const t = useT();
   const spells = (data[field] ?? {}) as Record<string, string[]>;
   const rows = Object.entries(spells).sort(([a], [b]) => Number(a) - Number(b));
   const put = (next: Record<string, string[]>) => set({ [field]: Object.keys(next).length ? next : undefined });
@@ -246,7 +249,7 @@ export function ArchetypeFields({
       />
       {mayCast ? (
         <SelectField
-          label="Spellcasting progression"
+          label={t("workshop.homebrew.archetype.field.progression")}
           value={casting}
           options={[
             { value: "none", label: "No subclass spellcasting" },
@@ -266,13 +269,13 @@ export function ArchetypeFields({
         />
       ) : null}
       <div className="space-y-1.5 text-sm">
-        <SectionHead title="Features by level" glyph="rest-level-up" className="mb-1" />
+        <SectionHead title={t("workshop.homebrew.archetype.section.levels")} glyph="rest-level-up" className="mb-1" />
         {flat.map((row, index) => {
           const tag = row.feature.n.trim() ? engineRunsFeature(classId, row.feature.n.trim()) : null;
           return (
             <div key={index} className="live-in grid gap-1.5 rounded-lg border border-stone-800 p-2 sm:grid-cols-[auto_1fr_auto]">
               <NumberStepper
-                label="Level"
+                label={t("workshop.homebrew.archetype.field.level")}
                 value={row.level}
                 min={1}
                 max={20}
@@ -282,7 +285,7 @@ export function ArchetypeFields({
                 <span className="flex flex-wrap items-center gap-2">
                   <input
                     value={row.feature.n}
-                    aria-label="Feature name"
+                    aria-label={t("workshop.homebrew.archetype.field.featureName")}
                     placeholder="Reed Walker"
                     maxLength={80}
                     onChange={(event) => write(flat.map((entry, at) => (at === index ? { ...entry, feature: { ...entry.feature, n: event.target.value } } : entry)))}
@@ -296,7 +299,7 @@ export function ArchetypeFields({
                 </span>
                 <textarea
                   value={row.feature.d}
-                  aria-label="What it does"
+                  aria-label={t("workshop.homebrew.archetype.field.whatItDoes")}
                   placeholder="Marsh terrain costs no extra movement."
                   maxLength={1500}
                   rows={2}
@@ -304,7 +307,7 @@ export function ArchetypeFields({
                   className={cn(ui.input, "w-full resize-y text-sm")}
                 />
               </div>
-              <button type="button" aria-label="Remove feature" onClick={() => write(flat.filter((_, at) => at !== index))} className={cn(ui.iconAction, rowIcon, "hover:text-red-300")}>
+              <button type="button" aria-label={t("workshop.homebrew.archetype.field.removeFeature")} onClick={() => write(flat.filter((_, at) => at !== index))} className={cn(ui.iconAction, rowIcon, "hover:text-red-300")}>
                 <X className="size-3.5" />
               </button>
             </div>
