@@ -302,7 +302,7 @@ export function ContextPanel({ campaignId }: { campaignId: string }) {
                   {trace.arc.events.map((pick) => (
                     <li key={pick.id} className={cn("text-[11px]", pick.included ? "text-stone-400" : "text-red-300/90")}>
                       <span className="font-mono text-stone-500">{pick.id}</span> {pick.name}
-                      <span className="text-stone-500">: {pick.included ? pick.reason : `held back (${pick.reason.replace(/^held back: /, "")})`}</span>
+                      <span className="text-stone-500">: {localizedArcReason(pick.reason, t)}</span>
                     </li>
                   ))}
                 </ul>
@@ -331,7 +331,7 @@ export function ContextPanel({ campaignId }: { campaignId: string }) {
                     >
                       {pick.title}
                       {pick.secret ? <span className="text-ember-300"> ({t("campaign.contextTrace.secret")})</span> : null}
-                      <span className="text-stone-500">: {pick.reason}</span>
+                      <span className="text-stone-500">: {localizedLoreReason(pick.reason, t)}</span>
                     </li>
                   ))}
                 </ul>
