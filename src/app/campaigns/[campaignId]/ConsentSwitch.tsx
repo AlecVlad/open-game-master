@@ -63,7 +63,7 @@ export function ConsentSwitch({ campaignId, sheet, consent }: { campaignId: stri
         body: JSON.stringify({ characterId: sheet.id, open: next }),
       });
       if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
+        await response.json().catch(() => ({}));
         setError(t("campaign.relationship.consent.saveError"));
         setPending(null);
       }
