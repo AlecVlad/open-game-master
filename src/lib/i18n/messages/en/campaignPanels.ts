@@ -2527,7 +2527,7 @@ export const enCampaignPanels = {
   "campaign.storyboard.error.saveUnknown": "The save may have gone through, but the server did not reply: {error}",
   "campaign.storyboard.error.delete": "Could not delete the card.",
   "campaign.storyboard.error.titleRequired": "A card needs a title, even a bad one.",
-  "campaign.storyboard.error.bodyOverflow": "The card text is {length} characters; the limit is {max}. Saving would remove the final {lostLength} characters{lost}.",
+  "campaign.storyboard.error.bodyOverflow": "The card text is {length} characters; the limit is {max}. Saving would remove {lostCount}{lost}.",
   "campaign.storyboard.error.missingCard": "This card no longer exists.",
   "campaign.storyboard.note.addedAfterRetry": "The card was added.",
   "campaign.storyboard.loading": "Loading the storyboard…",
@@ -2659,4 +2659,6 @@ export const enCampaignPanels = {
   "campaign.storyboard.hint.secret": "What the party is not told. Becomes a GM-only note.",
   "campaign.storyboard.hint.npcMoment": "The scene somebody has been waiting for. Becomes an arc beat.",
   "campaign.storyboard.suggestion.reason.generic": "The board may need another detail around “{name}”.",
+  "campaign.storyboard.error.lostCharacters.one": "1 extra character",
+  "campaign.storyboard.error.lostCharacters.other": "{count} extra characters",
 } satisfies Record<string, string>;
