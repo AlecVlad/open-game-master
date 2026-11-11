@@ -245,7 +245,9 @@ export function MapSettings({ api, atlas, region, onClose }: { api: WorldApi; at
               {plan.outside ? ` ${t("workshop.world.atlas.edit.frame.outside", { count: plan.outside })}` : ""}
             </p>
             {plan.placements.length ? <PlacementList placements={plan.placements} /> : null}
-            {plan.notes.map((note) => (
+            {plan.noteDetails?.length ? plan.noteDetails.map((detail, index) => (
+              <p key={index} className="text-stone-400">{t(detail.code as never, detail.params)}</p>
+            )) : plan.notes.map((note) => (
               <p key={note} className="text-stone-400">{note}</p>
             ))}
           </div>
@@ -319,7 +321,7 @@ export function DeleteReview({ remover, onDeleted }: { remover: ReturnType<typeo
   const { t, tp } = useI18n();
   const { ask } = remover;
   if (!ask) return null;
-  const { impact, notes } = ask.plan;
+  const { impact, notes, noteDetails } = ask.plan;
   const what = t(impact.kind === "map" ? "workshop.world.atlas.edit.delete.what.map" : impact.kind === "pin" ? "workshop.world.atlas.edit.delete.what.pin" : "workshop.world.atlas.edit.delete.what.region");
   const lines: string[] = [];
   if (impact.kind === "map") lines.push(impact.pins ? t("workshop.world.atlas.edit.delete.mapPins", { pins: tp("workshop.world.atlas.count.pins", impact.pins) }) : t("workshop.world.atlas.edit.delete.noPins"));
@@ -335,7 +337,9 @@ export function DeleteReview({ remover, onDeleted }: { remover: ReturnType<typeo
       {lines.map((line) => (
         <p key={line}>{line}</p>
       ))}
-      {notes.map((note) => (
+      {noteDetails?.length ? noteDetails.map((detail, index) => (
+        <p key={index} className="text-stone-400">{t(detail.code as never, detail.params)}</p>
+      )) : notes.map((note) => (
         <p key={note} className="text-stone-400">{note}</p>
       ))}
       <p className="text-stone-500">{t("workshop.world.atlas.edit.delete.undoHint")}</p>
