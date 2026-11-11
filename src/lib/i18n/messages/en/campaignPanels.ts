@@ -3437,4 +3437,6 @@ export const enCampaignPanels = {
   "campaign.session.hand.arrange.urgentWithDisplaced": "Urgent cards ({urgent}) have taken seats first. The displaced cards ({displaced}) wait in More until they are no longer needed. Your arrangement stays as you set it.",
   "campaign.session.hand.group.filterChip": "{label}: {count}",
 
+  "campaign.session.hand.react.promptWithoutReason": "React to the attack?",
+
 } satisfies Record<string, string>;
