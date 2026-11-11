@@ -11,7 +11,7 @@ import {
   OVERWORLD_PARAM_LABELS,
   type OverworldParams,
 } from "@/lib/overworld/logic";
-import { OVERWORLD_SIZES, sizeLabel, type OverworldSize } from "@/lib/overworld/features";
+import { OVERWORLD_SIZES, type OverworldSize } from "@/lib/overworld/features";
 import type { OverworldData } from "@/app/campaigns/[campaignId]/overworldDraw";
 import { offersStoryModel, useCapabilities } from "@/lib/use-capabilities";
 import { DictateField } from "@/components/DictateField";
@@ -205,7 +205,7 @@ export function OverworldAuthoring({
                 }
               }}
               options={[
-                ...(sizeId === "custom" ? [{ value: "custom", label: sizeLabel(size) }] : []),
+                ...(sizeId === "custom" ? [{ value: "custom", label: `${size.width} × ${size.height}` }] : []),
                 ...OVERWORLD_SIZES.map((entry) => ({
                   value: entry.id as string,
                   label: `${t(`campaign.overworld.size.${entry.id}` as never)} (${entry.width} × ${entry.height})`,
