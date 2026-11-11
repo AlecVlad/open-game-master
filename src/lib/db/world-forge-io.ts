@@ -385,6 +385,7 @@ export function applyWorldImport(campaignId: string, account: UploadAccount, par
       const bridge = importBridge(campaignId, before, doc, { rootId: root?.id ?? "", fresh, aspects });
       saveWorldDoc(campaignId, doc);
       bridge.finish();
+      conflictDetails.push(...scenes.conflictDetails);
 
       return {
         created,
@@ -392,7 +393,6 @@ export function applyWorldImport(campaignId: string, account: UploadAccount, par
         links: merged.added,
         linksUpdated: merged.updated,
         linksRemoved: merged.removed,
-        conflictDetails.push(...scenes.conflictDetails),
         conflictDetails,
         conflicts: [...conflicts, ...scenes.conflicts],
         matched,
@@ -601,7 +601,7 @@ export function copyWorldDoc(
     if (!label) continue;
     for (const [field, kept] of Object.entries(origin.kept)) {
       if (kept.taken) continue;
-      const message = `${label}: kept your ${valueWords(field, fieldName(target))} over the imported version.`;
+      const message = `${label}: kept your ${valueWords(field, fieldName(target))} over the import's.`;
       conflictDetails.push({ code: "workshop.contentImport.note.worldConflict.value", params: { slice: "entries", label, field }, message });
     }
   }
