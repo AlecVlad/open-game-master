@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useT } from "@/lib/i18n/provider";
 import { Check, Plus, Search, X } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui";
@@ -78,6 +79,7 @@ function engineTag(name: string): string | null {
 }
 
 function BorrowFeature({ onPick, taken, full }: { onPick: (feature: CatalogFeature) => void; taken: Set<string>; full: Set<number> }) {
+  const t = useT();
   const [query, setQuery] = useState("");
   const all = classFeatureCatalog();
   const results = useMemo(() => {
@@ -128,6 +130,7 @@ function BorrowFeature({ onPick, taken, full }: { onPick: (feature: CatalogFeatu
 }
 
 function Features({ data, set }: { data: Data; set: (patch: Data) => void }) {
+  const t = useT();
   const levels = (data.levels ?? {}) as Record<string, ClassFeatureRow[]>;
   const flat: Flat[] = Object.entries(levels)
     .flatMap(([level, features]) => features.map((feature) => ({ level: Number(level), feature })))
@@ -150,7 +153,7 @@ function Features({ data, set }: { data: Data; set: (patch: Data) => void }) {
         return (
           <div key={index} className="live-in grid gap-1.5 rounded-lg border border-stone-800 p-2 sm:grid-cols-[auto_1fr_auto]">
             <NumberStepper
-              label="Level"
+              label={t("workshop.homebrew.class.level")}
               value={row.level}
               min={1}
               max={20}
@@ -160,7 +163,7 @@ function Features({ data, set }: { data: Data; set: (patch: Data) => void }) {
               <span className="flex flex-wrap items-center gap-2">
                 <input
                   value={row.feature.n}
-                  aria-label="Feature name"
+                  aria-label={t("workshop.homebrew.class.featureName")}
                   placeholder="Arcane Strike"
                   maxLength={80}
                   onChange={(event) => write(flat.map((entry, at) => (at === index ? { ...entry, feature: { ...entry.feature, n: event.target.value } } : entry)))}
@@ -174,7 +177,7 @@ function Features({ data, set }: { data: Data; set: (patch: Data) => void }) {
               </span>
               <textarea
                 value={row.feature.d}
-                aria-label="What it does"
+                aria-label={t("workshop.homebrew.class.featureDescription")}
                 placeholder="Once a turn, a weapon hit deals an extra 1d8 force damage."
                 maxLength={1500}
                 rows={2}
@@ -215,6 +218,7 @@ function Features({ data, set }: { data: Data; set: (patch: Data) => void }) {
 // The armor categories; a druid's copy keeps its nonmetal shields, shown as
 // shields with the rule beneath, and gives it up when shields are turned off.
 function ArmorTraining({ armor, onChange }: { armor: string[]; onChange: (armor: string[]) => void }) {
+  const t = useT();
   const nonmetal = armor.includes(NONMETAL_SHIELDS);
   const shown = armor.map((entry) => (entry === NONMETAL_SHIELDS ? "shields" : entry));
   return (
@@ -231,6 +235,7 @@ function ArmorTraining({ armor, onChange }: { armor: string[]; onChange: (armor:
 // Simple and martial weapons, and weapons by name beside them, the way the
 // wizard trains with daggers and the bard with rapiers.
 function WeaponTraining({ weapons, onChange }: { weapons: string[]; onChange: (weapons: string[]) => void }) {
+  const t = useT();
   const categories = weapons.filter((entry) => (WEAPON_TRAINING as readonly string[]).includes(entry));
   const named = weapons.filter((entry) => !categories.includes(entry));
   const held = new Set(named.map((entry) => weaponNamed(entry)?.name).filter(Boolean));
@@ -267,6 +272,7 @@ function WeaponTraining({ weapons, onChange }: { weapons: string[]; onChange: (w
 }
 
 export function ClassFields({ data, set }: { data: Data; set: (patch: Data) => void }) {
+  const t = useT();
   const blank = blankClassData();
   const saves = (Array.isArray(data.saves) ? data.saves : blank.saves) as string[];
   const skills = (data.skillChoices ?? blank.skillChoices) as { count: number; from: string[] };
@@ -284,7 +290,7 @@ export function ClassFields({ data, set }: { data: Data; set: (patch: Data) => v
     <div className="space-y-3">
       <div className="grid gap-2 sm:grid-cols-2">
         <SelectField
-          label="Hit die"
+          label={t("workshop.homebrew.class.hitDie")}
           value={String(data.hitDie ?? blank.hitDie)}
           options={HIT_DICE.map((die) => ({ value: String(die), label: `d${die}` }))}
           onChange={(value) => set({ hitDie: Number(value) })}
@@ -295,7 +301,7 @@ export function ClassFields({ data, set }: { data: Data; set: (patch: Data) => v
         </Field>
       </div>
 
-      <Field label="Saving throws" hint={saves.length === 2 ? "Proficient in these two." : "Pick two."} plain>
+      <Field label={t("workshop.homebrew.class.savingThrows")} hint={saves.length === 2 ? "Proficient in these two." : "Pick two."} plain>
         <ToggleChips
           options={ABILITIES}
           selected={saves}
@@ -304,7 +310,7 @@ export function ClassFields({ data, set }: { data: Data; set: (patch: Data) => v
         />
       </Field>
 
-      <Field label="Skills" hint={`A character picks ${skills.count} of the ${skills.from.length} marked.`} plain>
+      <Field label={t("workshop.homebrew.class.skills")} hint={`A character picks ${skills.count} of the ${skills.from.length} marked.`} plain>
         <div className="space-y-1.5">
           <NumberStepper label="Skills a character picks" value={skills.count} min={0} max={6} onChange={(count) => set({ skillChoices: { ...skills, count } })} />
           <ToggleChips options={ALL_SKILLS} selected={skills.from} labels={SKILL_LABELS} onChange={(from) => set({ skillChoices: { ...skills, from } })} />
@@ -316,7 +322,7 @@ export function ClassFields({ data, set }: { data: Data; set: (patch: Data) => v
         <WeaponTraining weapons={(data.weapons ?? []) as string[]} onChange={(weapons) => set({ weapons })} />
       </div>
 
-      <Field label="Tools" hint={tools.length ? undefined : "None. A class like the rogue starts with thieves' tools."} plain>
+      <Field label={t("workshop.homebrew.class.tools")} hint={tools.length ? undefined : "None. A class like the rogue starts with thieves' tools."} plain>
         <div className="flex flex-wrap items-center gap-1.5 text-xs">
           {tools.map((tool) => (
             <span key={tool} className="live-in inline-flex items-center rounded-md border border-stone-700 pl-2 text-stone-200">
@@ -343,7 +349,7 @@ export function ClassFields({ data, set }: { data: Data; set: (patch: Data) => v
 
       <div className="grid gap-2 sm:grid-cols-2">
         <SelectField
-          label="Spellcasting"
+          label={t("workshop.homebrew.class.spellcasting")}
           value={casting}
           options={CASTING.map((option) => ({ ...option }))}
           onChange={(casterType) =>
@@ -356,7 +362,7 @@ export function ClassFields({ data, set }: { data: Data; set: (patch: Data) => v
         />
         {casting !== "none" ? (
           <SelectField<string>
-            label="Spell list"
+            label={t("workshop.homebrew.class.spellList")}
             value={custom ? CUSTOM_SPELL_LIST : list}
             options={[
               ...SPELL_LISTS.map((value) => ({ value: value as string, label: `The ${value}'s` })),
