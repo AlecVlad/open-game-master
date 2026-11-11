@@ -3280,4 +3280,6 @@ export const enCampaignPanels = {
   "campaign.session.halted.retrying": "Picking the thread back up...",
   "campaign.session.halted.retry": "Retry the turn",
   "campaign.session.halted.leadCanRetry": "The party lead can send the GM back in from here.",
+
+  "campaign.session.hand.aim.laidArea": "Laid: {area}.",
 } satisfies Record<string, string>;
