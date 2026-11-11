@@ -3286,4 +3286,6 @@ export const enCampaignPanels = {
   "campaign.session.hand.board.pickTargetArea": "Choose a target or an area first.",
 
   "campaign.session.hand.board.yourSpell": "your spell",
+
+  "campaign.session.hand.heading.anotherHero": "Another hero",
 } satisfies Record<string, string>;
