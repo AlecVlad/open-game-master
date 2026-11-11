@@ -1092,10 +1092,6 @@ export function LevelUpDialog({
                     <div className="flex items-center justify-between rounded-md border border-stone-700 px-4 py-2.5">
                       <span className="text-stone-300">
                         {hpMethod === "max"
-                          ? `Hit points: the d${hitDie}'s highest face, as this table plays`
-                          : `Hit points: the d${hitDie}'s average, ${fixedDieValue(hitDie)}, as this table plays`}
-                        {conMod ? `, ${conMod > 
-                        {hpMethod === "max"
                           ? t("charSheet.levelUp.hp.fixedMax", { die: hitDie })
                           : t("charSheet.levelUp.hp.fixedAverage", { die: hitDie, average: fixedDieValue(hitDie) })}
                         {conMod
@@ -1179,8 +1175,10 @@ export function LevelUpDialog({
                         />
                         <span id={`${classListId}-hint`} className="sr-only" aria-live="polite">
                           {classGroups.query
-                            ? `${classGroups.setting.length + classGroups.other.length} ${classGroups.setting.length + classGroups.other.length === 1 ? "class matches" : "classes match"}.`
-                            : "Searches the class names."}
+                            ? classGroups.setting.length + classGroups.other.length === 1
+                              ? t("charSheet.levelUp.class.matchOne", { count: 1 })
+                              : t("charSheet.levelUp.class.matchMany", { count: classGroups.setting.length + classGroups.other.length })
+                            : t("charSheet.levelUp.class.searchHint")}
                         </span>
                       </label>
                       <div className="max-h-72 space-y-1.5 overflow-y-auto pr-1">
