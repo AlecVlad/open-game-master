@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, type ReactNode } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { X } from "lucide-react";
 import { ContentPick } from "@/components/ui/ContentPick";
 import { cn } from "@/lib/cn";
@@ -21,7 +22,7 @@ import { npcRoleOptions } from "@/lib/placeholders";
 import { GENDERS, type Gender } from "@/lib/gender";
 import { NPC_RACE_OPTIONS } from "@/lib/npc-race";
 import { hostOffers, useCapabilities } from "@/lib/use-capabilities";
-import { AttractionPicker, NPC_ATTRACTION_HINT } from "@/components/AttractionPicker";
+import { AttractionPicker } from "@/components/AttractionPicker";
 import {
   GOAL_FIELDS,
   PersonalitySliders,
@@ -37,10 +38,10 @@ import { KNOWN_BEFORE_HOW_CHARS, type KnownBeforeGrade } from "@/lib/dm/known-be
 // person when the story begins, and how. Each grade says in plain words the
 // standing every hero's bond opens at.
 const KNOWN_BEFORE_OPTIONS: Array<{ value: KnownBeforeGrade | "none"; label: string; hint: string }> = [
-  { value: "none", label: "No, they meet in the story", hint: "The party meets them in play, as strangers" },
-  { value: "acquainted", label: "Acquainted", hint: "They know each other; bonds open at Neutral" },
-  { value: "friend", label: "Friends", hint: "On good terms, a patron or an old contact; bonds open at Cordial" },
-  { value: "close", label: "Close", hint: "A mentor or old friend to them all; bonds open at Friendly" },
+  { value: "none", label: "campaign.npcEditor.known.none", hint: "campaign.npcEditor.known.noneHint" },
+  { value: "acquainted", label: "campaign.npcEditor.known.acquainted", hint: "campaign.npcEditor.known.acquaintedHint" },
+  { value: "friend", label: "campaign.npcEditor.known.friend", hint: "campaign.npcEditor.known.friendHint" },
+  { value: "close", label: "campaign.npcEditor.known.close", hint: "campaign.npcEditor.known.closeHint" },
 ];
 
 // The four sections of the NPC form: who they are on the surface, who they
@@ -83,6 +84,7 @@ export function NpcEditorFields({
   // host never does, and the section stays out).
   knownBeforeOpen?: boolean;
 }) {
+  const { t } = useI18n();
   const roleListId = useId();
   const placeListId = useId();
   const knownLabelId = useId();
