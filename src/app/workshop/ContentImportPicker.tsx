@@ -71,6 +71,12 @@ function importNoticeText(
       .map(kindParam)
       .join(", ");
   }
+  if (notice.code === "workshop.contentImport.plan.board.arcProblem" && typeof params.reasonCode === "string") {
+    const { reasonCode, ...reasonParams } = params;
+    return t(notice.code as never, {
+      reason: t(reasonCode as never, reasonParams),
+    });
+  }
   return t(notice.code as never, params);
 }
 
