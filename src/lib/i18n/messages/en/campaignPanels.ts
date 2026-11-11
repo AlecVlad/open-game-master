@@ -3423,4 +3423,14 @@ export const enCampaignPanels = {
   "campaign.session.hand.pip.flurry": "Flurry of Blows",
   "campaign.session.hand.pip.flurryLeft": "{count} Flurry of Blows strikes left",
 
+  // Group noun forms and pact slot notes.
+  "campaign.session.hand.group.noun.spell": "spells",
+  "campaign.session.hand.group.noun.card": "cards",
+  "campaign.session.hand.group.noun.action": "actions",
+  "campaign.session.hand.group.noun.technique": "techniques",
+  "campaign.session.hand.group.noun.maneuver": "maneuvers",
+  "campaign.session.hand.group.noun.option": "options",
+  "campaign.session.hand.group.noun.use": "uses",
+  "campaign.session.hand.group.slotNote.pactLevel": "{left} of {total} pact slots (level {level})",
+
 } satisfies Record<string, string>;
