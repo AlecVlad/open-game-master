@@ -13,6 +13,7 @@ import { describePick, hasPick, pickHint, type AreaPick } from "@/lib/battlemap/
 import { HandPreviewRows, typeLabel, typeTone } from "@/app/campaigns/[campaignId]/HandCardFace";
 import { HandSummonPick } from "@/app/campaigns/[campaignId]/HandSummonPick";
 import { useI18n } from "@/lib/i18n/provider";
+import { handShareUnit } from "@/lib/battlemap/hand-i18n";
 
 // What a target chip shows beside the name: a health word for an enemy, hit
 // points for one of the party (players already see each other's).
@@ -36,24 +37,25 @@ function HandShares({
   shares: HandShare[];
   onShare: (target: HandTargetChip, delta: 1 | -1) => void;
 }) {
-  const { t } = useI18n();
+  const { t, tp } = useI18n();
   const rule = card.shares!;
   const list = shareList(card, aim, { shares });
   const count = (id: string) => list.find((share) => share.id === id)?.count ?? 0;
   const others = targets.filter((target) => target.id !== aim.id);
   const left = rule.stack ? count(aim.id) - 1 : rule.count - list.length;
+  const unit = (count: number) => handShareUnit(rule.unit, count, tp);
   const who = aim.kind === "self" ? t("campaign.session.hand.aim.share.you") : aim.name;
   const summary = rule.stack
     ? t(aim.kind === "self" ? "campaign.session.hand.aim.share.youTake" : "campaign.session.hand.aim.share.targetTakes", {
         name: aim.name,
         count: count(aim.id),
-        unit: rule.unit,
+        unit: unit(count(aim.id)),
       })
     : left
       ? t("campaign.session.hand.aim.share.moreMayJoin", { count: left, name: who })
       : t("campaign.session.hand.aim.share.everyPlaceTaken");
   return (
-    <div className="hand-choice mt-2 flex flex-wrap items-center gap-1.5" role="group" aria-label={rule.stack ? t("campaign.session.hand.share.distribute", { unit: rule.unit }) : t("campaign.session.hand.share.whoElse", { count: rule.count })}>
+    <div className="hand-choice mt-2 flex flex-wrap items-center gap-1.5" role="group" aria-label={rule.stack ? t("campaign.session.hand.share.distribute", { unit: unit(5) }) : t("campaign.session.hand.share.whoElse", { count: rule.count })}>
       <span className="text-[11px] uppercase tracking-wider text-stone-500">{rule.stack ? t("campaign.session.hand.share.distribute", { unit: rule.unit }) : t("campaign.session.hand.share.whoElse", { count: rule.count })}</span>
       <span key={summary} className="motion-pop text-xs text-stone-400">
         {summary}
@@ -91,7 +93,7 @@ function HandShares({
           >
             <button
               type="button"
-              aria-label={t("campaign.session.hand.share.fewer", { unit: rule.unit, name: target.name })}
+              aria-label={t("campaign.session.hand.share.fewer", { unit: unit(1), name: target.name })}
               disabled={!mine}
               onClick={() => onShare(target, -1)}
               className="hand-option motion-press inline-flex size-10 items-center justify-center rounded-full hover:bg-stone-800 disabled:opacity-40 sm:size-7"
@@ -99,12 +101,12 @@ function HandShares({
               <Minus className="size-3.5" />
             </button>
             <span className="px-0.5">{target.name}</span>
-            <span key={mine} className="motion-pop min-w-4 text-center font-mono" aria-label={t("campaign.session.hand.share.nameTakes", { name: target.name, count: mine, unit: rule.unit })}>
+            <span key={mine} className="motion-pop min-w-4 text-center font-mono" aria-label={t("campaign.session.hand.share.nameTakes", { name: target.name, count: mine, unit: unit(mine) })}>
               {mine}
             </span>
             <button
               type="button"
-              aria-label={t("campaign.session.hand.share.moreOne", { unit: rule.unit, name: target.name, count: mine + 1 })}
+              aria-label={t("campaign.session.hand.share.moreOne", { unit: unit(1), name: target.name, count: mine + 1 })}
               disabled={left <= 0}
               onClick={() => onShare(target, 1)}
               className="hand-option motion-press inline-flex size-10 items-center justify-center rounded-full hover:bg-stone-800 disabled:opacity-40 sm:size-7"
@@ -297,7 +299,7 @@ export function HandAimBar({
                 )}
               >
                 <span className="text-[13px] leading-tight text-stone-200">
-                  {target.kind === "self" ? `${target.name} (you)` : target.name}
+                  {target.kind === "self" ? `${target.name} (${t("campaign.session.hand.aim.share.you")})` : target.name}
                 </span>
                 {target.note ? (
                   <span className="font-mono text-[10px] leading-tight text-stone-500">{target.note}</span>
