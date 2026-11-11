@@ -2,6 +2,7 @@
 
 import { owedChoices } from "@/lib/srd/owed-choices";
 import { useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import * as Dialog from "@radix-ui/react-dialog";
 import { returnFocus } from "@/components/ui/return-focus";
 import { GameIcon } from "@/components/ui/GameIcon";
@@ -121,6 +122,7 @@ export function CharacterSheetDialog({
   onAdjust?: () => void;
   onClose: () => void;
 }) {
+  const { t } = useI18n();
   const derived = computeSheetDerived(sheet);
   const armor = acBreakdownFor(sheet);
   const attunedCount = sheet.equipment.filter((item) => item.attuned).length;
@@ -168,7 +170,7 @@ export function CharacterSheetDialog({
   const [pendingWear, setPendingWear] = useState<PendingWear | null>(null);
   const spends = mine || corrects;
   // The usage route's own refusal for a dead character's spend.
-  const deadNote = dead && !corrects ? `${sheet.name} is dead and spends nothing.` : null;
+  const deadNote = dead && !corrects ? t("charSheet.error.deadNoSpend", { name: sheet.name }) : null;
 
   async function handleDownloadPdf() {
     setPdfBusy(true);
@@ -198,14 +200,14 @@ export function CharacterSheetDialog({
         // The server saw a fuller place than this sheet did: ask the same way.
         setPendingWear({ name: conflict.item, conflict, change: { equipped: true } });
       } else if (!response.ok) {
-        setRefusal({ text: typeof data?.error === "string" ? data.error : "That change was refused.", at });
+        setRefusal({ text: typeof data?.error === "string" ? usageErrorText(data.error, t, sheet.name) : t("charSheet.error.refused"), at });
       } else if (typeof data?.timePassed === "string") {
         // Out of a fight armor takes minutes to put on or take off, and the
         // route moved the table's clock by them (src/lib/dm/don-doff.ts).
         setTimeNote(data.timePassed);
       }
     } catch {
-      setRefusal({ text: "The change did not reach the server.", at });
+      setRefusal({ text: t("charSheet.error.network"), at });
     } finally {
       setBusy(false);
     }
@@ -245,7 +247,7 @@ export function CharacterSheetDialog({
                   {sheet.name}
                 </Dialog.Title>
                 <p className="text-xs text-stone-400">
-                  Level {sheet.level} {sheet.raceLabel ?? titleCase(sheet.race)}{" "}
+                  {t("charSheet.levelLine", { level: sheet.level, race: sheet.raceLabel ?? titleCase(sheet.race) })}{" "}
                   {isSplit(sheet)
                     ? classWordsAfterLevel(sheet, (id) => workshopClassName(id) ?? titleCase(id))
                     : `${workshopClassName(sheet.class) ?? titleCase(sheet.class)}${sheet.subclass ? ` (${titleCase(sheet.subclass)})` : ""}`}
@@ -256,7 +258,7 @@ export function CharacterSheetDialog({
             </div>
             {/* The kit's own close button: a 40px target on phones. */}
             <Dialog.Close
-              aria-label="Close"
+              aria-label={t("charSheet.close")}
               className="pk-tap -m-1 flex shrink-0 items-center justify-center rounded-md p-2 text-stone-500 transition-colors hover:bg-stone-800 hover:text-stone-300"
             >
               <X className="size-4" />
@@ -271,11 +273,11 @@ export function CharacterSheetDialog({
                   glyph: "rest-ac",
                   label: <GameTerm id="armor_class">Armor class</GameTerm>,
                   value: sheet.ac,
-                  title: sheet.acOverride ? "Set by hand; armor does not change it." : armor.parts.join(" + "),
+                  title: sheet.acOverride ? t("charSheet.ac.pinned") : armor.parts.join(" + "),
                 },
                 {
                   glyph: "rest-speed",
-                  label: "Speed",
+                  label: t("charSheet.speed"),
                   value: formatFeet(speed, measurementSystem, tableLanguage),
                   title: formatMeasurementText([speedNote, ...otherSpeedsLine(derived.speeds)].join(" "), measurementSystem, tableLanguage),
                   tone: speed < speedState.base ? "warn" : "plain",
@@ -292,9 +294,9 @@ export function CharacterSheetDialog({
                   value: derived.passivePerception,
                   title: explainParts(derived.parts.passivePerception),
                 },
-                { glyph: "rest-proficiency", label: "Proficiency", value: formatModifier(derived.proficiencyBonus) },
-                { glyph: "coin-gp", label: "Coin", value: formatPrice(purseCopper(sheet)) },
-                { glyph: "rest-xp", label: "Experience", value: `${sheet.xp} XP` },
+                { glyph: "rest-proficiency", label: t("charSheet.prof"), value: formatModifier(derived.proficiencyBonus) },
+                { glyph: "coin-gp", label: t("charSheet.coin"), value: formatPrice(purseCopper(sheet)) },
+                { glyph: "rest-xp", label: t("charSheet.experience"), value: `${sheet.xp} XP` },
                 {
                   glyph: `die-${sheet.hitDice.die}`,
                   label: <GameTerm id="hit_dice">Hit dice</GameTerm>,
@@ -303,7 +305,7 @@ export function CharacterSheetDialog({
                 },
                 {
                   glyph: "coin-purse",
-                  label: "Carried",
+                  label: t("charSheet.carried"),
                   value: formatPounds(load.carriedLb, measurementSystem, tableLanguage) + (load.unweighed ? "+" : "") + "/" + formatPounds(load.capacityLb, measurementSystem, tableLanguage),
                   tone: load.overCapacity || (encumbranceRule && load.tier !== "unencumbered") ? "warn" : "plain",
                   // Past the capacity (Strength x 15) the load can only be
@@ -317,7 +319,7 @@ export function CharacterSheetDialog({
                         : `Carrying capacity ${load.capacityLb} lb. Encumbrance is off for this table, so weight up to the capacity costs nothing.`
                   }${load.unweighed ? ` ${load.unweighed} item${load.unweighed === 1 ? "" : "s"} of unknown weight are not counted.` : ""}`, measurementSystem, tableLanguage),
                   onOpen: () => setLoadOpen(true),
-                  opens: "Show what makes up this load",
+                  opens: t("charSheet.load.showBreakdown"),
                 },
               ]}
             />
