@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useT } from "@/lib/i18n/provider";
 import { Loader2, Search } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui";
@@ -38,6 +39,7 @@ export function CatalogStart({
   // so a wizard spell starts from wizard spells rather than the whole book.
   scope?: Record<string, string>;
 }) {
+  const t = useT();
   const [classSlug, setClassSlug] = useState<string>(kind === "archetype" && scope.class ? scope.class : "fighter");
   // mechanics=1: the row comes with what the engine runs for it, so the copy
   // starts with that and not only the words (catalog-mechanics.ts).
@@ -67,7 +69,7 @@ export function CatalogStart({
         <span className="w-44">
           <Select
             value={classSlug}
-            label="Class to browse"
+            label={t("workshop.homebrew.catalog.class")}
             onChange={setClassSlug}
             options={CLASS_IDS.map((id) => ({ value: id as string, label: id, icon: { kind: "family" as const, key: `class-${id}` } }))}
           />
@@ -79,25 +81,24 @@ export function CatalogStart({
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           onFocus={() => results.length && setOpen(true)}
-          placeholder="Start from something in the books..."
-          aria-label="Search the content pack to start from"
+          placeholder={t("workshop.homebrew.catalog.search.placeholder")}
+          aria-label={t("workshop.homebrew.catalog.search.aria")}
           className={cn(ui.input, "pl-9")}
         />
         {loading ? <Loader2 className="absolute right-3 top-1/2 size-3.5 -translate-y-1/2 animate-spin text-stone-500" /> : null}
       </div>
       {failed ? (
         <p className="live-in basis-full text-xs text-amber-300">
-          The books could not be searched just now. Type again to retry.
+          {t("workshop.homebrew.catalog.search.failed")}
         </p>
       ) : open && !results.length && query.trim() && !loading ? (
         <p className="live-in basis-full text-xs text-stone-500">
-          Nothing in the books matched &quot;{query.trim()}&quot;.
+          {t("workshop.homebrew.catalog.search.empty", { query: query.trim() })}
         </p>
       ) : null}
       {packMissing && !failed ? (
         <p className="basis-full text-[11px] text-stone-500">
-          No content pack on this server: your own homebrew, ODM&apos;s feats and backgrounds, and the bundled SRD&apos;s spells, magic items,
-          species and subclasses are what you can start from.
+          {t("workshop.homebrew.catalog.packMissing")}
         </p>
       ) : null}
       {/* In the flow, not absolutely positioned: the editor sits in a sheet
