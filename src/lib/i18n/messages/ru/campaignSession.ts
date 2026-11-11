@@ -311,4 +311,6 @@ export const ruCampaignSession: Partial<Record<keyof typeof enCampaignSession, s
   "campaign.summonDoor.ritualTitle": "На десять минут дольше, зато без расхода ячейки заклинания.",
   "campaign.summonDoor.ritual": "Сотворить как ритуал",
   "campaign.summonDoor.sent": "Отправлено.",
+  "campaign.summonDoor.error.refused": "Сотворение заклинания отклонено.",
+  "campaign.summonDoor.error.server": "Не удалось связаться с сервером.",
 };
