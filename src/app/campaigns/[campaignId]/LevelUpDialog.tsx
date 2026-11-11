@@ -896,7 +896,9 @@ export function LevelUpDialog({
         hpGained: typeof data?.hpGained === "number" ? data.hpGained : 0,
         rolled: typeof data?.rolled?.hp === "number" ? data.rolled.hp : null,
         die: hitDie,
-        classLine: isMulticlassPath ? ` (${chosenKlass?.name ?? classChoice} ${classLevelAfter})` : "",
+        classLine: isMulticlassPath
+          ? t("charSheet.levelUp.result.classLine", { className: classLabel(classChoice, chosenKlass?.name ?? classChoice, t), level: classLevelAfter })
+          : "",
       });
     } catch {
       setError("Could not reach the server.");
@@ -939,13 +941,18 @@ export function LevelUpDialog({
   // Why this character cannot take a level now, in the rules' words.
   const reachedLevel = levelForXp(sheet.xp);
   const blocked = sheet.deathSaves?.dead
-    ? `${sheet.name} is dead, and the dead gain no levels.`
+    ? t("charSheet.levelUp.block.dead", { name: sheet.name })
     : sheet.currentHp <= 0
-      ? `${sheet.name} is at 0 hit points. A character levels up once they are back on their feet.`
+      ? t("charSheet.levelUp.block.zeroHp", { name: sheet.name })
       : startLevel >= 20
-        ? "No character passes level 20."
+        ? t("charSheet.levelUp.block.maxLevel")
         : reachedLevel < targetLevel
-          ? `Level ${targetLevel} takes ${XP_THRESHOLDS[targetLevel - 1]} experience points and ${sheet.name} has ${sheet.xp}. A level is earned in play, or granted by whoever runs the table.`
+          ? t("charSheet.levelUp.block.xp", {
+              level: targetLevel,
+              required: XP_THRESHOLDS[targetLevel - 1],
+              name: sheet.name,
+              current: sheet.xp,
+            })
           : "";
 
   const wideStep = step !== "hp" && !blocked && !result;
@@ -1021,11 +1028,16 @@ export function LevelUpDialog({
               {step === "hp" ? (
                 <>
                   <p className="text-stone-300">
-                    {sheet.name} advances to level {targetLevel}
-                    {isMulticlassPath
-                      ? ` as a ${chosenKlass?.name ?? classChoice} (${chosenKlass?.name ?? classChoice} level ${classLevelAfter})`
-                      : ""}
-                    .
+                    {t("charSheet.levelUp.class.advance", {
+                      name: sheet.name,
+                      level: targetLevel,
+                      classLine: isMulticlassPath
+                        ? t("charSheet.levelUp.result.classLine", {
+                            className: classLabel(classChoice, chosenKlass?.name ?? classChoice, t),
+                            level: classLevelAfter,
+                          })
+                        : "",
+                    })}
                   </p>
                   {newFeatureNames.length ? (
                     <div className="reveal rounded-md border border-amber-900/50 bg-stone-950/60 px-3 py-2">
@@ -1282,9 +1294,12 @@ export function LevelUpDialog({
               {step === "asi" ? (
                 <>
                   <p className="text-stone-300">
-                    {sheet.name} is owed
-                    {asiLevels.length === 1 ? " an ability score improvement" : ` ${asiLevels.length} ability score improvements`}
-                    {" "}by {klass?.name ?? classChoice} level {classLevelAfter}: two points, or a feat, each.
+                    {t("charSheet.levelUp.asi.intro", {
+                      name: sheet.name,
+                      improvements: asiLevels.length,
+                      className: classLabel(classChoice, klass?.name ?? classChoice, t),
+                      level: classLevelAfter,
+                    })}
                   </p>
                   <AsiFeatEditor
                     slotLevels={asiLevels}
@@ -1310,8 +1325,10 @@ export function LevelUpDialog({
               {step === "expertise" ? (
                 <>
                   <p className="text-stone-300">
-                    Expertise: pick {Math.min(expertiseToPick, expertiseOptions.length)} of{" "}
-                    {sheet.name}&apos;s proficient skills to DOUBLE their proficiency bonus in:
+                    {t("charSheet.levelUp.expertise.intro", {
+                      count: Math.min(expertiseToPick, expertiseOptions.length),
+                      name: sheet.name,
+                    })}
                   </p>
                   <div className="stagger-pop flex flex-wrap gap-1.5">
                     {expertiseOptions.map((skillId) => {
@@ -1353,8 +1370,7 @@ export function LevelUpDialog({
               {step === "options" ? (
                 <>
                   <p className="text-stone-300">
-                    New abilities for {sheet.name} to choose. These are real powers, not flavour,
-                    so read them before picking.
+                    {t("charSheet.levelUp.options.intro", { name: sheet.name })}
                   </p>
                   {choicesDue.map((slot) => (
                     <SubclassChoicePick key={slot.label} slot={slot} picked={choicePicked(slot.label)} onPick={(name) => pickChoice(slot.label, name)} />
@@ -1364,7 +1380,7 @@ export function LevelUpDialog({
                     .map((slot) => (
                       <div key={slot.kind}>
                         <p className="mb-1 mt-2 text-xs uppercase tracking-wide text-amber-200/80">
-                          {slot.label}: {slot.total - slot.remaining}/{slot.total} chosen
+                          {slot.label}: {t("charSheet.levelUp.options.chosen", { picked: slot.total - slot.remaining, total: slot.total })}
                         </p>
                         <div className="max-h-56 space-y-1.5 overflow-y-auto pr-1">
                           {slot.options.map((option) => {
@@ -1393,14 +1409,14 @@ export function LevelUpDialog({
                                 >
                                   <span className="block">{option.n}</span>
                                   <span className="block text-[11px] text-stone-500">
-                                    {already ? "Already known. " : ""}
-                                    {option.req ? `Requires ${option.req}. ` : ""}
+                                    {already ? t("charSheet.levelUp.options.alreadyKnown") : ""}
+                                    {option.req ? t("charSheet.levelUp.options.requires", { requirement: option.req }) + " " : ""}
                                     {option.d}
                                   </span>
                                 </button>
                                 <InfoButton
                                   label={option.n}
-                                  meta={option.req ? `Requires ${option.req}` : undefined}
+                                  meta={option.req ? t("charSheet.levelUp.options.requiresShort", { requirement: option.req }) : undefined}
                                   text={option.d}
                                 />
                               </div>
@@ -1415,8 +1431,7 @@ export function LevelUpDialog({
               {step === "style" ? (
                 <>
                   <p className="text-stone-300">
-                    Fighting Style: pick {stylesToPick} for {sheet.name}. The server applies it
-                    to every attack from here on.
+                    {t("charSheet.levelUp.style.intro", { count: stylesToPick, name: sheet.name })}
                   </p>
                   <div className="stagger space-y-1.5">
                     {styleOptions.map((style) => {
@@ -1453,12 +1468,14 @@ export function LevelUpDialog({
               {step === "subclass" ? (
                 <>
                   <p className="text-stone-300">
-                    At level {subclassLevel}, every {klass?.name ?? sheet.class} chooses a
-                    specialization. Pick one for {sheet.name}:
+                    {t("charSheet.levelUp.subclass.intro", {
+                      level: subclassLevel,
+                      className: classLabel(classChoice, klass?.name ?? sheet.class, t),
+                      name: sheet.name,
+                    })}
                   </p>
                   <p className="text-xs text-stone-500">
-                    This choice shapes how {sheet.name} plays for the rest of the campaign. Read
-                    each one before deciding.
+                    {t("charSheet.levelUp.subclass.help", { name: sheet.name })}
                   </p>
                   <div className="max-h-64 space-y-1.5 overflow-y-auto pr-1">
                     {subclassOptions.map((name) => {
@@ -1484,13 +1501,13 @@ export function LevelUpDialog({
                             {builtInSubclasses.some(
                               (entry) => textKey(entry) === textKey(name),
                             ) ? (
-                              <span className="text-xs text-stone-500">full features</span>
+                              <span className="text-xs text-stone-500">{t("charSheet.levelUp.subclass.fullFeatures")}</span>
                             ) : archetype?.workshop ? (
                               // A workshop subclass is granted feature by
                               // feature as its author wrote it.
-                              <span className="text-xs text-stone-500">Homebrew, its features as written</span>
+                              <span className="text-xs text-stone-500">{t("charSheet.levelUp.subclass.homebrew")}</span>
                             ) : (
-                              <span className="text-xs text-stone-600">description only</span>
+                              <span className="text-xs text-stone-600">{t("charSheet.levelUp.subclass.descriptionOnly")}</span>
                             )}
                           </button>
                           <InfoButton
@@ -1505,8 +1522,7 @@ export function LevelUpDialog({
                     })}
                     {!subclassOptions.length ? (
                       <p className="reveal text-xs text-stone-500">
-                        No known specializations for this class; the party lead can set one on
-                        the sheet later.
+                        {t("charSheet.levelUp.subclass.none")}
                       </p>
                     ) : null}
                   </div>
@@ -1517,7 +1533,7 @@ export function LevelUpDialog({
               {step === "training" ? (
                 <>
                   <p className="text-stone-300">
-                    {effectiveSubclass || "The subclass"} trains {sheet.name} in more at this level.
+                    {t("charSheet.levelUp.training.intro", { subclass: effectiveSubclass || t("charSheet.levelUp.subclass.title"), name: sheet.name })}
                   </p>
                   {freshTraining.map((grant) => (
                     <FeatChoicesFields
