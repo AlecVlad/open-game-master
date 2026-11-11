@@ -562,7 +562,7 @@ export function copyWorldDoc(
     merged.pending.forEach((item) => pending.push({ origin: key, ...item }));
     for (const key of [...new Set(merged.clashes)]) {
       const words = valueWords(key, fieldName(target));
-      const message = `${names.get(ref) ?? "An entry"}: kept your ${words} over the imported version.`;
+      const message = `${names.get(ref) ?? "An entry"}: kept your ${words} over the import's.`;
       conflicts.push(message);
       conflictDetails.push({
         code: "workshop.contentImport.note.worldConflict.value",
