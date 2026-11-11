@@ -19,7 +19,7 @@ import type { WorldApi, WorldState } from "./useWorld";
 //     and the map stands over the Region.
 //   - "Place in Region": a pin naming a place moves the place's Region
 //     marker to the square under it, and from then on the two move together.
-//   - "Stop using as the Region" and "Release from the Region": the
+//   - "Stop using as the Region" and "{t("workshop.world.atlas.region.release")}": the
 //     binding ends and nothing moves.
 //
 // A move that took the other side with it says so, with an Undo, and a
@@ -223,16 +223,17 @@ export function PlacementList({ placements }: { placements: Placement[] }) {
 
 // The review a step answers with, and the choice to go ahead.
 export function RegionReview({ region }: { region: AtlasRegion }) {
+  const { t, tp } = useI18n();
   const [clear, setClear] = useState(false);
   const { step } = region;
   if (!step) return null;
   const title =
-    step.kind === "backdrop" ? `Use ${step.plan.map.name} as the Region's picture?` : step.kind === "places" ? "Place in the Region?" : `Stop using ${step.map.name} as the Region?`;
+    step.kind === "backdrop" ? t("workshop.world.atlas.region.review.useBackdrop", { name: step.plan.map.name }) : step.kind === "places" ? t("workshop.world.atlas.region.review.place") : t("workshop.world.atlas.region.review.stopUsing", { name: step.map.name });
   const nothing = step.kind === "places" && !step.plan.placements.length;
   return (
     <div className="panel motion-pop flex flex-col gap-2 rounded-lg p-3 text-xs text-stone-300" role="dialog" aria-label={title} data-testid="atlas-region-review">
       <div className="flex items-center gap-2">
-        <span className="eyebrow text-[10px] text-amber-400/80">Review</span>
+        <span className="eyebrow text-[10px] text-amber-400/80">{t("workshop.world.atlas.review.heading")}</span>
         <span className="text-sm text-amber-100">{title}</span>
         <KitButton tone="icon" always className="ml-auto" aria-label="Cancel" onClick={region.cancel}>
           <X className="size-4" />
@@ -241,11 +242,11 @@ export function RegionReview({ region }: { region: AtlasRegion }) {
       {step.kind === "backdrop" ? (
         <>
           <p>
-            The Region will show this map&apos;s own picture{step.plan.before.backdropPath ? ", in place of the one it shows now" : ""}. No copy is made.
+            {t("workshop.world.atlas.region.review.backdropBody", { replacement: step.plan.before.backdropPath ? t("workshop.world.atlas.region.review.replacing") : "", name: step.plan.map.name })}
           </p>
           {step.plan.released.length ? (
             <p>
-              {step.plan.released.length === 1 ? "One pin" : `${step.plan.released.length} pins`} on the map that stood over the Region until now will stop moving their places. The places stay where they are.
+              {t("workshop.world.atlas.region.review.releasedPins", { pins: tp("workshop.world.atlas.count.pins", step.plan.released.length) })}
             </p>
           ) : null}
           {step.plan.placements.length ? <PlacementList placements={step.plan.placements} /> : null}
@@ -255,28 +256,28 @@ export function RegionReview({ region }: { region: AtlasRegion }) {
         </>
       ) : step.kind === "places" ? (
         <>
-          {nothing ? <p>No pin on this map names a place that can go on the Region.</p> : <PlacementList placements={step.plan.placements} />}
+          {nothing ? <p>{t("workshop.world.atlas.region.review.noPlacePins")}</p> : <PlacementList placements={step.plan.placements} />}
           {step.plan.skipped.map((skip) => (
             <p key={skip.pinId} className="text-amber-300">{skip.reason}</p>
           ))}
-          {nothing ? null : <p className="text-stone-400">From then on, moving the pin moves the place on the Region, and dragging the place on the Region moves the pin.</p>}
+          {nothing ? null : <p className="text-stone-400">{t("workshop.world.atlas.region.review.moveTogether")}</p>}
         </>
       ) : (
         <>
-          <p>Every place stays where it is on the Region, and the pins stop moving them.</p>
+          <p>{t("workshop.world.atlas.region.review.unlinkBody")}</p>
           {step.clearable ? (
             <label className="flex items-center gap-2">
               <input type="checkbox" checked={clear} onChange={(event) => setClear(event.target.checked)} data-testid="atlas-region-clear" />
-              Also take the picture off the Region
+              {t("workshop.world.atlas.region.review.clearPicture")}
             </label>
           ) : null}
         </>
       )}
       <div className="flex justify-end gap-1.5">
-        <KitButton tone="small" onClick={region.cancel}>Cancel</KitButton>
+        <KitButton tone="small" onClick={region.cancel}>{t("workshop.cancel")}</KitButton>
         {nothing ? null : (
           <KitButton tone="primary" busy={region.busy} disabled={region.busy} onClick={() => void region.apply({ clear })} data-testid="atlas-region-apply">
-            {region.busy ? null : <Check className="size-3.5" />} {step.kind === "backdrop" ? "Use it" : step.kind === "places" ? "Place" : "Stop using it"}
+            {region.busy ? null : <Check className="size-3.5" />} {step.kind === "backdrop" ? t("workshop.world.atlas.region.review.useIt") : step.kind === "places" ? t("workshop.world.atlas.region.review.placeAction") : t("workshop.world.atlas.region.review.stopAction")}
           </KitButton>
         )}
       </div>
@@ -286,6 +287,7 @@ export function RegionReview({ region }: { region: AtlasRegion }) {
 
 // What a step or a move just did, with an Undo where one is possible.
 export function RegionNoticeLine({ region }: { region: AtlasRegion }) {
+  const { t } = useI18n();
   const [undoing, setUndoing] = useState(false);
   const { notice, setNotice } = region;
   if (!notice) return null;
@@ -306,13 +308,13 @@ export function RegionNoticeLine({ region }: { region: AtlasRegion }) {
               } finally {
                 setUndoing(false);
               }
-              setNotice({ text: "Undone." });
+              setNotice({ text: t("workshop.world.atlas.region.undone") });
             }}
           >
-            {undoing ? null : <Undo2 className="size-3.5" />} Undo
+            {undoing ? null : <Undo2 className="size-3.5" />} {t("workshop.world.atlas.region.undo")}
           </KitButton>
         ) : null}
-        <KitButton tone="icon" always aria-label="Dismiss" onClick={() => setNotice(null)}>
+        <KitButton tone="icon" always aria-label={t("workshop.world.atlas.region.dismiss")} onClick={() => setNotice(null)}>
           <X className="size-3.5" />
         </KitButton>
       </span>
@@ -322,19 +324,20 @@ export function RegionNoticeLine({ region }: { region: AtlasRegion }) {
 
 // Bound pins on this map whose place stands somewhere else on the Region.
 export function OutOfStep({ region, atlas }: { region: AtlasRegion; atlas: AtlasMap }) {
+  const { t, tp } = useI18n();
   const drifted = atlas.role === "region" ? (region.bridge?.pins ?? []).filter((pin) => !pin.inStep) : [];
   if (!drifted.length) return null;
   return (
     <div className="flex flex-col gap-1 rounded-lg border border-amber-700/40 bg-amber-950/20 px-3 py-2 text-xs text-amber-100" data-testid="atlas-out-of-step">
-      <span>{drifted.length === 1 ? "One place has moved on the Region since its pin placed it." : `${drifted.length} places have moved on the Region since their pins placed them.`}</span>
+      <span>{tp("workshop.world.atlas.region.outOfStep", drifted.length)}</span>
       <ul className="flex flex-col gap-1">
         {drifted.map((pin) => (
           <li key={pin.pinId} className="flex flex-wrap items-center gap-2">
             <span className="text-stone-200">
-              {pin.name}: the pin points at {cellText(pin.expected)}, the place stands at {cellText(pin.anchor)}.
+              {t("workshop.world.atlas.region.outOfStep.detail", { name: pin.name, expected: cellText(pin.expected, t), actual: cellText(pin.anchor, t) })}
             </span>
             <KitButton tone="small" disabled={region.busy} onClick={() => void region.putInStep(pin.pinId)}>
-              Put back in step
+              {t("workshop.world.atlas.region.putBackInStep")}
             </KitButton>
           </li>
         ))}
@@ -345,12 +348,13 @@ export function OutOfStep({ region, atlas }: { region: AtlasRegion; atlas: Atlas
 
 // The pin card's part: place it, or release it.
 export function PinRegionActions({ region, pin, atlas }: { region: AtlasRegion; pin: Pin; atlas: AtlasMap }) {
+  const { t } = useI18n();
   if (!namesPlace(pin)) return null;
   if (isBound(pin, atlas)) {
     return (
       <div className="flex flex-wrap items-center gap-1.5" data-testid="pin-region">
         <span className="pk-chip text-[11px] text-emerald-200" data-testid="pin-bound">
-          <Link2 className="size-3" /> Moves with its place on the Region
+          <Link2 className="size-3" /> {t("workshop.world.atlas.region.pinMovesWithPlace")}
         </span>
         <KitButton tone="link" disabled={region.busy} onClick={() => void region.release([pin.id])} data-testid="pin-release">
           <Unlink className="size-3.5" /> Release from the Region
@@ -359,12 +363,12 @@ export function PinRegionActions({ region, pin, atlas }: { region: AtlasRegion; 
     );
   }
   if (atlas.role !== "region") {
-    return <p className="text-[11px] text-stone-500" data-testid="pin-region">To put this place on the Region from here, use this map as the Region backdrop first.</p>;
+    return <p className="text-[11px] text-stone-500" data-testid="pin-region">{t("workshop.world.atlas.region.backdropFirst")}</p>;
   }
   return (
     <div className={cn("flex flex-wrap items-center gap-1.5")} data-testid="pin-region">
       <KitButton tone="small" disabled={region.busy} onClick={() => void region.reviewPlaces([pin.id])} data-testid="pin-place">
-        <Globe2 className="size-3.5" /> Place in Region
+        <Globe2 className="size-3.5" /> {t("workshop.world.atlas.region.place")}
       </KitButton>
     </div>
   );
