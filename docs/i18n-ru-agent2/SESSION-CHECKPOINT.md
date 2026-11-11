@@ -57,8 +57,13 @@ Single restore point for Russian localization. After a chat interruption, read o
 - Added 41 EN keys and 47 RU entries in `workshop.ts`; 6 extra RU entries are plural variants. Static checks: no duplicates, missing paired keys or placeholder mismatches.
 - TypeScript, lint, tests, production build and visual checks were not run.
 
+## Workshop target-party bar — 11 November 2026
+- `TargetPartyBar.tsx`: localized party size/level controls, hero noun with Russian plural forms, save/saved states and the encounter-difficulty budget explanation.
+- Added 9 EN keys and 11 RU entries in `workshop.ts`; extra RU entries are expected plural forms. Placeholder names match.
+- API payload, party size/level values and XP thresholds are unchanged. No build or runtime tests were run.
+
 ## Next work
-Continue through the uncovered Workshop hub and editor screens, starting with `src/app/workshop/[workshopId]/page.tsx` and its directly rendered shell components. The shared `AddonFields`, `RulesetLibrary`, list controls, bestiary/cast lists and map gallery are localized. Keep plugin-provided labels/help and user-authored data unchanged. Planner-generated import warnings/notes still need stable reason codes and a dedicated localized renderer. Do not sync upstream or merge branches during translation.
+Continue through the uncovered Workshop hub screens, starting with `SystemCards.tsx` and the localized system labels/count phrases; then handle the page shell and Create chooser. `TargetPartyBar.tsx` is now localized. The shared `AddonFields`, `RulesetLibrary`, list controls, bestiary/cast lists and map gallery are localized. Keep plugin-provided labels/help and user-authored data unchanged. Planner-generated import warnings/notes still need stable reason codes and a dedicated localized renderer. Do not sync upstream or merge branches during translation.
 
 ## Low-token work protocol
 - Read this file, then only the next target source file(s) and exact dictionary sections needed.
