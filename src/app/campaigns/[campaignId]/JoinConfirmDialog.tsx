@@ -208,12 +208,12 @@ export function JoinConfirmDialog({
       onOpenChange={(open) => {
         if (!open && !busy) close();
       }}
-      title={flow === "replace" ? `Switch to ${name}?` : `Take ${name} to the table?`}
+      title={flow === "replace" ? t("campaign.joinConfirm.title.replace", { name }) : t("campaign.joinConfirm.title.join", { name })}
     >
       <div className="space-y-4 text-sm" data-join-confirm aria-busy={(!preview && !loadError) || checking}>
         {!preview && !loadError ? (
           <p className="flex items-center gap-2 text-stone-400">
-            <Loader2 className="size-4 animate-spin" /> Checking {name} against this table…
+            <Loader2 className="size-4 animate-spin" /> {t("campaign.joinConfirm.checkingHero", { name })}
           </p>
         ) : null}
         {loadError ? (
@@ -227,9 +227,9 @@ export function JoinConfirmDialog({
                 say about joining: only the refusal below shows. */}
             {preview.alreadyHere || preview.changes.length > 0 || preview.rollsHp ? (
               <section className="space-y-1.5">
-                <h3 className={ui.sectionEyebrow}>At this table</h3>
+                <h3 className={ui.sectionEyebrow}>{t("campaign.joinConfirm.atTable")}</h3>
                 {preview.alreadyHere ? (
-                  <p className="text-stone-300">{name} is already at this table. Joining picks them again and changes nothing.</p>
+                  <p className="text-stone-300">{t("campaign.joinConfirm.alreadyHere", { name })}</p>
                 ) : (
                   <ul className="list-disc space-y-1 pl-5 text-stone-300" data-join-changes>
                     {(shown ?? preview).changes.map((line) => (
@@ -239,7 +239,7 @@ export function JoinConfirmDialog({
                 )}
                 {preview.rollsHp ? (
                   <p className="text-xs text-stone-400">
-                    This table rolls hit points, so they are rolled {hero?.kind === "built" ? "" : "again "}when {name} takes the seat.
+                    {t(hero?.kind === "built" ? "campaign.joinConfirm.rollsHp.built" : "campaign.joinConfirm.rollsHp.existing", { name })}
                   </p>
                 ) : null}
               </section>
@@ -247,9 +247,9 @@ export function JoinConfirmDialog({
 
             {owed && !preview.alreadyHere && preview.ok ? (
               <section className="space-y-2" data-join-owed>
-                <h3 className={ui.sectionEyebrow}>Choices to make now</h3>
+                <h3 className={ui.sectionEyebrow}>{t("campaign.joinConfirm.choicesNow")}</h3>
                 <p className="text-xs text-stone-400">
-                  This level earned them and {name} has not made them yet. Pick them here, or leave any of them: the first level-up at this table offers what is left, and the character sheet lists it until then.
+                  {t("campaign.joinConfirm.choicesNowDescription", { name })}
                 </p>
                 <OwedPicksFields
                   owed={owed}
@@ -263,7 +263,7 @@ export function JoinConfirmDialog({
 
             {checking ? (
               <p className="flex items-center gap-2 text-stone-400" data-join-rules="checking">
-                <Loader2 className="size-4 animate-spin" /> Checking the picks…
+                <Loader2 className="size-4 animate-spin" /> {t("campaign.joinConfirm.checkingPicks")}
               </p>
             ) : check?.error ? (
               <p className="whitespace-pre-line text-red-400" role="alert">
@@ -271,15 +271,15 @@ export function JoinConfirmDialog({
               </p>
             ) : shown ? (
               <section className="space-y-1.5" data-join-rules={shown.ok ? "pass" : "fail"}>
-                <h3 className={ui.sectionEyebrow}>Table rules</h3>
+                <h3 className={ui.sectionEyebrow}>{t("campaign.joinConfirm.tableRules")}</h3>
                 {shown.ok ? (
                   <p className="flex items-center gap-2 text-emerald-300">
-                    <Check className="size-4 shrink-0" /> Within this table&apos;s rules{picks ? ", with these picks" : ""}.
+                    <Check className="size-4 shrink-0" /> {t(picks ? "campaign.joinConfirm.rules.passWithPicks" : "campaign.joinConfirm.rules.pass")}
                   </p>
                 ) : (
                   <div className="space-y-1 text-red-300" role="alert">
                     <p className="flex items-center gap-2">
-                      <TriangleAlert className="size-4 shrink-0" /> {name} cannot take a seat here {picks && preview.ok ? "with these picks" : "yet"}.
+                      <TriangleAlert className="size-4 shrink-0" /> {t(picks && preview.ok ? "campaign.joinConfirm.rules.failWithPicks" : "campaign.joinConfirm.rules.failYet", { name })}
                     </p>
                     <ul className="list-disc space-y-1 pl-5">
                       {shown.problems.map((problem) => (
@@ -293,17 +293,17 @@ export function JoinConfirmDialog({
 
             {shown?.ok && owedLeft.length && !owed ? (
               <section className="space-y-1.5" data-join-owed-left>
-                <h3 className={ui.sectionEyebrow}>Choices still to make</h3>
+                <h3 className={ui.sectionEyebrow}>{t("campaign.joinConfirm.choicesLeft")}</h3>
                 <ul className="list-disc space-y-1 pl-5 text-amber-100">
                   {owedLeft.map((line) => (
                     <li key={line}>{line}</li>
                   ))}
                 </ul>
-                <p className="text-xs text-stone-400">{joinOwedNote(name, owedLeft, shown?.owedOnSheet ?? preview?.owedOnSheet)}</p>
+                <p className="text-xs text-stone-400">{owedNote}</p>
               </section>
             ) : shown?.ok && owed && owedLeft.length ? (
               <div className="space-y-1 text-xs text-amber-100" data-join-owed-left>
-                {joinOwedLeft(owedLeft, shown?.owedOnSheet ?? preview?.owedOnSheet).map((line) => (
+                {owedLeftLines.map((line) => (
                   <p key={line}>{line}</p>
                 ))}
               </div>
@@ -319,7 +319,7 @@ export function JoinConfirmDialog({
 
         <div className="flex flex-wrap justify-end gap-2 pt-1">
           <button type="button" onClick={close} disabled={busy} className={ui.btnSecondary}>
-            Cancel
+            {t("campaign.joinConfirm.cancel")}
           </button>
           <button
             type="button"
@@ -330,7 +330,7 @@ export function JoinConfirmDialog({
             data-join-take
           >
             {busy ? <Loader2 className="size-4 animate-spin" /> : null}
-            {flow === "replace" ? `Switch to ${name}` : "Take the seat"}
+            {flow === "replace" ? t("campaign.joinConfirm.action.switch", { name }) : t("campaign.joinConfirm.action.takeSeat")}
           </button>
         </div>
       </div>
