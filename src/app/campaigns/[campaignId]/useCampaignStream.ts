@@ -125,6 +125,24 @@ export type ItemProposal = {
   userId: string;
   toolName: string;
   summary: string;
+  summaryData?: {
+    characterName: string;
+    fromName?: string;
+    toName?: string;
+    item: string;
+    quantity: number;
+    action: string;
+    delta: number;
+    currency: string;
+    currencyDirection: string;
+    price: number;
+    amount: number;
+    damageType: string;
+    temporary: boolean;
+    spell: string;
+    condition: string;
+    rounds: number;
+  };
   reason: string;
   status: string;
   createdAt: string;
