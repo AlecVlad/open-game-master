@@ -286,10 +286,10 @@ function SaveToLibraryButton({ campaignId, sheetId }: { campaignId: string; shee
   }
   return (
     <div className="space-y-1">
-      <KitButton onClick={save} disabled={state === "saving"} busy={state === "saving"} title="Save level, gear, and spells back to your character library. A character above this table's level keeps its own level; gear, gold and notes still save." className="w-full justify-center">
+      <KitButton onClick={save} disabled={state === "saving"} busy={state === "saving"} title={t("campaign.session.party.saveToLibraryHint")} className="w-full justify-center">
         {state === "saved" ? (
           <>
-            <Check className="motion-pop size-3.5 text-emerald-400" /> {keptLevel === null ? "Saved" : "Gear and notes saved"}
+            <Check className="motion-pop size-3.5 text-emerald-400" /> {keptLevel === null ? t("campaign.session.party.saved") : t("campaign.session.party.gearAndNotesSaved")}
           </>
         ) : state === "saving" ? (
           t("campaign.session.party.saveToLibrary")
@@ -301,7 +301,7 @@ function SaveToLibraryButton({ campaignId, sheetId }: { campaignId: string; shee
       </KitButton>
       {state === "saved" && keptLevel !== null ? (
         <p className="reveal text-center text-[11px] text-amber-200">
-          Level {keptLevel} kept in your library; this table is below it.
+          {t("campaign.session.party.levelKept", { level: keptLevel })}
         </p>
       ) : null}
     </div>
@@ -455,10 +455,10 @@ export function PartyPanel({
       const response = await fetch(`/api/campaigns/${campaignId}/sheet/switch`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ characterId: sheetId }) });
       if (!response.ok) {
         const result = await response.json().catch(() => ({}));
-        setSwitchError(result.error || "Could not select the character.");
+        setSwitchError(result.error || t("campaign.session.party.selectCharacterFailed"));
       }
     } catch {
-      setSwitchError("Could not reach the server.");
+      setSwitchError(t("campaign.session.party.serverUnavailable"));
     } finally {
       setSwitching("");
     }
@@ -628,7 +628,7 @@ export function PartyPanel({
                     />
                   ) : null}
                   {sheet.userId === leadUserId ? (
-                    <Crown className="size-3.5 shrink-0 text-amber-300" aria-label="Party lead" />
+                    <Crown className="size-3.5 shrink-0 text-amber-300" aria-label={t("campaign.session.party.lead")} />
                   ) : null}
                   {sheet.isCompanion && !offSide(encounter, sheet.id, "pc") ? (
                     <Bot
@@ -679,7 +679,7 @@ export function PartyPanel({
             {shape ? (
               <div
                 className="mt-2 flex items-center gap-1.5 rounded-md border border-lime-800/60 bg-lime-950/40 px-2 py-1 text-xs text-lime-300"
-                title={`Wild Shaped: damage hits the beast's hit points first. ${sheet.name}'s own ${sheet.currentHp}/${hp.max} waits for them when the form breaks.`}
+                title={t("campaign.session.party.wildShapeHint", { name: sheet.name, current: sheet.currentHp, max: hp.max })}
               >
                 <PawPrint className="size-3.5 shrink-0" />
                 <span className="truncate capitalize">{shape.form}</span>
@@ -777,7 +777,7 @@ export function PartyPanel({
                   {sheet.deathSaves.dead ? t("campaign.session.party.dead") : sheet.deathSaves.stable ? t("campaign.session.party.stable") : t("campaign.session.party.dying")}
                 </span>
                 {!sheet.deathSaves.dead && !sheet.deathSaves.stable ? (
-                  <span className="flex items-center gap-1.5" title="Death saves: successes and failures">
+                  <span className="flex items-center gap-1.5" title={t("campaign.session.party.deathSaves")}>
                     <span className="flex gap-1.5">
                       {[0, 1, 2].map((pip) => (
                         <span
@@ -825,7 +825,7 @@ export function PartyPanel({
                   )}
                   title={
                     shape && statLabel === "AC"
-                      ? `The beast form's armor class; ${sheet.name}'s own is ${sheet.ac}.`
+                      ? t("campaign.session.party.beastAcHint", { name: sheet.name, ac: sheet.ac })
                       : undefined
                   }
                 >
@@ -861,7 +861,7 @@ export function PartyPanel({
                 {(sheet.exhaustion ?? 0) > 0 ? (
                   <span
                     className="inline-flex items-center gap-1 rounded-full bg-orange-950 px-2 py-0.5 text-xs text-orange-300"
-                    title={`${describeExhaustion(sheet.exhaustion ?? 0)}. A long rest lowers it by one.`}
+                    title={t("campaign.session.party.exhaustionHint", { state: describeExhaustion(sheet.exhaustion ?? 0) })}
                   >
                     <GameIcon icon={{ kind: "glyph", key: "rest-exhaustion" }} size="size-4" />
                     exhaustion {sheet.exhaustion}
@@ -970,7 +970,7 @@ export function PartyPanel({
         <div className="reveal space-y-1.5">
           {humanDmTable ? null : <RequestCompanionButton campaignId={campaignId} />}
           {companionBuildAvailable ? (
-            <KitButton tone="secondary" onClick={() => setBuildingCompanion(true)} title="Build a companion yourself with the character creator" className="w-full">
+            <KitButton tone="secondary" onClick={() => setBuildingCompanion(true)} title={t("campaign.session.party.buildCompanionHint")} className="w-full">
               <UserPlus className="size-3.5" />
               Build a companion
             </KitButton>
@@ -1051,7 +1051,7 @@ export function PartyPanel({
       {croppingSheet ? (
         <Suspense fallback={null}>
           <AvatarCropDialog
-            title={`${croppingSheet.name}'s portrait`}
+            title={t("campaign.session.party.portraitOf", { name: croppingSheet.name })}
             onUploaded={(image) => setPortrait(croppingSheet, image.url)}
             onClose={() => setCroppingSheetId("")}
           />
