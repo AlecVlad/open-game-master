@@ -252,22 +252,23 @@ export function TrainingLines({
 }: {
   proficiencies: { languages: string[]; tools: string[]; armor: string[]; weapons: string[] };
 }) {
+  const { t } = useI18n();
   const nice = (value: string) =>
     // A word's first letter, or the letter after a quote that opens one: never
     // the "s" after a possessive's apostrophe ("Alchemist'S Supplies").
     value.replace(/[-_]/g, " ").replace(/(^|\s)(['‘]?)([a-z])/g, (_, before: string, quote: string, letter: string) => `${before}${quote}${letter.toUpperCase()}`);
   const rows: Array<[string, string[]]> = [
-    ["Languages", proficiencies.languages],
-    ["Tools", proficiencies.tools],
-    ["Armor", proficiencies.armor],
-    ["Weapons", proficiencies.weapons],
+    [t("charSheet.training.languages"), proficiencies.languages],
+    [t("charSheet.training.tools"), proficiencies.tools],
+    [t("charSheet.training.armor"), proficiencies.armor],
+    [t("charSheet.training.weapons"), proficiencies.weapons],
   ];
   return (
     <dl className="stagger-up grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs">
       {rows.map(([label, values]) => (
         <div key={label} className="contents">
           <dt className="text-stone-500">{label}</dt>
-          <dd className="text-stone-200">{values.length ? [...new Set(values.map(nice))].join(", ") : <span className="text-stone-600">none</span>}</dd>
+          <dd className="text-stone-200">{values.length ? [...new Set(values.map(nice))].join(", ") : <span className="text-stone-600">{t("charSheet.none")}</span>}</dd>
         </div>
       ))}
     </dl>
@@ -311,14 +312,15 @@ export function EquipmentChips({
   // More for a row's note, by its index: its charges ("4/7 charges").
   extra?: (index: number) => string | null | undefined;
 }) {
+  const { t } = useI18n();
   // A worn second cloak (or pair of boots...) is marked as not in effect
   // (src/lib/srd/wear-slots.ts); one the DM let stand beside another says so.
   const explicit = wearingIsExplicit(equipment);
   const wornNote = (item: (typeof equipment)[number]) => {
     const idle = explicit ? wornButIdle(item, equipment) : null;
-    if (idle) return `worn, not in effect: ${oneOfKind(idle) ?? "one of its kind"} at a time`;
-    if (item.equipped && item.layered) return "worn beside another, on the GM's say";
-    return item.equipped ? "worn" : null;
+    if (idle) return t("charSheet.gear.wornNotEffective", { item: oneOfKind(idle) ?? t("charSheet.gear.oneOfKind") });
+    if (item.equipped && item.layered) return t("charSheet.gear.wornLayered");
+    return item.equipped ? t("charSheet.gear.worn") : null;
   };
   return (
     <InfoChipList
@@ -328,7 +330,7 @@ export function EquipmentChips({
         note:
           [
             wornNote(item),
-            item.attuned ? "attuned" : item.attuning ? "attunes at the next rest" : null,
+            item.attuned ? t("charSheet.gear.attuned") : item.attuning ? t("charSheet.gear.attuning") : null,
             extra?.(index) ?? null,
           ]
             .filter(Boolean)
@@ -350,6 +352,7 @@ export function FeatureChips({
   classId: string;
   subclass?: string | null;
 }) {
+  const { t } = useI18n();
   // A genre class's feature text arrives on demand (issue 411).
   useClassFeatureText([classId, ...features.map((feature) => feature.classId)]);
   return (
@@ -357,8 +360,8 @@ export function FeatureChips({
       items={features.map((feature) => ({
         name: feature.name,
         icon: { kind: "feature" as const, key: feature.name, family: `class-${classId.toLowerCase()}` },
-        note: feature.source === "story" ? "(story)" : undefined,
-        meta: feature.level ? `Level ${feature.level}` : undefined,
+        note: feature.source === "story" ? t("charSheet.story.tag") : undefined,
+        meta: feature.level ? t("charSheet.level", { level: feature.level }) : undefined,
         text: describeFeature(classId, subclass ?? "", feature.name) ?? undefined,
       }))}
     />
