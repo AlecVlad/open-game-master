@@ -4,6 +4,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { returnFocus } from "@/components/ui/return-focus";
 import { Pencil, Trash2, X, Check } from "lucide-react";
 import { useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui";
 import { EmptyState } from "@/components/EmptyState";
@@ -35,6 +36,7 @@ function CharacterNoteRow({
   canDelete: boolean;
   refreshNotes: () => Promise<void>;
 }) {
+  const { t } = useI18n();
   const [editing, setEditing] = useState(false);
   const [body, setBody] = useState(note.body);
   const [busy, setBusy] = useState(false);
@@ -53,13 +55,13 @@ function CharacterNoteRow({
     <li className={panelRow}>
       {editing ? (
         <div className="reveal space-y-1.5">
-          <DictateField label="Note" onTranscript={(text) => setBody((current) => appendDictation(current, text, 2000))}>
+          <DictateField label={t("campaign.session.characterNotes.note")} onTranscript={(text) => setBody((current) => appendDictation(current, text, 2000))}>
             <textarea
               value={body}
               onChange={(event) => setBody(event.target.value)}
               rows={2}
               maxLength={2000}
-              aria-label="Note"
+              aria-label={t("campaign.session.characterNotes.note")}
               className={cn(panelField, "leading-5")}
             />
           </DictateField>
@@ -80,7 +82,7 @@ function CharacterNoteRow({
               }}
             >
               {busy ? null : <Check className="size-3.5" />}
-              Save
+              {t("campaign.session.characterNotes.save")}
             </KitButton>
             <KitButton
               onClick={() => {
@@ -88,7 +90,7 @@ function CharacterNoteRow({
                 setBody(note.body);
               }}
             >
-              <X className="size-3.5" /> Cancel
+              <X className="size-3.5" /> {t("campaign.session.characterNotes.cancel")}
             </KitButton>
           </div>
         </div>
@@ -99,7 +101,7 @@ function CharacterNoteRow({
             <span className="truncate">{authorName}</span>
             <span className="ml-auto flex shrink-0 items-center gap-0.5">
               {canEdit ? (
-                <KitButton tone="icon" always onClick={() => setEditing(true)} title="Edit" aria-label="Edit">
+                <KitButton tone="icon" always onClick={() => setEditing(true)} title={t("campaign.session.characterNotes.edit")} aria-label={t("campaign.session.characterNotes.edit")}>
                   <Pencil className="size-3.5" />
                 </KitButton>
               ) : null}
@@ -109,7 +111,7 @@ function CharacterNoteRow({
                   always
                   disabled={busy}
                   busy={busy}
-                  aria-label="Delete note"
+                  aria-label={t("campaign.session.characterNotes.delete")}
                   onClick={() =>
                     run(() =>
                       fetch(`/api/campaigns/${campaignId}/notes/${note.id}`, {
@@ -117,7 +119,7 @@ function CharacterNoteRow({
                       }),
                     )
                   }
-                  title="Delete note"
+                  title={t("campaign.session.characterNotes.delete")}
                 >
                   {busy ? null : <Trash2 className="size-3.5" />}
                 </KitButton>
@@ -151,8 +153,8 @@ export function CharacterNotesDialog({
 }) {
   const nameFor = (userId: string) =>
     userId === meUserId
-      ? "You"
-      : members.find((member) => member.userId === userId)?.username ?? "Unknown";
+      ? t("campaign.session.characterNotes.you")
+      : members.find((member) => member.userId === userId)?.username ?? t("campaign.session.characterNotes.unknown");
 
   const characterNotes = notes.filter((note) => note.characterId === sheet.id);
   const publicNotes = characterNotes
@@ -161,6 +163,7 @@ export function CharacterNotesDialog({
   const myNotes = characterNotes
     .filter((note) => note.visibility === "private" && note.authorUserId === meUserId)
     .sort((a, b) => b.seq - a.seq);
+  const { t } = useI18n();
   const ownsCharacter = sheet.userId === meUserId;
 
   return (
@@ -176,9 +179,9 @@ export function CharacterNotesDialog({
           <div className="mb-3 flex items-center justify-between">
             <Dialog.Title className="flex items-center gap-2 font-display text-lg tracking-wide">
               <GameIcon icon={{ kind: "glyph", key: "tab-notes" }} size="size-7" />
-              <span className="gold-title">Notes on {sheet.name}</span>
+              <span className="gold-title">{t("campaign.session.characterNotes.title", { name: sheet.name })}</span>
             </Dialog.Title>
-            <Dialog.Close aria-label="Close" className="pk-tap rounded p-1 text-stone-500 hover:text-amber-200 motion-nudge">
+            <Dialog.Close aria-label={t("campaign.session.characterNotes.close")} className="pk-tap rounded p-1 text-stone-500 hover:text-amber-200 motion-nudge">
               <X className="size-4" />
             </Dialog.Close>
           </div>
@@ -192,7 +195,7 @@ export function CharacterNotesDialog({
             />
 
             <div className="space-y-1.5">
-              <SectionHead title="Party notes" glyph="tab-party" aside={publicNotes.length || null} />
+              <SectionHead title={t("campaign.session.characterNotes.party")} glyph="tab-party" aside={publicNotes.length || null} />
               {publicNotes.length ? (
                 <ul className="stagger space-y-1.5">
                   {publicNotes.map((note) => (
@@ -208,12 +211,12 @@ export function CharacterNotesDialog({
                   ))}
                 </ul>
               ) : (
-                <EmptyState size="sm" art="scrolls" title={`No party notes on ${sheet.name} yet.`} />
+                <EmptyState size="sm" art="scrolls" title={t("campaign.session.characterNotes.emptyParty", { name: sheet.name })} />
               )}
             </div>
 
             <div className="space-y-1.5">
-              <SectionHead title="My notes (only you see these)" glyph="tab-journal" aside={myNotes.length || null} />
+              <SectionHead title={t("campaign.session.characterNotes.private")} glyph="tab-journal" aside={myNotes.length || null} />
               {myNotes.length ? (
                 <ul className="stagger space-y-1.5">
                   {myNotes.map((note) => (
@@ -221,7 +224,7 @@ export function CharacterNotesDialog({
                       key={note.id}
                       campaignId={campaignId}
                       note={note}
-                      authorName="You"
+                      authorName={t("campaign.session.characterNotes.you")}
                       canEdit
                       canDelete
                       refreshNotes={refreshNotes}
@@ -229,7 +232,7 @@ export function CharacterNotesDialog({
                   ))}
                 </ul>
               ) : (
-                <EmptyState size="sm" art="scrolls" title="No private notes yet." />
+                <EmptyState size="sm" art="scrolls" title={t("campaign.session.characterNotes.emptyPrivate")} />
               )}
             </div>
           </div>
