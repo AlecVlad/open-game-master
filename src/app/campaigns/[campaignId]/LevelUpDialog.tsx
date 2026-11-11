@@ -97,6 +97,28 @@ import { featChoice, withFeatChoice } from "@/lib/schemas/sheet";
 import { workshopClassList } from "@/lib/classes/workshop-registry";
 
 
+
+type LevelUpTranslator = ReturnType<typeof useI18n>["t"];
+
+function classLabel(id: string, fallback: string, t: LevelUpTranslator): string {
+  switch (id.toLowerCase()) {
+    case "barbarian": return t("charSheet.class.barbarian");
+    case "bard": return t("charSheet.class.bard");
+    case "cleric": return t("charSheet.class.cleric");
+    case "druid": return t("charSheet.class.druid");
+    case "fighter": return t("charSheet.class.fighter");
+    case "monk": return t("charSheet.class.monk");
+    case "paladin": return t("charSheet.class.paladin");
+    case "ranger": return t("charSheet.class.ranger");
+    case "rogue": return t("charSheet.class.rogue");
+    case "sorcerer": return t("charSheet.class.sorcerer");
+    case "warlock": return t("charSheet.class.warlock");
+    case "wizard": return t("charSheet.class.wizard");
+    case "artificer": return t("charSheet.class.artificer");
+    default: return fallback;
+  }
+}
+
 // Guided level-up, one level at a time. The dialog gathers the CHOICES the
 // rules leave to the player (the class taking the level, an Ability Score
 // Improvement or feat the class owes, a subclass at the class's subclass
@@ -1717,6 +1739,7 @@ function NewClassButton({
   chosen: string;
   onPick: () => void;
 }) {
+  const { t } = useI18n();
   const picked = chosen.toLowerCase() === option.id.toLowerCase();
   return (
     <button
@@ -1737,13 +1760,13 @@ function NewClassButton({
       )}
     >
       <span className="flex items-center justify-between text-sm">
-        <span>{option.name}</span>
+        <span>{classLabel(option.id, option.name, t)}</span>
         <span className="text-xs text-stone-500">d{option.hitDie}</span>
       </span>
       <span className="block text-xs text-stone-400">
-        {check.ok ? `Grants: ${describeGrant(multiclassGrantsFor(option.id))}` : check.error}
+        {check.ok ? t("charSheet.levelUp.multiclass.grants", { grant: describeGrant(multiclassGrantsFor(option.id)) }) : check.error}
       </span>
-      <span className="block text-[11px] text-stone-600">Requires {describePrereq(option.id)}</span>
+      <span className="block text-[11px] text-stone-600">{t("charSheet.levelUp.multiclass.requires", { requirement: describePrereq(option.id) })}</span>
     </button>
   );
 }
