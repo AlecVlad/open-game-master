@@ -561,6 +561,16 @@ function importNote(data: Record<string, unknown>, messages?: ImportMessages): s
   const names = (value: unknown) => (Array.isArray(value) ? value.map(String) : []);
   const unresolved = names(data.unresolved);
   const offered = names(data.pregensOffered);
+  const referenceNoteDetails = Array.isArray(data.referenceNoteDetails)
+    ? data.referenceNoteDetails.filter((value): value is {
+        tableName: string; kind: "tables" | "npcs" | "lore" | "locations";
+        name: string; resolution: "campaign" | "missing"; message: string;
+      } => Boolean(value && typeof value === "object" &&
+        typeof (value as Record<string, unknown>).tableName === "string" &&
+        typeof (value as Record<string, unknown>).kind === "string" &&
+        typeof (value as Record<string, unknown>).name === "string" &&
+        ((value as Record<string, unknown>).resolution === "campaign" || (value as Record<string, unknown>).resolution === "missing"))
+    : [];
   if (!messages) {
     const lines = [
       copied || !offered.length ? `Brought ${copied} items across.` : "",
@@ -568,7 +578,7 @@ function importNote(data: Record<string, unknown>, messages?: ImportMessages): s
       data.beatsAdded ? `${String(data.beatsAdded)} beats joined the arc.` : "",
       unresolved.length ? `No monster here answers to ${unresolved.join(", ")}: add them to your bestiary, or point those NPCs and fights at another.` : "",
       names(data.worldConflicts).join(" "),
-      names(data.referenceNotes).join(" "),
+      referenceNoteDetails.length ? referenceNoteDetails.map((item) => item.message).join(" ") : names(data.referenceNotes).join(" "),
       names(data.monstersBrought).length ? `Copied into this table's bestiary: ${names(data.monstersBrought).join(", ")}.` : "",
       names(data.monstersReused).length ? `Already in this table's bestiary: ${names(data.monstersReused).join(", ")}.` : "",
       names(data.itemsBrought).length ? `Copied into this table's Homebrew: ${names(data.itemsBrought).join(", ")}.` : "",
@@ -584,7 +594,23 @@ function importNote(data: Record<string, unknown>, messages?: ImportMessages): s
     data.beatsAdded ? tp("workshop.contentImport.note.beats", Number(data.beatsAdded)) : "",
     unresolved.length ? t("workshop.contentImport.note.unresolved", { names: unresolved.join(", ") }) : "",
     names(data.worldConflicts).join(" "),
-    names(data.referenceNotes).join(" "),
+    referenceNoteDetails.length
+      ? referenceNoteDetails.map((item) => t(
+          item.resolution === "campaign"
+            ? "workshop.contentImport.note.referenceKeptLocal"
+            : "workshop.contentImport.note.referenceMissing",
+          {
+            table: item.tableName,
+            kind: t(({
+              tables: "workshop.contentImport.referenceKind.tables",
+              npcs: "workshop.contentImport.referenceKind.npcs",
+              lore: "workshop.contentImport.referenceKind.lore",
+              locations: "workshop.contentImport.referenceKind.locations",
+            } as const)[item.kind] as never),
+            name: item.name,
+          },
+        )).join(" ")
+      : names(data.referenceNotes).join(" "),
     names(data.monstersBrought).length ? t("workshop.contentImport.note.monstersCopied", { names: names(data.monstersBrought).join(", ") }) : "",
     names(data.monstersReused).length ? t("workshop.contentImport.note.monstersReused", { names: names(data.monstersReused).join(", ") }) : "",
     names(data.itemsBrought).length ? t("workshop.contentImport.note.itemsCopied", { names: names(data.itemsBrought).join(", ") }) : "",
