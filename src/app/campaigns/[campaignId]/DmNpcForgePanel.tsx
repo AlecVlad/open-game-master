@@ -295,7 +295,7 @@ export function DmNpcForgePanel({
         fetch(`/api/campaigns/${campaignId}/dm/npcs`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ draft: { ...base, name: `${base.name} (${t("campaign.dmNpcForge.copySuffix")})`.slice(0, 80) } }),
+          body: JSON.stringify({ draft: { ...base, name: `${base.name} (copy)`.slice(0, 80) } }),
         }),
         t("campaign.dmNpcForge.error.copy"),
       );
