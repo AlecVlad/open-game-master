@@ -88,7 +88,7 @@ export function GiveStats({ name, gear, unsaved = false }: { name: string; gear:
       )}
       {inApp && gear.canAuthor ? (
         <span role="status" className={heldBack && unsaved ? "basis-full text-amber-200" : "sr-only"}>
-          {heldBack && unsaved ? "{t("campaign.session.leadEdit.gear.saveBeforeWorkshop")}" : ""}
+          {heldBack && unsaved ? t("campaign.session.leadEdit.gear.saveBeforeWorkshop") : ""}
         </span>
       ) : null}
     </p>
