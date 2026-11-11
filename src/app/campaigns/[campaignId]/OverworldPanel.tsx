@@ -22,6 +22,7 @@ import {
   askCopy,
   FileTools,
   importAzgaarFiles,
+  localizeOverworldError,
   LabelTools,
   LineTools,
   ModeBar,
@@ -344,7 +345,7 @@ export function OverworldPanel({
     });
     const payload = await response.json().catch(() => ({}));
     if (!response.ok) {
-      setError((payload as { error?: string }).error ?? t("campaign.overworld.errors.generic"));
+      setError(localizeOverworldError((payload as { error?: string }).error, t));
       return null;
     }
     if (asked === answerRef.current) {
@@ -545,7 +546,7 @@ export function OverworldPanel({
     try {
       const failure = await saveOverworldPng(data, { genre, backdrop: backdropImage });
       if (failure) {
-        setError(failure);
+        setError(localizeOverworldError(failure, t));
       }
     } finally {
       setExporting(false);
