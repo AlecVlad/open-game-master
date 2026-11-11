@@ -889,7 +889,7 @@ export function LevelUpDialog({
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError(typeof data?.error === "string" ? data.error : "The level-up was refused.");
+        setError(typeof data?.error === "string" ? data.error : t("charSheet.levelUp.error.refused"));
         return;
       }
       setResult({
@@ -901,7 +901,7 @@ export function LevelUpDialog({
           : "",
       });
     } catch {
-      setError("Could not reach the server.");
+      setError(t("charSheet.levelUp.error.network"));
     } finally {
       setBusy(false);
     }
@@ -1586,14 +1586,12 @@ export function LevelUpDialog({
                     ) : null}
                     {anyGroup ? (
                       <li>
-                        <span className="text-amber-200">{anyGroup.title}.</span>{" "}
-                        {t("charSheet.levelUp.spells.anyGroup", { title: "", list: ownListName }).trim()}
+                        {t("charSheet.levelUp.spells.anyGroup", { title: anyGroup.title, list: ownListName })}
                       </li>
                     ) : null}
                     {learnedNew.length ? (
                       <li>
-                        <span className="text-amber-200">{spellGrants.learnedFrom}:</span>{" "}
-                        {t("charSheet.levelUp.spells.learned", { source: "", spells: learnedNew.join(", ") }).replace(/^: /, "")}
+                        {t("charSheet.levelUp.spells.learned", { source: spellGrants.learnedFrom, spells: learnedNew.join(", ") })}
                       </li>
                     ) : null}
                     {!remainingCantrips && !remainingPicks && !anyGroup ? (
