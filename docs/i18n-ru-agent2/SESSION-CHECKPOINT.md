@@ -103,8 +103,16 @@ Single restore point for Russian localization. After a chat interruption, read o
 - Added matching EN/RU messages for planner notices, conflict details, field names, all 26 WorldForge link labels and import errors. Static dictionary validation: 796 EN / 855 RU entries, no duplicate keys, missing English bases or placeholder mismatches. Dynamic plural forms for import summaries are present.
 - No TypeScript, lint, tests, build or visual checks were run. The branch's push-triggered smoke workflows only run on `main`; no PR workflow run exists for this working branch.
 
+## WorldForge import/export reports — 12 November 2026
+- `WorldForgePanel.tsx`: localized the import result summary, plural card counts, matched scenes/entries, link merge counts, skipped items and legacy conflict fallbacks. Structured WorldForge conflicts now translate slice, field and relation labels while preserving names and custom-field labels.
+- `format.ts`, `world-forge-io.ts`, the World import API route and `atlas-region.ts`: added structured loss/note reason codes for import previews and completed imports, including size limits, truncated fields/names, missing or invalid content, scene capacity, Region-map placement and secret visibility. Legacy `losses` / `notes` strings remain in the payload.
+- `WorldForgePanel.tsx` now renders structured loss and note details; `SceneLosses.tsx` renders the per-scene structured reasons. Export check also returns a structured storyboard-order note.
+- Added 29 EN / 31 RU messages for the WorldForge report, import-loss and Region/export-note groups. Latest `workshop.ts` dictionary sizes: 950 EN / 1017 RU. Static checks: 98 direct keys resolve except intentional dynamic prefixes/plural bases; 38 report field labels, 26 relation labels, 8 slice labels, 3 import field labels and 9 import-kind labels all resolve; correct plural variants exist; no duplicate keys or placeholder mismatches.
+- `ImportKept.tsx` was audited and already uses its 20 fixed i18n keys. Scene-loss tests were inspected for compatibility assertions; existing `scenes`, `losses`, `notes` and conflict strings are still returned. Tests were not executed.
+- TypeScript, lint, automated tests, production build and visual/browser checks have not been run.
+
 ## Next work
-Audit the remaining user-facing WorldForge screens, beginning with `src/app/workshop/world/WorldForgePanel.tsx`, `SceneLosses.tsx`, `ImportKept.tsx` and the entity/atlas views. Localize fixed UI text and system-generated notices; preserve record names, custom fields, imported content and identifiers. Then continue the remaining Workshop editors. Do not sync upstream or merge branches during translation.
+Continue the WorldForge audit from `ImportKept.tsx`'s surrounding callers and the entity/atlas child views. Inspect `useWorld.ts` error messages and the remaining generated report details (especially skipped entries and bridge notes) for English that still reaches the UI. Then continue the remaining Workshop editors. Preserve record names, custom fields, imported content and identifiers. Do not sync upstream or merge branches during translation.
 
 ## Low-token work protocol
 - Read this file, then only the next target source file(s) and exact dictionary sections needed.
@@ -116,4 +124,4 @@ Audit the remaining user-facing WorldForge screens, beginning with `src/app/work
 - TypeScript, lint, production build and visual checks remain deferred to Block 1.1 on the user's local machine. Do not claim these checks unless actually run.
 
 ## Resume
-Start by verifying the branch HEAD, then continue the Workshop import audit from the next-work section. Block 1 remains formally open; its local technical checks are still deferred. No questions about project, branch, scope or workflow are needed.
+Start by verifying the branch HEAD, then continue from the remaining WorldForge child views and `useWorld.ts` error/report strings. The import/export panel and structured loss/conflict summaries are localized; local technical checks remain deferred. Block 1 remains formally open. No questions about project, branch, scope or workflow are needed.
