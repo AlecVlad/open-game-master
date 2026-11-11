@@ -179,6 +179,7 @@ function BondRow({ bond }: { bond: RelationshipView }) {
   const { t } = useI18n();
   const { unmasking, shownApproval } = useUnmasking(bond);
   const tierLabel = t(`campaign.relationship.tier.${bond.tier}` as never);
+  const tierDescription = t(`campaign.relationship.tier.tip.${bond.tier}` as never);
   const romanceLabel = bond.romance === "none" ? "" : t(`campaign.relationship.romance.stage.${bond.romance}` as never);
   return (
     <li className="panel rounded-lg px-2.5 py-2" data-bond-row={bond.subjectName}>
@@ -216,7 +217,7 @@ function BondRow({ bond }: { bond: RelationshipView }) {
               TIER_STYLES[bond.tier],
             )}
             data-unmasking={unmasking || undefined}
-            title={tierLabel}
+            title={tierDescription}
           >
             {tierLabel}
             {shownApproval === undefined ? "" : ` ${shownApproval > 0 ? "+" : ""}${shownApproval}`}
