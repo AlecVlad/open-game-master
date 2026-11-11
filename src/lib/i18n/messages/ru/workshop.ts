@@ -1853,4 +1853,9 @@ export const ruWorkshop: Partial<Record<keyof typeof enWorkshop, string>> = {
   "workshop.world.web.openWiki": "Открыть в энциклопедии",
   "workshop.world.web.legend": "Красные пунктирные линии обозначают скрытые истины, фиолетовые — ошибочные убеждения, стрелки — односторонние связи. Золотые линии соединяют супругов.",
 
+  "workshop.world.outline.asset.itemKind.weapon": "Оружие",
+  "workshop.world.outline.asset.itemKind.armor": "Доспех",
+  "workshop.world.outline.asset.itemKind.gear": "Снаряжение",
+  "workshop.world.outline.asset.itemKind.magic_item": "Магический предмет",
+
 };
