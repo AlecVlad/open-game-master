@@ -18,8 +18,14 @@ Single restore point for Russian localization. After a chat interruption, read o
 - Static checks: encounter-events dictionaries 117 EN / 117 RU, no missing pairs, duplicates or placeholder differences; turn-trace 53 EN / 57 RU, with the four extra RU `.few/.many` plural forms expected. Source key references were checked against the EN keys.
 - Do not repeat these three components unless a targeted defect is found.
 
+## Also completed in the current pass
+- `DiceSourcesDialog.tsx` and `DiceTrayDialog.tsx`: dice source assignments, Pixels Bluetooth connection states, die labels, expression/bonus inputs, secret/public roll mode, audience privacy text, result badges, errors and accessibility labels localized.
+- `ContextPanel.tsx`: context budget headings, block kinds/reasons, prompt-cache and model-call metrics, house-rule status, story-arc and world-lore summaries/reasons localized. User-authored event/lore names, tool IDs and raw backend failure details remain data.
+- The existing `campaignSession.ts` EN/RU pair was extended; the dice package added 40 keys. Context trace now has 80 EN / 80 RU keys, no missing pairs, duplicates or placeholder differences. Direct component references were checked.
+- Do not repeat these components unless a targeted defect is found.
+
 ## Next work
-Continue the remaining Block 1 audit. The prepared-encounter event editor, ground editor and test-fight turn trace are now covered. Select the next uncovered user-facing session component; avoid revisiting already localized panels. Check `PLAN.md` only if the boundary is unclear.
+Inspect and localize `src/app/campaigns/[campaignId]/ReportDialog.tsx` (still without `useI18n()` at the last audit). Continue the remaining Block 1 audit after that; do not revisit already localized panels. Check `PLAN.md` only if the block boundary is unclear.
 
 ## Low-token work protocol
 - Read this file, then only the next target source file(s) and exact dictionary sections needed.
