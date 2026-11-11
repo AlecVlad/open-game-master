@@ -855,4 +855,11 @@ export const ruWorkshop: Partial<Record<keyof typeof enWorkshop, string>> = {
   "workshop.bestiary.noun.other": "существ",
   "workshop.cast.noun.few": "персонажа",
   "workshop.cast.noun.other": "персонажей",
+  "workshop.contentImport.error.steersStory": "Переносить материалы подготовки может только тот, кто управляет ходом истории.",
+  "workshop.contentImport.error.campaignEnded": "Эта кампания завершена.",
+  "workshop.contentImport.error.invalid": "Запрос на импорт содержит неверные данные.",
+  "workshop.contentImport.error.sourceNotFound": "Источник импорта не найден.",
+  "workshop.contentImport.error.chooseSomething": "Выберите, какие материалы нужно перенести.",
+  "workshop.contentImport.error.notFound": "Исходная мастерская или кампания не найдена.",
+  "workshop.contentImport.error.cannotImportSelf": "Нельзя импортировать материалы кампании в неё же.",
 };
