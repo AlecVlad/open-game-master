@@ -9,7 +9,7 @@ import { GlyphPlate } from "@/app/workshop/kit";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui";
 import { ListTally, sortRows, type RowSort } from "@/app/workshop/ListHead";
-import { CATEGORY_LABELS, type LoreEntryView } from "@/app/workshop/lore/types";
+import type { LoreEntryView } from "@/app/workshop/lore/types";
 import { textKey } from "@/lib/language/text-logic";
 
 // The workshop's world lore as full-width rows: the title, whether it is
