@@ -30,7 +30,7 @@ export function HandPips({
           className="hand-pip rounded-full border px-2 py-0.5 font-mono text-[9px] uppercase tracking-wider"
           aria-label={`${costLabel(pip.cost, t)} ${t(pip.used ? "campaign.session.hand.pip.spent" : "campaign.session.hand.pip.available")}`}
         >
-          {pip.label}
+          {costLabel(pip.cost, t)}
         </span>
       ))}
       {flurryStrikes ? (
