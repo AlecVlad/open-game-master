@@ -3351,7 +3351,7 @@ export const enCampaignPanels = {
   "campaign.session.hand.group.cantrips": "Cantrips",
   "campaign.session.hand.group.level": "Level {level}",
   "campaign.session.hand.group.slotNote.slots": "{left} of {total} slots",
-  "campaign.session.hand.group.slotNote.pact": "{left} of {total} pact slots{levelPart}",
+  "campaign.session.hand.group.slotNote.pact": "{left} of {total} pact slots",
   "campaign.session.hand.group.slotNote.openLevel": "Level {level} slots open",
   "campaign.session.hand.group.slotNote.castLevel": "Cast with a level {level} slot",
   "campaign.session.hand.group.slotNote.none": "No slots",
