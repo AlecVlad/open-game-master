@@ -4323,4 +4323,13 @@ export const enCampaignPanels = {
 
   "campaign.relationship.pact.nobody": "nobody yet",
   "campaign.relationship.private.storyteller": "Only whoever runs the story sees this.",
+
+  "campaign.relationship.tier.tip.hostile": "Hostile, an enemy in all but name",
+  "campaign.relationship.tier.tip.disliked": "Dislikes them",
+  "campaign.relationship.tier.tip.wary": "Wary of them",
+  "campaign.relationship.tier.tip.neutral": "Neutral",
+  "campaign.relationship.tier.tip.cordial": "Cordial",
+  "campaign.relationship.tier.tip.friendly": "Friendly",
+  "campaign.relationship.tier.tip.close": "Close, a trusted friend",
+  "campaign.relationship.tier.tip.devoted": "Devoted",
 } satisfies Record<string, string>;
