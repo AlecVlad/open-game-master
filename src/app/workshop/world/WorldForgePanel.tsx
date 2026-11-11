@@ -100,7 +100,7 @@ type Held = { text: string; losses: string[]; lossDetails: WorldNoticeDetail[]; 
 
 // What a WorldForge file of this world could not carry, named before the
 // download (audit WF-19).
-type ExportCheck = { scenes: SceneLoss[]; notes: string[] };
+type ExportCheck = { scenes: SceneLoss[]; notes: string[]; noteDetails?: WorldNoticeDetail[] };
 
 const WORLD_IMPORT_KIND_KEYS: Record<string, string> = {
   types: "workshop.world.import.kind.types",
@@ -402,7 +402,9 @@ export function WorldForgePanel({
         <div className="motion-pop flex flex-col gap-2 rounded-lg border border-amber-700/50 bg-amber-950/30 px-3 py-2 text-xs text-amber-100" role="alert" data-testid="world-export-losses">
           <span>{t("workshop.world.panel.export.lossWarning")}</span>
           <SceneLosses scenes={exportHeld.scenes} label={t("workshop.world.panel.export.lossesLabel")} />
-          {exportHeld.notes.map((note) => (
+          {exportHeld.noteDetails?.length ? exportHeld.noteDetails.map((detail, index) => (
+            <span key={index} className="text-stone-300">{t(detail.code as never, detail.params)}</span>
+          )) : exportHeld.notes.map((note) => (
             <span key={note} className="text-stone-300">{note}</span>
           ))}
           <span className="text-stone-300">{t("workshop.world.panel.export.bundleNote")}</span>
