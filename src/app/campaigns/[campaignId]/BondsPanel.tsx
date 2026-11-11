@@ -249,8 +249,8 @@ function BondRow({ bond }: { bond: RelationshipView }) {
           </span>
           <span>
             {bond.unmasked
-              ? `The truth came out: ${bond.subjectName}'s warmth was an act.`
-              : `Only you know: ${bond.subjectName}'s warmth toward ${bond.characterName} is an act. This is where they really stand.`}
+              ? t("campaign.relationship.truth.revealed", { subject: bond.subjectName })
+              : t("campaign.relationship.truth.private", { subject: bond.subjectName, character: bond.characterName })}
           </span>
         </p>
       ) : null}
@@ -283,9 +283,11 @@ function ActLine({ bond, act }: { bond: RelationshipView; act: NonNullable<Relat
     <p className="mt-1 flex items-start gap-1.5 text-xs leading-5 text-violet-300" data-bond-act={bond.subjectName}>
       <VenetianMask className="mt-0.5 size-3 shrink-0" aria-hidden />
       <span>
-        {act.revealed ? "Was an act" : `An act: the table sees ${TIER_WORD[act.shownTier]} ${act.shown > 0 ? "+" : ""}${act.shown}`}
-        {act.motive ? `. Wants ${act.motive}` : ""}
-        {act.seenThroughBy.length && !act.revealed ? `. Seen through by ${act.seenThroughBy.join(", ")}` : ""}.
+        {act.revealed
+          ? t("campaign.relationship.act.revealed")
+          : t("campaign.relationship.act.hidden", { tier: shownTier, approval: `${act.shown > 0 ? "+" : ""}${act.shown}` })}
+        {act.motive ? `. ${t("campaign.relationship.act.motive", { motive: act.motive })}` : ""}
+        {act.seenThroughBy.length && !act.revealed ? `. ${t("campaign.relationship.act.seenBy", { names: act.seenThroughBy.join(", ") })}` : ""}.
         <span className="sr-only"> Only you see this.</span>
       </span>
     </p>
