@@ -70,14 +70,14 @@ export function SummonDoor({ sheet, mine, inCombat }: { sheet: CharacterSheet; m
         data = (await response.json().catch(() => ({}))) as { error?: string };
       }
       if (!response.ok) {
-        setRefusal(data.error || "The casting was refused.");
+        setRefusal(data.error || t("campaign.summonDoor.error.refused"));
         replayAnimation(refusalRef.current, "shake-x var(--dur-beat) var(--ease-snap) both");
         return;
       }
       setSent(row.spell);
       setChoices((current) => ({ ...current, [row.spell]: {} }));
     } catch {
-      setRefusal("Could not reach the server.");
+      setRefusal(t("campaign.summonDoor.error.server"));
     } finally {
       setBusy(null);
     }
