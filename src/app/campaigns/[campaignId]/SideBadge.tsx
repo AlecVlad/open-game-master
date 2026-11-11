@@ -56,7 +56,8 @@ export function SideBadge({ side, className }: { side: CombatSide | null; classN
 
 // The words alone, for a screen reader beside a name.
 export function SideSr({ side }: { side: CombatSide | null }) {
-  return side ? <span className="sr-only">, {sideWords(side)}</span> : null;
+  const { t } = useI18n();
+  return side ? <span className="sr-only">, {sideWords(side, t)}</span> : null;
 }
 
 // The side's colour across the top of an initiative plate (BoardChrome.tsx).
