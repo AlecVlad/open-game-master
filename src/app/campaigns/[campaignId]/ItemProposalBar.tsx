@@ -2,6 +2,7 @@
 
 import { Check, X } from "lucide-react";
 import { useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/cn";
 import { GameIcon } from "@/components/ui/GameIcon";
 import { KitButton, PanelError } from "./PanelKit";
@@ -31,6 +32,7 @@ export function ItemProposalBar({
   meUserId: string;
   steersStory: boolean;
 }) {
+  const { t } = useI18n();
   const [busyId, setBusyId] = useState("");
   const [error, setError] = useState("");
   const advances = proposals.filter((proposal) => proposal.toolName === "romance_advance");
@@ -51,7 +53,7 @@ export function ItemProposalBar({
       );
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        setError(String(data.error ?? "That did not work."));
+        setError(String(data.error ?? t("campaign.session.proposals.error")));
       }
     } finally {
       setBusyId("");
@@ -90,7 +92,7 @@ export function ItemProposalBar({
             const proposer = proposal.userId === meUserId;
             const mine = trade ? counterparty?.userId === meUserId : proposal.userId === meUserId;
             const characterName =
-              (trade ? counterparty?.name : sheets.find((sheet) => sheet.id === proposal.characterId)?.name) ?? "a character";
+              (trade ? counterparty?.name : sheets.find((sheet) => sheet.id === proposal.characterId)?.name) ?? t("campaign.session.proposals.unknownCharacter");
             const busy = busyId === proposal.id;
             return (
               <div
@@ -113,21 +115,21 @@ export function ItemProposalBar({
                 </span>
                 {trade && proposer && !mine && !steersStory ? (
                   <KitButton onClick={() => resolve(proposal.id, "cancel")} disabled={busy} busy={busy}>
-                    {busy ? null : <X className="size-3.5" />} Withdraw
+                    {busy ? null : <X className="size-3.5" />} {t("campaign.session.proposals.withdraw")}
                   </KitButton>
                 ) : mine || steersStory ? (
                   <span className="flex shrink-0 items-center gap-1.5">
                     <KitButton tone="primary" onClick={() => resolve(proposal.id, "approve")} disabled={busy} busy={busy}>
                       {busy ? null : <Check className="size-3.5" />}
-                      Accept
+                      {t("campaign.session.proposals.accept")}
                     </KitButton>
                     <KitButton onClick={() => resolve(proposal.id, mine ? "decline" : "cancel")} disabled={busy}>
-                      <X className="size-3.5" /> {mine ? "Decline" : "Withdraw"}
+                      <X className="size-3.5" /> {mine ? t("campaign.session.proposals.decline") : t("campaign.session.proposals.withdraw")}
                     </KitButton>
                   </span>
                 ) : (
                   <span className="shrink-0 text-[11px] italic text-stone-500">
-                    waiting on {characterName}
+                    {t("campaign.session.proposals.waiting", { character: characterName })}
                   </span>
                 )}
               </div>
