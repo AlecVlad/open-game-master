@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { CSSProperties } from "react";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui";
+import { useI18n } from "@/lib/i18n/provider";
 import { Tooltip } from "@/components/ui/Tooltip";
 import { GameIcon } from "@/components/ui/GameIcon";
 import type { CharacterSheet } from "@/lib/schemas/sheet";
@@ -34,11 +35,79 @@ const GLYPH: Record<StateTag["id"], string> = {
   incapacitated: "rest-death-save",
 };
 
+type SheetTranslator = ReturnType<typeof useI18n>["t"];
+
+function localizeStateTag(tag: StateTag, sheet: CharacterSheet, t: SheetTranslator): StateTag {
+  switch (tag.id) {
+    case "dead":
+      return { ...tag, label: t("charSheet.state.dead.label"), note: t("charSheet.state.dead.note") };
+    case "stable":
+      return { ...tag, label: t("charSheet.state.stable.label"), note: t("charSheet.state.stable.note") };
+    case "dying": {
+      const saves = sheet.deathSaves;
+      const successes = saves?.successes ?? 0;
+      const failures = saves?.failures ?? 0;
+      return {
+        ...tag,
+        label: t("charSheet.state.dying.label", { successes, failures }),
+        note: t("charSheet.state.dying.note", { successes, failures }),
+      };
+    }
+    case "incapacitated": {
+      const condition = tag.label.match(/^Cannot act \((.+)\)$/)?.[1] ?? "";
+      return {
+        ...tag,
+        label: t("charSheet.state.incapacitated.label", { condition }),
+        note: t("charSheet.state.incapacitated.note", { name: sheet.name, condition }),
+      };
+    }
+    case "exhaustion": {
+      const level = sheet.exhaustion ?? 0;
+      const effects = [
+        level >= 1 ? t("charSheet.state.exhaustion.effect.checks") : "",
+        level >= 2 ? t("charSheet.state.exhaustion.effect.speedHalf") : "",
+        level >= 3 ? t("charSheet.state.exhaustion.effect.attacks") : "",
+        level >= 4 ? t("charSheet.state.exhaustion.effect.hp") : "",
+        level >= 5 ? t("charSheet.state.exhaustion.effect.speedZero") : "",
+      ].join("");
+      return {
+        ...tag,
+        label: t("charSheet.state.exhaustion.label", { level }),
+        note: t("charSheet.state.exhaustion.note", { level, effects }),
+      };
+    }
+    case "concentration":
+      return {
+        ...tag,
+        label: t("charSheet.state.concentration.label", { spell: sheet.concentratingOn ?? "" }),
+        note: t("charSheet.state.concentration.note"),
+      };
+    case "readied": {
+      const condition = sheet.conditions.find((entry) => entry.trim().toLowerCase() === "readied");
+      const trigger = condition ? sheet.conditionMeta?.[condition]?.source : null;
+      return {
+        ...tag,
+        label: t("charSheet.state.readied.label"),
+        note: trigger
+          ? t("charSheet.state.readied.trigger", { trigger })
+          : t("charSheet.state.readied.note"),
+      };
+    }
+    case "inspiration":
+      return {
+        ...tag,
+        label: t("charSheet.state.inspiration.label"),
+        note: t("charSheet.state.inspiration.note"),
+      };
+  }
+}
+
 export function StateTags({ sheet, className }: { sheet: CharacterSheet; className?: string }) {
-  const tags = stateTags(sheet);
+  const { t } = useI18n();
+  const tags = stateTags(sheet).map((tag) => localizeStateTag(tag, sheet, t));
   if (!tags.length) return null;
   return (
-    <div className={cn("stagger-pop flex flex-wrap gap-1.5", className)} aria-label="Combat state">
+    <div className={cn("stagger-pop flex flex-wrap gap-1.5", className)} aria-label={t("charSheet.state.aria")}>
       {tags.map((tag, index) => (
         <Tooltip key={tag.id} content={tag.note}>
           <span
@@ -61,19 +130,20 @@ export function StateTags({ sheet, className }: { sheet: CharacterSheet; classNa
 // Resistances and immunities the engine applies to damage (pcResistances,
 // pcImmunities): race, features, rage, spells, worn magic items.
 export function DefensesLine({ sheet }: { sheet: CharacterSheet }) {
+  const { t } = useI18n();
   const { resist, immune } = defensesView(sheet);
   if (!resist && !immune) return null;
   return (
     <p className="reveal mt-2 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-stone-300">
       {resist ? (
         <span>
-          <span className="text-stone-500">Resists </span>
+          <span className="text-stone-500">{t("charSheet.defenses.resists")} </span>
           {resist}
         </span>
       ) : null}
       {immune ? (
         <span>
-          <span className="text-stone-500">Immune to </span>
+          <span className="text-stone-500">{t("charSheet.defenses.immune")} </span>
           {immune}
         </span>
       ) : null}
@@ -94,6 +164,7 @@ export function HitDiceSpend({
   mine: boolean;
   inCombat: boolean;
 }) {
+  const { t } = useI18n();
   const rows = hitDiceRows(sheet);
   const left = rows.reduce((sum, row) => sum + row.left, 0);
   const [windowOpen, setWindowOpen] = useState(false);
@@ -139,16 +210,21 @@ export function HitDiceSpend({
       const data = (await response.json().catch(() => ({}))) as { error?: string; healed?: number; hp?: string };
       if (!response.ok) {
         // The route's own sentence (not resting, a fight on, none left).
-        setSaid({ text: data.error ?? "The hit die was not spent.", tone: "refused" });
+        setSaid({ text: data.error ?? t("charSheet.hitDice.notSpent"), tone: "refused" });
         check();
         return;
       }
       setSaid({
-        text: typeof data.healed === "number" ? `Rolled: ${data.healed} hit points back${data.hp ? ` (now ${data.hp})` : ""}.` : "Hit die spent.",
+        text: typeof data.healed === "number"
+          ? t("charSheet.hitDice.result", {
+              healed: data.healed,
+              current: data.hp ? t("charSheet.hitDice.result.current", { hp: data.hp }) : "",
+            })
+          : t("charSheet.hitDice.spent"),
         tone: "ok",
       });
     } catch {
-      setSaid({ text: "The spend did not reach the server.", tone: "refused" });
+      setSaid({ text: t("charSheet.hitDice.network"), tone: "refused" });
     } finally {
       setBusy(false);
     }
@@ -162,7 +238,7 @@ export function HitDiceSpend({
             key={`${row.label}-${row.die}`}
             className="motion-pop inline-flex items-center gap-1 rounded-lg border border-stone-800 px-2 py-0.5 font-mono text-[11px] text-stone-300"
             style={{ animationDelay: `${index * 45}ms` }}
-            title={`${row.label}: ${row.left} of ${row.total} ${row.die} left`}
+            title={t("charSheet.hitDice.rowTitle", { label: row.label, left: row.left, total: row.total, die: row.die })}
           >
             <GameIcon icon={{ kind: "glyph", key: `die-${row.die}` }} size="size-4" />
             {rows.length > 1 ? <span className="capitalize text-stone-500">{row.label}</span> : null}
@@ -176,10 +252,10 @@ export function HitDiceSpend({
             onClick={() => void spend()}
             disabled={busy || left <= 0}
             className={cn(ui.btnSmall, "hit-dice-spend motion-pop min-h-8")}
-            title={left > 0 ? "Roll one hit die, add your Constitution, and heal that much." : "No hit dice left until a long rest."}
+            title={left > 0 ? t("charSheet.hitDice.rollTitle") : t("charSheet.hitDice.noneTitle")}
           >
             {busy ? <Loader2 className="size-3.5 animate-spin" /> : <Dices className="size-3.5" />}
-            Spend a hit die
+            {t("charSheet.hitDice.spendButton")}
           </button>
         ) : null}
       </div>
