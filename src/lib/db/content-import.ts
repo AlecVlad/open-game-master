@@ -226,6 +226,7 @@ function usedLinks(compiled: CompiledBoard): Record<LinkKind, string[]> {
 
 function boardFactsFor(source: Campaign, compiled: CompiledBoard, common: Campaign | null): BoardFacts {
   const links = usedLinks(compiled);
+  const arcSummary = summarizeCompile(compiled, false);
   const inCommon = (kind: LinkKind) =>
     common
       ? [...new Set(links[kind])].filter((id) =>
@@ -246,11 +247,25 @@ function boardFactsFor(source: Campaign, compiled: CompiledBoard, common: Campai
       : null,
     beats: compiled.arcBeats,
     moments: compiled.moments.length,
-    arcProblem: summarizeCompile(compiled, false).arcRefusal,
+    arcProblem: arcSummary.arcRefusal,
+    arcProblemCode: arcSummary.arcRefusalCode,
+    arcProblemParams: arcSummary.arcRefusalParams,
     beatTitles: compiled.arcPlan.map((beat) => getBeat(beat.cardId)?.title ?? beat.cardId),
     momentTitles: compiled.moments.map((moment) => moment.name),
     proseNotes: listBeats(source.id)
-      .map((card) => ({ title: card.title, message: proseWarningLine(checkProse(card.body)) }))
+      .map((card) => {
+        const warnings = checkProse(card.body);
+        return {
+          title: card.title,
+          message: proseWarningLine(warnings),
+          reasons: warnings.map((warning) => ({
+            kind: warning.kind,
+            count: Number(warning.message.match(/^\\d+/)?.[0] ?? 0),
+            minimum: warning.kind === "long-run" ? 28 : 0,
+            sample: warning.samples[0] ?? "",
+          })),
+        };
+      })
       .filter((note) => note.message),
   };
 }
