@@ -4718,4 +4718,7 @@ export const enCampaignPanels = {
   "campaign.session.pact.choice.refuse.label": "Refuse",
   "campaign.session.pact.choice.refuse.hint": "Say no and keep it to yourself.",
 
+  "campaign.session.arrival.line": "{name} takes a seat",
+  "campaign.session.arrival.dismiss": "Dismiss",
+
 } satisfies Record<string, string>;
