@@ -78,7 +78,7 @@ export default function SetupPage() {
       <PageNotice user={me}>
         {t("setup.page.loadFailed")}{" "}
         <Link href="/admin" className="text-amber-200 hover:text-amber-400">
-          Open the admin panel
+          {t("setup.page.openAdmin")}
         </Link>
       </PageNotice>
     );
