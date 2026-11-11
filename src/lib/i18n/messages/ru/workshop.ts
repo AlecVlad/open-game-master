@@ -768,4 +768,10 @@ export const ruWorkshop: Partial<Record<keyof typeof enWorkshop, string>> = {
   "workshop.contentImport.plan.board.prose.joined-sentences": "Текст карточки «{title}» может читаться необычно: в {count} местах, похоже, пропущен пробел после точки (например: {sample}). Сам текст останется без изменений.",
   "workshop.contentImport.plan.board.prose.long-run": "Текст карточки «{title}» может читаться необычно: найдено {count} фрагментов длиной не менее {minimum} букв без пробелов (например: {sample}). Сам текст останется без изменений.",
   "workshop.contentImport.plan.board.prose.few-spaces": "Текст карточки «{title}» может читаться необычно: для такой длины в нём подозрительно мало пробелов (например: {sample}). Сам текст останется без изменений.",
+  "workshop.contentImport.note.referenceKeptLocal": "Таблица «{table}»: строка со ссылкой на {kind} «{name}» теперь указывает на одноимённую запись этой кампании, поскольку исходная запись осталась в мастерской.",
+  "workshop.contentImport.note.referenceMissing": "Таблица «{table}»: строка со ссылкой на {kind} «{name}» теперь никуда не ведёт, поскольку исходная запись осталась в мастерской.",
+  "workshop.contentImport.referenceKind.tables": "таблицу бросков",
+  "workshop.contentImport.referenceKind.npcs": "НИП",
+  "workshop.contentImport.referenceKind.lore": "запись лора",
+  "workshop.contentImport.referenceKind.locations": "место",
 };
