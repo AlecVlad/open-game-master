@@ -4566,4 +4566,10 @@ export const enCampaignPanels = {
   "campaign.story.export.odtHint": "LibreOffice Writer",
   "campaign.story.export.docx": "Word (.docx)",
   "campaign.story.export.docxHint": "Microsoft Word",
+
+  "campaign.book.close": "Close the book",
+  "campaign.book.empty": "Nothing is written here yet.",
+  "campaign.book.earlier": "Earlier",
+  "campaign.book.later": "Later",
+  "campaign.book.progress": "{current} of {total}",
 } satisfies Record<string, string>;
