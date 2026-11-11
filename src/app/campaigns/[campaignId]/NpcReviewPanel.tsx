@@ -27,7 +27,7 @@ type Suggestion = { name: string; matches: string };
 
 export function NpcReviewPanel({ campaignId }: { campaignId: string }) {
   const { t } = useI18n();
-  const [npcs, setNpcs = useState<ReviewNpc[]>([]);
+  const [npcs, setNpcs] = useState<ReviewNpc[]>([]);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [busy, setBusy] = useState(false);
