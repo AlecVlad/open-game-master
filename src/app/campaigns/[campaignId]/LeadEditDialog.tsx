@@ -509,9 +509,9 @@ export function LeadEditDialog({
 
           {sheet.spellcasting ? (
             <div className="reveal mt-3 space-y-2 text-xs">
-              <SectionHead title="Spells" glyph="rest-spell-slot" level="h3" />
+              <SectionHead title={t("campaign.session.leadEdit.spells")} glyph="rest-spell-slot" level="h3" />
               <div className="space-y-1">
-                <span className="eyebrow text-[10px] text-amber-400/80">Cantrips</span>
+                <span className="eyebrow text-[10px] text-amber-400/80">{t("campaign.session.leadEdit.spell.cantrips")}</span>
                 <ChipList
                   values={cantrips}
                   onRemove={(value) =>
@@ -521,15 +521,15 @@ export function LeadEditDialog({
                 <MultiContentPicker
                   kind="spells"
                   extraParams={{ class: listClass, level: "0" }}
-                  placeholder="Search cantrips to add"
+                  placeholder={t("campaign.session.leadEdit.spell.searchCantrips")}
                   selectedNames={cantrips}
                   onAdd={(entries) => addCantrips(entries)}
-                  renderMeta={() => "cantrip"}
+                  renderMeta={() => t("campaign.session.leadEdit.spell.cantrip")}
                 />
               </div>
               {style === "known" || known.length ? (
               <div className="space-y-1">
-                <span className="eyebrow text-[10px] text-amber-400/80">Known</span>
+                <span className="eyebrow text-[10px] text-amber-400/80">{t("campaign.session.leadEdit.spell.known")}</span>
                 <ChipList
                   values={known}
                   onRemove={(value) => setKnown((list) => list.filter((entry) => entry !== value))}
@@ -537,19 +537,19 @@ export function LeadEditDialog({
                 <MultiContentPicker
                   kind="spells"
                   extraParams={{ class: listClass, level: topLevel }}
-                  placeholder="Search spells to add as known"
+                  placeholder={t("campaign.session.leadEdit.spell.searchKnown")}
                   selectedNames={known}
                   onAdd={(entries) => {
                     addCantrips(entries);
                     setKnown((list) => [...list, ...spellNamesOf(entries)]);
                   }}
-                  renderMeta={levelMeta}
+                  renderMeta={spellMeta}
                 />
               </div>
               ) : null}
               {style === "spellbook" || spellbook.length ? (
                 <div className="space-y-1">
-                  <span className="eyebrow text-[10px] text-amber-400/80">Spellbook</span>
+                  <span className="eyebrow text-[10px] text-amber-400/80">{t("campaign.session.leadEdit.spell.spellbook")}</span>
                   <ChipList
                     values={spellbook}
                     onRemove={(value) => {
@@ -560,19 +560,19 @@ export function LeadEditDialog({
                   <MultiContentPicker
                     kind="spells"
                     extraParams={{ class: listClass, level: topLevel }}
-                    placeholder="Search spells to write in the spellbook"
+                    placeholder={t("campaign.session.leadEdit.spell.searchSpellbook")}
                     selectedNames={spellbook}
                     onAdd={(entries) => {
                       addCantrips(entries);
                       setSpellbook((list) => [...list, ...spellNamesOf(entries)]);
                     }}
-                    renderMeta={levelMeta}
+                    renderMeta={spellMeta}
                   />
                 </div>
               ) : null}
               {style !== "known" || prepared.length ? (
               <div className="space-y-1">
-                <span className="eyebrow text-[10px] text-amber-400/80">Prepared</span>
+                <span className="eyebrow text-[10px] text-amber-400/80">{t("campaign.session.leadEdit.spell.prepared")}</span>
                 <ChipList
                   values={prepared}
                   onRemove={(value) =>
@@ -582,7 +582,7 @@ export function LeadEditDialog({
                 <MultiContentPicker
                   kind="spells"
                   extraParams={{ class: listClass, level: topLevel }}
-                  placeholder="Search spells to add as prepared"
+                  placeholder={t("campaign.session.leadEdit.spell.searchPrepared")}
                   selectedNames={prepared}
                   onAdd={(entries) => {
                     addCantrips(entries);
@@ -593,13 +593,13 @@ export function LeadEditDialog({
                       setSpellbook((list) => [...list, ...names.filter((name) => !list.includes(name))]);
                     }
                   }}
-                  renderMeta={levelMeta}
+                  renderMeta={spellMeta}
                 />
               </div>
               ) : null}
               {pending.length ? (
                 <div className="space-y-1">
-                  <span className="eyebrow text-[10px] text-sky-300/80">Prepared at the next long rest</span>
+                  <span className="eyebrow text-[10px] text-sky-300/80">{t("campaign.session.leadEdit.spell.pending")}</span>
                   <ChipList
                     values={pending}
                     onRemove={(value) => setPending((list) => list.filter((entry) => entry !== value))}
@@ -611,14 +611,14 @@ export function LeadEditDialog({
           ) : null}
 
           <div className="mt-3 space-y-1 text-xs">
-            <SectionHead title="Feats" glyph="rest-level-up" level="h3" aside={feats.length || null} />
+            <SectionHead title={t("campaign.session.leadEdit.feats")} glyph="rest-level-up" level="h3" aside={feats.length || null} />
             <ChipList
               values={feats}
               onRemove={(value) => setFeats((list) => list.filter((entry) => entry !== value))}
             />
             <MultiContentPicker
               kind="feats"
-              placeholder="Search feats to add"
+              placeholder={t("campaign.session.leadEdit.searchFeats")}
               selectedNames={feats}
               onAdd={(entries) =>
                 setFeats((list) => [...list, ...entries.map((entry) => entry.name)])
@@ -626,22 +626,22 @@ export function LeadEditDialog({
             />
           </div>
           <label className="mt-2 block space-y-1 text-xs">
-            <span className="text-stone-400">Reason (shown in the log)</span>
+            <span className="text-stone-400">{t("campaign.session.leadEdit.reason.label")}</span>
             <input
               value={reason}
               onChange={(event) => setReason(event.target.value)}
               maxLength={300}
-              placeholder="GM double-counted the goblin's hit"
+              placeholder={t("campaign.session.leadEdit.reason.placeholder")}
               className={field}
             />
           </label>
           {error ? <PanelError className="mt-2">{error}</PanelError> : null}
           {held.length ? (
             <div role="status" className="reveal mt-2 space-y-1 rounded-lg border border-amber-500/30 bg-amber-950/20 p-2 text-xs text-amber-100">
-              <p>Saved. The server held these to what the sheet has:</p>
+              <p>{t("campaign.session.leadEdit.held.title")}</p>
               <ul className="stagger list-disc space-y-0.5 pl-4 text-amber-200/90">
                 {held.map((line) => (
-                  <li key={line}>{line}</li>
+                  <li key={line}>{heldText(line)}</li>
                 ))}
               </ul>
             </div>
@@ -649,15 +649,15 @@ export function LeadEditDialog({
           <div className="mt-4 flex justify-end gap-2">
             {held.length ? (
               <KitButton tone="primary" onClick={onClose} className="h-10 px-4 text-[13px]">
-                Done
+                {t("campaign.session.leadEdit.done")}
               </KitButton>
             ) : (
               <>
                 <button type="button" onClick={onClose} className={ui.btnSmall}>
-                  Cancel
+                  {t("campaign.session.leadEdit.cancel")}
                 </button>
                 <KitButton tone="primary" onClick={save} disabled={busy} busy={busy} className="h-10 px-4 text-[13px]">
-                  Save
+                  {t("campaign.session.leadEdit.save")}
                 </KitButton>
               </>
             )}
