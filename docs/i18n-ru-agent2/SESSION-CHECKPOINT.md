@@ -24,13 +24,16 @@ Single restore point for Russian localization. After a chat interruption, read o
 - `ReportDialog.tsx`: reporting/blocking descriptions, target labels, report reasons, success states, actions and known API errors localized. Server reason values remain unchanged.
 - `VoiceDock.tsx`, `SpeakerPicker.tsx` and `PushToTalk.tsx`: call button/count/close labels, speaker choices, and push-to-talk labels/tooltips localized. Shortcut names, character/monster names and mic/WebRTC behavior were preserved. Dictation engine error hints still come from the shared `useDictation` hook and have not been localized in this pass.
 - `JoinConfirmDialog.tsx`: confirmation titles, loading/empty headings, table rules, choices, hit-point notes, actions, and local fallback errors localized. The hero's names and structured preview changes/problems returned by the server remain data; shared `owed-choices.ts` strings were replaced at this UI boundary where practical.
+- `SessionHoldBanner.tsx`: ended-session title, schedule button/dialog, next-session line, countdown participant count, start-session action and body localized with locale-aware date formatting.
+- `SummonDoor.tsx`: summon section label, begin/finish/cast actions, round/slot status, ritual controls, missing-slot explanation, and generic request fallbacks localized. Spell/creature names and detailed cast-guard refusal diagnostics returned by shared game rules remain data.
+- `NarrationNote.tsx` (`NarrationNote` and `ImagesNote`): provider availability, model/network status and image backend explanations localized. Backend names, addresses and server settings remain technical data.
 - `NameMenu.tsx`: mention list accessibility label, party/people/place groups, no-match state, keyboard hints and not-yet-introduced marker localized. Search matching, insertion behavior and actual names remain unchanged.
 - `PregenPicker.tsx`: default heading localized; pre-generated hero names, taglines and descriptions remain content data.
 - The existing `campaignSession.ts` EN/RU pair was extended: dice dialogs added 40 keys, context trace has 80 keys, report dialog added 31 keys, voice controls added 20 keys. Voice dictionaries are 20 EN / 20 RU, no missing pairs, duplicates or placeholder differences. The two plural base keys are `tp()` groups with `.one/.few/.many/.other` variants in both dictionaries; validate their suffixed forms rather than treating the base key as missing.
 - Do not repeat these components unless a targeted defect is found.
 
 ## Next work
-Inspect and localize `src/app/campaigns/[campaignId]/SessionHoldBanner.tsx` and `src/app/campaigns/[campaignId]/SummonDoor.tsx` (both lacked `useI18n()` at the last audit; the remaining visible labels included the schedule tooltip and the summoning section accessibility label). Then continue the remaining Block 1 audit; do not revisit already localized panels. Check `PLAN.md` only if the block boundary is unclear.
+Continue the Block 1 audit from the remaining session components. Use a bounded path scan to find the next components without `useI18n()` and visible fixed English labels; do not repeat completed files. Consult `PLAN.md` only if the block boundary is unclear.
 
 ## Low-token work protocol
 - Read this file, then only the next target source file(s) and exact dictionary sections needed.
