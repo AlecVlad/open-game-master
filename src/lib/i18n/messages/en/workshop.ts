@@ -794,4 +794,11 @@ export const enWorkshop = {
   "workshop.rulesets.noun.other": "rulesets",
   "workshop.bestiary.noun.other": "monsters",
   "workshop.cast.noun.other": "people",
+  "workshop.contentImport.error.steersStory": "Only the person steering the story can import prep.",
+  "workshop.contentImport.error.campaignEnded": "This campaign has ended.",
+  "workshop.contentImport.error.invalid": "The import request is invalid.",
+  "workshop.contentImport.error.sourceNotFound": "The source could not be found.",
+  "workshop.contentImport.error.chooseSomething": "Choose what to bring in.",
+  "workshop.contentImport.error.notFound": "The source or campaign could not be found.",
+  "workshop.contentImport.error.cannotImportSelf": "A campaign cannot import from itself.",
 } satisfies Record<string, string>;
