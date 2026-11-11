@@ -1,6 +1,7 @@
 "use client";
 
 import { romanceCueAllowed } from "@/lib/dm/director-logic";
+import { useI18n } from "@/lib/i18n/provider";
 import { gmTurnCompanion, gmTurnDominated, initiativeCharacter, selectedCharacter, typedReactors as typedReactorsOf } from "@/lib/player-characters";
 import { useThemePrefs } from "@/lib/theme-mode";
 import { LevelUpMoment, LootMoment, MomentVeil, RestMoment, TravelBanner } from "@/app/campaigns/[campaignId]/Moments";
@@ -232,6 +233,7 @@ export function SessionView({
   // lobby's panels laid over this table while it is open.
   prep?: { open: boolean; onToggle: () => void; screen: ReactNode };
 }) {
+  const { t } = useI18n();
   // The effects mode rides on <html data-effects> for CSS-only consumers.
   useEffectsRoot();
   const prepOpen = Boolean(prep?.open);
@@ -416,9 +418,9 @@ export function SessionView({
   const headerExit = useMemo(
     () =>
       testWorkshopId
-        ? { href: workshopHref(`/workshop/${testWorkshopId}`, { system: "encounters" }), label: "Back to the workshop", glyph: "system-encounters" }
+        ? { href: workshopHref(`/workshop/${testWorkshopId}`, { system: "encounters" }), label: t("campaign.session.backToWorkshop"), glyph: "system-encounters" }
         : undefined,
-    [testWorkshopId],
+    [testWorkshopId, t],
   );
   // Chime on new private messages (side chats + DM whispers). The loaded
   // flags keep the page-load backlog silent.
@@ -683,8 +685,8 @@ export function SessionView({
         secretStory: caps.secretStory,
         adjudicates: caps.adjudicates,
         isLead,
-      }),
-    [state.battleMap, campaign, caps.secretStory, caps.adjudicates, isLead],
+      }, t),
+    [state.battleMap, campaign, caps.secretStory, caps.adjudicates, isLead, t],
   );
   // The table's arrangement for this seat (client issue 46,
   // src/lib/table-layout.ts): which side-panel tabs have a pane of their
