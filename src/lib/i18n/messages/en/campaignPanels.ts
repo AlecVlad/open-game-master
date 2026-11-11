@@ -4531,4 +4531,10 @@ export const enCampaignPanels = {
   "campaign.story.event.deadline": "Deadline",
   "campaign.story.event.discovery": "Discovery",
   "campaign.story.event.setpiece": "Set piece",
+
+  "campaign.story.arc.errors.edit": "That edit did not go through.",
+  "campaign.story.errors.load": "The story history could not be loaded. Check your connection and try again.",
+  "campaign.story.arc.when": "when {trigger}",
+  "campaign.story.book.kicker": "{actPrefix}Chapter {chapter}",
+  "campaign.story.book.noSummary": "No summary was recorded for this chapter.",
 } satisfies Record<string, string>;
