@@ -4,6 +4,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { returnFocus } from "@/components/ui/return-focus";
 import { Check, Loader2, X } from "lucide-react";
 import { useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/cn";
 import { offerCorrectionReason } from "@/lib/correction-offer";
 import { ui } from "@/lib/ui";
@@ -12,7 +13,6 @@ import { SectionHead } from "@/components/ui/SectionHead";
 import { KitButton, PanelError } from "./PanelKit";
 import type { CampaignMessage } from "@/lib/db/messages";
 import {
-  LORE_CATEGORY_LABELS,
   LORE_CHECK_CATEGORIES,
   type LoreCheckCategory,
   type LoreCheckResult,
@@ -29,10 +29,25 @@ const VERDICT_STYLES: Record<LoreCheckResult["verdict"], string> = {
   contradicts: "border-red-900 bg-red-950/40 text-red-300",
 };
 
-const VERDICT_LABELS: Record<LoreCheckResult["verdict"], string> = {
-  consistent: "Consistent with the record",
-  unsupported: "Unsupported by the record",
-  contradicts: "Contradicts the record",
+const VERDICT_KEYS: Record<LoreCheckResult["verdict"], string> = {
+  consistent: "campaign.session.loreCheck.verdict.consistent",
+  unsupported: "campaign.session.loreCheck.verdict.unsupported",
+  contradicts: "campaign.session.loreCheck.verdict.contradicts",
+};
+
+const CATEGORY_KEYS: Record<LoreCheckCategory, string> = {
+  wrong_fact: "campaign.session.loreCheck.category.wrongFact",
+  contradicts_lore: "campaign.session.loreCheck.category.contradictsLore",
+  wrong_npc_place: "campaign.session.loreCheck.category.wrongNpcPlace",
+  tone_mismatch: "campaign.session.loreCheck.category.toneMismatch",
+  out_of_character: "campaign.session.loreCheck.category.outOfCharacter",
+};
+
+const CITATION_KIND_KEYS: Record<LoreCheckResult["citations"][number]["kind"], string> = {
+  fact: "campaign.session.loreCheck.citation.fact",
+  chapter: "campaign.session.loreCheck.citation.chapter",
+  scene: "campaign.session.loreCheck.citation.scene",
+  summary: "campaign.session.loreCheck.citation.summary",
 };
 
 export function LoreCheckDialog({
@@ -49,6 +64,7 @@ export function LoreCheckDialog({
   steersStory: boolean;
   onClose: () => void;
 }) {
+  const { t } = useI18n();
   const [category, setCategory] = useState<LoreCheckCategory | null>(null);
   const [running, setRunning] = useState(false);
   const [accepting, setAccepting] = useState(false);
@@ -76,12 +92,12 @@ export function LoreCheckDialog({
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError(data.error || "The check failed; try again.");
+        setError(data.error || t("campaign.session.loreCheck.error.check"));
         return;
       }
       setResult(data.result as LoreCheckResult);
     } catch {
-      setError("Could not reach the server.");
+      setError(t("campaign.session.loreCheck.error.network"));
     } finally {
       setRunning(false);
     }
@@ -107,13 +123,13 @@ export function LoreCheckDialog({
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError(data.error || "Could not apply the rewrite.");
+        setError(data.error || t("campaign.session.loreCheck.error.apply"));
         return;
       }
       setAccepted(true);
       offerCorrectionReason(campaignId, data);
     } catch {
-      setError("Could not reach the server.");
+      setError(t("campaign.session.loreCheck.error.network"));
     } finally {
       setAccepting(false);
     }
@@ -132,9 +148,9 @@ export function LoreCheckDialog({
           <div className="mb-3 flex items-center justify-between">
             <Dialog.Title className="flex items-center gap-2 font-display text-lg tracking-wide">
               <GameIcon icon={{ kind: "glyph", key: "system-lore" }} size="size-7" />
-              <span className="gold-title">Lore check</span>
+              <span className="gold-title">{t("campaign.session.loreCheck.title")}</span>
             </Dialog.Title>
-            <Dialog.Close aria-label="Close" className="pk-tap rounded p-1 text-stone-500 hover:text-amber-200 motion-nudge">
+            <Dialog.Close aria-label={t("campaign.session.loreCheck.close")} className="pk-tap rounded p-1 text-stone-500 hover:text-amber-200 motion-nudge">
               <X className="size-4" />
             </Dialog.Close>
           </div>
@@ -147,10 +163,9 @@ export function LoreCheckDialog({
           {!result ? (
             <div className="reveal space-y-2">
               <p className="text-xs text-stone-400">
-                What seems off? The server checks the passage against everything on
-                record: facts, chapter archives, past scenes, and NPC states.
+                {t("campaign.session.loreCheck.prompt")}
               </p>
-              <div data-pill-group="" role="group" aria-label="What seems off" className="flex flex-wrap gap-1.5">
+              <div data-pill-group="" role="group" aria-label={t("campaign.session.loreCheck.categoryGroup")} className="flex flex-wrap gap-1.5">
                 {LORE_CHECK_CATEGORIES.map((value) => (
                   <button data-on={category === value ? "" : undefined}
                     key={value}
@@ -160,14 +175,14 @@ export function LoreCheckDialog({
                     aria-pressed={category === value}
                     className="pk-pill pk-tap motion-press"
                   >
-                    {LORE_CATEGORY_LABELS[value]}
+                    {t(CATEGORY_KEYS[value] as never)}
                   </button>
                 ))}
               </div>
               {running ? (
                 <p role="status" className="reveal flex items-center gap-2 text-xs text-stone-500">
                   <Loader2 className="size-3.5 animate-spin" />
-                  Cross-referencing the record (queued behind the GM)...
+                  {t("campaign.session.loreCheck.running")}
                 </p>
               ) : null}
             </div>
@@ -179,21 +194,21 @@ export function LoreCheckDialog({
                   VERDICT_STYLES[result.verdict],
                 )}
               >
-                {VERDICT_LABELS[result.verdict]}
+                {t(VERDICT_KEYS[result.verdict] as never)}
               </p>
               {result.explanation ? (
                 <p className="reveal text-xs leading-5 text-stone-300">{result.explanation}</p>
               ) : null}
               {result.citations.length ? (
                 <div className="reveal space-y-1">
-                  <SectionHead title="Evidence" glyph="tab-log" level="h4" aside={result.citations.length} />
+                  <SectionHead title={t("campaign.session.loreCheck.evidence")} glyph="tab-log" level="h4" aside={result.citations.length} />
                   {result.citations.map((citation, index) => (
                     <p
                       key={index}
                       className="panel rounded-md p-2 text-[11px] leading-4 text-stone-400"
                     >
                       <span className="eyebrow mr-1 rounded bg-stone-800 px-1 text-[9px] text-amber-300/80">
-                        {citation.kind}
+                        {t(CITATION_KIND_KEYS[citation.kind] as never)}
                         {citation.ref ? ` ${citation.ref}` : ""}
                       </span>
                       {citation.quote}
@@ -203,24 +218,24 @@ export function LoreCheckDialog({
               ) : null}
               {result.rewrite ? (
                 <div className="reveal space-y-1.5">
-                  <SectionHead title="Suggested rewrite" glyph="tab-notes" level="h4" />
+                  <SectionHead title={t("campaign.session.loreCheck.suggestedRewrite")} glyph="tab-notes" level="h4" />
                   <p className="panel whitespace-pre-wrap rounded-lg p-2.5 font-serif text-xs leading-5 text-stone-200">
                     {result.rewrite}
                   </p>
                   {accepted ? (
                     <p className="reveal flex items-center gap-1.5 text-xs text-emerald-400">
-                      <Check className="size-3.5" /> Applied; the message has been updated.
+                      <Check className="size-3.5" /> {t("campaign.session.loreCheck.applied")}
                     </p>
                   ) : steersStory && message.authorType === "dm" ? (
                     <KitButton tone="primary" disabled={accepting} busy={accepting} onClick={accept}>
                       {accepting ? null : <Check className="size-3.5" />}
-                      Accept rewrite
+                      {t("campaign.session.loreCheck.acceptRewrite")}
                     </KitButton>
                   ) : (
                     <p className="text-xs text-stone-500">
                       {message.authorType === "dm"
-                        ? "The party lead can accept this rewrite."
-                        : "Only GM narration can be rewritten."}
+                        ? t("campaign.session.loreCheck.partyLeadCanAccept")
+                        : t("campaign.session.loreCheck.onlyNarrationCanBeRewritten")}
                     </p>
                   )}
                 </div>
@@ -233,7 +248,7 @@ export function LoreCheckDialog({
                   setCategory(null);
                 }}
               >
-                Check a different category
+                {t("campaign.session.loreCheck.checkDifferentCategory")}
               </KitButton>
             </div>
           )}
