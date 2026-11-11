@@ -49,8 +49,16 @@ Single restore point for Russian localization. After a chat interruption, read o
 - Remaining in this flow: planner-generated `plan.warnings` / `plan.notes`, `worldConflicts` and `referenceNotes` are server-authored text and may still be English. They need stable reason codes and a dedicated localized renderer; do not translate them by fragile phrase matching. Unknown raw API errors also remain server data.
 - TypeScript, lint, tests, production build and visual checks were not run. Keep those deferred and do not claim they passed.
 
+## Workshop list audit — 11 November 2026
+- `MonsterRows.tsx`: localized bestiary empty state, search, tally, actions and fixed stat labels.
+- `CastList.tsx`: localized cast headings, search, counts/plurals, sorting, attitude labels, archive status, relationship summary and empty/no-match states. Unknown server attitude values remain unchanged.
+- `MapGallery.tsx`: localized empty/search/no-match states, accessible open label and fixed map-theme labels. Theme IDs and map metadata remain unchanged.
+- Checked all `ListHead` / `ListTally` callers: `EncounterRows` and `LoreRows` already use i18n; `TableRows` already supplies localized count and sort labels. The main Workshop shelf was already localized.
+- Added 41 EN keys and 47 RU entries in `workshop.ts`; 6 extra RU entries are plural variants. Static checks: no duplicates, missing paired keys or placeholder mismatches.
+- TypeScript, lint, tests, production build and visual checks were not run.
+
 ## Next work
-Continue the Workshop UI audit from the root-level shelf and shared list controls. Check the remaining `ListHead` callers for English nouns/placeholders and localize them at the screen boundary; then proceed through the uncovered Workshop editors. The shared `AddonFields` fixed labels and `RulesetLibrary` are now translated. Keep plugin-provided labels/help and user-authored data unchanged. Planner-generated import warnings/notes still need stable reason codes and a dedicated localized renderer. Do not sync upstream or merge branches during translation.
+Continue through the uncovered Workshop hub and editor screens, starting with `src/app/workshop/[workshopId]/page.tsx` and its directly rendered shell components. The shared `AddonFields`, `RulesetLibrary`, list controls, bestiary/cast lists and map gallery are localized. Keep plugin-provided labels/help and user-authored data unchanged. Planner-generated import warnings/notes still need stable reason codes and a dedicated localized renderer. Do not sync upstream or merge branches during translation.
 
 ## Low-token work protocol
 - Read this file, then only the next target source file(s) and exact dictionary sections needed.
