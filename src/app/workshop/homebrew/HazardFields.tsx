@@ -1,6 +1,7 @@
 "use client";
 
 import { Plus, X } from "lucide-react";
+import { useT } from "@/lib/i18n/provider";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui";
 import { NumberField, SelectField, TextArea, TextField } from "@/app/workshop/homebrew/fields";
@@ -21,9 +22,9 @@ const DAMAGE = ["acid", "bludgeoning", "cold", "fire", "force", "lightning", "ne
 const DAMAGE_OPTIONS = DAMAGE.map((value) => ({ value, label: value }));
 const CONDITIONS = ["blinded", "charmed", "deafened", "frightened", "grappled", "incapacitated", "paralyzed", "petrified", "poisoned", "prone", "restrained", "stunned", "unconscious"];
 const KINDS = [
-  { value: "trap", label: "Trap" },
-  { value: "poison", label: "Poison" },
-  { value: "disease", label: "Disease" },
+  { value: "trap", label: {t("workshop.homebrew.hazard.trap")} },
+  { value: "poison", label: {t("workshop.homebrew.hazard.poison")} },
+  { value: "disease", label: {t("workshop.homebrew.hazard.disease")} },
 ];
 const optional = (value: number | "") => (value === "" ? undefined : value);
 // A block with its emptied fields dropped, so the stored row stays clean.
@@ -67,9 +68,9 @@ function TrapBlock({ block, put }: { block: Mech; put: (patch: Mech) => void }) 
   return (
     <>
       <MechGroup title="How it works" summary={String(block.trigger ?? "") || "its trigger"} open>
-        <SelectField label="Kind" value={String(block.kind ?? "mechanical")} options={[{ value: "mechanical", label: "mechanical" }, { value: "magic", label: "magic" }]} onChange={(kind) => put({ kind })} />
+        <SelectField label={t("workshop.homebrew.hazard.kind")} value={String(block.kind ?? "mechanical")} options={[{ value: "mechanical", label: "mechanical" }, { value: "magic", label: "magic" }]} onChange={(kind) => put({ kind })} />
         <div className="col-span-2 sm:col-span-3">
-          <TextField label="Trigger" value={String(block.trigger ?? "")} onChange={(trigger) => put({ trigger })} placeholder="a pressure plate under the third flagstone" maxLength={200} />
+          <TextField label={t("workshop.homebrew.hazard.trigger")} value={String(block.trigger ?? "")} onChange={(trigger) => put({ trigger })} placeholder="a pressure plate under the third flagstone" maxLength={200} />
         </div>
         <NumberField label="Spot DC" value={num(spot.dc, 0) || ""} min={1} max={30} onChange={(dc) => put({ spot: dc === "" ? undefined : { dc, skill: String(spot.skill ?? "perception") } })} />
         <SelectField label="Spotted with" value={String(spot.skill ?? "perception")} options={["perception", "investigation", "arcana"].map((value) => ({ value, label: value }))} onChange={(skill) => put({ spot: { dc: num(spot.dc, 10), skill } })} />
@@ -86,10 +87,10 @@ function TrapBlock({ block, put }: { block: Mech; put: (patch: Mech) => void }) 
         <SelectField label="Save" value={String(save.ability ?? "")} options={[{ value: "", label: "none" }, ...ABILITIES]} onChange={(ability) => put({ save: ability ? { ability, dc: num(save.dc, 13), halfOnSave: save.halfOnSave !== false } : undefined })} />
         {save.ability ? (
           <>
-            <NumberField label="Save DC" value={num(save.dc, 13)} min={1} max={30} onChange={(dc) => put({ save: { ...save, dc: dc === "" ? 13 : dc } })} />
+            <NumberField label={t("workshop.homebrew.hazard.saveDC")} value={num(save.dc, 13)} min={1} max={30} onChange={(dc) => put({ save: { ...save, dc: dc === "" ? 13 : dc } })} />
             <SelectField label="On a success" value={save.halfOnSave === false ? "none" : "half"} options={[{ value: "half", label: "half damage" }, { value: "none", label: "no damage" }]} onChange={(value) => put({ save: { ...save, halfOnSave: value === "half" } })} />
             <TextField label="Damage dice" value={String(damage.dice ?? "")} onChange={(dice) => put({ damage: dice ? { dice, type: String(damage.type ?? "piercing") } : undefined })} placeholder="4d10" maxLength={40} />
-            <SelectField label="Damage type" value={String(damage.type ?? "piercing")} options={DAMAGE_OPTIONS} onChange={(type) => put({ damage: { dice: String(damage.dice ?? "1d6"), type } })} />
+            <SelectField label={t("workshop.homebrew.hazard.damageType")} value={String(damage.type ?? "piercing")} options={DAMAGE_OPTIONS} onChange={(type) => put({ damage: { dice: String(damage.dice ?? "1d6"), type } })} />
             <SelectField label="On a failure, also" value={String(block.condition ?? "")} options={[{ value: "", label: "nothing" }, ...CONDITIONS.map((value) => ({ value, label: value }))]} onChange={(condition) => put({ condition: condition || undefined })} />
           </>
         ) : null}
@@ -195,6 +196,7 @@ function DiseaseBlock({ block, put }: { block: Mech; put: (patch: Mech) => void 
 }
 
 export function HazardFields({ data, onChange }: Props) {
+  const t = useT();
   const kind = String(data.hazardKind ?? "trap");
   const block = sub(data[kind]);
   const put = (patch: Mech) => onChange({ ...data, [kind]: tidy({ ...block, ...patch }) });
