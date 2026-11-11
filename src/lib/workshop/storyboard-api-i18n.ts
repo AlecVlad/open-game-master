@@ -23,7 +23,7 @@ export function localizeStoryboardError(error: string, lang: Lang): string {
       length: number(overflow[1]),
       max: number(overflow[2]),
       lostCount: translatePlural(DICTIONARIES, lang, "campaign.storyboard.error.lostCharacters", number(overflow[3])),
-      lost: overflow[4] ? `: “${overflow[4]}”` : "",
+      lost: overflow[4] ? `: «${overflow[4]}»` : "",
     });
   }
   return error;
