@@ -98,7 +98,7 @@ export function DmActionForm({
   // wears the same face the row did.
   glyph?: string;
 }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const displayEntry = useMemo(() => localizeCatalogEntry(entry, t), [entry, t]);
   const [values, setValues] = useState<Record<string, Value>>(() =>
     Object.fromEntries(
@@ -179,7 +179,7 @@ export function DmActionForm({
         setError(String(body.error ?? t("campaign.dmAction.error.refused")));
         return;
       }
-      const lines = describeAdjudicationResult(body.result);
+      const lines = describeAdjudicationResult(body.result, lang);
       setOutcome(lines);
       // Starting a fight moves the panel to the board: the result waits there.
       if (entry.name === "start_encounter") holdConsoleOutcome(campaignId, displayEntry.label, lines);
