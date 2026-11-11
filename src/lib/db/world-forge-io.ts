@@ -652,6 +652,14 @@ export function keptNotes(campaignId: string): string[] {
 // world outline (src/lib/dm/world-outline.ts) makes its entries one at a
 // time through this same door, and its links once both ends exist.
 
+function forgeEntityFailure(name: string, error: string): { errorCode: string; errorParams: Record<string, string | number> } {
+  if (error === "An entry needs a name.") return { errorCode: "workshop.world.forge.report.entry.nameRequired", errorParams: { name } };
+  if (error.startsWith("The Cast already has someone called ")) return { errorCode: "workshop.world.forge.report.entry.castDuplicate", errorParams: { name } };
+  if (error.startsWith("There is already a place called ")) return { errorCode: "workshop.world.forge.report.entry.locationDuplicate", errorParams: { name } };
+  if (error === "That place could not be made.") return { errorCode: "workshop.world.forge.report.entry.locationFailed", errorParams: { name } };
+  return { errorCode: "workshop.world.forge.report.entry.notAdded", errorParams: { name, reason: error } };
+}
+
 export function applyForge(campaignId: string, input: { entities: unknown; links: unknown; stubs: unknown }): ForgeApplied {
   const doc = getWorldDoc(campaignId);
   const present = worldEntities(campaignId, doc);
@@ -671,7 +679,7 @@ export function applyForge(campaignId: string, input: { entities: unknown; links
     const short = type.shelf === "npc" || type.shelf === "faction";
     const created = createRecord(campaignId, type, { name, tagline: short ? firstSentence(summary, type.shelf === "npc" ? 200 : 400) : "", text: short ? "" : summary });
     if ("error" in created) {
-      failed.push({ key, name: name || "A nameless entry", error: created.error });
+      failed.push({ key, name: name || "A nameless entry", error: created.error, ...forgeEntityFailure(name || "A nameless entry", created.error) });
       continue;
     }
     const aliases = Array.isArray(row.aliases) ? row.aliases.map((alias) => text(alias, 80)).filter(Boolean) : [];
@@ -712,8 +720,26 @@ export function applyForge(campaignId: string, input: { entities: unknown; links
             : doc.links.length >= LIMITS.links
               ? `the world holds ${LIMITS.links} links at most`
               : "";
+    const whyCode = !label
+      ? "workshop.world.forge.report.link.invalidLabel"
+      : missing.length
+        ? "workshop.world.forge.report.link.endpointMissing"
+        : from === to
+          ? "workshop.world.forge.report.link.self"
+          : known.has(`${from}|${to}|${label}`)
+            ? "workshop.world.forge.report.link.exists"
+            : doc.links.length >= LIMITS.links
+              ? "workshop.world.forge.report.link.limit"
+              : undefined;
+    const whyParams: Record<string, string | number> = !label
+      ? { label: said.label }
+      : missing.length
+        ? { names: missing.map(([, name]) => name).join(", ") }
+        : doc.links.length >= LIMITS.links
+          ? { limit: LIMITS.links }
+          : {};
     if (why) {
-      linksLeft.push({ ...said, why });
+      linksLeft.push({ ...said, why, whyCode, whyParams });
       continue;
     }
     known.add(`${from}|${to}|${label}`);
@@ -727,11 +753,11 @@ export function applyForge(campaignId: string, input: { entities: unknown; links
     const name = text(raw, 120);
     if (!name) continue;
     if (stubNames.has(textKey(name))) {
-      stubsLeft.push({ name, why: "already in To write" });
+      stubsLeft.push({ name, why: "already in To write", whyCode: "workshop.world.forge.report.stub.exists", whyParams: { name } });
       continue;
     }
     if (doc.stubs.length >= LIMITS.stubs) {
-      stubsLeft.push({ name, why: `To write holds ${LIMITS.stubs} names at most` });
+      stubsLeft.push({ name, why: `To write holds ${LIMITS.stubs} names at most`, whyCode: "workshop.world.forge.report.stub.limit", whyParams: { limit: LIMITS.stubs } });
       continue;
     }
     stubNames.add(textKey(name));
