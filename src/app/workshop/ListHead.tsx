@@ -37,12 +37,14 @@ export function ListHead({
   noun,
   placeholder,
   className = "mb-2",
+  formatCount,
 }: {
   head: { controls: ReturnType<typeof useListControls>; total: number; active: boolean; shown: readonly unknown[] };
   // What one row is called: "monster", "entry".
   noun: [one: string, many: string];
   placeholder?: string;
   className?: string;
+  formatCount?: (shown: number, total: number) => string;
 }) {
   if (!head.active) {
     return null;
@@ -52,7 +54,7 @@ export function ListHead({
     <div className={className}>
       <ListControls controls={head.controls} placeholder={placeholder} />
       <p className="mt-1 text-[11px] text-stone-500" aria-live="polite">
-        {count === head.total
+        {formatCount ? formatCount(count, head.total) : count === head.total
           ? `${head.total} ${head.total === 1 ? noun[0] : noun[1]}`
           : `${count} of ${head.total} ${noun[1]}`}
       </p>
