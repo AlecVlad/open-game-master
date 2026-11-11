@@ -16,6 +16,86 @@ import type { CharacterSheet } from "@/lib/schemas/sheet";
 
 type BetweenLine = { text: string; kind: "affliction" | "between"; secret?: boolean };
 
+
+type BetweenTranslator = ReturnType<typeof useI18n>["t"];
+
+function localizeBetweenLine(text: string, kind: BetweenLine["kind"], t: BetweenTranslator): string {
+  const diseaseNames: Record<string, string> = {
+    "cackle fever": t("charSheet.between.disease.cackle"),
+    "sewer plague": t("charSheet.between.disease.sewer"),
+    "sight rot": t("charSheet.between.disease.sight"),
+  };
+  const poisonNames: Record<string, string> = {
+    assassins_blood: t("charSheet.between.poison.assassins_blood"),
+    burnt_othur_fumes: t("charSheet.between.poison.burnt_othur_fumes"),
+    crawler_mucus: t("charSheet.between.poison.crawler_mucus"),
+    drow_poison: t("charSheet.between.poison.drow_poison"),
+    essence_of_ether: t("charSheet.between.poison.essence_of_ether"),
+    malice: t("charSheet.between.poison.malice"),
+    midnight_tears: t("charSheet.between.poison.midnight_tears"),
+    oil_of_taggit: t("charSheet.between.poison.oil_of_taggit"),
+    pale_tincture: t("charSheet.between.poison.pale_tincture"),
+    purple_worm_poison: t("charSheet.between.poison.purple_worm_poison"),
+    serpent_venom: t("charSheet.between.poison.serpent_venom"),
+    torpor: t("charSheet.between.poison.torpor"),
+    truth_serum: t("charSheet.between.poison.truth_serum"),
+    wyvern_poison: t("charSheet.between.poison.wyvern_poison"),
+  };
+  const lifestyleNames: Record<string, string> = {
+    wretched: t("charSheet.between.lifestyle.wretched"),
+    squalid: t("charSheet.between.lifestyle.squalid"),
+    poor: t("charSheet.between.lifestyle.poor"),
+    modest: t("charSheet.between.lifestyle.modest"),
+    comfortable: t("charSheet.between.lifestyle.comfortable"),
+    wealthy: t("charSheet.between.lifestyle.wealthy"),
+    aristocratic: t("charSheet.between.lifestyle.aristocratic"),
+  };
+  const disease = (name: string) => diseaseNames[name.trim().toLowerCase()] ?? name;
+  if (kind === "affliction") {
+    let match = /^infected with (.+), symptoms in (\\d+) h$/.exec(text);
+    if (match) return t("charSheet.between.infected", { disease: disease(match[1]), hours: Number(match[2]) });
+    match = /^(.+) \\((\\d+) of (\\d+) rest saves toward a cure\\)$/.exec(text);
+    if (match) return t("charSheet.between.diseaseProgress", { disease: disease(match[1]), successes: Number(match[2]), total: Number(match[3]) });
+    match = /^Cackle Fever \\(DC (\\d+), (\\d+) of 3 failed rest saves\\)$/.exec(text);
+    if (match) return t("charSheet.between.cackle", { dc: Number(match[1]), fails: Number(match[2]) });
+    match = /^Sight Rot \\(-?(\\d+), (\\d+) of 3 Eyebright doses\\)$/.exec(text);
+    if (match) return t("charSheet.between.sight", { penalty: Number(match[1]), doses: Number(match[2]) });
+    match = /^indefinite madness, flaw: (.+)$/.exec(text);
+    if (match) return t("charSheet.between.indefinite", { flaw: match[1] });
+    match = /^(short|long)-term madness \\((.*?)(?:, (\\d+) h left)?\\)$/.exec(text);
+    if (match) {
+      const remaining = match[3] ? `, ${t("charSheet.between.hoursLeft", { hours: Number(match[3]) })}` : "";
+      const madnessKind = t(match[1] === "short" ? "charSheet.between.madness.short" : "charSheet.between.madness.long");
+      return t("charSheet.between.madness", { kind: madnessKind, conditions: match[2], remaining });
+    }
+    const poison = /^(.+?)(?:, next save in (\\d+) h)?$/.exec(text);
+    if (poison) {
+      const id = poison[1].trim().toLowerCase().replace(/\\s+/g, "_");
+      if (poisonNames[id]) {
+        const nextSave = poison[2] ? t("charSheet.between.nextSave", { hours: Number(poison[2]) }) : "";
+        return t("charSheet.between.poison", { poison: poisonNames[id], nextSave: nextSave ? `, ${nextSave}` : "" });
+      }
+    }
+    return text;
+  }
+  return text.split("; ").map((part) => {
+    let match = /^lifestyle (\\w+) \\((.+) a day, paid at each dawn in town\\)$/.exec(part);
+    if (match) return t("charSheet.between.lifestyle", {
+      name: lifestyleNames[match[1]] ?? match[1],
+      price: match[2],
+    });
+    match = /^crafting (.+) (\\d[\\d,.]* \\w+) of (\\d[\\d,.]* \\w+)$/.exec(part);
+    if (match) return t("charSheet.between.crafting", { item: match[1], progress: match[2], total: match[3] });
+    match = /^training (.+) (\\d+)\\/250 days$/.exec(part);
+    if (match) return t("charSheet.between.training", { subject: match[1], days: Number(match[2]) });
+    match = /^researching (.+) \\((\\d+) days\\)$/.exec(part);
+    if (match) return t("charSheet.between.research", { topic: match[1], days: Number(match[2]) });
+    match = /^recuperating (\\d+)\\/3 days$/.exec(part);
+    if (match) return t("charSheet.between.recuperating", { days: Number(match[1]) });
+    return part;
+  }).join("; ");
+}
+
 export function SheetBetween({ sheet, className }: { sheet: CharacterSheet; className?: string }) {
   const { t } = useI18n();
   const [lines, setLines] = useState<BetweenLine[]>([]);
@@ -47,7 +127,7 @@ export function SheetBetween({ sheet, className }: { sheet: CharacterSheet; clas
       <ul className="stagger-up space-y-0.5 text-xs">
         {lines.map((line) => (
           <li
-            key={line.text}
+            key={localizeBetweenLine(line.text, line.kind, t)}
             className={cn(
               "flex items-start gap-1.5",
               line.kind === "affliction" ? "text-red-200/90" : "text-stone-300",
