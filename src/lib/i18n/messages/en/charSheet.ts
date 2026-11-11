@@ -346,4 +346,6 @@ export const enCharSheet = {
   "charSheet.owed.kind.spell_mastery_1": "Spell Mastery (1st level)",
   "charSheet.owed.kind.spell_mastery_2": "Spell Mastery (2nd level)",
   "charSheet.owed.kind.signature_spell": "Signature Spells",
+  "common.lengthNote.upTo": "Up to {count} characters.",
+  "common.lengthNote.over": "{count} over the limit: shorten it to send.",
 } satisfies Record<string, string>;
