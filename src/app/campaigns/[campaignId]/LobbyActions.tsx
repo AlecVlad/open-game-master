@@ -154,12 +154,12 @@ export function LobbyActions({
     if (fixed[next.text]) return fixed[next.text];
     const waitingForHero = /^Waiting for (.+) to choose a hero\.$/.exec(next.text);
     if (waitingForHero) {
-      const names = waitingForHero[1].replace(/ and /g, " и ").replace(/(\\d+) more/g, "ещё $1");
+      const names = waitingForHero[1].replace(/ and /g, " и ").replace(/(\d+) more/g, "ещё $1");
       return t("campaign.lobby.next.waitingForHero", { names });
     }
     const waitingToReady = /^Waiting for (.+) to ready up\.$/.exec(next.text);
     if (waitingToReady) {
-      const names = waitingToReady[1].replace(/ and /g, " и ").replace(/(\\d+) more/g, "ещё $1");
+      const names = waitingToReady[1].replace(/ and /g, " и ").replace(/(\d+) more/g, "ещё $1");
       return t("campaign.lobby.next.waitingToReady", { names });
     }
     return next.text;
