@@ -149,5 +149,10 @@ Continue the Atlas audit with `AtlasRegion.tsx`, `AtlasEdit.tsx`, `AtlasParty.ts
 - Added 52 EN/RU messages in `workshop.ts`, including four dynamic canon-state labels and three plural groups (event count, years before birth, years after death). Static audit: 37 direct source keys covered; all 3 plural groups have the required EN `.one/.other` and RU `.one/.few/.many/.other` forms; dynamic canon keys present; no duplicate keys or placeholder mismatches. User-authored calendar/event names, era labels, event text, entity names, abbreviations and numeric values remain data.
 - TypeScript, lint, tests, production build and visual checks remain deferred.
 
+## WorldForge — Secrets — 12 November 2026
+- `SecretsView.tsx`: localized open/learned states, party-knowledge switch, subject and keeper links, edit/delete labels, reveal-to-party flow, success feedback, lore-entry link/status, and secret/reveal forms.
+- Reveal date uses the active interface language (`ru-RU` / `en-CA`). Success messages interpolate the player-facing lore entry title; secret titles, notes, keeper names, subject names, reveal text, and backend record IDs remain data.
+- Added 44 EN/RU messages in `workshop.ts`, including two plural groups for open and learned secret counts. Static audit: 31 direct source keys covered; both plural groups have EN `.one/.other` and RU `.one/.few/.many/.other` forms; no missing keys, duplicate keys, or placeholder mismatches. TypeScript, lint, tests, production build and visual checks remain deferred.
+
 ## Resume
-Continue with `SecretsView.tsx`, then `WikiView.tsx`. Verify the branch HEAD before editing. Import/export reports, `EntityEditor.tsx`, `EntityPage.tsx`, all six Atlas components and `TimelineView.tsx` are localized. Block 1 remains formally open; do not merge, open a PR or create its DONE flag.
+Continue with `WikiView.tsx`. Verify the branch HEAD before editing. Import/export reports, `EntityEditor.tsx`, `EntityPage.tsx`, all six Atlas components, `TimelineView.tsx` and `SecretsView.tsx` are localized. Block 1 remains formally open; do not merge, open a PR or create its DONE flag.
