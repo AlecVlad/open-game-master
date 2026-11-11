@@ -2,10 +2,11 @@
 
 import { ArrowLeft, Brush, ExternalLink, EyeOff, Lock, Pencil, Plus, Theater, Trash2, X } from "lucide-react";
 import { useMemo, useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/cn";
 import { appConfirm } from "@/components/ui/ConfirmDialog";
 import { KitButton } from "@/app/campaigns/[campaignId]/PanelKit";
-import { SHELF_LABELS, type WorldLink } from "@/lib/worldforge/model";
+import { type WorldLink } from "@/lib/worldforge/model";
 import { mentionSegments } from "@/lib/worldforge/text";
 import { accountOf, olderText } from "@/lib/worldforge/account";
 import { absoluteYear, fieldLines, formatLifespan, formatYear, lifespan, lifespanIssue, sortEvents } from "@/lib/worldforge/time";
@@ -27,28 +28,59 @@ import { PaintPanel, usePaintJobs } from "./PaintJobs";
 // links both ways, the events it was part of and the secrets about it, and
 // the hidden truth only the DM sees. Edit and the link editor open in place.
 
-const TABLE_WORDS: Record<string, string> = {
-  attitude: "Attitude",
-  statBlock: "Fights as",
-  role: "Role",
-  home: "Lives at",
-  faction: "Faction",
-  visited: "Visited",
-  here: "Party is here",
-  connections: "Roads to",
-  power: "Power",
-  goal: "Goal",
-  category: "Lore shelf",
-  visibility: "Read by",
-  pinned: "Pinned",
+const TABLE_WORD_KEYS: Record<string, string> = {
+  attitude: "workshop.world.entityPage.table.attitude",
+  statBlock: "workshop.world.entityPage.table.statBlock",
+  role: "workshop.world.entityPage.table.role",
+  home: "workshop.world.entityPage.table.home",
+  faction: "workshop.world.entityPage.table.faction",
+  visited: "workshop.world.entityPage.table.visited",
+  here: "workshop.world.entityPage.table.here",
+  connections: "workshop.world.entityPage.table.connections",
+  power: "workshop.world.entityPage.table.power",
+  goal: "workshop.world.entityPage.table.goal",
+  category: "workshop.world.entityPage.table.category",
+  visibility: "workshop.world.entityPage.table.visibility",
+  pinned: "workshop.world.entityPage.table.pinned",
 };
-
-function tableValue(key: string, value: string | number | boolean): string {
-  if (typeof value === "boolean") return value ? "yes" : "";
-  if (key === "visibility") return value === "dm" ? "the GM only" : "the party";
+const SHELF_NAME_KEYS: Record<string, string> = {
+  npc: "workshop.world.entityPage.shelf.cast",
+  location: "workshop.world.entityPage.shelf.places",
+  faction: "workshop.world.entityPage.shelf.factions",
+  lore: "workshop.world.entityPage.shelf.lore",
+};
+const SYSTEM_LABEL_KEYS: Record<string, string> = {
+  npc: "workshop.world.entityPage.tool.cast",
+  location: "workshop.world.entityPage.tool.region",
+  faction: "workshop.world.entityPage.tool.factions",
+  lore: "workshop.world.entityPage.tool.lore",
+};
+const CANON_LABEL_KEYS: Record<string, string> = {
+  canon: "workshop.world.entityEditor.canon.canon",
+  draft: "workshop.world.entityEditor.canon.draft",
+  alternate: "workshop.world.entityEditor.canon.alternate",
+  retired: "workshop.world.entityEditor.canon.retired",
+};
+const LINK_LABEL_KEYS: Record<string, string> = {
+  "allied with": "alliedWith", "enemy of": "enemyOf", "friend of": "friendOf",
+  "rival of": "rivalOf", loves: "loves", fears: "fears", serves: "serves",
+  "mentor of": "mentorOf", "member of": "memberOf", rules: "rules",
+  "lives in": "livesIn", "located in": "locatedIn", worships: "worships",
+  guards: "guards", seeks: "seeks", created: "created", destroyed: "destroyed",
+  "parent of": "parentOf", "child of": "childOf", "spouse of": "spouseOf",
+  "sibling of": "siblingOf", "descended from": "descendedFrom",
+  "superior of": "superiorOf", "reports to": "reportsTo", "liege of": "liegeOf",
+  "vassal of": "vassalOf",
+};
+function localizedLinkLabel(label: string, t: ReturnType<typeof useI18n>["t"]): string {
+  const key = LINK_LABEL_KEYS[label];
+  return key ? t(("workshop.contentImport.worldLinkLabel." + key) as never) : label;
+}
+function tableValue(key: string, value: string | number | boolean, t: ReturnType<typeof useI18n>["t"]): string {
+  if (typeof value === "boolean") return value ? t("workshop.world.entityPage.value.yes") : "";
+  if (key === "visibility") return value === "dm" ? t("workshop.world.entityPage.value.gmOnly") : t("workshop.world.entityPage.value.party");
   return String(value);
 }
-
 export function EntityPage({
   api,
   world,
@@ -75,6 +107,7 @@ export function EntityPage({
   canWrite: boolean;
   canPaint: boolean;
 }) {
+  const { t } = useI18n();
   const { doc, entities } = world;
   const [editing, setEditing] = useState(false);
   // Paint's jobs for this entry, kept on the server (PaintJobs.tsx): a
