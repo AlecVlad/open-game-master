@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { MapPinned, Play, Square, Upload } from "lucide-react";
 import { HotkeyOverlay } from "@/components/ui/HotkeyOverlay";
 import { useMapSelection } from "@/app/campaigns/[campaignId]/useMapSelection";
@@ -95,7 +96,49 @@ function settingsBody(roll: ForgeRoll | null): Record<string, unknown> {
   };
 }
 
+const MODE_LABEL_KEYS: Record<string, string> = {
+  brush: "campaign.dmMapStudio.mode.brush",
+  line: "campaign.dmMapStudio.mode.line",
+  rect: "campaign.dmMapStudio.mode.rect",
+  box: "campaign.dmMapStudio.mode.box",
+  fill: "campaign.dmMapStudio.mode.fill",
+  stamp: "campaign.dmMapStudio.mode.stamp",
+  pick: "campaign.dmMapStudio.mode.pick",
+  select: "campaign.dmMapStudio.mode.select",
+  light: "campaign.dmMapStudio.mode.light",
+  door: "campaign.dmMapStudio.mode.door",
+  label: "campaign.dmMapStudio.mode.label",
+  prop: "campaign.dmMapStudio.mode.prop",
+  zone: "campaign.dmMapStudio.mode.zone",
+  roll: "campaign.dmMapStudio.mode.roll",
+  pan: "campaign.dmMapStudio.mode.pan",
+  backdrop: "campaign.dmMapStudio.mode.backdrop",
+};
+const EDIT_LABEL_KEYS: Record<string, string> = {
+  Undo: "campaign.dmMapStudio.edit.undo",
+  Redo: "campaign.dmMapStudio.edit.redo",
+  "Put the tool down, or clear the selection": "campaign.dmMapStudio.edit.clearTool",
+  "Delete the selection": "campaign.dmMapStudio.edit.delete",
+  "This sheet": "campaign.dmMapStudio.edit.help",
+};
+
+function localizedHotkeyGroups(t: ReturnType<typeof useI18n>["t"]) {
+  return mapHotkeyGroups(BOARD_CAPS).map((group) => ({
+    ...group,
+    title: t(group.title === "Tools" ? "campaign.dmMapStudio.hotkeys.tools" : group.title === "Brushes" ? "campaign.dmMapStudio.hotkeys.brushes" : "campaign.dmMapStudio.hotkeys.editing"),
+    rows: group.rows.map((row) => {
+      const mode = MODES.find((entry) => entry.label === row.does);
+      if (mode) return { ...row, does: t(MODE_LABEL_KEYS[mode.mode] as never) };
+      const brush = Object.entries(BRUSH_LABELS).find(([, label]) => label === row.does);
+      if (brush) return { ...row, does: t(("campaign.dmMapStudio.brush." + brush[0]) as never) };
+      const editKey = EDIT_LABEL_KEYS[row.does];
+      return editKey ? { ...row, does: t(editKey as never) } : row;
+    }),
+  }));
+}
+
 export function DmMapStudioPanel({ campaignId }: { campaignId: string }) {
+  const { t, tp } = useI18n();
   const [state, setState] = useState<StudioState>({ board: null, enemyCount: 0, map: null });
   const [tools, setTools] = useState<MapTools>(DEFAULT_MAP_TOOLS);
   const [busy, setBusy] = useState(false);
@@ -118,7 +161,7 @@ export function DmMapStudioPanel({ campaignId }: { campaignId: string }) {
         .catch(() => {
           // transient; the next action reloads
         }),
-    [campaignId],
+    [campaignId, t],
   );
 
   useEffect(() => {
@@ -136,7 +179,7 @@ export function DmMapStudioPanel({ campaignId }: { campaignId: string }) {
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError((payload as { error?: string }).error ?? "That did not work.");
+        setError((payload as { error?: string }).error ?? t("campaign.dmMapStudio.error.request"));
         return null;
       }
       return payload as Record<string, unknown>;
@@ -184,13 +227,13 @@ export function DmMapStudioPanel({ campaignId }: { campaignId: string }) {
       });
       if (!response.ok) {
         const payload = await response.json().catch(() => ({}));
-        push((payload as { error?: string }).error ?? "That was refused.");
+        push((payload as { error?: string }).error ?? t("campaign.dmMapStudio.error.refused"));
         return false;
       }
       await load();
       return true;
     },
-    [campaignId, load, push],
+    [campaignId, load, push, t],
   );
 
   const board = state.map;
@@ -299,7 +342,7 @@ export function DmMapStudioPanel({ campaignId }: { campaignId: string }) {
   }
 
   const held = MODES.find((entry) => entry.mode === tools.mode);
-  const holding = held ? (isPaintMode(tools.mode) ? `${held.label} · ${BRUSH_LABELS[tools.brush]}` : held.label) : "Nothing";
+  const holding = held ? (isPaintMode(tools.mode) ? `${t(MODE_LABEL_KEYS[tools.mode] as never)} · ${t(("campaign.dmMapStudio.brush." + tools.brush) as never)}` : t(MODE_LABEL_KEYS[tools.mode] as never)) : t("campaign.dmMapStudio.nothing");
   const backdropPanel = <BackdropControls backdrop={board?.backdrop ?? null} onChange={(next) => void setBackdrop(next)} busy={busy} />;
 
   return (
@@ -307,14 +350,14 @@ export function DmMapStudioPanel({ campaignId }: { campaignId: string }) {
       <section className="rounded-lg border border-stone-800 bg-stone-950/60 px-2.5 py-2">
         <p className="mb-1.5 flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-stone-500">
           <MapPinned className="size-3.5" />
-          The board
+          {t("campaign.dmMapStudio.board")}
         </p>
         <p className="text-xs text-stone-400">
           {state.board === "fight"
-            ? `A fight is on the table, with ${state.enemyCount} ${state.enemyCount === 1 ? "enemy" : "enemies"}.`
+            ? t("campaign.dmMapStudio.board.fight", { enemies: tp("campaign.dmMapStudio.enemies", state.enemyCount) })
             : state.board === "scene"
-              ? "An exploration scene is on the table. The party can walk it freely."
-              : "Nothing is on the table. Open a scene to put the party on a map without a fight."}
+              ? t("campaign.dmMapStudio.board.scene")
+              : t("campaign.dmMapStudio.board.empty")}
         </p>
       </section>
 
@@ -333,30 +376,30 @@ export function DmMapStudioPanel({ campaignId }: { campaignId: string }) {
                     <button
                       type="button"
                       disabled={busy || !state.board}
-                      title={state.board ? "Replace the board's ground with this map" : "Nothing is on the table yet"}
+                      title={state.board ? t("campaign.dmMapStudio.apply.replaceTitle") : t("campaign.dmMapStudio.apply.noBoardTitle")}
                       onClick={() => void apply(roll, clear)}
                       className="flex min-h-9 items-center gap-1.5 rounded-lg border border-amber-500/60 bg-amber-400/10 px-3 text-amber-100 disabled:opacity-40 motion-press"
                     >
-                      <Upload className="size-3.5" /> Put it on the table
+                      <Upload className="size-3.5" /> {t("campaign.dmMapStudio.apply.putOnTable")}
                     </button>
                     <button
                       type="button"
                       disabled={busy || state.board !== null}
-                      title={state.board ? "Something is already on the table" : "Put the party on this map with nobody to fight"}
+                      title={state.board ? t("campaign.dmMapStudio.scene.alreadyOnTable") : t("campaign.dmMapStudio.scene.openTitle")}
                       onClick={() => void scene(true, roll, clear)}
                       className={mapButton}
                     >
-                      <Play className="size-3" /> Open it as a scene
+                      <Play className="size-3" /> {t("campaign.dmMapStudio.scene.open")}
                     </button>
                   </>
                 ) : null}
                 {state.board === "scene" ? (
                   <button type="button" disabled={busy} onClick={() => void scene(false, null, clear)} className={mapButton}>
-                    <Square className="size-3" /> Close the scene
+                    <Square className="size-3" /> {t("campaign.dmMapStudio.scene.close")}
                   </button>
                 ) : null}
               </div>
-              {roll ? <FinePrint>Seed {roll.seed}. Nobody else can see this yet.</FinePrint> : null}
+              {roll ? <FinePrint>{t("campaign.dmMapStudio.seed.private", { seed: roll.seed })}</FinePrint> : null}
             </div>
           )}
         />
@@ -368,7 +411,7 @@ export function DmMapStudioPanel({ campaignId }: { campaignId: string }) {
           <MapEditorShell
             title={
               <h3 className="min-w-0 truncate font-display text-[15px] uppercase tracking-[0.08em] text-amber-100">
-                {state.board === "scene" ? "The scene on the table" : "The board on the table"}
+                {t(state.board === "scene" ? "campaign.dmMapStudio.editor.sceneTitle" : "campaign.dmMapStudio.editor.boardTitle")}
               </h3>
             }
             undo={undo}
@@ -396,11 +439,10 @@ export function DmMapStudioPanel({ campaignId }: { campaignId: string }) {
                 rollPanel={
                   <div className="space-y-2">
                     <FinePrint>
-                      The forge above rolls a new board where nobody else can see it. Put it on the table when you like it;
-                      everyone is stood somewhere legal on the new ground.
+                      {t("campaign.dmMapStudio.forge.note")}
                     </FinePrint>
                     <button type="button" className={mapButton} onClick={() => forgeRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}>
-                      Go to the forge
+                      {t("campaign.dmMapStudio.forge.go")}
                     </button>
                   </div>
                 }
@@ -464,7 +506,7 @@ export function DmMapStudioPanel({ campaignId }: { campaignId: string }) {
                 extra={
                   board.seed ? (
                     <span className="flex shrink-0 items-baseline gap-1.5">
-                      <span className="font-display text-[8px] uppercase tracking-[0.16em] text-stone-600">Seed</span>
+                      <span className="font-display text-[8px] uppercase tracking-[0.16em] text-stone-600">{t("campaign.dmMapStudio.seed.label")}</span>
                       <span className="font-mono text-[10px] text-stone-300">{board.seed}</span>
                     </span>
                   ) : null
@@ -520,7 +562,7 @@ export function DmMapStudioPanel({ campaignId }: { campaignId: string }) {
         </div>
       ) : null}
       {selection.dialog}
-      <HotkeyOverlay open={keysOpen} onOpenChange={setKeysOpen} groups={mapHotkeyGroups(BOARD_CAPS)} />
+      <HotkeyOverlay open={keysOpen} onOpenChange={setKeysOpen} groups={localizedHotkeyGroups(t)} />
     </div>
   );
 }
