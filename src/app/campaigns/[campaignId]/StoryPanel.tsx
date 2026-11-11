@@ -110,6 +110,7 @@ function ChapterCard({
   steersStory: boolean;
   onRewind?: () => void;
 }) {
+  const { t } = useI18n();
   const [expanded, setExpanded] = useState(false);
   const [editing, setEditing] = useState(false);
   const [title, setTitle] = useState(chapter.title);
@@ -145,7 +146,7 @@ function ChapterCard({
         )}
         <span className="min-w-0">
           <span className="gold-title block font-display text-sm">
-            {chapter.index}. {chapter.title || `Chapter ${chapter.index}`}
+            {chapter.index}. {chapter.title || t("campaign.story.chapter.defaultTitle", { index: chapter.index })}
           </span>
         </span>
       </button>
@@ -163,13 +164,13 @@ function ChapterCard({
       {expanded && !editing ? (
         <div className="reveal mt-2 space-y-1.5 pl-5">
           {chapter.abridged ? (
-            <div className="skeleton-block h-10 rounded-md" role="status" aria-label="Reading the summary" />
+            <div className="skeleton-block h-10 rounded-md" role="status" aria-label={t("campaign.story.chapter.readingSummary")} />
           ) : chapter.summary ? (
             <p className="reveal whitespace-pre-wrap font-serif text-xs leading-5 text-stone-300">
               {chapter.summary}
             </p>
           ) : (
-            <p className="text-xs italic text-stone-500">No summary recorded.</p>
+            <p className="text-xs italic text-stone-500">{t("campaign.story.chapter.noSummary")}</p>
           )}
           {steersStory ? (
             <div className="reveal flex flex-wrap items-center gap-1.5">
@@ -184,13 +185,13 @@ function ChapterCard({
                   setEditing(true);
                 }}
                 disabled={chapter.abridged}
-                title={chapter.abridged ? "Reading this chapter's summary…" : undefined}
+                title={chapter.abridged ? t("campaign.story.chapter.readingSummary") : undefined}
               >
-                <Pencil className="size-3" /> Edit
+                <Pencil className="size-3" /> {t("campaign.story.chapter.edit")}
               </KitButton>
               {onRewind ? (
-                <KitButton tone="danger" onClick={onRewind} title="Rewind the whole campaign to the start of this chapter">
-                  <Rewind className="size-3" /> Rewind to start
+                <KitButton tone="danger" onClick={onRewind} title={t("campaign.story.chapter.rewindTitle")}>
+                  <Rewind className="size-3" /> {t("campaign.story.chapter.rewindStart")}
                 </KitButton>
               ) : null}
             </div>
@@ -203,23 +204,23 @@ function ChapterCard({
             value={title}
             onChange={(event) => setTitle(event.target.value)}
             maxLength={80}
-            aria-label="Chapter title"
+            aria-label={t("campaign.story.chapter.titleAria")}
             className={panelField}
           />
-          <DictateField label="Chapter summary" onTranscript={(text) => setSummary((current) => appendDictation(current, text, 4000))}>
+          <DictateField label={t("campaign.story.chapter.summaryLabel")} onTranscript={(text) => setSummary((current) => appendDictation(current, text, 4000))}>
             <textarea
               value={summary}
               onChange={(event) => setSummary(event.target.value)}
               rows={6}
               maxLength={4000}
-              aria-label="Chapter summary"
+              aria-label={t("campaign.story.chapter.summaryAria")}
               className={cn(panelField, "leading-5")}
             />
           </DictateField>
           <div className="flex gap-1.5">
             <KitButton tone="primary" onClick={save} disabled={busy} busy={busy}>
               {busy ? null : <Check className="size-3.5" />}
-              Save
+              {t("campaign.story.chapter.save")}
             </KitButton>
             <KitButton
               onClick={() => {
@@ -228,7 +229,7 @@ function ChapterCard({
                 setSummary(chapter.summary);
               }}
             >
-              <X className="size-3.5" /> Cancel
+              <X className="size-3.5" /> {t("campaign.story.chapter.cancel")}
             </KitButton>
           </div>
         </div>
@@ -241,6 +242,7 @@ function ChapterCard({
 // Lead-only NPC roster hygiene, collapsed by default so it costs nothing
 // until asked for: the panel fetches the roster the moment it mounts.
 function NpcReviewCard({ campaignId }: { campaignId: string }) {
+  const { t } = useI18n();
   const [expanded, setExpanded] = useState(false);
   return (
     <div className="panel rounded-lg p-2.5">
@@ -257,7 +259,7 @@ function NpcReviewCard({ campaignId }: { campaignId: string }) {
         )}
         <span className="flex items-center gap-1.5">
           <GameIcon icon={{ kind: "glyph", key: "system-cast" }} size="size-6" />
-          <span className="section-head-title">NPC roster</span>
+          <span className="section-head-title">{t("campaign.story.arc.npcRoster")}</span>
         </span>
       </button>
       {expanded ? (
