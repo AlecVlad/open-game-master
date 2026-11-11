@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { KitButton } from "@/app/campaigns/[campaignId]/PanelKit";
 import { describeValue } from "@/lib/worldforge/entry-merge";
 import type { KeptImport } from "@/lib/worldforge/import-kept";
@@ -25,12 +26,17 @@ export function KeptValueText({ value, said }: { value: unknown; said?: string }
 }
 
 // What a choice did, in words, for the polite announcement.
-function saidAfter(label: string, choice: Choice, now: KeptImport | undefined): string {
-  if (choice === "dismiss") return `${label}: the notice is gone; the entry stays as it is.`;
-  if (choice === "restore") return `${label}: this campaign's version is back.`;
-  if (now?.landed === "not") return `${label}: the import's version could not be written here. Nothing changed.`;
-  if (now?.landed === "partly") return `${label}: the import's version is in use, as far as this entry could take it.`;
-  return `${label}: the import's version is in use. Restore mine brings this campaign's back.`;
+function saidAfter(
+  label: string,
+  choice: Choice,
+  now: KeptImport | undefined,
+  t: (key: string, params?: Record<string, string | number>) => string,
+): string {
+  if (choice === "dismiss") return t("workshop.world.importKept.done.dismiss", { label });
+  if (choice === "restore") return t("workshop.world.importKept.done.restore", { label });
+  if (now?.landed === "not") return t("workshop.world.importKept.done.notLanded", { label });
+  if (now?.landed === "partly") return t("workshop.world.importKept.done.partly", { label });
+  return t("workshop.world.importKept.done.used", { label });
 }
 
 export function ImportKept({
@@ -40,6 +46,7 @@ export function ImportKept({
   kept: KeptImport[];
   onChoose: (key: string, choice: Choice) => Promise<{ kept?: KeptImport[] } | null>;
 }) {
+  const { t } = useI18n();
   const [busy, setBusy] = useState("");
   const [said, setSaid] = useState("");
   const sectionRef = useRef<HTMLElement>(null);
@@ -49,7 +56,7 @@ export function ImportKept({
     try {
       const entity = await onChoose(item.key, choice);
       if (!entity) return;
-      setSaid(saidAfter(item.label, choice, entity.kept?.find((entry) => entry.key === item.key)));
+      setSaid(saidAfter(item.label, choice, entity.kept?.find((entry) => entry.key === item.key), t));
       // The buttons pressed are gone: focus goes to the line's new ones, or
       // to the notice, or to the line that says the notice is done.
       requestAnimationFrame(() => {
@@ -73,7 +80,7 @@ export function ImportKept({
       tabIndex={-1}
       className="flex flex-col gap-2 rounded-lg border border-amber-700/50 bg-amber-950/30 p-3 text-sm text-amber-100 outline-none focus-visible:ring-2 focus-visible:ring-amber-400/60"
       data-testid="import-kept"
-      aria-label="Kept when brought in again"
+      aria-label={t("workshop.world.importKept.aria")}
     >
       <span className="sr-only" aria-live="polite">
         {said}
@@ -86,11 +93,11 @@ export function ImportKept({
                 <p>
                   <strong>{item.label}</strong>:{" "}
                   {item.landed === "partly"
-                    ? "the import's version is in use, as far as this entry could take it. It holds now:"
-                    : "the import's version is in use."}
+                    ? t("workshop.world.importKept.state.partly")
+                    : t("workshop.world.importKept.state.used")
                 </p>
                 {item.landed === "partly" ? <KeptValueText value={item.now} said={item.shown?.now} /> : null}
-                <p>This campaign&apos;s version is kept, so you can go back to it:</p>
+                <p>{t("workshop.world.importKept.state.localVersion")}</p>
                 <KeptValueText value={item.mine} said={item.shown?.mine} />
               </>
             ) : (
@@ -98,8 +105,8 @@ export function ImportKept({
                 <p>
                   <strong>{item.label}</strong>:{" "}
                   {item.landed === "not"
-                    ? "the import's version could not be written here, so nothing changed. It may name a folder, type or option this world no longer has. The import's version:"
-                    : "this campaign's version was kept when it was brought in again; the import's version differs:"}
+                    ? t("workshop.world.importKept.state.notLanded")
+                    : t("workshop.world.importKept.state.localKept")
                 </p>
                 <KeptValueText value={item.theirs} said={item.shown?.theirs} />
               </>
@@ -107,22 +114,22 @@ export function ImportKept({
             <div className="flex flex-wrap gap-2">
               {item.taken ? (
                 <>
-                  <KitButton tone="small" busy={busy === `${item.key} restore`} disabled={Boolean(busy)} onClick={() => choose(item, "restore")} aria-label={`Restore mine: ${item.label}`}>
-                    Restore mine
+                  <KitButton tone="small" busy={busy === `${item.key} restore`} disabled={Boolean(busy)} onClick={() => choose(item, "restore")} aria-label={t("workshop.world.importKept.action.restore.aria", { label: item.label })}>
+                    {t("workshop.world.importKept.action.restore")}
                   </KitButton>
-                  <KitButton tone="small" busy={busy === `${item.key} dismiss`} disabled={Boolean(busy)} onClick={() => choose(item, "dismiss")} aria-label={`Keep the import's: ${item.label}`}>
-                    Keep the import&apos;s
+                  <KitButton tone="small" busy={busy === `${item.key} dismiss`} disabled={Boolean(busy)} onClick={() => choose(item, "dismiss")} aria-label={t("workshop.world.importKept.action.keepImport.aria", { label: item.label })}>
+                    {t("workshop.world.importKept.action.keepImport")}
                   </KitButton>
                 </>
               ) : (
                 <>
                   {item.landed === "not" ? null : (
-                    <KitButton tone="small" busy={busy === `${item.key} use`} disabled={Boolean(busy)} onClick={() => choose(item, "use")} aria-label={`Use the import's version of the ${item.label}`}>
-                      Use the import&apos;s version
+                    <KitButton tone="small" busy={busy === `${item.key} use`} disabled={Boolean(busy)} onClick={() => choose(item, "use")} aria-label={t("workshop.world.importKept.action.useImport.aria", { label: item.label })}>
+                      {t("workshop.world.importKept.action.useImport")}
                     </KitButton>
                   )}
-                  <KitButton tone="small" busy={busy === `${item.key} dismiss`} disabled={Boolean(busy)} onClick={() => choose(item, "dismiss")} aria-label={`Keep mine: ${item.label}`}>
-                    Keep mine
+                  <KitButton tone="small" busy={busy === `${item.key} dismiss`} disabled={Boolean(busy)} onClick={() => choose(item, "dismiss")} aria-label={t("workshop.world.importKept.action.keepMine.aria", { label: item.label })}>
+                    {t("workshop.world.importKept.action.keepMine")}
                   </KitButton>
                 </>
               )}
@@ -130,7 +137,7 @@ export function ImportKept({
           </li>
         ))}
       </ul>
-      <p className="text-xs text-amber-200/80">Players never see this.</p>
+      <p className="text-xs text-amber-200/80">{t("workshop.world.importKept.playerNote")}</p>
     </section>
   );
 }
