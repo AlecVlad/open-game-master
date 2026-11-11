@@ -322,7 +322,7 @@ export const enCharSheet = {
   "charSheet.class.warlock": "Warlock",
   "charSheet.class.wizard": "Wizard",
   "charSheet.class.artificer": "Artificer",
-  "charSheet.owed.dynamic.subclass": "a subclass for {className} (due at {className} level {level})",
+  "charSheet.owed.dynamic.subclass": "A subclass for {className} (unlocked at class level {level})",
   "charSheet.owed.choice": "{subclass}: {label} — one choice to make",
   "charSheet.owed.styles.one": "a fighting style",
   "charSheet.owed.styles.many": "{count} fighting styles",
