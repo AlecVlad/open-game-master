@@ -94,8 +94,17 @@ Single restore point for Russian localization. After a chat interruption, read o
 - Static verification: 71 steps / 142 keys; no missing EN/RU keys, duplicate dictionary keys or placeholder mismatches. Source tour files were not changed, so IDs, anchors and `prepare` values are preserved.
 - Text translated through DeepL EN→RU and proofread for game context. Glossary access is unavailable on the connected DeepL Free plan, so no glossary was applied. TypeScript, lint, tests, build and visual checks were not run.
 
+## Workshop import planning, conflict notices and API errors — 11 November 2026
+- `import.ts`, `import-board.ts`, `board-compile.ts` and `import-kinds.ts`: planner warnings/notes now carry stable reason codes and structured parameters. Legacy English `message` fields remain as fallback for older consumers. Arc refusal and prose diagnostics have separate codes.
+- `ContentImportPicker.tsx`: renders planner notices, WorldForge merge conflicts and roll-table reference notes through localized keys. It translates known system field/type labels while preserving user-authored entry names, endpoints, custom-field names and source text.
+- `world-forge-io.ts`, `world-link-merge.ts`, `world-forge-scenes.ts`, `content-import-refs.ts`, `content-import.ts` and the import API route: structured conflict/reference details are carried alongside legacy strings; duplicate WorldForge notices are suppressed in the UI.
+- POST import failures now include stable `errorCode` values; the picker localizes these while retaining the original `error` text for compatibility.
+- Russian display name for WorldForge is now **«Кузня миров»**, with case forms in all matching Workshop copy; technical IDs and file/API identifiers remain unchanged.
+- Added matching EN/RU messages for planner notices, conflict details, field names, all 26 WorldForge link labels and import errors. Static dictionary validation: 796 EN / 855 RU entries, no duplicate keys, missing English bases or placeholder mismatches. Dynamic plural forms for import summaries are present.
+- No TypeScript, lint, tests, build or visual checks were run. The branch's push-triggered smoke workflows only run on `main`; no PR workflow run exists for this working branch.
+
 ## Next work
-Audit `src/lib/workshop/import-board.ts` and the UI rendering `plan.warnings`, `plan.notes`, `worldConflicts` and `referenceNotes`. Where these are planner-generated messages, replace English prose with stable reason codes and structured parameters, then localize through an explicit renderer. Preserve conflict data, import decisions and user-authored text. Do not sync upstream or merge branches during translation.
+Audit the remaining user-facing WorldForge screens, beginning with `src/app/workshop/world/WorldForgePanel.tsx`, `SceneLosses.tsx`, `ImportKept.tsx` and the entity/atlas views. Localize fixed UI text and system-generated notices; preserve record names, custom fields, imported content and identifiers. Then continue the remaining Workshop editors. Do not sync upstream or merge branches during translation.
 
 ## Low-token work protocol
 - Read this file, then only the next target source file(s) and exact dictionary sections needed.
