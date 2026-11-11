@@ -139,4 +139,8 @@ export const enWorkshop = {
   "workshop.contentImport.note.itemsCopied": "Added to this campaign's Homebrew: {names}.",
   "workshop.contentImport.note.itemsReused": "Already in this campaign's Homebrew: {names}.",
   "workshop.contentImport.note.pregensOffered": "Offered to players here: {names}.",
+  "workshop.addonFields.required": "required",
+  "workshop.addonFields.secret.saved": "Saved. Leave blank to keep it.",
+  "workshop.addonFields.secret.notSet": "Not set",
+  "workshop.addonFields.path.blank": "A blank field looks for the file on this computer.",
 } satisfies Record<string, string>;
