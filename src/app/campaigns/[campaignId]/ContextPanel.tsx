@@ -35,20 +35,17 @@ const KIND_KEY: Record<BlockKind, string> = {
 function localizedBlockReason(reason: string, kind: BlockKind, t: ReturnType<typeof useI18n>["t"]): string {
   if (reason === "always included") return t("campaign.contextTrace.reason.alwaysIncluded");
   if (reason === "fits") return t("campaign.contextTrace.reason.fits");
-  const ofKind = reason.match(/^over the ([a-z]+) budget \\(\\d+ > [\\d,]+ tokens left\\)$/);
+  const ofKind = reason.match(/^over the ([a-z]+) budget \\(([\\d,]+) > ([\\d,]+) tokens left\\)$/);
   if (ofKind) {
     return t("campaign.contextTrace.reason.overKind", {
       kind: t((KIND_KEY[ofKind[1] as BlockKind] ?? KIND_KEY[kind]) as never),
-      tokens: reason.match(/\\((\\d+)/)?.[1] ?? "",
-      remaining: reason.match(/> ([\\d,]+)/)?.[1] ?? "",
+      tokens: ofKind[2],
+      remaining: ofKind[3],
     });
   }
-  const total = reason.match(/^over the total context budget \\(\\d+ > [\\d,]+ tokens\\)$/);
+  const total = reason.match(/^over the total context budget \\(([\\d,]+) > ([\\d,]+) tokens\\)$/);
   if (total) {
-    return t("campaign.contextTrace.reason.overTotal", {
-      total: reason.match(/\\((\\d+)/)?.[1] ?? "",
-      limit: reason.match(/> ([\\d,]+)/)?.[1] ?? "",
-    });
+    return t("campaign.contextTrace.reason.overTotal", { total: total[1], limit: total[2] });
   }
   return reason;
 }
