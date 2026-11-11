@@ -925,4 +925,13 @@ export const enWorkshop = {
   "workshop.world.sceneLoss.routeKind.choice": "One route of several",
   "workshop.world.sceneLoss.routeKind.optional": "Only if…",
   "workshop.world.sceneLoss.loses": "loses",
+  "workshop.world.panel.report.summary": "Added {created} entries; updated {updated}; {links} links; {events} events; {secrets} secrets; {maps} maps.",
+  "workshop.world.panel.report.beats.one": "Added {count} storyboard card.",
+  "workshop.world.panel.report.beats.other": "Added {count} storyboard cards.",
+  "workshop.world.panel.report.beatsUpdated": "Storyboard cards from earlier imports: {count} found again and updated, not duplicated.",
+  "workshop.world.panel.report.scenesMatched": "Scenes matched to existing cards by title. Check that they are the same scenes: {names}.",
+  "workshop.world.panel.report.links": "Links from earlier imports: {updated} updated to match the file; {removed} no longer in the file and removed.",
+  "workshop.world.panel.report.matched": "Matched by name to entries already here. Check that they are the same entries: {names}.",
+  "workshop.world.panel.report.skipped": "Not added: {items}.",
+  "workshop.world.panel.report.losses": "Not imported in full: {items}.",
 } satisfies Record<string, string>;
