@@ -710,4 +710,10 @@ export const enWorkshop = {
   "workshop.contentImport.plan.board.prose.joined-sentences": "“{title}” may read oddly: {count} places look like a missing space after a sentence (for example: {sample}). The text is kept exactly as written.",
   "workshop.contentImport.plan.board.prose.long-run": "“{title}” may read oddly: {count} stretches of {minimum} or more letters have no spaces (for example: {sample}). The text is kept exactly as written.",
   "workshop.contentImport.plan.board.prose.few-spaces": "“{title}” may read oddly: the prose has unusually few spaces for its length (for example: {sample}). The text is kept exactly as written.",
+  "workshop.contentImport.note.referenceKeptLocal": "Table {table}: the row for the {kind} “{name}” now points to this campaign's own record, because the source record stayed behind.",
+  "workshop.contentImport.note.referenceMissing": "Table {table}: the row for the {kind} “{name}” points to nothing here, because that source record stayed behind.",
+  "workshop.contentImport.referenceKind.tables": "roll table",
+  "workshop.contentImport.referenceKind.npcs": "NPC",
+  "workshop.contentImport.referenceKind.lore": "lore entry",
+  "workshop.contentImport.referenceKind.locations": "place",
 } satisfies Record<string, string>;
