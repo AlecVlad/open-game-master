@@ -4439,4 +4439,5 @@ export const enCampaignPanels = {
   "campaign.lore.editor.cancel": "Cancel",
   "campaign.lore.editor.save": "Save",
   "campaign.lore.editor.add": "Add",
+  "campaign.lore.copySuffix": "copy",
 } satisfies Record<string, string>;
