@@ -1,5 +1,5 @@
-import { translate, type Lang } from "@/lib/i18n/core";
-import { DICTIONARIES } from "@/lib/i18n/messages";
+import { translate, translatePlural, type Lang } from "../i18n/core.ts";
+import { DICTIONARIES } from "../i18n/messages/index.ts";
 
 // checkBeat is deliberately pure and is also used by tests. Keep its
 // internal English diagnostics stable; translate only at the API boundary.
@@ -22,7 +22,7 @@ export function localizeStoryboardError(error: string, lang: Lang): string {
     return t("campaign.storyboard.error.bodyOverflow", {
       length: number(overflow[1]),
       max: number(overflow[2]),
-      lostLength: number(overflow[3]),
+      lostCount: translatePlural(DICTIONARIES, lang, "campaign.storyboard.error.lostCharacters", number(overflow[3])),
       lost: overflow[4] ? `: “${overflow[4]}”` : "",
     });
   }
