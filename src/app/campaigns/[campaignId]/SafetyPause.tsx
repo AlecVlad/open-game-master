@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Hand } from "lucide-react";
 import { useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/cn";
 
 // The X-card's two faces (docs/vtt-parity-implementation-plan.md 9.1).
@@ -23,6 +24,7 @@ export function SafetyPause({
   paused: boolean;
   steersStory: boolean;
 }) {
+  const { t } = useI18n();
   const [busy, setBusy] = useState<string | null>(null);
   if (!paused) {
     return null;
@@ -40,23 +42,23 @@ export function SafetyPause({
     }
   }
   return (
-    <div className="fixed inset-0 z-[52] flex items-center justify-center p-6" role="alertdialog" aria-label="The table is taking a breath">
+    <div className="fixed inset-0 z-[52] flex items-center justify-center p-6" role="alertdialog" aria-label={t("campaign.session.safetyPause.title")}>
       <div className="handout-scrim-in absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(212,171,58,0.18),rgba(12,10,9,0.9))]" />
       <div className="handout-in relative max-w-md rounded-xl border border-amber-700/60 bg-stone-950/95 p-5 text-center shadow-elev-2">
         <Hand className="mx-auto mb-2 size-8 text-amber-300" />
-        <h2 className="font-display text-xl text-amber-50">The table is taking a breath</h2>
+        <h2 className="font-display text-xl text-amber-50">{t("campaign.session.safetyPause.title")}</h2>
         <p className="mt-1 text-sm text-stone-400">
           {steersStory
-            ? "Someone raised the X-card. Nothing is said about who or why. Choose how to go on."
-            : "Someone raised the X-card. Nothing more needs saying. The story waits."}
+            ? t("campaign.session.safetyPause.steersStory")
+            : t("campaign.session.safetyPause.player")}
         </p>
         {steersStory ? (
           <div className="reveal mt-4 flex flex-wrap justify-center gap-2">
             {(
               [
-                ["rewind", "Withdraw the last passage"],
-                ["reroll", "Write it again, elsewhere"],
-                ["continue", "Continue"],
+                ["rewind", "campaign.session.safetyPause.rewind"],
+                ["reroll", "campaign.session.safetyPause.reroll"],
+                ["continue", "campaign.session.safetyPause.continue"],
               ] as const
             ).map(([action, label]) => (
               <button
@@ -70,7 +72,7 @@ export function SafetyPause({
                   busy === action && "opacity-60",
                 )}
               >
-                {label}
+                {t(label as never)}
               </button>
             ))}
           </div>
@@ -80,7 +82,7 @@ export function SafetyPause({
               href="/"
               className="rounded-md border border-stone-700 px-3 py-1.5 text-xs text-stone-300 hover:bg-stone-900"
             >
-              Leave the table for now
+              {t("campaign.session.safetyPause.leave")}
             </Link>
           </div>
         )}
