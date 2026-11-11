@@ -1,6 +1,7 @@
 "use client";
 
 import { useId } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { InfoButton } from "@/components/ui/InfoDialog";
 import { ATTRACTION_CHOICES, ATTRACTION_NOTE_MAX, openToMore, type Attraction } from "@/lib/attraction";
 import { cn } from "@/lib/cn";
@@ -27,6 +28,7 @@ export function AttractionPicker({
   hint: string;
   className?: string;
 }) {
+  const { t } = useI18n();
   const labelId = useId();
   // Open to more than one partner (issue 642), beside who they are drawn to
   // because it is the same kind of fact about them. Off is the default and
@@ -36,8 +38,8 @@ export function AttractionPicker({
   return (
     <div role="group" aria-labelledby={labelId} className={cn("min-w-0", className)} data-attraction-picker>
       <span className="mb-1 flex items-center gap-1 text-xs text-stone-400">
-        <span id={labelId}>Drawn to</span>
-        <InfoButton label="Drawn to" text={hint} />
+        <span id={labelId}>{t("common.attraction.drawnTo")}</span>
+        <InfoButton label={t("common.attraction.drawnTo")} text={hint} />
       </span>
       <span className="flex flex-wrap gap-1.5">
         {ATTRACTION_CHOICES.map((choice) => {
@@ -59,7 +61,7 @@ export function AttractionPicker({
               }
               className={CHIP}
             >
-              {choice.label}
+              {t(choice.gender === "Female" ? "common.attraction.women" : choice.gender === "Male" ? "common.attraction.men" : "common.attraction.nonbinary")}
             </button>
           );
         })}
@@ -68,8 +70,8 @@ export function AttractionPicker({
         value={value.note}
         maxLength={ATTRACTION_NOTE_MAX}
         onChange={(event) => onChange({ ...value, note: event.target.value })}
-        placeholder="A note, if it needs one (optional)"
-        aria-label="Drawn to: a note"
+        placeholder={t("common.attraction.notePlaceholder")}
+        aria-label={t("common.attraction.noteAria")}
         className={cn(ui.input, "mt-1.5 h-10")}
       />
       {offersOpen ? (
@@ -81,9 +83,9 @@ export function AttractionPicker({
             className={CHIP}
             data-open-relationship
           >
-            Open to more than one partner
+            {t("common.attraction.open")}
           </button>
-          <InfoButton label="Open to more than one partner" text={OPEN_RELATIONSHIP_HINT} />
+          <InfoButton label={t("common.attraction.open")} text={t("common.attraction.openHint")} />
         </span>
       ) : null}
     </div>
