@@ -26,6 +26,7 @@ import type { OpenPrep } from "./PlaceBattleMaps";
 import type { PlaceBindingKind } from "@/lib/worldforge/model";
 import { offersImages, offersStoryModel, useCapabilities } from "@/lib/use-capabilities";
 import type { SceneLoss } from "@/lib/worldforge/scenes";
+import type { WorldNoticeDetail } from "@/lib/worldforge/format";
 import { SceneLosses } from "./SceneLosses";
 
 // WorldForge in the workshop, and at the play table as the World tab.
@@ -88,15 +89,48 @@ type ImportReport = {
   scenesMatched?: string[];
   skipped: string[];
   losses?: string[];
+  lossDetails?: WorldNoticeDetail[];
+  sceneLosses?: SceneLoss[];
   notes?: string[];
+  noteDetails?: WorldNoticeDetail[];
 };
 
 // A file that would not come in whole, waiting for the author's yes.
-type Held = { text: string; losses: string[]; scenes: SceneLoss[]; notes: string[] };
+type Held = { text: string; losses: string[]; lossDetails: WorldNoticeDetail[]; scenes: SceneLoss[]; notes: string[]; noteDetails: WorldNoticeDetail[] };
 
 // What a WorldForge file of this world could not carry, named before the
 // download (audit WF-19).
 type ExportCheck = { scenes: SceneLoss[]; notes: string[] };
+
+const WORLD_IMPORT_KIND_KEYS: Record<string, string> = {
+  types: "workshop.world.import.kind.types",
+  entries: "workshop.contentImport.worldSlice.entries",
+  folders: "workshop.contentImport.worldSlice.folders",
+  calendars: "workshop.contentImport.worldSlice.calendars",
+  events: "workshop.contentImport.worldSlice.events",
+  secrets: "workshop.contentImport.worldSlice.secrets",
+  "names to write": "workshop.contentImport.worldSlice.stubs",
+  maps: "workshop.contentImport.worldSlice.maps",
+  scenes: "workshop.world.import.kind.scenes",
+};
+const WORLD_IMPORT_FIELD_KEYS: Record<string, string> = {
+  text: "text",
+  hiddenTruth: "hiddenTruth",
+  notes: "notes",
+};
+function worldImportNoticeText(
+  notice: WorldNoticeDetail,
+  t: (key: string, params?: Record<string, string | number>) => string,
+): string {
+  const params = { ...notice.params };
+  if (typeof params.kind === "string" && WORLD_IMPORT_KIND_KEYS[params.kind]) {
+    params.kind = t(WORLD_IMPORT_KIND_KEYS[params.kind] as never);
+  }
+  if (typeof params.field === "string" && WORLD_IMPORT_FIELD_KEYS[params.field]) {
+    params.field = t(("workshop.contentImport.worldField." + WORLD_IMPORT_FIELD_KEYS[params.field]) as never);
+  }
+  return t(notice.code as never, params);
+}
 
 const WORLD_REPORT_SLICE_KEYS: Record<string, string> = {
   entries: "workshop.contentImport.worldSlice.entries",
@@ -286,7 +320,7 @@ export function WorldForgePanel({
     try {
       const result = await api.importFile(text, accept);
       if (result?.preview) {
-        setHeld({ text, losses: (result.losses as string[]) ?? [], scenes: (result.scenes as SceneLoss[]) ?? [], notes: (result.notes as string[]) ?? [] });
+        setHeld({ text, losses: (result.losses as string[]) ?? [], lossDetails: (result.lossDetails as WorldNoticeDetail[]) ?? [], scenes: (result.scenes as SceneLoss[]) ?? [], notes: (result.notes as string[]) ?? [], noteDetails: (result.noteDetails as WorldNoticeDetail[]) ?? [] });
       }
       else if (result) setReport(result as unknown as ImportReport);
     } finally {
@@ -390,7 +424,13 @@ export function WorldForgePanel({
       {held ? (
         <div className="motion-pop flex flex-col gap-2 rounded-lg border border-amber-700/50 bg-amber-950/30 px-3 py-2 text-xs text-amber-100" role="alert" data-testid="world-import-losses">
           <span>{t("workshop.world.panel.import.lossWarning")}</span>
-          {held.losses.length ? (
+          {held.lossDetails.length ? (
+            <ul className="list-disc pl-4">
+              {held.lossDetails.map((detail, index) => (
+                <li key={index}>{worldImportNoticeText(detail, t)}</li>
+              ))}
+            </ul>
+          ) : held.losses.length ? (
             <ul className="list-disc pl-4">
               {held.losses.map((loss) => (
                 <li key={loss}>{loss}</li>
@@ -398,7 +438,9 @@ export function WorldForgePanel({
             </ul>
           ) : null}
           <SceneLosses scenes={held.scenes} label={t("workshop.world.panel.import.lossesLabel")} />
-          {held.notes.map((note) => (
+          {held.noteDetails.length ? held.noteDetails.map((detail, index) => (
+            <span key={index} className="text-stone-300">{worldImportNoticeText(detail, t)}</span>
+          )) : held.notes.map((note) => (
             <span key={note} className="text-stone-300">{note}</span>
           ))}
           <span className="flex flex-wrap gap-2">
@@ -433,8 +475,24 @@ export function WorldForgePanel({
             <span className="block text-amber-300">{t("workshop.world.panel.report.matched", { names: report.matched.join(", ") })}</span>
           ) : null}
           {report.skipped.length ? <span className="block text-amber-300">{t("workshop.world.panel.report.skipped", { items: report.skipped.join("; ") })}</span> : null}
-          {report.losses?.length ? <span className="block text-amber-300">{t("workshop.world.panel.report.losses", { items: report.losses.join(" ") })}</span> : null}
-          {report.notes?.length ? <span className="block text-stone-300">{report.notes.join(" ")}</span> : null}
+          {report.lossDetails?.length ? (
+            <ul className="list-disc pl-4 text-amber-300">
+              {report.lossDetails.map((detail, index) => (
+                <li key={index}>{worldImportNoticeText(detail, t)}</li>
+              ))}
+            </ul>
+          ) : !report.sceneLosses?.length && report.losses?.length ? (
+            <span className="block text-amber-300">{t("workshop.world.panel.report.losses", { items: report.losses.join(" ") })}</span>
+          ) : null}
+          {report.sceneLosses?.length ? (
+            <SceneLosses scenes={report.sceneLosses} label={t("workshop.world.panel.import.lossesLabel")} />
+          ) : null}
+          {report.noteDetails?.length ? report.noteDetails.map((detail, index) => (
+            <span key={index} className="block text-stone-300">{worldImportNoticeText(detail, t)}</span>
+          )) : null}
+          {report.notes?.slice(report.noteDetails?.length ?? 0).map((note) => (
+            <span key={note} className="block text-stone-300">{note}</span>
+          ))}
         </div>
       ) : null}
       {api.error && !world ? <PanelError>{api.error}</PanelError> : null}
