@@ -121,8 +121,13 @@ Single restore point for Russian localization. After a chat interruption, read o
 - Added 57 EN/RU keys in `workshop.ts`, including shelf/tool names and fixed table labels. User-created names, aliases, custom field values, event titles, secret titles and article content remain unchanged.
 - Static verification: all 57 keys exist in both dictionaries; placeholders match; no duplicate keys were introduced. TypeScript, lint, tests, build and visual checks remain deferred.
 
+## Atlas — map navigation and pin/region cards — 12 November 2026
+- `AtlasView.tsx`: localized map creation, empty state, map navigation, interaction modes, region/pin placement instructions, accessibility labels and the explanation distinguishing Atlas pictures from battle maps.
+- `AtlasCard.tsx`: localized pin/region editing, hidden-from-party controls, entry binding, region colour choices, notes and nested-map navigation. Names, user-authored notes and bound records remain data.
+- Added 58 EN/RU base messages in `workshop.ts`; Russian plural forms were added for corner-count instructions. Static verification: keys, placeholders and duplicate checks passed. TypeScript/runtime tests remain deferred.
+
 ## Next work
-Continue the WorldForge audit with `AtlasView.tsx` and its directly used components, then `TimelineView.tsx`, `SecretsView.tsx` and `WikiView.tsx`. Localize fixed interface text and accessibility labels, while leaving user-created names, custom type/field names and content alone. Inspect `useWorld.ts` error messages before translating API errors. Then continue the remaining Workshop editors. Do not sync upstream or merge branches during translation.
+Continue the Atlas audit with `AtlasRegion.tsx`, `AtlasEdit.tsx`, `AtlasParty.tsx` and `PlaceBattleMaps.tsx`, then `TimelineView.tsx`, `SecretsView.tsx` and `WikiView.tsx`. Localize fixed interface text and accessibility labels, while leaving user-created names, custom type/field names and content alone. Inspect `useWorld.ts` error messages before translating API errors. Then continue the remaining Workshop editors. Do not sync upstream or merge branches during translation.
 
 ## Low-token work protocol
 - Read this file, then only the next target source file(s) and exact dictionary sections needed.
