@@ -2496,7 +2496,9 @@ export const ruCampaignPanels: Partial<Record<keyof typeof enCampaignPanels, str
   "campaign.dmWorkbench.monster.resistance": " (эффективные хиты ×{multiplier} с учётом сопротивлений и иммунитетов)",
   "campaign.dmWorkbench.outcome.partyCannotWin": "При этих показателях группа не сможет одолеть противников.",
   "campaign.dmWorkbench.outcome.noDamage": "Группа победит примерно за {rounds}, не получив урона.",
-  "campaign.dmWorkbench.outcome.withMargin": "Группа победит примерно за {rounds}; запас составит около {margin}.",
+  "campaign.dmWorkbench.outcome.withMargin": "Группа победит примерно за {rounds
+  "campaign.session.hand.aim.laidArea": "Область размещена: {area}.",
+}; запас составит около {margin}.",
   "campaign.dmWorkbench.outcome.monstersWin": "При этих показателях противники одолеют группу первыми: примерно за {monsterRounds}, тогда как группе потребуется {partyRounds}.",
   "campaign.dmWorkbench.warning.noHealing": "В расчёте обе стороны атакуют каждый раунд, никто не лечится, не прячется и не отступает. Реальный бой такого типа обычно длится на один-два раунда дольше.",
   "campaign.dmWorkbench.warning.oneRound": "Один раунд — это ещё не бой. Этот состав исчезнет прежде, чем успеет сходить дважды.",
