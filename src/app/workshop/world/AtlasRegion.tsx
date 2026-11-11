@@ -250,7 +250,9 @@ export function RegionReview({ region }: { region: AtlasRegion }) {
             </p>
           ) : null}
           {step.plan.placements.length ? <PlacementList placements={step.plan.placements} /> : null}
-          {step.plan.notes.map((note) => (
+          {step.plan.noteDetails?.length ? step.plan.noteDetails.map((detail, index) => (
+            <p key={index} className="text-stone-400">{t(detail.code as never, detail.params)}</p>
+          )) : step.plan.notes.map((note) => (
             <p key={note} className="text-stone-400">{note}</p>
           ))}
         </>
@@ -258,7 +260,7 @@ export function RegionReview({ region }: { region: AtlasRegion }) {
         <>
           {nothing ? <p>{t("workshop.world.atlas.region.review.noPlacePins")}</p> : <PlacementList placements={step.plan.placements} />}
           {step.plan.skipped.map((skip) => (
-            <p key={skip.pinId} className="text-amber-300">{skip.reason}</p>
+            <p key={skip.pinId} className="text-amber-300">{skip.reasonDetail ? t(skip.reasonDetail.code as never, skip.reasonDetail.params) : skip.reason}</p>
           ))}
           {nothing ? null : <p className="text-stone-400">{t("workshop.world.atlas.region.review.moveTogether")}</p>}
         </>
@@ -357,7 +359,7 @@ export function PinRegionActions({ region, pin, atlas }: { region: AtlasRegion; 
           <Link2 className="size-3" /> {t("workshop.world.atlas.region.pinMovesWithPlace")}
         </span>
         <KitButton tone="link" disabled={region.busy} onClick={() => void region.release([pin.id])} data-testid="pin-release">
-          <Unlink className="size-3.5" /> Release from the Region
+          <Unlink className="size-3.5" /> {t("workshop.world.atlas.region.release")}
         </KitButton>
       </div>
     );
