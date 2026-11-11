@@ -102,7 +102,14 @@ function localizedLoreReason(reason: string, t: ReturnType<typeof useI18n>["t"])
     const base = t("campaign.contextTrace.loreReason.rank", { rank: Number(ranked[1]), reason: localizedLoreCause(ranked[2], t) });
     return ranked[3] ? t("campaign.contextTrace.loreReason.excerpt", { reason: base, count: Number(ranked[3]) }) : base;
   }
-  if (reason.startsWith("held back: ")) return t("campaign.contextTrace.loreReason.heldBack", { reason: localizedLoreCause(reason.slice(11), t) });
+  if (reason.startsWith("held back: ")) {
+    const inner = reason.slice(11);
+    const nearHeld = inner.match(/^a near match \\(rank (\\d+)\\), not close enough to ride$/);
+    const detail = nearHeld
+      ? t("campaign.contextTrace.loreReason.nearMatch", { rank: Number(nearHeld[1]) })
+      : localizedLoreCause(inner, t);
+    return t("campaign.contextTrace.loreReason.heldBack", { reason: detail });
+  }
   return localizedLoreCause(reason, t);
 }
 
