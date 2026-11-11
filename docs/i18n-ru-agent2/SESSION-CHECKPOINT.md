@@ -21,7 +21,8 @@ Single restore point for Russian localization. After a chat interruption, read o
 ## Also completed in the current pass
 - `DiceSourcesDialog.tsx` and `DiceTrayDialog.tsx`: dice source assignments, Pixels Bluetooth connection states, die labels, expression/bonus inputs, secret/public roll mode, audience privacy text, result badges, errors and accessibility labels localized.
 - `ContextPanel.tsx`: context budget headings, block kinds/reasons, prompt-cache and model-call metrics, house-rule status, story-arc and world-lore summaries/reasons localized. User-authored event/lore names, tool IDs and raw backend failure details remain data.
-- The existing `campaignSession.ts` EN/RU pair was extended; the dice package added 40 keys. Context trace now has 80 EN / 80 RU keys, no missing pairs, duplicates or placeholder differences. Direct component references were checked.
+- `ReportDialog.tsx`: reporting/blocking descriptions, target labels, report reasons, success states, actions and known API errors localized. Server reason values remain unchanged.
+- The existing `campaignSession.ts` EN/RU pair was extended: dice dialogs added 40 keys, context trace has 80 keys, report dialog added 31 keys. Report dictionaries are 31 EN / 31 RU with no missing pairs, duplicates or placeholder differences; direct component references checked.
 - Do not repeat these components unless a targeted defect is found.
 
 ## Next work
