@@ -138,5 +138,11 @@ Continue the Atlas audit with `AtlasRegion.tsx`, `AtlasEdit.tsx`, `AtlasParty.ts
 - Preserve API values, IDs, slugs, game mechanics, user-authored names/text and campaign data. Translate fixed UI text and known system messages only.
 - TypeScript, lint, production build and visual checks remain deferred to Block 1.1 on the user's local machine. Do not claim these checks unless actually run.
 
+## WorldForge — entry page and Atlas — 12 November 2026
+- `EntityPage.tsx`: completed the missing 57 EN/RU dictionary messages for the entry-page UI; checked all source keys and placeholder parity.
+- Atlas components completed: `AtlasView.tsx`, `AtlasCard.tsx`, `AtlasRegion.tsx`, `AtlasEdit.tsx`, `AtlasParty.tsx` and `PlaceBattleMaps.tsx`. Localized map navigation/creation, pins/regions, Region binding and placement sync, map framing/settings, delete-impact review, party visibility, battle-map and encounter linking, and accessibility text.
+- User-created map/region/pin names, aliases, custom fields, record/article content and IDs remain data. Server-authored plan notes and raw API error details remain unchanged.
+- Static dictionary audit: 191 direct source keys covered in EN/RU; all 7 plural groups have the required EN and RU suffixes; the 5 conditional delete keys exist in both dictionaries; no duplicate keys or missing placeholders. File tails restored to their normal TypeScript closings. TypeScript, lint, tests, build and visual checks remain deferred.
+
 ## Resume
-Start by verifying the branch HEAD, then continue with `EntityPage.tsx` and other WorldForge views. Import/export reports and `EntityEditor.tsx` are localized; local technical checks remain deferred. Block 1 remains formally open. No questions about project, branch, scope or workflow are needed.
+Continue with `TimelineView.tsx`, then `SecretsView.tsx` and `WikiView.tsx`. Verify the branch HEAD before editing. Import/export reports, `EntityEditor.tsx`, `EntityPage.tsx` and all six Atlas components are localized. Block 1 remains formally open; do not merge, open a PR or create its DONE flag.
