@@ -29,6 +29,11 @@ const ROUTE_LABEL_KEYS = {
   optional: "campaign.storyboard.route.optional",
 } as const satisfies Record<"then" | RouteKind, MessageKey>;
 
+const ROUTE_TAG_KEYS = {
+  choice: "campaign.storyboard.route.tag.choice",
+  optional: "campaign.storyboard.route.tag.optional",
+} as const satisfies Record<RouteKind, MessageKey>;
+
 export function beatLabel(t: StoryboardT, kind: BeatKind): string {
   return t(BEAT_LABEL_KEYS[kind]);
 }
@@ -39,6 +44,10 @@ export function beatHint(t: StoryboardT, kind: BeatKind): string {
 
 export function routeLabel(t: StoryboardT, kind: "then" | RouteKind): string {
   return t(ROUTE_LABEL_KEYS[kind]);
+}
+
+export function routeTag(t: StoryboardT, kind: RouteKind): string {
+  return t(ROUTE_TAG_KEYS[kind]);
 }
 
 export function linkLabel(t: StoryboardT, field: "npcId" | "mapId" | "encounterId" | "locationId"): string {
