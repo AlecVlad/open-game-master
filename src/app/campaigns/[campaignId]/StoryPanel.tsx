@@ -821,8 +821,8 @@ export function StoryPanel({
   const { t } = useI18n();
   const [closing, setClosing] = useState(false);
   const [rewindable, setRewindable] = useState<number[]>([]);
-  // A refused or failed read is shown in the server's words with a way to
-  // ask again, never as "nothing here yet" (issue 140).
+  // A refused or failed read is kept distinct from an empty history and
+  // shown with a way to ask again (issue 140).
   const { loaded, loadError, settle } = useLoadStatus();
   const [reloads, setReloads] = useState(0);
   const [rewindTarget, setRewindTarget] = useState<{
