@@ -56,7 +56,7 @@ export function WorkshopHelpDialog({
       width="w-[min(94vw,44rem)]"
     >
       {tours && tours.length ? (
-        <Section icon={Footprints} title="Guided tours">
+        <Section icon={Footprints} title={t("workshop.help.section.tours")}>
           <p>{t("help.workshop.tours.intro")}</p>
           <div className="flex flex-wrap gap-2">
             {tours.map((tour) => (
@@ -76,7 +76,7 @@ export function WorkshopHelpDialog({
           </div>
         </Section>
       ) : null}
-      <Section icon={Wrench} title="The tools, one by one">
+      <Section icon={Wrench} title={t("workshop.help.section.tools")}>
         <p>{t("help.workshop.tools.intro")}{system ? t("help.workshop.tools.current") : ""}</p>
         <div className="space-y-1.5">
           {guides.map((guide) => (
@@ -118,19 +118,19 @@ export function WorkshopHelpDialog({
           ))}
         </div>
       </Section>
-      <Section icon={Hammer} title="What a workshop is">
+      <Section icon={Hammer} title={t("workshop.help.section.workshop")}>
         <p>{t("help.workshop.what")}</p>
       </Section>
-      <Section icon={Share2} title="Into a campaign, and back out">
+      <Section icon={Share2} title={t("workshop.help.section.campaign")}>
         <p>{t("help.workshop.import")}</p>
       </Section>
-      <Section icon={Copy} title="Copying things">
+      <Section icon={Copy} title={t("workshop.help.section.copy")}>
         <p>{t("help.workshop.copy")}</p>
       </Section>
-      <Section icon={Sparkles} title="With or without AI">
+      <Section icon={Sparkles} title={t("workshop.help.section.ai")}>
         <p>{t("help.workshop.ai")}</p>
       </Section>
-      <Section icon={BookOpen} title="Where the rules live">
+      <Section icon={BookOpen} title={t("workshop.help.section.rules")}>
         <p>{t("help.workshop.rules")}</p>
       </Section>
     </Dialog>
