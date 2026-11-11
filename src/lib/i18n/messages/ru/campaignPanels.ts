@@ -3180,7 +3180,7 @@ export const ruCampaignPanels: Partial<Record<keyof typeof enCampaignPanels, str
   "campaign.session.hand.share.allSlotsFilled": "Все места заняты.",
   "campaign.session.hand.board.close": "Закрыть",
   "campaign.session.hand.board.replaceTitle": "Заменить «{name}»?",
-  "campaign.session.hand.board.replaceDescription": "Применение «{next}» завершит концентрацию на «{current}» и действие его эффектов. Сохранить «{current}», ничего не расходуя?",
+  "campaign.session.hand.board.replaceDescription": "Применение «{next}» завершит концентрацию на «{current}» и снимет его эффекты. Сохранить её, ничего не расходуя?",
   "campaign.session.hand.board.cast": "Применить «{name}»",
   "campaign.session.hand.board.keep": "Оставить «{name}»",
   "campaign.session.hand.board.chooseWeapon": "Выберите оружие",
