@@ -341,13 +341,13 @@ const overflow = localizeStoryboardError(
   'This card\'s text is 4,001 characters; the limit is 4,000. The last 1 would be lost: "слово".',
   "ru",
 );
-assert.ok(overflow.includes("1 лишний символ"), "single-character overflow must use the singular form");
+assert.ok(overflow.includes("будет потерян 1 символ"), "single-character overflow must use singular verb agreement");
 assert.ok(overflow.includes("«слово»"), "overflow excerpt must be preserved");
 const overflowMany = localizeStoryboardError(
   'This card\'s text is 4,005 characters; the limit is 4,000. The last 5 would be lost.',
   "ru",
 );
-assert.ok(overflowMany.includes("5 лишних символов"), "multi-character overflow must use the many form");
+assert.ok(overflowMany.includes("будут потеряны 5 символов"), "multi-character overflow must use plural verb agreement");
 
 // Report (not fail on) what Russian still lacks, so progress is visible.
 const missing = Object.keys(DICTIONARIES.en).filter((key) => !(key in DICTIONARIES.ru));
