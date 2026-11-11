@@ -633,7 +633,7 @@ function ArcCard({ campaignId }: { campaignId: string }) {
                                 <SkipForward className="size-3" />
                               </button>
                               </span>
-                              <RowMenu items={beatItems} label={`Beat ${number}`} className="p-1" />
+                              <RowMenu items={beatItems} label={`${t("campaign.story.arc.beat")} ${number}`} className="p-1" />
                             </span>
                           )}
                         </ContextMenu>
@@ -642,7 +642,7 @@ function ArcCard({ campaignId }: { campaignId: string }) {
                   </ol>
                   {addingToAct === act ? (
                     <div className="reveal mt-1">
-                      <DictateField single label="Beat" onTranscript={(text) => setDraft((current) => appendDictation(current, text, MAX_BEAT_TEXT))}>
+                      <DictateField single label={t("campaign.story.arc.beat")} onTranscript={(text) => setDraft((current) => appendDictation(current, text, MAX_BEAT_TEXT))}>
                         <input
                           value={draft}
                           autoFocus
@@ -666,14 +666,14 @@ function ArcCard({ campaignId }: { campaignId: string }) {
                           disabled={beatBusy || !draft.trim()}
                           className={cn(ui.btnSmall, "pk-tap px-2.5 py-1 text-xs")}
                         >
-                          <Check className="size-3" /> Add
+                          <Check className="size-3" /> {t("campaign.story.arc.add")}
                         </button>
                         <button
                           type="button"
                           onClick={closeEditor}
                           className={cn(ui.btnSmall, "pk-tap px-2.5 py-1 text-xs")}
                         >
-                          Cancel
+                          {t("campaign.story.arc.cancel")}
                         </button>
                       </div>
                     </div>
