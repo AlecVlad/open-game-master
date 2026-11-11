@@ -3,6 +3,8 @@ import { beatOrigins, insertBeat, listBeats } from "@/lib/db/workshop-beats";
 import { chaptersOf, commonChoices, storyboardInventory } from "@/lib/db/workshop-common";
 import { boardGraph, brokenLinks, checkBeat, linksWithin, suggestTopics } from "@/lib/workshop/board";
 import { compileBoard, summarizeCompile } from "@/lib/workshop/board-compile";
+import { getLang } from "@/lib/i18n/server";
+import { localizeStoryboardError } from "@/lib/workshop/storyboard-api-i18n";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -71,9 +73,10 @@ export async function POST(
   if (isErrorResponse(context)) {
     return context;
   }
+  const lang = await getLang();
   const checked = checkBeat(await request.json().catch(() => ({})));
   if ("error" in checked) {
-    return Response.json({ error: checked.error }, { status: 400 });
+    return Response.json({ error: localizeStoryboardError(checked.error, lang) }, { status: 400 });
   }
   const { inventory } = storyboardInventory(context.campaign);
   const created = insertBeat(campaignId, {
@@ -81,7 +84,7 @@ export async function POST(
     links: linksWithin(checked.beat.links, inventory),
   });
   if ("error" in created) {
-    return Response.json({ error: created.error }, { status: 409 });
+    return Response.json({ error: localizeStoryboardError(created.error, lang) }, { status: 409 });
   }
   return Response.json({ beat: created }, { status: 201 });
 }
