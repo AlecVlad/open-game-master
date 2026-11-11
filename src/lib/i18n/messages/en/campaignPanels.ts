@@ -4032,4 +4032,18 @@ export const enCampaignPanels = {
   "campaign.session.characterMenu.mute": "Mute player",
   "campaign.session.characterMenu.report": "Report player",
   "campaign.session.characterMenu.block": "Block player",
+
+  "campaign.session.characterNotes.note": "Note",
+  "campaign.session.characterNotes.save": "Save",
+  "campaign.session.characterNotes.cancel": "Cancel",
+  "campaign.session.characterNotes.edit": "Edit note",
+  "campaign.session.characterNotes.delete": "Delete note",
+  "campaign.session.characterNotes.you": "You",
+  "campaign.session.characterNotes.unknown": "Unknown",
+  "campaign.session.characterNotes.title": "Notes on {name}",
+  "campaign.session.characterNotes.close": "Close notes",
+  "campaign.session.characterNotes.party": "Party notes",
+  "campaign.session.characterNotes.emptyParty": "No party notes on {name} yet.",
+  "campaign.session.characterNotes.private": "My notes (only you see these)",
+  "campaign.session.characterNotes.emptyPrivate": "No private notes yet.",
 } satisfies Record<string, string>;
