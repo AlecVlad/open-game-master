@@ -260,7 +260,7 @@ function boardFactsFor(source: Campaign, compiled: CompiledBoard, common: Campai
           message: proseWarningLine(warnings),
           reasons: warnings.map((warning) => ({
             kind: warning.kind,
-            count: Number(warning.message.match(/^\\d+/)?.[0] ?? 0),
+            count: Number(warning.message.match(/^\d+/)?.[0] ?? 0),
             minimum: warning.kind === "long-run" ? 28 : 0,
             sample: warning.samples[0] ?? "",
           })),
