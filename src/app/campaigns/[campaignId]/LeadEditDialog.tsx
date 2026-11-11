@@ -4,6 +4,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { returnFocus } from "@/components/ui/return-focus";
 import { Trash2, X } from "lucide-react";
 import { useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/cn";
 import { offerCorrectionReason } from "@/lib/correction-offer";
 import { ui } from "@/lib/ui";
@@ -28,22 +29,14 @@ import {
   type ItemRow,
   type SlotEdits,
 } from "./LeadEditParts";
-import { coinCorrection, coinFields, earnedExpertise, expertiseOverCap, skillLevelsOf, trainingFrom, type SkillLevel } from "./lead-edit-logic";
+import { coinCorrection, coinFields, earnedExpertise, expertiseOverCap, EXPERTISE_MAX, OLDER_HOST_EXPERTISE_MAX, skillLevelsOf, trainingFrom, type SkillLevel } from "./lead-edit-logic";
 import { acBreakdownFor, effectiveAcFor, SRD_SKILLS } from "@/lib/srd";
-import { ABILITY_NAMES } from "@/lib/srd/legality/types";
+
 import { isCantripName } from "@/lib/srd/spell-lists";
 import { spellStyleFor } from "@/lib/srd/spell-prep";
 import MultiContentPicker from "@/app/characters/builder/MultiContentPicker";
 import { ABILITIES, type Ability, type CharacterSheet, type Proficiencies } from "@/lib/schemas/sheet";
 import { hostOffers, useCapabilities } from "@/lib/use-capabilities";
-
-const ABILITY_SHORT: Record<string, string> = { str: "STR", dex: "DEX", con: "CON", int: "INT", wis: "WIS", cha: "CHA" };
-
-const SKILL_LEVELS: Array<{ value: SkillLevel; label: string }> = [
-  { value: "none", label: "None" },
-  { value: "trained", label: "Trained" },
-  { value: "expert", label: "Expert" },
-];
 
 // Party lead correction of any character's numbers, scores, training, items
 // and spells, for
@@ -58,6 +51,52 @@ export function LeadEditDialog({
   sheet: CharacterSheet;
   onClose: () => void;
 }) {
+  const { t } = useI18n();
+  const abilityNames: Record<Ability, string> = {
+    str: t("campaign.session.leadEdit.ability.str"),
+    dex: t("campaign.session.leadEdit.ability.dex"),
+    con: t("campaign.session.leadEdit.ability.con"),
+    int: t("campaign.session.leadEdit.ability.int"),
+    wis: t("campaign.session.leadEdit.ability.wis"),
+    cha: t("campaign.session.leadEdit.ability.cha"),
+  };
+  const abilityShort: Record<Ability, string> = {
+    str: t("campaign.session.leadEdit.ability.short.str"),
+    dex: t("campaign.session.leadEdit.ability.short.dex"),
+    con: t("campaign.session.leadEdit.ability.short.con"),
+    int: t("campaign.session.leadEdit.ability.short.int"),
+    wis: t("campaign.session.leadEdit.ability.short.wis"),
+    cha: t("campaign.session.leadEdit.ability.short.cha"),
+  };
+  const skillNames: Record<string, string> = {
+    acrobatics: t("campaign.session.leadEdit.skill.acrobatics"),
+    animal_handling: t("campaign.session.leadEdit.skill.animalHandling"),
+    arcana: t("campaign.session.leadEdit.skill.arcana"),
+    athletics: t("campaign.session.leadEdit.skill.athletics"),
+    deception: t("campaign.session.leadEdit.skill.deception"),
+    history: t("campaign.session.leadEdit.skill.history"),
+    insight: t("campaign.session.leadEdit.skill.insight"),
+    intimidation: t("campaign.session.leadEdit.skill.intimidation"),
+    investigation: t("campaign.session.leadEdit.skill.investigation"),
+    medicine: t("campaign.session.leadEdit.skill.medicine"),
+    nature: t("campaign.session.leadEdit.skill.nature"),
+    perception: t("campaign.session.leadEdit.skill.perception"),
+    performance: t("campaign.session.leadEdit.skill.performance"),
+    persuasion: t("campaign.session.leadEdit.skill.persuasion"),
+    religion: t("campaign.session.leadEdit.skill.religion"),
+    sleight_of_hand: t("campaign.session.leadEdit.skill.sleightOfHand"),
+    stealth: t("campaign.session.leadEdit.skill.stealth"),
+    survival: t("campaign.session.leadEdit.skill.survival"),
+  };
+  const skillLevelOptions: Array<{ value: SkillLevel; label: string }> = [
+    { value: "none", label: t("campaign.session.leadEdit.skillLevel.none") },
+    { value: "trained", label: t("campaign.session.leadEdit.skillLevel.trained") },
+    { value: "expert", label: t("campaign.session.leadEdit.skillLevel.expert") },
+  ];
+  const spellMeta = (entry: { level?: number }) => levelMeta(entry, {
+    cantrip: t("campaign.session.leadEdit.spell.cantrip"),
+    level: (value) => t("campaign.session.leadEdit.spell.level", { level: value }),
+  });
   const [currentHp, setCurrentHp] = useState(String(sheet.currentHp));
   const [tempHp, setTempHp] = useState(String(sheet.tempHp));
   const [maxHp, setMaxHp] = useState(String(sheet.maxHp));
@@ -244,7 +283,8 @@ export function LeadEditDialog({
     const patch: Record<string, unknown> = { reason, ...correction() };
     const over = expertiseOverCap((patch.proficiencies as Proficiencies | undefined)?.expertise?.length ?? 0, holdsMoreExpertise);
     if (over) {
-      setError(over);
+      const cap = holdsMoreExpertise ? EXPERTISE_MAX : OLDER_HOST_EXPERTISE_MAX;
+      setError(t(holdsMoreExpertise ? "campaign.session.leadEdit.error.expertiseCap" : "campaign.session.leadEdit.error.expertiseLegacy", { cap }));
       setBusy(false);
       return;
     }
@@ -257,7 +297,7 @@ export function LeadEditDialog({
         });
         const data = (await response.json().catch(() => ({}))) as { error?: string; held?: string[] };
         if (!response.ok) {
-          setError(data.error || "Could not save the correction.");
+          setError(data.error === "Character not found." ? t("campaign.session.leadEdit.error.characterNotFound") : t("campaign.session.leadEdit.error.save"));
           return;
         }
         offerCorrectionReason(campaignId, data);
@@ -267,7 +307,7 @@ export function LeadEditDialog({
         }
         onClose();
       } catch {
-        setError("Could not reach the server.");
+        setError(t("campaign.session.leadEdit.error.network"));
       } finally {
         setBusy(false);
       }
