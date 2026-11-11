@@ -97,6 +97,29 @@ export function LeadEditDialog({
     cantrip: t("campaign.session.leadEdit.spell.cantrip"),
     level: (value) => t("campaign.session.leadEdit.spell.level", { level: value }),
   });
+  const heldText = (line: string) => {
+    const resource = line.match(/^(.+) has ([0-9]+), so ([0-9]+) are spent, not ([0-9]+)$/);
+    if (resource) {
+      return t("campaign.session.leadEdit.held.resource", { name: resource[1], max: resource[2], used: resource[4] });
+    }
+    const classDice = line.match(/^(.+) has ([0-9]+) hit dice, so ([0-9]+) are spent, not ([0-9]+)$/);
+    if (classDice) {
+      return t("campaign.session.leadEdit.held.classHitDice", { name: classDice[1], count: classDice[2], used: classDice[4] });
+    }
+    const hitDice = line.match(/^there are ([0-9]+) hit dice, so ([0-9]+) are spent, not ([0-9]+)$/);
+    if (hitDice) {
+      return t("campaign.session.leadEdit.held.hitDice", { count: hitDice[1], used: hitDice[3] });
+    }
+    const slots = line.match(/^there are ([0-9]+) level ([0-9]+) slots, so ([0-9]+) are spent, not ([0-9]+)$/);
+    if (slots) {
+      return t("campaign.session.leadEdit.held.slots", { max: slots[1], level: slots[2], used: slots[4] });
+    }
+    const pactSlots = line.match(/^there are ([0-9]+) pact slots, so ([0-9]+) are spent, not ([0-9]+)$/);
+    if (pactSlots) {
+      return t("campaign.session.leadEdit.held.pactSlots", { max: pactSlots[1], used: pactSlots[3] });
+    }
+    return t("campaign.session.leadEdit.held.generic");
+  };
   const [currentHp, setCurrentHp] = useState(String(sheet.currentHp));
   const [tempHp, setTempHp] = useState(String(sheet.tempHp));
   const [maxHp, setMaxHp] = useState(String(sheet.maxHp));
