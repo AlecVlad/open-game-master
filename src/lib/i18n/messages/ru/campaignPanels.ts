@@ -4798,4 +4798,14 @@ export const ruCampaignPanels: Partial<Record<keyof typeof enCampaignPanels, str
   "campaign.session.cardReturned.playedAgain": "Действие выполнено повторно.",
   "campaign.session.cardReturned.playAgain": "Повторить действие",
 
+  "campaign.session.pact.summary": "Тайное предложение для персонажа: {character}",
+  "campaign.session.pact.choice.join.label": "Присоединиться",
+  "campaign.session.pact.choice.join.hint": "Ваш персонаж уйдёт вместе с участниками союза, когда они приведут свой план в действие.",
+  "campaign.session.pact.choice.playAlong.label": "Подыграть",
+  "campaign.session.pact.choice.playAlong.hint": "Сделайте вид, что согласились, и наблюдайте за ними. Они могут распознать обман.",
+  "campaign.session.pact.choice.report.label": "Рассказать группе",
+  "campaign.session.pact.choice.report.hint": "Вся группа узнает о заговоре, и участникам союза придётся действовать немедленно.",
+  "campaign.session.pact.choice.refuse.label": "Отказаться",
+  "campaign.session.pact.choice.refuse.hint": "Откажитесь и сохраните предложение в тайне.",
+
 };
