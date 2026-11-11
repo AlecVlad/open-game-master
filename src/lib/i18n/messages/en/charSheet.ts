@@ -265,4 +265,11 @@ export const enCharSheet = {
   "charSheet.spells.changeFailed": "Could not change that spell (HTTP {status}).",
   "charSheet.spells.network": "Could not reach the server.",
   "charSheet.spells.fromSpeciesOnly": "From the species",
+  "charSheet.choice.refused": "The choice was refused.",
+  "charSheet.choice.network": "Could not reach the server.",
+  "charSheet.choice.playerChooses": "The character's own player chooses.",
+  "charSheet.choice.outsideCombat": "Chosen outside a fight.",
+  "charSheet.choice.sent": "Sent. The GM resolves it.",
+  "charSheet.choice.select": "Choose {option}",
+  "charSheet.choice.fightingStyle": "Fighting style",
 } satisfies Record<string, string>;
