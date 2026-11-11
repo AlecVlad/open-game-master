@@ -11,7 +11,7 @@ import { ui } from "@/lib/ui";
 import { PanelError } from "@/app/campaigns/[campaignId]/PanelKit";
 import type { BeatKind, Suggestion } from "@/lib/workshop/board";
 import type { CompiledBoard } from "@/lib/workshop/board-compile";
-import { beatLabel, suggestionReason } from "@/app/workshop/storyboard/storyboard-i18n";
+import { beatLabel, suggestionReason, suggestionTitle } from "@/app/workshop/storyboard/storyboard-i18n";
 import type { CompileSummary } from "@/lib/workshop/board-compile";
 
 // What sits beside the workshop board: what the board is missing and what
@@ -81,7 +81,7 @@ export function SuggestionsCard({
           <button
             type="button"
             disabled={busy}
-            onClick={() => onAdd(suggestion.kind, suggestion.title)}
+            onClick={() => onAdd(suggestion.kind, suggestionTitle(t, suggestion))}
             className={cn(ui.btnSmall, "px-2 py-1.5")}
           >
             + {beatLabel(t, suggestion.kind)}
@@ -146,7 +146,7 @@ export function SharedWorkshopCard({
     >
       {shared.chapters.length ? (
         <p className="text-xs text-stone-400">
-          {tp("campaign.storyboard.shared.chapterDraws", shared.chapters.length)} on {shared.common?.title ?? t("campaign.storyboard.shared.thisWorkshop")}: {shared.chapters.map((chapter) => chapter.title).join(", ")}. {t("campaign.storyboard.shared.pickerExplanation")}
+          {tp("campaign.storyboard.shared.chapterDraws", shared.chapters.length, { workshop: shared.common?.title ?? t("campaign.storyboard.shared.thisWorkshop"), chapters: shared.chapters.map((chapter) => chapter.title).join(", "), explanation: t("campaign.storyboard.shared.pickerExplanation") })}
         </p>
       ) : (
         <>
