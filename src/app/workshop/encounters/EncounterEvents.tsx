@@ -12,7 +12,7 @@ import { Field, FieldLabel, addChip, chipRow, rowIcon } from "@/app/workshop/kit
 import { MonsterRosterPicker } from "@/app/campaigns/[campaignId]/MonsterRosterPicker";
 import { GroundEditor, type GroundMap } from "@/app/workshop/encounters/EncounterGround";
 import { hostOffers, useCapabilities } from "@/lib/use-capabilities";
-import { CONDITION_OPTIONS } from "@/lib/dm/catalog-vocab";
+import { CONDITION_VALUES } from "@/lib/dm/catalog-vocab";
 import { formatRoster, parseRoster, type RosterSlot } from "@/lib/dm/encounter-template-logic";
 import {
   FIGHT_EVENT_LIMITS,
@@ -318,6 +318,10 @@ function ActionEditor({
   onChange: (next: FightAction) => void;
 }) {
   const { t } = useI18n();
+  const conditionOptions: SelectOption<string>[] = CONDITION_VALUES.map((condition) => ({
+    value: condition,
+    label: t(`campaign.session.encounterEvents.condition.option.${condition}` as never),
+  }));
   const who = (slot: number, set: (slot: number) => void) => (
     <Field label={t("campaign.session.encounterEvents.who")} className="min-w-40 flex-1">
       <Select
@@ -379,7 +383,7 @@ function ActionEditor({
             <Select
               label={t("campaign.session.encounterEvents.condition.conditionForAction", { action: name })}
               value={action.condition}
-              options={CONDITION_OPTIONS}
+              options={conditionOptions}
               onChange={(condition) => onChange({ ...action, condition })}
             />
           </Field>
