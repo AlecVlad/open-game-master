@@ -4708,4 +4708,14 @@ export const enCampaignPanels = {
   "campaign.session.cardReturned.playedAgain": "Played again.",
   "campaign.session.cardReturned.playAgain": "Play it again",
 
+  "campaign.session.pact.summary": "A private offer for {character}",
+  "campaign.session.pact.choice.join.label": "Join them",
+  "campaign.session.pact.choice.join.hint": "Your character goes with the pact when its plan goes.",
+  "campaign.session.pact.choice.playAlong.label": "Play along",
+  "campaign.session.pact.choice.playAlong.hint": "Pretend to join and watch them. They may see through you.",
+  "campaign.session.pact.choice.report.label": "Tell the party",
+  "campaign.session.pact.choice.report.hint": "Everyone learns of the pact, and it has to act now.",
+  "campaign.session.pact.choice.refuse.label": "Refuse",
+  "campaign.session.pact.choice.refuse.hint": "Say no and keep it to yourself.",
+
 } satisfies Record<string, string>;
