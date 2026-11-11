@@ -3,6 +3,8 @@
 import { X } from "lucide-react";
 import type { CSSProperties } from "react";
 import { cn } from "@/lib/cn";
+import { useI18n } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages/index";
 import { ui } from "@/lib/ui";
 import type { HandAim } from "@/lib/battlemap/hand-play";
 import type { MonsterAdvantage } from "@/lib/battlemap/monster-hand";
@@ -45,10 +47,10 @@ export function writeCollapsed(on: boolean) {
 // row: an enemy's row, not a sheet (an attack or an area reaches it).
 export type PartyChip = HandAim & { note: string; row?: boolean };
 
-const ADVANTAGE: Array<[MonsterAdvantage, string]> = [
-  ["none", "Straight"],
-  ["advantage", "Advantage"],
-  ["disadvantage", "Disadvantage"],
+const ADVANTAGE: Array<[MonsterAdvantage, MessageKey]> = [
+  ["none", "campaign.session.monsterAim.advantage.straight"],
+  ["advantage", "campaign.session.monsterAim.advantage.advantage"],
+  ["disadvantage", "campaign.session.monsterAim.advantage.disadvantage"],
 ];
 
 // What the raised card asks: each part only when the card needs it (chips
@@ -84,10 +86,11 @@ export function MonsterAimControls({
   advantage: MonsterAdvantage | null;
   onAdvantage: (value: MonsterAdvantage) => void;
 }) {
+  const { t } = useI18n();
   return (
     <>
       {chips ? (
-        <div className="mt-2 flex flex-wrap gap-1.5" role="group" aria-label="Targets">
+        <div className="mt-2 flex flex-wrap gap-1.5" role="group" aria-label={t("campaign.session.monsterAim.targets")}>
           {chips.length ? (
             chips.map((chip, index) => (
               <button
@@ -103,15 +106,15 @@ export function MonsterAimControls({
               </button>
             ))
           ) : (
-            <span className="text-xs text-stone-500">Nobody is standing to be attacked.</span>
+            <span className="text-xs text-stone-500">{t("campaign.session.monsterAim.nobody")}</span>
           )}
         </div>
       ) : null}
 
       {square ? (
-        <div className="mt-2 flex flex-wrap items-end gap-2" role="group" aria-label="Where it goes">
+        <div className="mt-2 flex flex-wrap items-end gap-2" role="group" aria-label={t("campaign.session.monsterAim.where")}>
           <label className="flex flex-col text-[11px] uppercase tracking-wider text-stone-500">
-            To column
+            {t("campaign.session.monsterAim.column")}
             <input
               type="number"
               inputMode="numeric"
@@ -122,7 +125,7 @@ export function MonsterAimControls({
             />
           </label>
           <label className="flex flex-col text-[11px] uppercase tracking-wider text-stone-500">
-            To row
+            {t("campaign.session.monsterAim.row")}
             <input
               type="number"
               inputMode="numeric"
@@ -133,20 +136,20 @@ export function MonsterAimControls({
             />
           </label>
           <span className="pb-2 text-xs text-stone-400">
-            {square.optional ? `Optional: up to ${square.feet} ft, or leave it where it is.` : `Up to ${square.feet} ft.`}
+            {square.optional ? t("campaign.session.monsterAim.optionalDistance", { feet: square.feet }) : t("campaign.session.monsterAim.distance", { feet: square.feet })}
           </span>
         </div>
       ) : null}
 
       {spells ? (
         <label className="mt-2 flex flex-col text-[11px] uppercase tracking-wider text-stone-500">
-          Spell
+          {t("campaign.session.monsterAim.spell")}
           <select
             value={spell}
             onChange={(event) => onSpell(event.target.value)}
             className={cn(ui.input, "mt-0.5 h-11 text-sm normal-case tracking-normal sm:h-9")}
           >
-            <option value="">Pick one from its list</option>
+            <option value="">{t("campaign.session.monsterAim.pickSpell")}</option>
             {spells.map((name) => (
               <option key={name} value={name}>
                 {name}
@@ -158,7 +161,7 @@ export function MonsterAimControls({
 
       {advantage !== null ? (
         <div className="mt-2 flex flex-wrap items-center gap-1.5" data-pill-group="">
-          <span className="text-[11px] uppercase tracking-wider text-stone-500">Roll</span>
+          <span className="text-[11px] uppercase tracking-wider text-stone-500">{t("campaign.session.monsterAim.roll")}</span>
           {ADVANTAGE.map(([value, label]) => (
             <button
               key={value}
@@ -173,7 +176,7 @@ export function MonsterAimControls({
                   : "border-stone-600 text-stone-300 hover:border-amber-500/60",
               )}
             >
-              {label}
+              {t(label)}
             </button>
           ))}
         </div>
@@ -184,6 +187,7 @@ export function MonsterAimControls({
 
 // What the engine said when the card was played.
 export function MonsterResultLines({ name, lines, onDismiss }: { name: string; lines: ResultLine[]; onDismiss: () => void }) {
+  const { t } = useI18n();
   return (
     <div role="status" className="live-in mt-1 rounded-lg border border-amber-500/30 bg-stone-950/80 px-3 py-2 text-xs">
       <div className="flex items-center justify-between gap-2">
@@ -191,7 +195,7 @@ export function MonsterResultLines({ name, lines, onDismiss }: { name: string; l
         <button
           type="button"
           onClick={onDismiss}
-          aria-label="Dismiss the result"
+          aria-label={t("campaign.session.monsterAim.dismiss")}
           className="motion-press flex size-7 items-center justify-center rounded-md text-stone-500 hover:text-amber-200"
         >
           <X className="size-3.5" />
