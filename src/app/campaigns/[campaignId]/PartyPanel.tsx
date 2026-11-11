@@ -184,6 +184,23 @@ function HandToDmButton({
   const [state, setState] = useState<"idle" | "sending">("idle");
   const [error, setError] = useState("");
   const whyId = useId();
+  const blockedCount = Number(blocked?.reason.match(/\d+/)?.[0] ?? 0);
+  const blockedReason = !blocked
+    ? ""
+    : blocked.code === "off"
+      ? t("campaign.session.party.handToGm.block.off.reason")
+      : blocked.code === "guests"
+        ? t("campaign.session.party.handToGm.block.guests.reason")
+        : blocked.code === "auto-guests"
+          ? t("campaign.session.party.handToGm.block.autoGuests.reason")
+          : t("campaign.session.party.handToGm.block.fullRoster.reason", { count: blockedCount });
+  const blockedRemedy = !blocked
+    ? ""
+    : blocked.code === "full-roster"
+      ? blocked.remedy.startsWith("Raise ")
+        ? t("campaign.session.party.handToGm.block.fullRoster.raise")
+        : t("campaign.session.party.handToGm.block.fullRoster.dismiss")
+      : t("campaign.session.party.handToGm.block.allow");
   async function adopt() {
     setState("sending");
     setError("");
@@ -206,7 +223,7 @@ function HandToDmButton({
   return (
     <div className="reveal mt-2 space-y-1">
       <p className="text-[11px] leading-4 text-amber-200">
-        {sheet.name} is filed in the library as an ally the GM plays, but sits here as a player&apos;s character, so the GM takes no turns for them.
+        {t("campaign.session.party.handToGm.description", { name: sheet.name })}
       </p>
       {blocked ? (
         <div
@@ -214,8 +231,8 @@ function HandToDmButton({
           key={blocked.code}
           className="reveal space-y-1 rounded-md border border-amber-700/40 bg-amber-950/20 p-2 text-[11px] leading-4 text-stone-300"
         >
-          <p>{blocked.reason}</p>
-          <p className="text-stone-400">{blocked.remedy}</p>
+          <p>{blockedReason}</p>
+          <p className="text-stone-400">{blockedRemedy}</p>
           {onOpenSettings ? (
             <button
               type="button"
@@ -225,7 +242,7 @@ function HandToDmButton({
               }}
               className="font-medium text-amber-300 underline decoration-amber-500/40 underline-offset-2 transition-colors hover:text-amber-100"
             >
-              Open Table settings
+              {t("campaign.session.party.handToGm.openSettings")}
             </button>
           ) : null}
         </div>
@@ -238,12 +255,12 @@ function HandToDmButton({
         aria-describedby={blocked ? whyId : undefined}
         title={
           blocked
-            ? blocked.reason
-            : "Make this character a party companion: the sheet and its progress stay, the GM plays it from here"
+            ? blockedReason
+            : t("campaign.session.party.handToGm.title", { name: sheet.name })
         }
         className="w-full justify-center"
       >
-        {state === "sending" ? null : <Bot className="size-3.5" />} Hand to the GM
+        {state === "sending" ? null : <Bot className="size-3.5" />} {t("campaign.session.party.handToGm.button")}
       </KitButton>
       {error ? (
         <p role="alert" className="motion-shake text-[11px] text-red-400">
@@ -295,7 +312,7 @@ function SaveToLibraryButton({ campaignId, sheetId }: { campaignId: string; shee
           t("campaign.session.party.saveToLibrary")
         ) : (
           <>
-            <Save className="size-3.5" /> Save to library
+            <Save className="size-3.5" /> {t("campaign.session.party.saveToLibrary")}
           </>
         )}
       </KitButton>
@@ -597,7 +614,7 @@ export function PartyPanel({
                   {lights[sheet.id] ? <LightBar light={lights[sheet.id]} /> : null}
                   {mine && myOwn.length > 1 && switchesHeroes(myOwn, multiCharacter) && (multiCharacter !== "off" || !heroFell(sheet)) ? (
                     mySheet?.id === sheet.id ? (
-                      <span className="eyebrow rounded-sm border border-amber-500/50 bg-amber-400/10 px-1 text-[9px] text-amber-300">playing</span>
+                      <span className="eyebrow rounded-sm border border-amber-500/50 bg-amber-400/10 px-1 text-[9px] text-amber-300">{t("campaign.session.party.playing")}</span>
                     ) : (
                       <span
                         role="button"
@@ -617,7 +634,7 @@ export function PartyPanel({
                         }}
                         className="eyebrow inline-flex cursor-pointer items-center rounded-sm border border-stone-600 px-1 text-[9px] text-stone-300 transition-colors duration-[var(--dur-quick,150ms)] hover:border-amber-500/60 hover:text-amber-200 aria-disabled:opacity-50 motion-press"
                       >
-                        Play as
+                        {t("campaign.session.party.playAs")}
                       </span>
                     )
                   ) : null}
@@ -812,11 +829,11 @@ export function PartyPanel({
             <div className="party-card-stats mt-2 grid grid-cols-3 gap-1.5 text-center">
               {(
                 [
-                  ["AC", String(shape ? shape.beastAc : sheet.ac)],
-                  ["PP", String(derived.passivePerception)],
-                  ["Init", formatModifier(derived.initiative)],
+                  ["AC", t("campaign.session.party.stats.ac"), String(shape ? shape.beastAc : sheet.ac)],
+                  ["PP", t("campaign.session.party.stats.pp"), String(derived.passivePerception)],
+                  ["Init", t("campaign.session.party.stats.init"), formatModifier(derived.initiative)],
                 ] as const
-              ).map(([statLabel, statValue]) => (
+              ).map(([statLabel, statTitle, statValue]) => (
                 <span
                   key={statLabel}
                   className={cn(
@@ -835,7 +852,7 @@ export function PartyPanel({
                       size="size-3.5"
                       className="mr-0.5 inline-block -translate-y-px align-middle"
                     />
-                    {statLabel}
+                    {statTitle}
                   </span>
                   <span className="font-mono text-xs text-stone-200">{statValue}</span>
                 </span>
@@ -864,7 +881,7 @@ export function PartyPanel({
                     title={t("campaign.session.party.exhaustionHint", { state: describeExhaustion(sheet.exhaustion ?? 0) })}
                   >
                     <GameIcon icon={{ kind: "glyph", key: "rest-exhaustion" }} size="size-4" />
-                    exhaustion {sheet.exhaustion}
+                    {t("campaign.session.party.exhaustion", { count: sheet.exhaustion })}
                   </span>
                 ) : null}
                 {sheet.conditions.map((condition) => {
@@ -889,7 +906,7 @@ export function PartyPanel({
                     title={t("campaign.session.party.inspirationHint")}
                   >
                     <GameIcon icon={{ kind: "glyph", key: "rest-inspiration" }} size="size-4" />
-                    Inspiration
+                    {t("campaign.session.party.inspiration")}
                   </span>
                 ) : null}
                 {sheet.concentratingOn ? (
@@ -911,7 +928,7 @@ export function PartyPanel({
                 title={t("campaign.session.party.levelUpReady")}
                 className="reveal mt-2 w-full justify-center"
               >
-                <Sparkles className="size-3.5" /> Level up to {levelUpLevel}
+                <Sparkles className="size-3.5" /> {t("campaign.session.party.levelUpTo", { level: levelUpLevel })}
               </KitButton>
             ) : null}
 
@@ -972,7 +989,7 @@ export function PartyPanel({
           {companionBuildAvailable ? (
             <KitButton tone="secondary" onClick={() => setBuildingCompanion(true)} title={t("campaign.session.party.buildCompanionHint")} className="w-full">
               <UserPlus className="size-3.5" />
-              Build a companion
+              {t("campaign.session.party.buildCompanion")}
             </KitButton>
           ) : null}
         </div>
@@ -1083,6 +1100,7 @@ export function PartyPanel({
 // player opened them to advances. The opt-in reaches only the owner and a
 // DM seat (src/lib/dm/sheet-view.ts), so nothing here shows it to anyone else.
 function RomanceNote({ sheet }: { sheet: CharacterSheet }) {
+  const { t } = useI18n();
   const drawn = attractionWords(sheet.attraction);
   // A hero who fell is courted by nobody (issue 657), so the chip goes.
   const open = livingHero(sheet) && Boolean(sheet.openToAdvances);
@@ -1093,7 +1111,7 @@ function RomanceNote({ sheet }: { sheet: CharacterSheet }) {
   }
   return (
     <p className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-stone-400" data-romance-note={sheet.id}>
-      {drawn ? <span>Drawn to {drawn}</span> : null}
+      {drawn ? <span>{t("campaign.session.party.drawnTo", { name: drawn })}</span> : null}
       {more ? <span data-open-relationship-note>{t("campaign.session.party.openToMore")}</span> : null}
       {open ? (
         <span className="rounded-full border border-rose-500/40 bg-rose-500/10 px-1.5 text-rose-200">{t("campaign.session.party.openToAdvances")}</span>
@@ -1103,6 +1121,7 @@ function RomanceNote({ sheet }: { sheet: CharacterSheet }) {
 }
 
 function LightBar({ light }: { light: { remaining: number; total: number } }) {
+  const { t } = useI18n();
   const fraction = light.total > 0 ? Math.max(0, Math.min(1, light.remaining / light.total)) : 0;
   const low = light.remaining <= 15;
   return (
