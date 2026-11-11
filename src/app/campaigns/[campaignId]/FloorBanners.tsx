@@ -122,7 +122,7 @@ export function FloorBanners({
                   })}
                 </>
               ) : (
-                <>{floor.currentName}&apos;s turn</>
+                <>{t("campaign.session.floor.playerTurn", { name: floor.currentName })}</>
               )}
           </span>
           {refusal ? (
