@@ -196,13 +196,13 @@ export function CharacterSheetDialog({
   });
   const speedNote = speedState.notes.length
     ? speedState.notes.map((note) => {
-        const base = note.match(/^Base (\\d+) ft, (\\d+) ft with what they wear and carry\\.$/);
+        const base = note.match(/^Base (\d+) ft, (\d+) ft with what they wear and carry\.$/);
         if (base) return t("charSheet.speed.worn", { base: base[1], worn: base[2] });
-        const zero = note.match(/^(.+): speed 0\\.$/);
+        const zero = note.match(/^(.+): speed 0\.$/);
         if (zero) return t("charSheet.speed.conditionZero", { condition: zero[1] });
-        const changed = note.match(/^Effects on them change it to (\\d+) ft\\.$/);
+        const changed = note.match(/^Effects on them change it to (\d+) ft\.$/);
         if (changed) return t("charSheet.speed.changed", { speed: changed[1] });
-        const tired = note.match(/^Exhaustion (\\d+): (speed 0|speed halved)\\.$/);
+        const tired = note.match(/^Exhaustion (\d+): (speed 0|speed halved)\.$/);
         if (tired) return t("charSheet.speed.exhaustion", {
           level: tired[1],
           effect: t(tired[2] === "speed 0" ? "charSheet.speed.zero" : "charSheet.speed.halved"),
