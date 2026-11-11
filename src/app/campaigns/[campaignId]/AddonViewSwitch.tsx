@@ -2,6 +2,7 @@
 
 import { SlidersHorizontal } from "lucide-react";
 import { useCallback, useEffect, useState, useSyncExternalStore, type CSSProperties } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { AddonFields, type FieldValues } from "@/components/addons/AddonFields";
 import { Dialog } from "@/components/ui/Dialog";
 import type { OfferedBoardView } from "@/lib/addons/offered";
@@ -134,16 +135,17 @@ export function AddonViewSwitch({
   stored?: StoredOptions;
   onOption?: (viewKey: string, key: string, value: string | number | boolean) => void;
 }) {
+  const { t } = useI18n();
   const [optionsOpen, setOptionsOpen] = useState(false);
   if (!views.length) return null;
   const active = views.find((view) => boardViewKey(view) === value) ?? null;
-  const options = [{ key: "", label: "Board", hint: "The built-in board" }, ...views.map((view) => ({ key: boardViewKey(view), label: view.title, hint: `${view.description || view.title}, from ${view.addonName}` }))];
+  const options = [{ key: "", label: t("campaign.addonViewSwitch.board"), hint: t("campaign.addonViewSwitch.builtIn") }, ...views.map((view) => ({ key: boardViewKey(view), label: view.title, hint: t("campaign.addonViewSwitch.viewHint", { description: view.description || view.title, addon: view.addonName }) }))];
   // Shaped like the Move pills beside it (BoardMoveModes.tsx), in the board
   // chrome's fixed colours: the board stays dark in the day theme, where the
   // amber scale turns dark brown and would vanish here.
   return (
-    <div className="flex flex-wrap items-center gap-1.5" role="radiogroup" aria-label="How the board is drawn" data-pill-group="">
-      <span className="text-[10px] uppercase tracking-[0.18em] text-[#8a86a6]">View</span>
+    <div className="flex flex-wrap items-center gap-1.5" role="radiogroup" aria-label={t("campaign.addonViewSwitch.aria")} data-pill-group="">
+      <span className="text-[10px] uppercase tracking-[0.18em] text-[#8a86a6]">{t("campaign.addonViewSwitch.view")}</span>
       {options.map((option, index) => {
         const on = value === option.key;
         return (
@@ -172,16 +174,16 @@ export function AddonViewSwitch({
           <button
             type="button"
             onClick={() => setOptionsOpen(true)}
-            aria-label={`${active.title} options`}
-            title={`${active.title} options`}
+            aria-label={t("campaign.addonViewSwitch.optionsFor", { title: active.title })}
+            title={t("campaign.addonViewSwitch.optionsFor", { title: active.title })}
             className="motion-press inline-flex min-h-8 items-center gap-1 rounded-full border border-[rgba(107,99,148,0.5)] px-2.5 text-[11px] text-[#aeaac6] hover:border-[rgba(212,171,58,0.6)] hover:text-[#e9e6f4]"
           >
             <SlidersHorizontal className="size-3.5" aria-hidden="true" />
-            Options
+            {t("campaign.addonViewSwitch.options")}
           </button>
-          <Dialog open={optionsOpen} onOpenChange={setOptionsOpen} title={`${active.title} options`}>
+          <Dialog open={optionsOpen} onOpenChange={setOptionsOpen} title={t("campaign.addonViewSwitch.optionsFor", { title: active.title })}>
             <p className="mb-3 text-xs leading-5 text-stone-400">
-              For this device only, from {active.addonName}. They change how the board is drawn here, nothing else.
+              {t("campaign.addonViewSwitch.deviceNote", { addon: active.addonName })}
             </p>
             <AddonFields
               idPrefix={`view-${active.addonId}-${active.id}`}
