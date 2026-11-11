@@ -2738,4 +2738,5 @@ export const ruCampaignPanels: Partial<Record<keyof typeof enCampaignPanels, str
   "campaign.storyboard.prose.longRun.few": "Обнаружено {count} фрагмента длиной от {letters} букв без пробелов.",
   "campaign.storyboard.prose.longRun.many": "Обнаружено {count} фрагментов длиной от {letters} букв без пробелов.",
   "campaign.storyboard.prose.longRun.other": "Обнаружено {count} фрагмента длиной от {letters} букв без пробелов.",
+  "campaign.storyboard.delete": "Удалить",
 };
