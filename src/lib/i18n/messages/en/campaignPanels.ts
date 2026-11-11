@@ -3296,4 +3296,6 @@ export const enCampaignPanels = {
   "campaign.session.encounter.forceEndConfirm": "Force-end it without XP instead?",
 
   "campaign.session.roll.and": "and",
+
+  "campaign.session.roll.rollDigital": "Roll digitally",
 } satisfies Record<string, string>;
