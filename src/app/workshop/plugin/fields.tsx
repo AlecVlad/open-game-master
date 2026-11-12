@@ -192,6 +192,7 @@ export function ChipList({
   options,
   prompt,
   labelFor,
+  removeLabelFor,
   max = 60,
 }: {
   items: string[];
@@ -201,6 +202,7 @@ export function ChipList({
   options?: readonly AddOption[];
   prompt?: string;
   labelFor?: (value: string) => string;
+  removeLabelFor?: (label: string) => string;
   max?: number;
 }) {
   const [typed, setTyped] = useState("");
@@ -228,7 +230,7 @@ export function ChipList({
             <button
               type="button"
               onClick={() => onChange(items.filter((current) => current !== item))}
-              aria-label={`Remove ${item}`}
+              aria-label={removeLabelFor ? removeLabelFor(labelFor ? labelFor(item) : item) : `Remove ${item}`}
               className={cn(ui.iconAction, "tap-reach rounded-full p-1 opacity-100 hover:text-red-300")}
             >
               <X className="size-3" />
