@@ -182,7 +182,7 @@ export function OwedPicksFields({
                   >
                     {subclassName(entry.classId, option, t)}
                   </button>
-                  <InfoButton label={option} text={subclassBlurb(entry.classId, option) || undefined} />
+                  <InfoButton label={subclassName(entry.classId, option, t)} text={subclassBlurb(entry.classId, option) || undefined} />
                 </div>
               );
             })}
@@ -262,7 +262,7 @@ export function OwedPicksFields({
                   className={chip(picked)}
                   onClick={() => onChange({ ...draft, expertise: toggle(draft.expertise, id, owed.expertise.count) })}
                 >
-                  {skillName(id)}
+                  {skillName(id, t)}
                 </button>
               );
             })}
