@@ -3080,4 +3080,10 @@ export const ruWorkshop: Partial<Record<keyof typeof enWorkshop, string>> = {
   "workshop.maps.forge.historyEmptyLabel": "сиды не жалко",
   "workshop.maps.forge.historyEmpty": "Новые результаты будут появляться здесь. Нажмите на любой, чтобы восстановить его: достаточно сохранить сид, поэтому удачная генерация не потеряется.",
   "workshop.maps.forge.historyTileTitle": "Сид {seed}: {width} × {height}, {theme}",
+  "workshop.maps.forge.explain.themeOverride": "Вы выбрали тему «{theme}» вручную, поэтому тип местности не влияет на рельеф.",
+  "workshop.maps.forge.explain.sceneTheme": "Сражение в локации «{scene}» проходит на местности типа «{theme}».",
+  "workshop.maps.forge.explain.openGround": "Тип местности не задан, поэтому используется открытая местность.",
+  "workshop.maps.forge.explain.setLight": "Вы задали освещение: {light}.",
+  "workshop.maps.forge.explain.defaultLight": "Используется освещение, характерное для темы «{theme}».",
+  "workshop.maps.forge.explain.roughGround": "Локация «{scene}» добавляет участки труднопроходимой местности.",
 };
