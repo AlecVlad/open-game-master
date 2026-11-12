@@ -64,6 +64,16 @@ for (const lang of LANGS) {
   }
 }
 
+const tableViewMessages = [
+  "campaign.tableView.error.memberOnly",
+  "campaign.tableView.backToCampaigns",
+  "campaign.tableView.backToTable",
+];
+for (const key of tableViewMessages) {
+  assert.ok(key in DICTIONARIES.en, `English table-view message missing: ${key}`);
+  assert.ok(key in DICTIONARIES.ru, `Russian table-view message missing: ${key}`);
+}
+
 // Party backstory: every fixed label, state and known API refusal has both language forms.
 const partyBackstoryMessages = [
   "campaign.session.party.backstory.title",
