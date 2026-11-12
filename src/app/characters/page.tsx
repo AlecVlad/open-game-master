@@ -20,6 +20,7 @@ import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui";
 import { navigateTo } from "@/lib/navigation";
 import { useI18n } from "@/lib/i18n/provider";
+import { characterBackgroundName, characterClassName, characterRaceName, characterSubclassName } from "@/lib/i18n/character-names";
 import { prefersReducedMotion, useLowEffects } from "@/lib/effects-mode";
 import { PortraitToast, RosterPortraitSlot, RosterPortraitStatus } from "@/app/characters/RosterPortrait";
 import {
@@ -68,9 +69,6 @@ const PORTRAIT_POLL_LIMIT = 240;
 
 import { classWordsAfterLevel } from "@/lib/characters/class-words";
 
-function titleCase(value: string) {
-  return value.replace(/[-_]/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
-}
 
 export default function CharactersPage() {
   const i18n = useI18n();
@@ -517,19 +515,20 @@ function CharacterCard({
             <span className="inline-flex rounded-full border border-amber-500/30 bg-amber-400/10 px-2 py-0.5 text-[11px] text-amber-200">
               {t("characters.level", {
                 level: character.level,
-                classes: classWordsAfterLevel({ ...character, classes: character.sheet?.classes }, (id) =>
-                  id === character.class ? (character.className ?? titleCase(id)) : titleCase(id),
+                classes: classWordsAfterLevel(
+                  { ...character, classes: character.sheet?.classes },
+                  (id) => characterClassName(id, t, id === character.class ? character.className : undefined),
                 ),
               })}
             </span>
           </div>
         </div>
         <p className="mt-2 text-sm text-stone-400">
-          {character.raceLabel ?? titleCase(character.race)}
-          {character.subclass ? ` (${character.subclass})` : ""}
+          {characterRaceName(character.race, character.raceLabel, t)}
+          {character.subclass ? ` (${characterSubclassName(character.class, character.subclass, t)})` : ""}
         </p>
         {character.background ? (
-          <p className="reveal text-xs text-stone-500">{character.backgroundLabel ?? titleCase(character.background)}</p>
+          <p className="reveal text-xs text-stone-500">{characterBackgroundName(character.background, character.backgroundLabel, t)}</p>
         ) : null}
       </Link>
       <RosterPortraitStatus
