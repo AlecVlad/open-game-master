@@ -389,7 +389,7 @@ function ExtraClassCard({
                   label={label}
                   selected={selected}
                   disabled={taken}
-                  info={{ text: taken ? t("builder.multi.skill.alreadyYours", { skill: label }) : describeSkill(skillId) }}
+                  info={{ text: taken ? t("builder.multi.skill.alreadyYours", { skill: label }) : skill ? t("builder.multi.skill.info", { skill: label, ability: t(ABILITY_KEYS[skill.ability] as never) }) : describeSkill(skillId) }}
                   onClick={() => {
                     const count = grant.skillChoice?.count ?? 1;
                     const next = selected
