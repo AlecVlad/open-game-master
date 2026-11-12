@@ -9,6 +9,7 @@ import { transcribesVoice, useCapabilities } from "@/lib/use-capabilities";
 import { roomCodeRefused } from "@/lib/shell-host";
 import { useShellShare } from "@/lib/use-shell-share";
 import { useI18n } from "@/lib/i18n/provider";
+import { campaignApiErrorText } from "@/lib/i18n/campaignApiError";
 import { ScheduleSection } from "@/components/ScheduleSection";
 import { ui } from "@/lib/ui";
 import { GameSettingsPanel } from "@/app/campaigns/[campaignId]/GameSettingsPanel";
@@ -165,7 +166,7 @@ export function Lobby({
       });
       if (!response.ok) {
         const result = await response.json().catch(() => ({}));
-        setError(result.error || t("campaign.lobby.error.selectCharacter"));
+        setError(campaignApiErrorText(result, t("campaign.lobby.error.selectCharacter"), t));
       } else refresh();
     } catch {
       setError(t("campaign.lobby.error.server"));
@@ -248,7 +249,7 @@ export function Lobby({
       });
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        setStorySetupError(data.error || t("campaign.lobby.error.changeSetting"));
+        setStorySetupError(campaignApiErrorText(data, t("campaign.lobby.error.changeSetting"), t));
       }
     } catch {
       setStorySetupError(t("campaign.lobby.error.server"));
@@ -306,7 +307,7 @@ export function Lobby({
       });
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        setError(data.error || t("campaign.lobby.error.changeReady"));
+        setError(campaignApiErrorText(data, t("campaign.lobby.error.changeReady"), t));
         return false;
       }
       return true;
@@ -331,7 +332,7 @@ export function Lobby({
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError(data.error || failure);
+        setError(campaignApiErrorText(data, failure, t));
         return;
       }
       refresh();
@@ -380,7 +381,7 @@ export function Lobby({
       });
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        setSeatError(data.error || t("campaign.lobby.error.moveSeat"));
+        setSeatError(campaignApiErrorText(data, t("campaign.lobby.error.moveSeat"), t));
         return;
       }
       setSeatVersion((version) => version + 1);
@@ -414,7 +415,7 @@ export function Lobby({
       const response = await fetch(`/api/campaigns/${campaign!.id}/sheet`, { method: "DELETE" });
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        setError(data.error || t("campaign.lobby.error.removeCharacter"));
+        setError(campaignApiErrorText(data, t("campaign.lobby.error.removeCharacter"), t));
       }
     } catch {
       setError(t("campaign.lobby.error.server"));
@@ -433,7 +434,7 @@ export function Lobby({
       );
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        setError(data.error || t("campaign.lobby.error.removeCompanion"));
+        setError(campaignApiErrorText(data, t("campaign.lobby.error.removeCompanion"), t));
       }
     } catch {
       setError(t("campaign.lobby.error.server"));
@@ -454,7 +455,7 @@ export function Lobby({
       const response = await fetch(`/api/campaigns/${campaign!.id}`, { method: "DELETE" });
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        setError(data.error || t("campaign.lobby.error.deleteCampaign"));
+        setError(campaignApiErrorText(data, t("campaign.lobby.error.deleteCampaign"), t));
         return;
       }
       navigateTo("/");
