@@ -3030,4 +3030,6 @@ export const enWorkshop = {
   "workshop.maps.addon.building": "Building",
   "workshop.maps.addon.stop": "Stop it",
   "workshop.maps.addon.build": "Build it",
+  "workshop.maps.forge.previewEmpty.library": "Name the place, then roll it. It draws itself in here.",
+  "workshop.maps.forge.previewEmpty.studio": "Roll, and the place draws itself in here.",
 } satisfies Record<string, string>;
