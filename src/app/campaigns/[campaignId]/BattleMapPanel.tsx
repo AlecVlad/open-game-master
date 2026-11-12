@@ -52,9 +52,9 @@ import type { TableLanguage } from "@/lib/schemas/game-settings-options";
 import { useAreaAim } from "@/app/campaigns/[campaignId]/BoardAreaAim";
 import { BoardMoveNotes, useMoveNotes } from "@/app/campaigns/[campaignId]/BoardMoveNotes";
 import type { FxEvent } from "@/lib/battlemap/fx-plan";
-import { TEMPLATE_SHAPES, SHAPE_LABELS, type TemplateShape } from "@/lib/battlemap/template";
+import { TEMPLATE_SHAPES, type TemplateShape } from "@/lib/battlemap/template";
 import type { AdhocTokenKind } from "@/lib/battlemap/types";
-import { ADHOC_LABELS, ADHOC_NAME_MAX, type MapPing } from "@/lib/dm/board-logic";
+import { ADHOC_NAME_MAX, type MapPing } from "@/lib/dm/board-logic";
 import { ENTRY_NAME_MAX, MIN_INITIATIVE, MAX_INITIATIVE } from "@/lib/dm/initiative-edit";
 import { extraTurnTag } from "@/lib/battlemap/initiative-rows";
 import { offSide, sideWords } from "@/app/campaigns/[campaignId]/SideBadge";
@@ -109,6 +109,18 @@ import { HAND_AIM_EVENT, HAND_TARGET_EVENT, HAND_BOARD_ACTION_EVENT, HAND_BOARD_
 
 // A ping is a moment, not a state: it fades on its own.
 const PING_MS = 2600;
+
+const ADHOC_LABEL_KEYS: Record<AdhocTokenKind, string> = {
+  npc: "campaign.session.battle.dmToken.person",
+  prop: "campaign.session.battle.dmToken.object",
+};
+
+const TEMPLATE_SHAPE_LABEL_KEYS: Record<TemplateShape, string> = {
+  sphere: "campaign.session.battle.dmTemplate.sphere",
+  cone: "campaign.session.battle.dmTemplate.cone",
+  line: "campaign.session.battle.dmTemplate.line",
+  cube: "campaign.session.battle.dmTemplate.cube",
+};
 
 const DRAWING_KIND_LABEL_KEYS: Record<DrawingKind, string> = {
   stroke: "campaign.session.battle.drawKind.stroke",
@@ -1144,9 +1156,9 @@ export function BattleMapPanel({
     choose("view", t("campaign.session.battle.boardView"), addonView ? boardViewKey(addonView) : "", [option("", t("campaign.session.battle.nativeBoard")), ...offeredViews.map(entry => option(boardViewKey(entry), entry.title))]),
     ...(meUserId && multiCharacter !== "off" && sheets.filter(sheet => sheet.userId === meUserId && !sheet.isCompanion).length > 1 ? [choose("play-as", t("campaign.session.battle.playingAs"), playingSheet(sheets, meUserId, activeSheetId)?.id ?? "", sheets.filter(sheet => sheet.userId === meUserId && !sheet.isCompanion).map(sheet => option(sheet.id, sheet.name)))] : []),
     ...(canDirect ? [choose("tool", t("campaign.session.battle.tool"), tool, [option("handle", t("campaign.session.battle.movePieces")), option("place", t("campaign.session.battle.placeSomething")), option("measure", t("campaign.session.battle.measureArea")), option("point", t("campaign.session.battle.pointTile")), ...(canDraw ? [option("draw", t("campaign.session.battle.drawBoard"))] : [])])] : [{ id: "point" as const, label: t("campaign.session.battle.pointToggle", { state: pointing ? t("campaign.session.battle.on") : t("campaign.session.battle.off") }), disabled: null }, ...(canDraw ? [{ id: "draw" as const, label: t("campaign.session.battle.drawToggle", { state: drawing ? t("campaign.session.battle.on") : t("campaign.session.battle.off") }), disabled: null }] : [])]),
-    ...(canDirect && tool === "place" ? [choose("place-kind", t("campaign.session.battle.place"), placeKind, Object.entries(ADHOC_LABELS).map(([value, label]) => option(value, label))), { id: "place-name" as const, label: t("campaign.session.battle.name"), disabled: null, input: { value: placeName } }] : []),
-    ...(canDirect && tool === "measure" ? [choose("measure-shape", t("campaign.session.battle.shape"), shape, TEMPLATE_SHAPES.map(value => option(value, SHAPE_LABELS[value]))), choose("measure-size", measurementSystem === "si" ? t("campaign.session.battle.sizeMetres") : t("campaign.session.battle.sizeFeet"), String(sizeFeet), Array.from({ length: 12 }, (_, index) => option(String((index + 1) * 5), formatFeet((index + 1) * 5, measurementSystem, tableLanguage)))), { id: "measure-clear" as const, label: t("campaign.session.battle.clearMeasure"), disabled: null }, ...(liveMeasure?.caught.some(entry => entry.enemyId) ? [{ id: "measure-copy" as const, label: t("campaign.session.battle.copyEnemyIds"), disabled: null }] : [])] : []),
-    ...(drawActive && canDraw ? [choose("draw-kind", t("campaign.session.battle.mark"), drawKind, DRAWING_KINDS.map(value => option(value))), choose("draw-tone", t("campaign.session.battle.ink"), drawTone, DRAWING_TONES.map(value => option(value))), { id: "draw-ttl" as const, label: t("campaign.session.battle.fadesNextRound", { state: drawTtl ? t("campaign.session.battle.yes") : t("campaign.session.battle.no") }), disabled: null }, { id: "draw-erase" as const, label: canDirect ? t("campaign.session.battle.clearAllMarks") : t("campaign.session.battle.eraseOwnMarks"), disabled: null }] : []), closePanel,
+    ...(canDirect && tool === "place" ? [choose("place-kind", t("campaign.session.battle.place"), placeKind, Object.keys(ADHOC_LABEL_KEYS).map((value) => option(value, t(ADHOC_LABEL_KEYS[value as AdhocTokenKind] as never)))), { id: "place-name" as const, label: t("campaign.session.battle.name"), disabled: null, input: { value: placeName } }] : []),
+    ...(canDirect && tool === "measure" ? [choose("measure-shape", t("campaign.session.battle.shape"), shape, TEMPLATE_SHAPES.map(value => option(value, t(TEMPLATE_SHAPE_LABEL_KEYS[value] as never)))), choose("measure-size", measurementSystem === "si" ? t("campaign.session.battle.sizeMetres") : t("campaign.session.battle.sizeFeet"), String(sizeFeet), Array.from({ length: 12 }, (_, index) => option(String((index + 1) * 5), formatFeet((index + 1) * 5, measurementSystem, tableLanguage)))), { id: "measure-clear" as const, label: t("campaign.session.battle.clearMeasure"), disabled: null }, ...(liveMeasure?.caught.some(entry => entry.enemyId) ? [{ id: "measure-copy" as const, label: t("campaign.session.battle.copyEnemyIds"), disabled: null }] : [])] : []),
+    ...(drawActive && canDraw ? [choose("draw-kind", t("campaign.session.battle.mark"), drawKind, DRAWING_KINDS.map(value => option(value, t(DRAWING_KIND_LABEL_KEYS[value] as never)))), choose("draw-tone", t("campaign.session.battle.ink"), drawTone, DRAWING_TONES.map(value => option(value, t(DRAWING_TONE_LABEL_KEYS[value] as never)))), { id: "draw-ttl" as const, label: t("campaign.session.battle.fadesNextRound", { state: drawTtl ? t("campaign.session.battle.yes") : t("campaign.session.battle.no") }), disabled: null }, { id: "draw-erase" as const, label: canDirect ? t("campaign.session.battle.clearAllMarks") : t("campaign.session.battle.eraseOwnMarks"), disabled: null }] : []), closePanel,
   ] };
   const orderKey = JSON.stringify([campaignId, view.mapId, encounter?.order, encounter?.turnIndex, view.round]);
   const confirmation = orderConfirm?.key === orderKey ? orderConfirm : null;
