@@ -3007,4 +3007,10 @@ export const enWorkshop = {
   "workshop.maps.forge.historyEmptyLabel": "seeds are cheap",
   "workshop.maps.forge.historyEmpty": "Roll a few and they stack up here. Tap one to bring it back: the seed is all it takes, so nothing you liked is ever a re-roll away from being lost.",
   "workshop.maps.forge.historyTileTitle": "Seed {seed}: {width} by {height}, {theme}",
+  "workshop.maps.forge.explain.themeOverride": "You chose {theme} yourself, so the kind of place does not determine the ground.",
+  "workshop.maps.forge.explain.sceneTheme": "{scene} is fought on {theme}.",
+  "workshop.maps.forge.explain.openGround": "No kind of place is set, so the map uses open ground.",
+  "workshop.maps.forge.explain.setLight": "You set the light to {light}.",
+  "workshop.maps.forge.explain.defaultLight": "The light is set to what {theme} usually has.",
+  "workshop.maps.forge.explain.roughGround": "{scene} scatters rough ground.",
 } satisfies Record<string, string>;
