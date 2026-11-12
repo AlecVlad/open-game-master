@@ -9,6 +9,7 @@ import { bugReportUrl } from "@/lib/report-setup";
 import { saveReportFile, withShellFacts, type ReportSaved } from "@/lib/shell-report";
 import { ui } from "@/lib/ui";
 import { useT } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages/index";
 
 // "Report a problem" (issue #459), for the server's admin: they pick what
 // goes in the report file, save it to this device, and the bug report form
@@ -21,6 +22,36 @@ import { useT } from "@/lib/i18n/provider";
 // decides which tick boxes are offered and checks them again when it builds
 // the file (src/lib/report-bundle.ts); the page's own errors and the app's
 // facts are added here.
+type ReportCheckFirstItem = { code: string; params?: Record<string, string | number> };
+
+const REPORT_CHECK_FIRST_KEYS: Record<string, MessageKey> = {
+  UPDATE_AVAILABLE: "report.checkFirst.updateAvailable",
+  NO_NARRATOR_FOR_MODE: "report.checkFirst.noNarrator",
+  BACKEND_NEEDS_KEY: "report.checkFirst.backendNeedsKey",
+  BACKEND_UNREACHABLE: "report.checkFirst.backendUnreachable",
+  MODEL_NOT_CHOSEN: "report.checkFirst.modelMissing",
+  MODEL_WARNING: "report.checkFirst.modelWarning",
+  BACKEND_TEST_FAILED: "report.checkFirst.backendTestFailed",
+  NARRATOR_BACKEND_ADDRESS_MISSING: "report.checkFirst.narratorAddressMissing",
+  NARRATOR_OLLAMA_COMPAT_WINDOW: "report.checkFirst.ollamaCompatWindow",
+  NARRATOR_WINDOW_ASSUMED: "report.checkFirst.windowAssumed",
+  NARRATOR_WINDOW_SHORT: "report.checkFirst.windowShort",
+  NARRATOR_WINDOW_NO_FIGHTS: "report.checkFirst.windowNoFights",
+  NARRATOR_WINDOW_TIGHT: "report.checkFirst.windowTight",
+  MODEL_TOO_SMALL: "report.checkFirst.modelTooSmall",
+  LOCAL_NARRATOR_MEMORY_LOW: "report.checkFirst.localMemoryLow",
+  AGENT_NOT_CONFIGURED: "report.checkFirst.agentNotConfigured",
+  AGENT_UNAVAILABLE: "report.checkFirst.agentUnavailable",
+  AGENT_NOT_INSTALLED: "report.checkFirst.agentNotInstalled",
+  AGENT_SIGNED_OUT: "report.checkFirst.agentSignedOut",
+  PICTURE_MODEL_MISSING: "report.checkFirst.pictureModelMissing",
+  PICTURE_BACKEND_UNREACHABLE: "report.checkFirst.pictureBackendUnreachable",
+  NARRATION_MODEL_MISSING: "report.checkFirst.narrationModelMissing",
+  NARRATION_SERVER_UNREACHABLE: "report.checkFirst.narrationServerUnreachable",
+  DICTATION_MODEL_MISSING: "report.checkFirst.dictationModelMissing",
+  UNKNOWN: "report.checkFirst.unknown",
+};
+
 const REPORT_PART_KEYS = {
   setup: ["report.part.setup.label", "report.part.setup.hint"],
   pageErrors: ["report.part.pageErrors.label", "report.part.pageErrors.hint"],
@@ -49,13 +80,14 @@ export function ReportProblemDialog({
   const [formUrl, setFormUrl] = useState(() => bugReportUrl());
   // What the server found in its setup to check first, shown before saving.
   const [checkFirst, setCheckFirst] = useState<string[]>([]);
+  const [checkFirstItems, setCheckFirstItems] = useState<ReportCheckFirstItem[]>([]);
 
   useEffect(() => {
     if (!open) return;
     let live = true;
     void fetch(endpoint, { cache: "no-store" })
       .then(async (response) => {
-        const data = (await response.json().catch(() => ({}))) as { parts?: OfferedPart[]; checkFirst?: string[]; error?: string };
+        const data = (await response.json().catch(() => ({}))) as { parts?: OfferedPart[]; checkFirst?: string[]; checkFirstItems?: ReportCheckFirstItem[]; error?: string };
         if (!live) return;
         if (!response.ok || !Array.isArray(data.parts)) {
           setError(t("report.error.options"));
@@ -64,6 +96,7 @@ export function ReportProblemDialog({
         setParts(data.parts);
         setTicked(Object.fromEntries(data.parts.map((part) => [part.id, part.defaultOn])));
         setCheckFirst(Array.isArray(data.checkFirst) ? data.checkFirst.filter((line) => typeof line === "string") : []);
+        setCheckFirstItems(Array.isArray(data.checkFirstItems) ? data.checkFirstItems.filter((item) => item && typeof item.code === "string") : []);
       })
       .catch(() => live && setError(t("report.error.options")));
     return () => {
@@ -153,9 +186,15 @@ export function ReportProblemDialog({
                 {t("report.checkFirst.title")}
               </p>
               <ul className="mt-1 list-disc space-y-1 pl-5 text-amber-100/90">
-                {checkFirst.map((line) => (
-                  <li key={line}>{line}</li>
-                ))}
+                {checkFirstItems.length
+                  ? checkFirstItems.map((item, index) => (
+                      <li key={index}>
+                        {t(REPORT_CHECK_FIRST_KEYS[item.code] ?? REPORT_CHECK_FIRST_KEYS.UNKNOWN, item.params)}
+                      </li>
+                    ))
+                  : checkFirst.map((line) => (
+                      <li key={line}>{line}</li>
+                    ))}
               </ul>
               <p className="mt-1.5 text-xs text-amber-200/80">
                 {t("report.checkFirst.hint")}
