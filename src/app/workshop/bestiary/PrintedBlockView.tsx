@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { BookOpen, ChevronDown } from "lucide-react";
 import { ui } from "@/lib/ui";
 import { RulebookDialog } from "@/components/rulebook/RulebookDialog";
@@ -24,6 +25,7 @@ const SECTIONS: Array<{ key: keyof Omit<PrintedBlock, "legendaryDesc" | "source"
 ];
 
 function AbilityRow({ ability }: { ability: PrintedAbility }) {
+  const { t } = useI18n();
   return (
     <li className="space-y-0.5">
       <p className="flex flex-wrap items-baseline gap-x-2">
