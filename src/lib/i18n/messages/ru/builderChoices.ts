@@ -59,6 +59,7 @@ export const ruBuilderChoices: Partial<Record<keyof typeof enBuilderChoices, str
   "builder.background.group.all": "Все предыстории",
   "builder.background.group.livesIn": "Жители мира: {name}",
   "builder.background.group.standard": "Стандартные предыстории (основные правила D&D 5e)",
+  "builder.background.featureLabel": "Особенность",
   "builder.subclass.group.fromHomebrew": "Из домашнего контента",
   "builder.subclass.group.fromPack": "Из пакета контента",
 };
