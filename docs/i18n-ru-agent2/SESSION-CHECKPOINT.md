@@ -233,5 +233,14 @@ Continue the Atlas audit with `AtlasRegion.tsx`, `AtlasEdit.tsx`, `AtlasParty.ts
 - Static verification: 308 `campaign.gameSettings.*` entries have exact EN/RU key parity; no duplicates; all matching placeholders agree; all direct group-summary message references resolve; no remaining obvious hardcoded English UI candidates in `GameSettingsGroups.tsx`; unused reroll and world-preset imports were removed.
 - TypeScript, lint, tests, production build and browser visual checks were not run. Preserve the Remote Desktop prerequisite above.
 
+## Character builder — ability, feat and racial cantrip controls — 12 November 2026
+- `AbilityEditor.tsx`: the ability-score heading now uses the existing translated `builder.extra.ability.title` key.
+- `FeatChoicesFields.tsx`: localized all seven placeholder labels (language, weapon, damage type, spell list, spellcasting ability, armor training and tool) using the existing EN/RU builder messages.
+- `RacialCantripPicker.tsx`: localized the bonus-cantrip heading, selected-count status, help text, catalog button/section, search label and placeholder. Reused existing pluralized `builder.extra.lineage.choice.cantrip` messages for the count/list phrase; removed the English-only number word helper. Spell list IDs and spell names remain unchanged.
+- `KitChoicesSection.tsx`: localized the starting-kit armor class caption.
+- Added 7 EN/RU messages under `builder.racialCantrip.*` and `builder.kit.*`. Static checks: all direct refs resolve, no duplicate keys, and placeholders match.
+- `EquipmentSection.tsx` already maps catalog shelf categories through existing translated `builder.gear.shelf.*` keys; no code change was needed there.
+- TypeScript, lint, tests, production build and browser visual checks were not run. Preserve the Remote Desktop prerequisite above.
+
 ## Resume
 The WorldForge component pass is complete across all 29 files in `src/app/workshop/world/`: core views, Atlas, timeline, secrets, wiki, Ask, outline generation, paint queue, relationship graph/editor, type manager, bound records, play fields and shared pickers. Continue with the broader app-level localization audit outside this folder and fix any remaining visible English UI. Verify branch HEAD before editing. Do not run TypeScript/build/lint/tests until Remote Desktop access is available. Block 1 remains formally open; do not merge, open a PR or create its DONE flag.
