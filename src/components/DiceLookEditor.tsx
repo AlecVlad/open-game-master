@@ -9,6 +9,8 @@ import { SectionHead } from "@/components/ui/SectionHead";
 import { Select } from "@/components/ui/Select";
 import { ui } from "@/lib/ui";
 import { cn } from "@/lib/cn";
+import { useT } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages/index";
 import {
   DEFAULT_DICE_LOOK,
   DICE_LOOK_PRESETS,
@@ -47,6 +49,7 @@ let previewCounter = 0;
 // changes. One WebGL context for the dialog's lifetime, torn down on close
 // (Firefox caps live contexts, see DiceOverlay).
 function DiceLookPreview({ look }: { look: DiceLook }) {
+  const t = useT();
   const [id] = useState(() => `dice-look-preview-${++previewCounter}`);
   const hostRef = useRef<HTMLDivElement | null>(null);
   const boxRef = useRef<PreviewBox | null>(null);
@@ -136,7 +139,7 @@ function DiceLookPreview({ look }: { look: DiceLook }) {
       ) : null}
       {state === "failed" ? (
         <div className="absolute inset-0 flex items-center justify-center px-4 text-center text-xs text-stone-500">
-          The 3D preview needs WebGL. Your choices still apply at the table.
+          {t("diceLook.preview.webgl")}
         </div>
       ) : null}
     </div>
@@ -204,6 +207,7 @@ function Swatch({ look, className }: { look: DiceLook; className?: string }) {
 // The editor proper. Mounted on the account settings page and inside the
 // table's dice dialog; both draw the preview.
 export function DiceLookEditor({ className }: { className?: string }) {
+  const t = useT();
   const look = useDiceLook();
   useEffect(() => {
     hydrateDiceLook();
@@ -219,17 +223,18 @@ export function DiceLookEditor({ className }: { className?: string }) {
       <DiceLookPreview look={look} />
 
       <div>
-        <SectionHead title="Start from" glyph="tab-dice" level="h4" />
+        <SectionHead title={t("diceLook.startFrom")} glyph="tab-dice" level="h4" />
         <div data-pill-group="" className="stagger-pop flex flex-wrap gap-1.5">
           {DICE_LOOK_PRESETS.map((preset) => {
             const active = sameDiceLook(preset.look, look);
+            const name = t(`diceLook.preset.${preset.id}` as MessageKey);
             return (
               <button
                 key={preset.id}
                 type="button"
                 onClick={() => writeDiceLook(preset.look)}
-                title={preset.label}
-                aria-label={`${preset.label} dice`}
+                title={name}
+                aria-label={t("diceLook.preset.aria", { name })}
                 aria-pressed={active}
                 data-on={active ? "" : undefined}
                 className={cn(
@@ -240,7 +245,7 @@ export function DiceLookEditor({ className }: { className?: string }) {
                 )}
               >
                 <Swatch look={preset.look} className="size-6" />
-                {preset.label}
+                {name}
               </button>
             );
           })}
@@ -249,47 +254,47 @@ export function DiceLookEditor({ className }: { className?: string }) {
 
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="space-y-3">
-          <ColorField label="Die colour" value={look.face} onChange={(face) => set({ face })} />
+          <ColorField label={t("diceLook.color.face")} value={look.face} onChange={(face) => set({ face })} />
           <ColorField
-            label="Number colour"
+            label={t("diceLook.color.numbers")}
             value={look.numbers}
             onChange={(numbers) => set({ numbers })}
           />
           <div className="flex items-center justify-between gap-3">
-            <span className={LABEL}>Number outline</span>
+            <span className={LABEL}>{t("diceLook.outline.label")}</span>
             <span className="flex items-center gap-2">
               {outlined ? (
                 <input
                   type="color"
                   value={look.outline}
                   onChange={(event) => set({ outline: event.target.value.toUpperCase() })}
-                  aria-label="Outline colour"
+                  aria-label={t("diceLook.outline.aria")}
                   className="reveal-pop h-8 w-12 cursor-pointer rounded-md border border-stone-700 bg-stone-900 p-0.5"
                 />
               ) : null}
-              <Switch on={outlined} onChange={(next) => set({ outline: next ? "#000000" : "" })} label="Outline the numbers" />
+              <Switch on={outlined} onChange={(next) => set({ outline: next ? "#000000" : "" })} label={t("diceLook.outline.toggle")} />
             </span>
           </div>
         </div>
         <div className="space-y-3">
           <div>
-            <span className={cn(LABEL, "mb-1 block")}>Pattern</span>
+            <span className={cn(LABEL, "mb-1 block")}>{t("diceLook.pattern")}</span>
             <Select<DiceTexture>
               value={look.texture}
               onChange={(texture) => set({ texture })}
-              options={DICE_TEXTURES.map((texture) => ({ value: texture.id, label: texture.label }))}
-              label="Pattern"
+              options={DICE_TEXTURES.map((texture) => ({ value: texture.id, label: t(`diceLook.texture.${texture.id}` as MessageKey) }))}
+              label={t("diceLook.pattern")}
               size="sm"
               className="w-full"
             />
           </div>
           <div>
-            <span className={cn(LABEL, "mb-1 block")}>Finish</span>
+            <span className={cn(LABEL, "mb-1 block")}>{t("diceLook.finish")}</span>
             <Select<DiceMaterial>
               value={look.material}
               onChange={(material) => set({ material })}
-              options={DICE_MATERIALS.map((material) => ({ value: material.id, label: material.label }))}
-              label="Finish"
+              options={DICE_MATERIALS.map((material) => ({ value: material.id, label: t(`diceLook.material.${material.id}` as MessageKey) }))}
+              label={t("diceLook.finish")}
               size="sm"
               className="w-full"
             />
@@ -299,7 +304,7 @@ export function DiceLookEditor({ className }: { className?: string }) {
 
       <div className="flex items-center justify-between gap-3">
         <p className="text-xs text-stone-500">
-          Your dice follow your account: every table and every device shows them.
+          {t("diceLook.accountHint")}
         </p>
         <button
           type="button"
@@ -307,7 +312,7 @@ export function DiceLookEditor({ className }: { className?: string }) {
           disabled={isDefault}
           className={cn(ui.btnSmall, "shrink-0 px-2.5 py-1 text-xs disabled:opacity-40")}
         >
-          <RotateCcw className="size-3" /> Reset
+          <RotateCcw className="size-3" /> {t("diceLook.reset")}
         </button>
       </div>
     </div>
@@ -322,11 +327,12 @@ export function DiceLookDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
+  const t = useT();
   return (
     <Dialog
       open={open}
       onOpenChange={onOpenChange}
-      title="Your dice"
+      title={t("diceLook.dialog.title")}
       icon={<GameIcon icon={{ kind: "glyph", key: "die-d20" }} size="size-7" />}
       width="w-[min(92vw,38rem)]"
     >
@@ -338,6 +344,7 @@ export function DiceLookDialog({
 // A small button that opens the dialog; the party panel and the device
 // settings panel use it.
 export function DiceLookButton({ className }: { className?: string }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const look = useDiceLook();
   return (
@@ -345,11 +352,11 @@ export function DiceLookButton({ className }: { className?: string }) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        title="Choose the colours, pattern and finish of your virtual dice."
+        title={t("diceLook.button.title")}
         className={cn(ui.btnSmall, "w-full justify-center py-1 text-xs", className)}
       >
         <Swatch look={look} className="size-4" />
-        Customise my dice
+        {t("diceLook.button.customize")}
       </button>
       <DiceLookDialog open={open} onOpenChange={setOpen} />
     </>
@@ -361,27 +368,29 @@ export function DiceLookButton({ className }: { className?: string }) {
 // its own) mounts only when asked for, so a phone scrolling past to the
 // next setting pays nothing for it.
 export function DiceLookSummary({ className }: { className?: string }) {
+  const t = useT();
   const look = useDiceLook();
   const [open, setOpen] = useState(false);
   useEffect(() => {
     hydrateDiceLook();
   }, []);
   const preset = DICE_LOOK_PRESETS.find((entry) => sameDiceLook(entry.look, look));
-  const texture = DICE_TEXTURES.find((entry) => entry.id === look.texture)?.label ?? look.texture;
-  const material = DICE_MATERIALS.find((entry) => entry.id === look.material)?.label ?? look.material;
+  const presetName = preset ? t(`diceLook.preset.${preset.id}` as MessageKey) : "";
+  const texture = t(`diceLook.texture.${look.texture}` as MessageKey);
+  const material = t(`diceLook.material.${look.material}` as MessageKey);
   return (
     <div className={cn("space-y-3", className)}>
       <div className="flex flex-wrap items-center gap-3">
         <Swatch look={look} className="size-10 shrink-0" />
         <span className="min-w-0 flex-1">
-          <span className="block text-sm text-stone-100">{preset ? `${preset.label} dice` : "Your own colours"}</span>
+          <span className="block text-sm text-stone-100">{preset ? t("diceLook.summary.presetDice", { name: presetName }) : t("diceLook.summary.ownColours")}</span>
           <span className="block text-xs text-stone-500">
-            {texture} pattern, {material.toLowerCase()} finish
+            {t("diceLook.summary.pattern", { name: texture })}; {t("diceLook.summary.finish", { name: material.toLowerCase() })}
           </span>
         </span>
         <button type="button" onClick={() => setOpen(!open)} aria-expanded={open} className={ui.btnSecondary}>
           <GameIcon icon={{ kind: "glyph", key: "die-d20" }} size="size-5" />
-          {open ? "Done" : "Customize"}
+          {open ? t("diceLook.summary.done") : t("diceLook.summary.customize")}
         </button>
       </div>
       {open ? (
