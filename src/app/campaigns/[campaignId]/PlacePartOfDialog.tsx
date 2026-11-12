@@ -3,6 +3,7 @@
 import { Check } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/cn";
+import { useT } from "@/lib/i18n/provider";
 import { Dialog } from "@/components/ui/Dialog";
 import type { PlaceTree } from "@/lib/overworld/places";
 import { PanelError } from "./PanelKit";
@@ -31,6 +32,7 @@ export function PlacePartOfDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
+  const t = useT();
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -48,7 +50,7 @@ export function PlacePartOfDialog({
         locations?: Array<{ id: string; parentName?: string | null }>;
       };
       if (!response.ok) {
-        setError(data.error ?? "Could not file it there.");
+        setError(data.error ?? t("campaign.overworld.placePartOf.error.generic"));
         return;
       }
       // A host from before places had parents answers this without filing
@@ -56,12 +58,12 @@ export function PlacePartOfDialog({
       // parentName, so say so rather than close as if it worked.
       const answered = data.locations?.find((location) => location.id === place.id);
       if (answered && !("parentName" in answered)) {
-        setError("This server is too old to file places. Updating it adds this.");
+        setError(t("campaign.overworld.placePartOf.error.serverTooOld"));
         return;
       }
       onOpenChange(false);
     } catch {
-      setError("Could not reach the server.");
+      setError(t("campaign.overworld.placePartOf.error.network"));
     } finally {
       setBusy(false);
     }
@@ -69,7 +71,7 @@ export function PlacePartOfDialog({
 
   const inside = new Set(tree.descendantsOf(place.id));
   const choices = [
-    { id: "", label: "Its own place on the region map", depth: 0, name: "" },
+    { id: "", label: t("campaign.overworld.placePartOf.ownPlace"), depth: 0, name: "" },
     ...rows
       .filter(({ location }) => location.id !== place.id && !inside.has(location.id))
       .map(({ location, depth, label }) => ({ id: location.id, label, depth, name: location.name })),
@@ -82,12 +84,12 @@ export function PlacePartOfDialog({
         setError("");
         onOpenChange(next);
       }}
-      title={`Where is ${place.name}?`}
+      title={t("campaign.overworld.placePartOf.title", { name: place.name })}
     >
       <p className="mb-2 text-xs leading-5 text-stone-400">
-        A part of a bigger place (a vault&apos;s entrance, a village&apos;s hall) shares that place&apos;s dot on the region map and is listed under it here.
+        {t("campaign.overworld.placePartOf.description")}
       </p>
-      <div role="radiogroup" aria-label={`Where ${place.name} belongs`} className="space-y-1" data-testid="place-part-of">
+      <div role="radiogroup" aria-label={t("campaign.overworld.placePartOf.aria", { name: place.name })} className="space-y-1" data-testid="place-part-of">
         {choices.map((choice) => {
           const chosen = choice.id ? parentId === choice.id : !parentId;
           return (
@@ -108,7 +110,7 @@ export function PlacePartOfDialog({
                 <Check className={cn("size-4 shrink-0", chosen ? "text-amber-300" : "invisible")} />
                 {choice.id ? (
                   <span>
-                    Part of <span className="font-semibold">{choice.name}</span>
+                    {t("campaign.overworld.placePartOf.partOf", { name: choice.name })}
                   </span>
                 ) : (
                   choice.label
@@ -119,7 +121,7 @@ export function PlacePartOfDialog({
         })}
       </div>
       <p className="mt-2 text-[11px] leading-4 text-stone-500">
-        A bigger place that is not listed yet can be added first, under Add a place on the region map.
+        {t("campaign.overworld.placePartOf.addParentHint")}
       </p>
       {error ? <PanelError className="reveal mt-2">{error}</PanelError> : null}
     </Dialog>
