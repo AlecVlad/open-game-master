@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 import { useT } from "@/lib/i18n/provider";
-import { useT } from "@/lib/i18n/provider";
 import { subclassLevelFor } from "@/lib/srd/features";
 import { Check, Plus, Search, X } from "lucide-react";
 import { cn } from "@/lib/cn";
