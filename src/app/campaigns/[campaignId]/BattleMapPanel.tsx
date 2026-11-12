@@ -1719,7 +1719,7 @@ export function BattleMapPanel({
           scene,
           budgetLeft: view.budgetLeft,
           hasToken: Boolean(view.myTokenId),
-        })}
+        }, t)}
       </p>
       {error ? <p className="text-[11px] text-red-400">{error}</p> : null}
       {targeting ? (
