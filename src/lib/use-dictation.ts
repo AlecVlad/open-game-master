@@ -283,7 +283,7 @@ export function useDictation({
       activeRef.current = true;
       discardRef.current = false;
       nativeErrorRef.current = "";
-      setHint("");
+      clearHint();
       setPartial("");
       setState("starting");
       // The table's language, as the server's engines hear a clip from this
