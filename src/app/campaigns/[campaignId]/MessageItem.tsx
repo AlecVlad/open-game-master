@@ -371,7 +371,7 @@ export const MessageItem = memo(function MessageItem({
     // Reroll takes: the counter only appears once a second one exists.
     const variants = message.variants ?? [];
     const variantIndex = message.variantIndex ?? 0;
-    const title = message.speaker ? `${message.speaker.name}, through the GM` : "Game Master";
+    const title = message.speaker ? t("campaign.session.messageItem.speakerThroughGm", { name: message.speaker.name }) : t("common.gameMaster");
     return (
       <div
         className="session-dm group animate-fade-up"
