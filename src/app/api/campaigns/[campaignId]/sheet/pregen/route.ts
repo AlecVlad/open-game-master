@@ -32,7 +32,7 @@ export async function POST(
     return context;
   }
   if (!capsFor(context).needsCharacter) {
-    return Response.json({ error: "The GM seat plays no character." }, { status: 400 });
+    return Response.json({ error: "The GM seat plays no character.", errorCode: "GM_SEAT_NO_CHARACTER" }, { status: 400 });
   }
   // The same door rule as a built character (POST /sheet): a table that
   // allows several characters per player lets a ready-made hero in beside
@@ -40,15 +40,15 @@ export async function POST(
   // have all fallen, at the level they reached (src/lib/characters/hero-door.ts).
   const door = heroDoorFor(context.campaign, context.user.id);
   if (!door.open) {
-    return Response.json({ error: HERO_DOOR_SHUT }, { status: 409 });
+    return Response.json({ error: HERO_DOOR_SHUT, errorCode: "HERO_ALREADY_HAS_CHARACTER" }, { status: 409 });
   }
   const parsed = pickSchema.safeParse(await request.json().catch(() => ({})));
   if (!parsed.success && parsed.error.issues.some((issue) => issue.path[0] === "picks")) {
-    return Response.json({ error: "Those picks could not be read." }, { status: 400 });
+    return Response.json({ error: "Those picks could not be read.", errorCode: "PICKS_COULD_NOT_BE_READ" }, { status: 400 });
   }
   const pregen = parsed.success ? pregenById(parsed.data.id) : null;
   if (!pregen) {
-    return Response.json({ error: "No such hero." }, { status: 404 });
+    return Response.json({ error: "No such hero.", errorCode: "HERO_NOT_FOUND" }, { status: 404 });
   }
   // The door and the owed improvements are src/lib/characters/seat-preview.ts,
   // shared with the confirm sheet the player reads before this.
