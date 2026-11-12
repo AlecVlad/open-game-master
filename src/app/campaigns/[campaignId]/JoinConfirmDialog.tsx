@@ -15,7 +15,7 @@ import {
   type PicksDraft,
 } from "@/app/campaigns/[campaignId]/OwedPicksFields";
 import type { SeatPicks } from "@/lib/characters/seat-picks";
-import type { JoinPreview } from "@/lib/characters/join-changes";
+import type { JoinChangeDetail, JoinPreview } from "@/lib/characters/join-changes";
 
 import type { CreateSheetInput } from "@/lib/schemas/sheet";
 
@@ -54,6 +54,49 @@ function joinRequest(campaignId: string, hero: JoinHero, flow: "join" | "replace
 }
 
 type Preview = JoinPreview & { alreadyHere: boolean };
+type Translate = ReturnType<typeof useI18n>["t"];
+
+function joinChangeText(change: JoinChangeDetail, t: Translate): string {
+  switch (change.kind) {
+    case "ownLevel":
+      return t("campaign.joinConfirm.change.ownLevel", { level: change.level });
+    case "levelUp":
+      return t("campaign.joinConfirm.change.levelUp", { from: change.from, to: change.to });
+    case "levelDown":
+      return t("campaign.joinConfirm.change.levelDown", { level: change.level, from: change.from });
+    case "classes": {
+      const formatClasses = (entries: typeof change.from) =>
+        entries.map((entry) => {
+          const key = `charSheet.class.${entry.id}`;
+          const localized = t(key as never);
+          const name = localized === key ? entry.name : localized;
+          return t("campaign.joinConfirm.change.classEntry", { className: name, level: entry.level });
+        }).join(" / ");
+      return t("campaign.joinConfirm.change.classes", {
+        from: formatClasses(change.from),
+        to: formatClasses(change.to),
+      });
+    }
+    case "hitPoints":
+      return t("campaign.joinConfirm.change.hitPoints", { from: change.from, to: change.to });
+    case "improvementsReturned":
+      return t("campaign.joinConfirm.change.improvementsReturned", { count: change.count });
+    case "featsReturned":
+      return t("campaign.joinConfirm.change.featsReturned", { feats: change.feats.join(", ") });
+    case "spellcastingLost":
+      return t("campaign.joinConfirm.change.spellcastingLost");
+    case "spellsReturned":
+      return t("campaign.joinConfirm.change.spellsReturned", { spells: change.spells.join(", ") });
+    case "spellSlots": {
+      const slots = change.slots.map((slot) =>
+        t("campaign.joinConfirm.change.slot", { level: slot.level, count: slot.count }),
+      ).join(", ");
+      return t("campaign.joinConfirm.change.spellSlots", { slots });
+    }
+    case "noSpellSlots":
+      return t("campaign.joinConfirm.change.noSpellSlots");
+  }
+}
 
 async function askPreview(campaignId: string, body: unknown, t: ReturnType<typeof useI18n>["t"]): Promise<{ preview?: Preview; error?: string }> {
   try {
@@ -189,6 +232,10 @@ export function JoinConfirmDialog({
   }
 
   const name = preview?.name || hero?.name || t("campaign.joinConfirm.thisHero");
+  const source = shown ?? preview;
+  const changeLines = source?.changeDetails?.length
+    ? source.changeDetails.map((change) => joinChangeText(change, t))
+    : source?.changes ?? [];
   const owedLeft = shown?.owed ?? preview?.owed ?? [];
   const owedOnSheet = shown?.owedOnSheet ?? preview?.owedOnSheet ?? [];
   const sheetOwedLeft = owedLeft.filter((line) => owedOnSheet.includes(line));
@@ -232,8 +279,8 @@ export function JoinConfirmDialog({
                   <p className="text-stone-300">{t("campaign.joinConfirm.alreadyHere", { name })}</p>
                 ) : (
                   <ul className="list-disc space-y-1 pl-5 text-stone-300" data-join-changes>
-                    {(shown ?? preview).changes.map((line) => (
-                      <li key={line}>{line}</li>
+                    {changeLines.map((line, index) => (
+                      <li key={`${index}:${line}`}>{line}</li>
                     ))}
                   </ul>
                 )}
