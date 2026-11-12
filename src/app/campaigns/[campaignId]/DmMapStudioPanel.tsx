@@ -562,7 +562,7 @@ export function DmMapStudioPanel({ campaignId }: { campaignId: string }) {
         </div>
       ) : null}
       {selection.dialog}
-      <HotkeyOverlay open={keysOpen} onOpenChange={setKeysOpen} groups={localizedHotkeyGroups(t)} />
+      <HotkeyOverlay open={keysOpen} onOpenChange={setKeysOpen} title={t("workshop.maps.rail.keys")} footer={t("workshop.maps.hotkeys.phoneHint")} groups={localizedHotkeyGroups(t)} />
     </div>
   );
 }
