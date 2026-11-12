@@ -39,7 +39,7 @@ import {
   type MapTools,
 } from "@/app/campaigns/[campaignId]/MapToolbox";
 import { usePainter } from "@/app/campaigns/[campaignId]/usePainter";
-import { THEME_LABELS, type LibraryState, type PreparedMap } from "@/app/workshop/maps/types";
+import type { LibraryState, PreparedMap } from "@/app/workshop/maps/types";
 
 // One prepared map, open for editing, in the editor's shape (docs/visual-
 // overhaul-plan.md 4.2): the name and the big actions along the top, the tool
