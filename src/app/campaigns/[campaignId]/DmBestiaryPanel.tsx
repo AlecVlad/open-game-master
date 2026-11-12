@@ -347,7 +347,7 @@ export function DmBestiaryPanel({
           glyph="system-bestiary"
           aside={monsters.length ? <span key={monsters.length} className="count-pop">{monsters.length}</span> : undefined}
         />
-        <Listed loaded={loaded} error={loadError} onRetry={() => void load()} loading="Opening the bestiary...">
+        <Listed loaded={loaded} error={loadError} onRetry={() => void load()} loading={t("campaign.dmBestiary.loading")}>
           {monsters.length === 0 ? (
             <EmptyState size="sm" art="chest" title={t("campaign.dmBestiary.empty")} />
           ) : null}
