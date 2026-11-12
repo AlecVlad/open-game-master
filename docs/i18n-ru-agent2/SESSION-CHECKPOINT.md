@@ -206,5 +206,12 @@ Continue the Atlas audit with `AtlasRegion.tsx`, `AtlasEdit.tsx`, `AtlasParty.ts
 - Added 34 EN/RU keys under `campaign.lobby.*` for action labels, next-step guidance, blockers and invite-card labels. Static key checks: all direct references in `LobbyActions.tsx`, `LobbyRoomCode.tsx` and `InviteShareDialog.tsx` resolve in their respective EN/RU dictionaries; placeholders are paired; no duplicate new keys. The invitation warning is no longer duplicated.
 - Latest branch commit at checkpoint update: see branch HEAD. No TypeScript, lint, tests, production build or browser visual checks were run. Preserve the existing instruction below not to run them until Remote Desktop access is available.
 
+## Campaign session controls and error fallbacks — 12 November 2026
+- `SessionView.tsx`: localized the fallback messages for table pause/resume, ending/starting a session, sending a player action and network failure. Server-provided error strings remain the preferred value and are not rewritten.
+- Replaced the hardcoded end-session confirmation paragraph with an i18n message. The confirmation title and action label now reuse the existing `campaign.sessionHeader.endSession` translation.
+- Added 7 EN/RU messages under `campaign.tableBreak.*`, `campaign.sessionHold.*` and `campaign.session.*`. Static checks: all 7 keys exist in both dictionaries, no duplicates were introduced, placeholders match, and the edited component no longer contains the fixed English fallback/confirmation phrases.
+- `CharacterGate.tsx`, `JoinConfirmDialog.tsx`, `SessionBanner.tsx` and `SessionHoldBanner.tsx` were inspected in this pass; their visible copy already uses existing EN/RU messages. `SessionHeader.tsx` also resolves its visible labels through existing dictionary entries.
+- TypeScript, lint, tests, production build and browser visual checks were not run. Preserve the Remote Desktop prerequisite above.
+
 ## Resume
 The WorldForge component pass is complete across all 29 files in `src/app/workshop/world/`: core views, Atlas, timeline, secrets, wiki, Ask, outline generation, paint queue, relationship graph/editor, type manager, bound records, play fields and shared pickers. Continue with the broader app-level localization audit outside this folder and fix any remaining visible English UI. Verify branch HEAD before editing. Do not run TypeScript/build/lint/tests until Remote Desktop access is available. Block 1 remains formally open; do not merge, open a PR or create its DONE flag.
