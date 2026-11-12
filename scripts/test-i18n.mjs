@@ -64,6 +64,12 @@ for (const lang of LANGS) {
   }
 }
 
+// Companion relationship labels must follow the selected interface language.
+for (const key of ["campaign.relationship.romance.with", "campaign.relationship.romance.title"]) {
+  assert.ok(key in DICTIONARIES.en, `English relationship message missing: ${key}`);
+  assert.ok(key in DICTIONARIES.ru, `Russian relationship message missing: ${key}`);
+}
+
 // The campaign world-identity screens are considered one complete translation unit.
 const identityMessages = Object.keys(DICTIONARIES.en).filter((key) => key.startsWith("createCampaign.identity."));
 const untranslatedIdentityMessages = identityMessages.filter((key) => !(key in DICTIONARIES.ru));
