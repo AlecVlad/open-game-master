@@ -113,7 +113,7 @@ export function AttackEditor({
               max={20}
               value={attack.toHit}
               onChange={(toHit) => setAttacks(attacks.map((row, at) => (at === index ? { ...row, toHit } : row)))}
-              label={`To hit, ${attack.name || "attack"}`}
+              label={t("workshop.monsterEditor.attack.toHitLabel", { name: attack.name || t("workshop.monsterEditor.attack.attack") })}
               size="sm"
             />
           </span>
