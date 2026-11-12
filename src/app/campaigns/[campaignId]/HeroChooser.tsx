@@ -88,6 +88,25 @@ export function HeroChooser({
   onSeated: () => void;
 }) {
   const { t } = useI18n();
+  const localizedClassName = (id: string) => {
+    const workshopName = workshopClassName(id);
+    if (workshopName) return workshopName;
+    const key = `charSheet.class.${id}`;
+    const translated = t(key as never);
+    return translated === key ? findClass(id)?.name ?? titleCase(id) : translated;
+  };
+  const localizedRaceName = (id: string, label?: string) => {
+    if (label) return label;
+    const key = `charSheet.race.${id}`;
+    const translated = t(key as never);
+    return translated === key ? titleCase(id) : translated;
+  };
+  const localizedSubclassName = (classId: string, name: string) => {
+    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+    const key = `workshop.monsterEditor.kit.subclass.${classId}.${slug}`;
+    const translated = t(key as never);
+    return translated === key ? name : translated;
+  };
   const [workshops, setWorkshops] = useState<Record<string, string>>({});
   // Which of a library character's classes come from another setting than
   // the table's: said on the card before it joins, never refused (issue
@@ -100,7 +119,7 @@ export function HeroChooser({
       return [];
     }
     const ids = [...new Set([character.class, ...(character.sheet?.classes ?? []).map((entry) => entry.id)].map((id) => id.toLowerCase()))];
-    return ids.filter((id) => !settingIds.includes(id)).map((id) => findClass(id)?.name ?? titleCase(id));
+    return ids.filter((id) => !settingIds.includes(id)).map(localizedClassName);
   };
   const [picked, setPicked] = useState<JoinHero | null>(null);
   const sections = chooserSections(characters);
@@ -170,9 +189,9 @@ export function HeroChooser({
             ) : null}
           </div>
           <p className="mt-1 text-sm text-stone-400">
-            {t("campaign.session.heroChooser.levelLine", { level: character.level, race: character.raceLabel ?? titleCase(character.race) })}{" "}
-            {classWordsAfterLevel({ ...character, classes: character.sheet?.classes }, (id) => workshopClassName(id) ?? titleCase(id))}
-            {character.subclass ? ` (${character.subclass})` : ""}
+            {t("campaign.session.heroChooser.levelLine", { level: character.level, race: localizedRaceName(character.race, character.raceLabel) })}{" "}
+            {classWordsAfterLevel({ ...character, classes: character.sheet?.classes }, localizedClassName)}
+            {character.subclass ? ` (${localizedSubclassName(character.class, character.subclass)})` : ""}
           </p>
           {from ? <p className="mt-0.5 text-xs text-stone-500">{t("campaign.session.heroChooser.from", { name: from })}</p> : null}
           {strangers(character).length ? (
@@ -224,8 +243,8 @@ export function HeroChooser({
                     <GameIcon icon={{ kind: "family", key: `class-${pregen.class.toLowerCase()}` }} size="size-7" className="ml-auto" />
                   </div>
                   <p className="mt-1 text-sm text-stone-400">
-                    {t("campaign.session.heroChooser.levelLine", { level: pregen.level, race: titleCase(pregen.race) })} {workshopClassName(pregen.class) ?? titleCase(pregen.class)}
-                    {pregen.subclass ? ` (${pregen.subclass})` : ""}
+                    {t("campaign.session.heroChooser.levelLine", { level: pregen.level, race: localizedRaceName(pregen.race) })} {localizedClassName(pregen.class)}
+                    {pregen.subclass ? ` (${localizedSubclassName(pregen.class, pregen.subclass)})` : ""}
                   </p>
                   {pregen.taken === "mine" ? (
                     <p className="mt-1 text-xs text-amber-200">{t("campaign.session.heroChooser.taken.mine")}</p>
