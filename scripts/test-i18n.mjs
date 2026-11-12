@@ -64,6 +64,36 @@ for (const lang of LANGS) {
   }
 }
 
+// Party backstory: every fixed label, state and known API refusal has both language forms.
+const partyBackstoryMessages = [
+  "campaign.session.party.backstory.title",
+  "campaign.session.party.backstory.placeholder",
+  "campaign.session.party.backstory.save",
+  "campaign.session.party.backstory.clear",
+  "campaign.session.party.backstory.draft",
+  "campaign.session.party.backstory.empty",
+  "campaign.session.party.backstory.someone",
+  "campaign.session.party.backstory.overtaken",
+  "campaign.session.party.backstory.error.save",
+  "campaign.session.party.backstory.error.workshop",
+  "campaign.session.party.backstory.error.invalid",
+  "campaign.session.party.backstory.error.permission",
+  "campaign.session.party.backstory.error.tooLong",
+  "campaign.session.party.backstory.error.noCharacters",
+  "campaign.session.party.backstory.note.saved",
+  "campaign.session.party.backstory.note.cleared",
+  "campaign.session.party.backstory.note.draft",
+  "campaign.session.party.backstory.lastSaved",
+  "campaign.session.party.backstory.lastSavedDate",
+  "campaign.session.party.backstory.footer.play",
+  "campaign.session.party.backstory.footer.lobby",
+  "campaign.session.party.backstory.footer.permissions",
+];
+for (const key of partyBackstoryMessages) {
+  assert.ok(key in DICTIONARIES.en, `English party-backstory message missing: ${key}`);
+  assert.ok(key in DICTIONARIES.ru, `Russian party-backstory message missing: ${key}`);
+}
+
 // Companion relationship labels must follow the selected interface language.
 for (const key of ["campaign.relationship.romance.with", "campaign.relationship.romance.title"]) {
   assert.ok(key in DICTIONARIES.en, `English relationship message missing: ${key}`);
