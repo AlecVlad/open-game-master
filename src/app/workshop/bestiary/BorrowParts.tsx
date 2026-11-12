@@ -17,14 +17,6 @@ import { addChip, chipRow } from "@/app/workshop/kit";
 // spellcasting block, the regeneration. Pick, do not type: what lands is
 // what the engine already runs for the published monster.
 
-const KIND_WORDS: Record<BorrowPart["kind"], string> = {
-  attack: t("workshop.monsterEditor.borrow.kind.attack"),
-  ability: t("workshop.monsterEditor.borrow.kind.ability"),
-  trait: t("workshop.monsterEditor.borrow.kind.trait"),
-  spellcasting: t("workshop.monsterEditor.borrow.kind.spellcasting"),
-  regeneration: t("workshop.monsterEditor.borrow.kind.regeneration"),
-};
-
 function statsOf(entry: { source: string; name: string; data: Record<string, unknown> }): EnemyStats {
   if (entry.source === "homebrew") {
     return draftFromData(entry.name, entry.data).stats;
@@ -35,6 +27,13 @@ function statsOf(entry: { source: string; name: string; data: Record<string, unk
 
 export function BorrowParts({ draft, onChange }: { draft: MonsterDraft; onChange: (draft: MonsterDraft) => void }) {
   const { t } = useI18n();
+  const kindWords: Record<BorrowPart["kind"], string> = {
+    attack: t("workshop.monsterEditor.borrow.kind.attack"),
+    ability: t("workshop.monsterEditor.borrow.kind.ability"),
+    trait: t("workshop.monsterEditor.borrow.kind.trait"),
+    spellcasting: t("workshop.monsterEditor.borrow.kind.spellcasting"),
+    regeneration: t("workshop.monsterEditor.borrow.kind.regeneration"),
+  };
   const [source, setSource] = useState<{ name: string; parts: BorrowPart[] } | null>(null);
   const [taken, setTaken] = useState<Set<string>>(() => new Set());
   return (
@@ -52,7 +51,7 @@ export function BorrowParts({ draft, onChange }: { draft: MonsterDraft; onChange
       {source ? (
         <div className="reveal flex flex-col gap-1 rounded-lg border border-stone-800 bg-stone-950/50 p-2">
           <span className="flex items-center justify-between gap-2 text-xs text-stone-300">
-            From {source.name}
+            {t("workshop.monsterEditor.borrow.from", { name: source.name })}
             <button type="button" aria-label={t("workshop.monsterEditor.borrow.close")} onClick={() => setSource(null)} className={cn(ui.iconAction, "pk-always pk-tap")}>
               <X className="size-3.5" />
             </button>
@@ -75,7 +74,7 @@ export function BorrowParts({ draft, onChange }: { draft: MonsterDraft; onChange
                       className={cn(ui.btnSmall, addChip, "shrink-0", done && "border-emerald-500/40 text-emerald-200")}
                     >
                       {done ? <Check className="size-3" /> : <Plus className="size-3" />}
-                      {KIND_WORDS[part.kind]}
+                      {kindWords[part.kind]}
                     </button>
                     <span className="min-w-0 text-[11px] leading-snug text-stone-400">{part.label}</span>
                   </li>
