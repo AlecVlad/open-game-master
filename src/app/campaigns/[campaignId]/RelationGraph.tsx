@@ -2,6 +2,7 @@
 
 import { EmptyState } from "@/components/EmptyState";
 import { useMemo, type KeyboardEvent } from "react";
+import { useT } from "@/lib/i18n/provider";
 import { cn } from "@/lib/cn";
 import { HostSvgImage } from "@/components/ui/HostSvgImage";
 import { layoutGraph } from "@/lib/npcs/graph-layout";
@@ -17,8 +18,12 @@ const WIDTH = 640;
 const HEIGHT = 420;
 const RADIUS = 20;
 
-function describe(score: number): string {
-  return score >= 2 ? "close" : score >= 1 ? "friendly" : score <= -2 ? "hates" : score <= -1 ? "wary" : "knows";
+function describe(score: number, t: ReturnType<typeof useT>): string {
+  if (score >= 2) return t("campaign.dmNpcForge.graph.edge.close");
+  if (score >= 1) return t("campaign.dmNpcForge.graph.edge.friendly");
+  if (score <= -2) return t("campaign.dmNpcForge.graph.edge.hates");
+  if (score <= -1) return t("campaign.dmNpcForge.graph.edge.wary");
+  return t("campaign.dmNpcForge.graph.edge.knows");
 }
 
 export function RelationGraph({
@@ -36,6 +41,7 @@ export function RelationGraph({
   onOpen: (name: string) => void;
   className?: string;
 }) {
+  const t = useT();
   const layout = useMemo(
     () =>
       new Map(
@@ -50,7 +56,7 @@ export function RelationGraph({
     [graph],
   );
   if (!graph.nodes.length) {
-    return <EmptyState size="sm" art="board" title="Write two people who know each other and the map draws itself." />;
+    return <EmptyState size="sm" art="board" title={t("campaign.dmNpcForge.graph.empty")} />;
   }
   // A faction's hull: a soft disc around its members' centre, wide enough
   // to hold them all (docs/vtt-parity-implementation-plan.md section 6).
@@ -74,7 +80,7 @@ export function RelationGraph({
     <svg
       viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
       role="img"
-      aria-label="Who knows whom"
+      aria-label={t("campaign.dmNpcForge.graph.aria")}
       className={cn("panel w-full rounded-lg", className)}
     >
       <defs>
@@ -123,8 +129,8 @@ export function RelationGraph({
               textAnchor="middle"
               className="fill-stone-400 text-[9px]"
             >
-              {edge.note || describe(edge.score)}
-              {edge.backScore !== undefined && edge.backScore !== edge.score ? ` / ${describe(edge.backScore)}` : ""}
+              {edge.note || describe(edge.score, t)}
+              {edge.backScore !== undefined && edge.backScore !== edge.score ? ` / ${describe(edge.backScore, t)}` : ""}
             </text>
           </g>
         );
@@ -143,7 +149,7 @@ export function RelationGraph({
               ? {
                   role: "button",
                   tabIndex: 0,
-                  "aria-label": `Open ${node.name}`,
+                  "aria-label": t("campaign.dmNpcForge.graph.openNode", { name: node.name }),
                   onClick: () => onOpen(node.name),
                   onKeyDown: (event: KeyboardEvent<SVGGElement>) => {
                     if (event.key === "Enter" || event.key === " ") {
@@ -152,7 +158,7 @@ export function RelationGraph({
                     }
                   },
                 }
-              : { "aria-label": `${node.name} (unwritten)` })}
+              : { "aria-label": t("campaign.dmNpcForge.graph.unwrittenNode", { name: node.name }) })}
             className={cn(node.known ? "cursor-pointer" : "cursor-default")}
           >
             <circle
