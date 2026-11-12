@@ -136,6 +136,20 @@ const sharedComponentMessages = [
   "agentConnect.where.claude", "agentConnect.where.codex", "agentConnect.where.opencode", "agentConnect.where.other",
   "agentConnect.askExample", "agentConnect.example", "agentConnect.connected", "agentConnect.firstCall",
   "agentConnect.arrived", "agentConnect.at", "agentConnect.noCall", "agentConnect.waiting",
+  "diceLook.preview.webgl", "diceLook.startFrom", "diceLook.preset.aria",
+  "diceLook.color.face", "diceLook.color.numbers", "diceLook.outline.label", "diceLook.outline.aria",
+  "diceLook.outline.toggle", "diceLook.pattern", "diceLook.finish", "diceLook.accountHint", "diceLook.reset",
+  "diceLook.dialog.title", "diceLook.button.title", "diceLook.button.customize", "diceLook.summary.ownColours",
+  "diceLook.summary.presetDice", "diceLook.summary.pattern", "diceLook.summary.finish",
+  "diceLook.summary.done", "diceLook.summary.customize",
+  ...["radiant", "fire", "ice", "poison", "acid", "thunder", "air", "water", "earth", "force", "necrotic", "bloodmoon", "starrynight", "glitterparty", "astralsea", "dragon", "bronze", "onyx", "ivory"].map((id) => `diceLook.preset.${id}`),
+  ...["none", "paper", "marble", "cloudy", "speckles", "glitter", "stars", "stainedglass", "wood", "metal", "fire", "ice", "water", "astral", "skulls", "dragon", "leopard"].map((id) => `diceLook.texture.${id}`),
+  ...["plastic", "glass", "metal", "wood", "none"].map((id) => `diceLook.material.${id}`),
+  "dictate.defaultLabel", "dictate.aria.finish", "dictate.aria.start", "dictate.title.finish", "dictate.title.start",
+  "dictate.waitingMicrophone", "dictate.stopsAt", "dictate.listening", "dictate.discard", "dictate.transcribing",
+  "dictate.transcribingPart", "dictate.dismiss",
+  "dictationShortcut.pressKeys", "dictationShortcut.none", "dictationShortcut.cancel", "dictationShortcut.change",
+  "dictationShortcut.set", "dictationShortcut.clear", "dictationShortcut.saved", "dictationShortcut.hint.listening", "dictationShortcut.hint.idle",
 ];
 for (const key of sharedComponentMessages) {
   assert.ok(key in DICTIONARIES.en, `English shared-component message missing: ${key}`);
