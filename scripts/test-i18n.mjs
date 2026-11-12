@@ -139,6 +139,24 @@ for (const key of characterImportMessages) {
   assert.ok(key in DICTIONARIES.ru, `Russian character-import message missing: ${key}`);
 }
 
+// Hero route cards share their copy across the lobby, join page and mid-game gate.
+const heroRouteMessages = [
+  "campaign.session.heroRoutes.ready.title",
+  "campaign.session.heroRoutes.ready.blurb",
+  "campaign.session.heroRoutes.ready.badge",
+  "campaign.session.heroRoutes.library.title",
+  "campaign.session.heroRoutes.library.badge",
+  "campaign.session.heroRoutes.library.line",
+  "campaign.session.heroRoutes.library.line.empty",
+  "campaign.session.heroRoutes.library.more",
+  "campaign.session.heroRoutes.build.title",
+  "campaign.session.heroRoutes.build.blurb",
+];
+for (const key of heroRouteMessages) {
+  assert.ok(key in DICTIONARIES.en, `English hero-route message missing: ${key}`);
+  assert.ok(key in DICTIONARIES.ru, `Russian hero-route message missing: ${key}`);
+}
+
 // Campaign cover editing and image uploads use stable API codes for fixed errors.
 const campaignCoverMessages = [
   "campaign.editDialog.cover.error.invalidImage",
