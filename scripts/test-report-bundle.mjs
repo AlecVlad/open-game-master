@@ -374,6 +374,7 @@ await test("The setup names the narrator's engine, model, size and window, never
   // The dialog shows the same checks before anything is saved.
   const offered = await (await route.GET(new Request("http://test/x"), params)).json();
   assert.deepEqual(offered.checkFirst, checks);
+  assert.deepEqual(offered.checkFirstItems, made.setup.checkFirstItems);
 
   // The form opens with Your setup filled in from these lines, and nothing else.
   const url = bundle.bugReportUrl(made);
