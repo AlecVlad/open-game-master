@@ -134,4 +134,5 @@ export const enBuilderCalling = {
   "builder.multi.skill.sleightOfHand": "Sleight of Hand",
   "builder.multi.skill.stealth": "Stealth",
   "builder.multi.skill.survival": "Survival",
+  "builder.multi.skill.info": "{skill} uses {ability}.",
 } satisfies Record<string, string>;
