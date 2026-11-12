@@ -275,8 +275,8 @@ export function PublishSection({
         </div>
         <p className="mt-2 text-[11px] text-stone-500">
           {isAdmin
-            ? "Download hands you the manifest as a file for other servers and registries. Install writes it to this server's data directory, where it appears in the campaign creator at once."
-            : "The file installs from Admin, Campaign plugins, Install from a file, on any server whose admin trusts it. Only an admin can install here."}
+            ? t("workshop.plugin.publish.downloadHelpAdmin")
+            : t("workshop.plugin.publish.downloadHelpUser")}
         </p>
         {notice ? <p className="live-in mt-2 text-xs text-amber-200/90">{notice}</p> : null}
         {error && !(error === NOT_SAVED && saved) ? <PanelError className="mt-2">{error}</PanelError> : null}
