@@ -158,7 +158,7 @@ export const ruMonsterEditor: Partial<Record<keyof typeof enMonsterEditor, strin
   "workshop.monsterEditor.routine.attack": "Атака",
   "workshop.monsterEditor.routine.removeStep": "Удалить этот шаг",
   "workshop.monsterEditor.routine.add": "Добавить шаг",
-  "workshop.monsterEditor.kit.chassisSummary": "Кость хитов {hitDie}: не менее {hitPoints} хитов; спасброски {saves} с бонусом +{proficiency} или выше.",
+  "workshop.monsterEditor.kit.chassisSummary": "Кость хитов {hitDie}; не менее {hitPoints} хитов; спасброски: {saves} (бонус +{proficiency} или выше).",
   "workshop.monsterEditor.kit.halfDragon.unsupportedType": "Существо типа «{type}» нельзя превратить в полудракона. Шаблон применим только к зверям, гуманоидам, великанам и чудовищам.",
   "workshop.monsterEditor.kit.halfDragon.rating-stands": "Шаблон полудракона ({color} дракон): ПО {cr} соответствует требованию ПО {challenge}, поэтому пересчитывать его не нужно.",
   "workshop.monsterEditor.kit.halfDragon.rating-needs-recalculation": "Шаблон полудракона ({color} дракон): ПО {cr} ниже требуемого значения {challenge}. Согласно SRD, ПО нужно пересчитать; результат показан в панели расчёта.",
