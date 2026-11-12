@@ -3296,4 +3296,6 @@ export const enWorkshop = {
   "workshop.testFight.open.end": "End it",
   "workshop.testFight.error.end": "The test could not be ended.",
   "workshop.testFight.character.level": "Level {level}",
+  "workshop.testFight.readiness.noAi": "No AI GM is set up on this server, so you run the test: the enemies' cards on their turns, the party's on each hero's.",
+  "workshop.testFight.refused.adminOnly": "On this server an administrator starts campaigns, workshops and their test fights.",
 } satisfies Record<string, string>;
