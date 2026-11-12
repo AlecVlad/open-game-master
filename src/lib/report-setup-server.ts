@@ -20,7 +20,7 @@ import { providerForBaseUrl } from "@/lib/model-registry/catalog-logic";
 import { ollamaBaseUrl, soleListedModel } from "@/lib/model-registry/discovery";
 import { describeMachine, graphicsMemoryGb, LOCAL_STORYTELLER_MINIMUM_GB, machine, storytellerFit, type Machine } from "@/lib/model-registry/hardware";
 import { modelChoices, type ModelChoices } from "@/lib/model-registry/registry";
-import type { ReportAgentProgram, ReportModel, ReportSetup } from "@/lib/report-setup";
+import type { ReportAgentProgram, ReportCheckFirstItem, ReportModel, ReportSetup } from "@/lib/report-setup";
 import { isLoopbackOrigin } from "@/lib/server-address";
 import { isDeviceWorld, serverEnv } from "@/lib/server-env";
 import { identifyTextServer, TEXT_SERVER_LABEL, type TextServerKind } from "@/lib/setup/discovery-logic";
@@ -48,6 +48,24 @@ const LIST_MS = 5_000;
 const AGENT_MS = 6_000;
 
 export type ReportTable = { dmMode: string; role: string; game: Campaign["gameSettings"] };
+
+type CheckCollector = string[] & { items: ReportCheckFirstItem[] };
+
+function checkCollector(): CheckCollector {
+  const lines = [] as unknown as CheckCollector;
+  lines.items = [];
+  return lines;
+}
+
+function addCheck(
+  checks: CheckCollector,
+  code: string,
+  params: Record<string, string | number>,
+  legacyText: string,
+): void {
+  checks.push(legacyText);
+  checks.items.push({ code, params });
+}
 
 function within<T>(work: Promise<T>, ms: number, fallback: T): Promise<T> {
   return Promise.race([
@@ -103,7 +121,7 @@ type ModelInput = {
   backend: string;
   model: string;
   choices: ModelChoices | null;
-  checks: string[];
+  checks: CheckCollector;
 };
 
 // A model's facts and what is wrong with it, from the registry's answer.
@@ -126,7 +144,7 @@ function modelFacts(input: ModelInput): ReportModel {
   };
 }
 
-async function narratorFacts(settings: StorySettings, here: Machine | null, checks: string[]): Promise<ReportModel> {
+async function narratorFacts(settings: StorySettings, here: Machine | null, checks: CheckCollector): Promise<ReportModel> {
   const cfg = getGlobalConfig();
   if (settings.textProvider === "none") return { backend: "none", model: "", off: true };
   if (settings.textProvider === "harness") {
@@ -206,7 +224,7 @@ async function narratorFacts(settings: StorySettings, here: Machine | null, chec
   return facts;
 }
 
-async function helperFacts(settings: StorySettings, checks: string[]): Promise<ReportModel | null> {
+async function helperFacts(settings: StorySettings, checks: CheckCollector): Promise<ReportModel | null> {
   const model = settings.utilityModel.trim();
   const provider = settings.utilityProvider || settings.textProvider;
   if (provider === "harness") {
@@ -226,7 +244,7 @@ async function helperFacts(settings: StorySettings, checks: string[]): Promise<R
   return modelFacts({ name: "The helper model", backend: customBackend(endpoint.baseUrl, ""), model, choices, checks });
 }
 
-async function agentFacts(settings: StorySettings, checks: string[]): Promise<ReportAgentProgram | null> {
+async function agentFacts(settings: StorySettings, checks: CheckCollector): Promise<ReportAgentProgram | null> {
   const harness = harnessConfig();
   const used = settings.textProvider === "harness" || settings.utilityProvider === "harness" || settings.imageBackend === "harness";
   if (!harness.id) {
@@ -266,7 +284,7 @@ const IMAGE_BACKENDS: Record<string, string> = {
   "sdnq-hs": "the FLUX worker (SDNQ)",
 };
 
-function picturesFacts(settings: StorySettings, caps: Capabilities | null, checks: string[]): NonNullable<ReportSetup["pictures"]> {
+function picturesFacts(settings: StorySettings, caps: Capabilities | null, checks: CheckCollector): NonNullable<ReportSetup["pictures"]> {
   const images = getGlobalConfig().images;
   const on = settings.imageGenerationEnabled !== false;
   const backend = settings.imageBackend;
@@ -288,7 +306,7 @@ function picturesFacts(settings: StorySettings, caps: Capabilities | null, check
   return { on, backend: IMAGE_BACKENDS[backend] ?? backend, model };
 }
 
-async function narrationFacts(table: ReportTable | undefined, caps: Capabilities | null, checks: string[]): Promise<NonNullable<ReportSetup["narration"]>> {
+async function narrationFacts(table: ReportTable | undefined, caps: Capabilities | null, checks: CheckCollector): Promise<NonNullable<ReportSetup["narration"]>> {
   const speech = ttsBackend();
   const on = speech.provider !== "off" && (table ? table.game.ttsEnabled !== false : true);
   const model = await within(narrationModel(speech), PROBE_MS, speech.model);
@@ -307,7 +325,7 @@ async function narrationFacts(table: ReportTable | undefined, caps: Capabilities
   return { on, backend, model, voice: table?.game.ttsVoice || speech.defaultVoice, characterVoices: Boolean(table?.game.ttsAutoCast) };
 }
 
-async function dictationFacts(checks: string[]): Promise<NonNullable<ReportSetup["dictation"]>> {
+async function dictationFacts(checks: CheckCollector): Promise<NonNullable<ReportSetup["dictation"]>> {
   const speech = getGlobalConfig().speech;
   const stt = await within(sttStatus(), PROBE_MS, null);
   if (!stt) return { backend: "not known (the check took too long)", model: "" };
@@ -363,13 +381,13 @@ export async function gatherSetup(settings: StorySettings, table?: ReportTable):
     within(checkForUpdate(build), PROBE_MS, null),
   ]);
   // Each piece keeps its own list, so the order below is the order read.
-  const first: string[] = [];
-  const narratorChecks: string[] = [];
-  const helperChecks: string[] = [];
-  const agentChecks: string[] = [];
-  const pictureChecks: string[] = [];
-  const narrationChecks: string[] = [];
-  const dictationChecks: string[] = [];
+  const first = checkCollector();
+  const narratorChecks = checkCollector();
+  const helperChecks = checkCollector();
+  const agentChecks = checkCollector();
+  const pictureChecks = checkCollector();
+  const narrationChecks = checkCollector();
+  const dictationChecks = checkCollector();
   if (update?.state === "available") {
     first.push(`A newer release is out (${update.latest.version}); this server runs ${build.version}. Update first: the problem may already be fixed.`);
   }
