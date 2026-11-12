@@ -6,7 +6,14 @@ import { registerOutput, releaseOutput } from "@/lib/audio-devices";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui";
 import { Tooltip } from "@/components/ui/Tooltip";
+
+const VOICE_PREVIEW_ERROR_KEYS: Record<string, MessageKey> = {
+  VOICE_UNKNOWN: "voicePreview.error.unknown",
+  NARRATION_OFF: "voicePreview.error.narrationOff",
+  VOICE_PREVIEW_LIMIT: "voicePreview.error.limit",
+};
 import { useT } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages/index";
 
 // Plays a short sample of a narrator voice next to the voice pickers. The
 // first play for a voice waits on the speech server rendering it (about a
@@ -70,7 +77,12 @@ export function VoicePreviewButton({ voice, className }: { voice: string; classN
       // The element only knows that it failed; the route knows why.
       const reason = await fetch(source)
         .then((response) => (response.ok ? null : response.json()))
-        .then((data: { error?: string } | null) => data?.error ?? "")
+        .then((data: { error?: string; errorCode?: string } | null) => {
+          if (data?.errorCode && VOICE_PREVIEW_ERROR_KEYS[data.errorCode]) {
+            return t(VOICE_PREVIEW_ERROR_KEYS[data.errorCode]);
+          }
+          return data?.error ?? "";
+        })
         .catch(() => "");
       setFailed(reason || t("voicePreview.error.playback"));
       releaseOutput(audio);
