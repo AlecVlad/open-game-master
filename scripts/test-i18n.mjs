@@ -194,6 +194,27 @@ for (const key of lobbyErrorMessages) {
 }
 
 // Character validation responses expose codes only for exact, stable server diagnostics.
+// Join-confirmation changes are structured so the prose follows the selected UI language.
+const joinChangeMessages = [
+  "campaign.joinConfirm.change.ownLevel",
+  "campaign.joinConfirm.change.levelUp",
+  "campaign.joinConfirm.change.levelDown",
+  "campaign.joinConfirm.change.classEntry",
+  "campaign.joinConfirm.change.classes",
+  "campaign.joinConfirm.change.hitPoints",
+  "campaign.joinConfirm.change.improvementsReturned",
+  "campaign.joinConfirm.change.featsReturned",
+  "campaign.joinConfirm.change.spellcastingLost",
+  "campaign.joinConfirm.change.spellsReturned",
+  "campaign.joinConfirm.change.spellSlots",
+  "campaign.joinConfirm.change.slot",
+  "campaign.joinConfirm.change.noSpellSlots",
+];
+for (const key of joinChangeMessages) {
+  assert.ok(key in DICTIONARIES.en, `English join-change message missing: ${key}`);
+  assert.ok(key in DICTIONARIES.ru, `Russian join-change message missing: ${key}`);
+}
+
 const characterRefusalMessages = [
   "builder.refusal.multiclass.disabled",
   "builder.refusal.multiclass.duplicate",
