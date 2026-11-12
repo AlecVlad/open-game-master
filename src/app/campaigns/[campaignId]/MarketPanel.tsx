@@ -81,6 +81,112 @@ function haggledLine(steps: number, prices: string, t: ReturnType<typeof useI18n
   return steps < 0 ? t("campaign.market.haggledDown", { prices }) : steps === 0 ? t("campaign.market.haggledHeld") : t("campaign.market.haggledTooHard", { prices });
 }
 
+type MarketTradeAction = "buy" | "sell" | "haggle";
+type MarketErrorPayload = { error?: unknown; errorCode?: unknown; errorParams?: unknown };
+
+const MARKET_ACTION_LABELS: Record<MarketTradeAction, MessageKey> = {
+  buy: "campaign.market.error.action.buy",
+  sell: "campaign.market.error.action.sell",
+  haggle: "campaign.market.error.action.haggle",
+};
+
+const MARKET_CONDITION_LABELS: Record<string, MessageKey> = {
+  incapacitated: "campaign.market.error.condition.incapacitated",
+  paralyzed: "campaign.market.error.condition.paralyzed",
+  stunned: "campaign.market.error.condition.stunned",
+  unconscious: "campaign.market.error.condition.unconscious",
+  petrified: "campaign.market.error.condition.petrified",
+};
+
+function marketTradeError(data: MarketErrorPayload, action: MarketTradeAction, t: ReturnType<typeof useI18n>["t"]): string {
+  const params =
+    data.errorParams && typeof data.errorParams === "object" && !Array.isArray(data.errorParams)
+      ? (data.errorParams as Record<string, unknown>)
+      : {};
+  const value = (key: string, fallback = "") => {
+    const found = params[key];
+    return found === undefined || found === null ? fallback : String(found);
+  };
+  const code = typeof data.errorCode === "string" ? data.errorCode : "";
+  const reason = () => {
+    const kind = value("reason");
+    if (kind === "dead") return t("campaign.market.error.reason.dead");
+    if (kind === "turned") return t("campaign.market.error.reason.turned");
+    if (kind === "down") return t("campaign.market.error.reason.down");
+    const condition = value("condition", "incapacitated");
+    return t("campaign.market.error.reason.condition", {
+      condition: t(MARKET_CONDITION_LABELS[condition] ?? MARKET_CONDITION_LABELS.incapacitated),
+    });
+  };
+
+  switch (code) {
+    case "shop_out_of_reach": {
+      const place = value("place");
+      let message = place
+        ? t("campaign.market.error.shopOutOfReach", { shop: value("shop"), place })
+        : t("campaign.market.error.shopOutOfReachNoPlace", { shop: value("shop") });
+      const shopPlace = value("shopPlace");
+      if (shopPlace) message += ` ${t("campaign.market.error.shopAtPlace", { place: shopPlace })}`;
+      message += ` ${action === "haggle" ? t("campaign.market.error.nothingRolled") : t("campaign.market.error.nothingChanged")}`;
+      return message;
+    }
+    case "character_unavailable": {
+      const verb = value("verb", action) as MarketTradeAction;
+      return t("campaign.market.error.characterUnavailable", {
+        character: value("character"),
+        action: t(MARKET_ACTION_LABELS[verb] ?? MARKET_ACTION_LABELS[action]),
+        reason: reason(),
+        outcome: action === "haggle" ? t("campaign.market.error.nothingRolled") : t("campaign.market.error.nothingChanged"),
+      });
+    }
+    case "item_not_stocked":
+      return value("shelf")
+        ? t("campaign.market.error.itemNotStocked", { shop: value("shop"), item: value("item"), shelf: value("shelf") })
+        : t("campaign.market.error.itemNotStockedEmpty", { shop: value("shop"), item: value("item") });
+    case "stock_quantity":
+      return t("campaign.market.error.stockQuantity", { shop: value("shop"), quantity: value("quantity"), item: value("item") });
+    case "insufficient_funds":
+      return t("campaign.market.error.insufficientFunds", {
+        character: value("character"), quantity: value("quantity"), item: value("item"),
+        price: value("price"), purse: value("purse"),
+      });
+    case "carrying_capacity":
+      return t("campaign.market.error.carryingCapacity", {
+        character: value("character"), carried: value("carried"), capacity: value("capacity"), item: value("item"),
+      });
+    case "shop_does_not_buy":
+      return t("campaign.market.error.shopDoesNotBuy", { shop: value("shop") });
+    case "item_not_carried":
+      return t("campaign.market.error.itemNotCarried", { character: value("character"), item: value("item") });
+    case "unknown_item":
+      return t("campaign.market.error.unknownItem", {
+        character: value("character"), item: value("item"),
+        carried: value("carried") || t("campaign.market.error.nothingCarried"),
+      });
+    case "magic_item_not_accepted":
+      return t("campaign.market.error.magicItemNotAccepted", { shop: value("shop"), item: value("item") });
+    case "haggle_already_used":
+      return t("campaign.market.error.haggleAlreadyUsed", { character: value("character"), shop: value("shop") });
+    case "deception_already_used":
+      return t("campaign.market.error.deceptionAlreadyUsed", { shop: value("shop") });
+    case "companion_unavailable":
+      return t("campaign.market.error.companionUnavailable", { character: value("character"), reason: reason() });
+    case "invalid_haggle_skill":
+      return t("campaign.market.error.invalidHaggleSkill", { skill: value("skill") });
+    case "haggle_check_unavailable":
+      return t("campaign.market.error.haggleCheckUnavailable", { character: value("character") });
+    case "character_missing":
+      return t("campaign.market.error.characterMissing");
+    case "shop_missing":
+      return t("campaign.market.error.shopMissing");
+    case "no_character":
+      return t("campaign.market.error.noCharacter");
+    case "invalid_trade_action":
+      return t("campaign.market.error.invalidTradeAction");
+    default:
+      return String(data.error ?? t("campaign.market.keeperRejects"));
+  }
+}
 
 const KINDS = ["general", "smith", "apothecary", "outfitter", "curiosities"] as const;
 const SIZES = ["hamlet", "village", "town", "city"] as const;
@@ -245,7 +351,7 @@ export function MarketPanel({
       if (!response.ok && data.unpriced === true) {
         setUnpriced({ shop: shop.name, item });
       } else if (!response.ok) {
-        setError(String(data.error ?? t("campaign.market.keeperRejects")));
+        setError(marketTradeError(data, action, t));
       } else if (action === "haggle") {
         // The haggler's new markup against the shop's own: equal when the
         // step met an end of the ladder.
