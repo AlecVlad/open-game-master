@@ -3247,6 +3247,8 @@ export const ruCampaignPanels: Partial<Record<keyof typeof enCampaignPanels, str
   "campaign.session.eventLog.someone": "Кто-то",
   "campaign.session.eventLog.empty": "Изменений характеристик пока нет. Здесь появятся нанесённый урон, добыча, опыт, состояния и сюжетные отметки, которые применит ведущий.",
   "campaign.session.eventLog.revertTurnTitle": "Вернуть листы персонажей, игровое время и бой к состоянию до хода ведущего: хиты, состояния, существ, жетоны, области на карте, эффекты и очерёдность хода, а также подготовленные события, принудительные результаты проверок и разыгранные карточки. Мировые события и ушедшие спутники останутся; перемотка главы отменит и их.",
+  "campaign.session.eventLog.revertTurn": "Отменить ход",
+  "campaign.session.eventLog.revertTurnCount": "Отменить ход ({count})",
   "campaign.session.eventLog.undoTitle": "Отменить изменение (вернуть затронутые поля листа персонажа)",
   "campaign.session.eventLog.undoLabel": "Отменить это изменение",
   "campaign.session.composer.mode.do": "Действие",
