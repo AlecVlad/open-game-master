@@ -294,7 +294,7 @@ export function boardHintText(input: {
             ? t("campaign.session.battle.hint.moveInScene")
             : t("campaign.session.battle.hint.move", { feet: input.budgetLeft * TILE_FEET })
           : input.hasToken
-            ? "t("campaign.session.battle.hint.cannotMove")"
+            ? t("campaign.session.battle.hint.cannotMove")
             : t("campaign.session.battle.hint.noToken");
 }
 
