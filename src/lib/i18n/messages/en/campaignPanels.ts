@@ -5365,4 +5365,10 @@ export const enCampaignPanels = {
   "campaign.pregenPicker.vex.blurb": "Locks, shadows and a rapier. Scout ahead, find the trap before it finds you, and strike where it hurts.",
   "campaign.pregenPicker.sera.tagline": "Sera, human cleric of life",
   "campaign.pregenPicker.sera.blurb": "Mace, shield and a healer's hands. Keeps the party standing with Cure Wounds and Bless, and can hold a line herself.",
+  "campaign.joinConfirm.owed.subclass.label": "{className} subclass",
+  "campaign.joinConfirm.owed.subclass.dueAt": "(due at {className} level {level})",
+  "campaign.joinConfirm.owed.classSkills": "Class skills: pick {count}",
+  "campaign.joinConfirm.owed.asi.one": "Ability Score Improvement: two points, or a feat.",
+  "campaign.joinConfirm.owed.asi.other": "{count} Ability Score Improvements: two points, or a feat each.",
+  "campaign.joinConfirm.owed.expertise": "Expertise: pick {count} of {name}'s skills to double their proficiency bonus in.",
 };
