@@ -6,6 +6,7 @@ import { returnFocus } from "@/components/ui/return-focus";
 import { ImageOff, ImagePlus, Loader2, RefreshCw, X } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import { useI18n } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages/index";
 import { cn } from "@/lib/cn";
 import { nameWithin, placeTree } from "@/lib/overworld/places";
 import { encodeImageForUpload } from "@/lib/image-encode";
@@ -26,6 +27,18 @@ import type {
   CampaignLocation,
   MediaStatus,
 } from "@/app/campaigns/[campaignId]/useCampaignStream";
+const LOCATION_MAP_ERROR_KEYS: Record<string, MessageKey> = {
+  LOCATION_NOT_FOUND: "campaign.mapPanel.error.locationNotFound",
+  IMAGE_NOT_UPLOADED: "campaign.mapPanel.error.imageNotUploaded",
+  IMAGE_MODEL_UNAVAILABLE: "campaign.mapPanel.error.imageModelUnavailable",
+};
+
+const UPLOAD_ERROR_KEYS: Record<string, MessageKey> = {
+  INVALID_UPLOAD_REQUEST: "campaign.mapPanel.error.uploadInvalid",
+  UPLOAD_IMAGE_TYPE_NOT_SUPPORTED: "campaign.mapPanel.error.uploadUnsupportedType",
+  UPLOAD_IMAGE_TOO_LARGE: "campaign.mapPanel.error.uploadTooLarge",
+  UPLOAD_IMAGE_DIMENSIONS_TOO_LARGE: "campaign.mapPanel.error.uploadDimensionsTooLarge",
+};
 
 // The area map: current location's rendered map (click to enlarge), its
 // exits, and a history of visited places with their maps.
@@ -151,7 +164,8 @@ export function MapPanel({
       });
       const payload = await uploaded.json().catch(() => ({}));
       if (!uploaded.ok) {
-        setRegenerateError(payload.error || t("campaign.mapPanel.error.upload"));
+        const codeKey = typeof payload.errorCode === "string" ? UPLOAD_ERROR_KEYS[payload.errorCode] : undefined;
+        setRegenerateError(codeKey ? t(codeKey) : typeof payload.error === "string" ? payload.error : t("campaign.mapPanel.error.upload"));
         return;
       }
       const response = await fetch(`/api/campaigns/${campaignId}/locations/${shown.id}/map`, {
@@ -160,8 +174,9 @@ export function MapPanel({
         body: JSON.stringify({ imageUrl: payload.url }),
       });
       if (!response.ok) {
-        const data = (await response.json().catch(() => ({}))) as { error?: string };
-        setRegenerateError(data.error ?? t("campaign.mapPanel.error.set"));
+        const data = (await response.json().catch(() => ({}))) as { error?: string; errorCode?: string };
+        const codeKey = data.errorCode ? LOCATION_MAP_ERROR_KEYS[data.errorCode] : undefined;
+        setRegenerateError(codeKey ? t(codeKey) : data.error ?? t("campaign.mapPanel.error.set"));
       }
     } catch {
       setRegenerateError(t("campaign.mapPanel.error.upload"));
@@ -181,8 +196,9 @@ export function MapPanel({
         method: "POST",
       });
       if (!response.ok) {
-        const data = (await response.json().catch(() => ({}))) as { error?: string };
-        setRegenerateError(data.error ?? t("campaign.mapPanel.error.redraw"));
+        const data = (await response.json().catch(() => ({}))) as { error?: string; errorCode?: string };
+        const codeKey = data.errorCode ? LOCATION_MAP_ERROR_KEYS[data.errorCode] : undefined;
+        setRegenerateError(codeKey ? t(codeKey) : data.error ?? t("campaign.mapPanel.error.redraw"));
       }
     } catch {
       setRegenerateError(t("campaign.mapPanel.error.server"));
@@ -203,8 +219,9 @@ export function MapPanel({
         method: "DELETE",
       });
       if (!response.ok) {
-        const data = (await response.json().catch(() => ({}))) as { error?: string };
-        setRegenerateError(data.error ?? t("campaign.mapPanel.error.clear"));
+        const data = (await response.json().catch(() => ({}))) as { error?: string; errorCode?: string };
+        const codeKey = data.errorCode ? LOCATION_MAP_ERROR_KEYS[data.errorCode] : undefined;
+        setRegenerateError(codeKey ? t(codeKey) : data.error ?? t("campaign.mapPanel.error.clear"));
       }
     } catch {
       setRegenerateError(t("campaign.mapPanel.error.server"));
