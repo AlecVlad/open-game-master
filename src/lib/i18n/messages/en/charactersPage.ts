@@ -4,6 +4,7 @@ export const enCharactersPage = {
   "characters.err.net": "Could not reach the server.",
   "characters.err.portrait": "The portrait was not saved. Check the connection and try again.",
   "characters.err.clone": "No copy was made. Check the connection and try again.",
+  "characters.err.notFound": "That character could not be found.",
   "characters.err.json": "{file} is not a JSON file.",
   "characters.err.import": "Import failed.",
   "characters.err.import.tooLarge": "The character file is larger than 12MB.",
