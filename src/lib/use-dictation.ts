@@ -318,7 +318,7 @@ export function useDictation({
       setState("recording");
       startTimer(stop);
     },
-    [campaignId, setHintWithCode, setLevel, startTimer, stop],
+    [campaignId, clearHint, setHintWithCode, setLevel, startTimer, stop],
   );
 
   const start = useCallback(async () => {
