@@ -19,6 +19,7 @@ import type { TileEntry } from "@/lib/battlemap/render/painted";
 import { materialChoices } from "@/app/campaigns/[campaignId]/mapCatalogue";
 import type { Catalogue } from "@/app/campaigns/[campaignId]/useMapPaint";
 import { Chip, FinePrint, PanelHead, Swatch, mapInput } from "@/app/campaigns/[campaignId]/mapUi";
+import { useI18n } from "@/lib/i18n/provider";
 
 // The tileset panel (docs/visual-overhaul-plan.md 4.4): which skin the map
 // wears and, under it, the material each of the six terrain characters is
@@ -52,34 +53,36 @@ export function MapTilesetPanel({
   // Absent on a surface that cannot store a skin (the live board).
   onSkin?: (next: MapSkin) => void;
 }) {
+  const { t } = useI18n();
   const [picking, setPicking] = useState<SkinChar | null>(null);
   const tiles = useMemo(() => new Map((catalogue?.tiles ?? []).map((tile) => [tile.id, tile])), [catalogue]);
   const defaultId = defaultSkinFor(genre, theme);
   const groups = useMemo(() => skinChoices(genre), [genre]);
   const overridden = Object.keys(skin.bind).length > 0;
+  const roleKey: Record<SkinChar, string> = { ".": "floor", "#": "wall", "~": "water", ",": "rough", "+": "door", "|": "lowwall" };
 
   return (
     <section className="space-y-1.5">
-      <PanelHead aside={painted ? "painted" : "flat fills"}>Tileset</PanelHead>
+      <PanelHead aside={painted ? t("workshop.maps.tiles.painted") : t("workshop.maps.tiles.flat")}>{t("workshop.maps.tiles.heading")}</PanelHead>
       <div className="grid grid-cols-2 gap-1">
-        <Chip active={!painted} onClick={() => onPainted(false)} title="The old flat diagram. A choice for this device, not the map.">
-          Flat
+        <Chip active={!painted} onClick={() => onPainted(false)} title={t("workshop.maps.tiles.flatTitle")}>
+          {t("workshop.maps.tiles.flat")}
         </Chip>
-        <Chip active={painted} onClick={() => onPainted(true)} title="Painted by the renderer the table plays on.">
-          Painted
+        <Chip active={painted} onClick={() => onPainted(true)} title={t("workshop.maps.tiles.paintedTitle")}>
+          {t("workshop.maps.tiles.painted")}
         </Chip>
       </div>
 
       {onSkin ? (
         <label className="block space-y-1">
-          <span className="font-display text-[9px] uppercase tracking-[0.18em] text-stone-500">Skin</span>
+          <span className="font-display text-[9px] uppercase tracking-[0.18em] text-stone-500">{t("workshop.maps.forge.skin")}</span>
           <Select
             value={skin.id as string}
-            label="Skin"
+            label={t("workshop.maps.forge.skin")}
             size="sm"
             onChange={(id) => onSkin({ id, bind: {} })}
             options={[
-              { value: "", label: `Default: ${skinById(defaultId)?.name ?? "Stone dungeon"}` },
+              { value: "", label: t("workshop.maps.tiles.default", { skin: skinById(defaultId)?.name ?? t("workshop.maps.forge.skinFallback") }) },
               ...groups.flatMap((group) => group.skins.map((option) => ({ value: option.id as string, label: option.name, group: group.group }))),
             ]}
             className="w-full"
@@ -100,7 +103,7 @@ export function MapTilesetPanel({
                 type="button"
                 disabled={!onSkin || !catalogue}
                 onClick={() => setPicking(char)}
-                title={onSkin ? `Choose what ${SKIN_ROLES[char].label.toLowerCase()} is painted with` : undefined}
+                title={onSkin ? t("workshop.maps.tiles.chooseRole", { role: t(`workshop.maps.tiles.role.${roleKey[char]}` as never).toLowerCase() }) : undefined}
                 className={cn(
                   "flex w-full items-center gap-2 rounded-md border px-1.5 py-1 text-left motion-press disabled:cursor-default",
                   own ? "border-amber-500/40 bg-amber-400/5" : "border-transparent hover:border-stone-700",
@@ -108,10 +111,10 @@ export function MapTilesetPanel({
               >
                 <Swatch char={char} src={painted ? material?.src : undefined} />
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-[11px] text-stone-200">{SKIN_ROLES[char].label}</span>
+                  <span className="block truncate text-[11px] text-stone-200">{t(`workshop.maps.tiles.role.${roleKey[char]}` as never)}</span>
                   <span className="block truncate font-mono text-[9px] text-stone-500">
                     {material?.label ?? resolved.bind[char]}
-                    {own ? " · yours" : ""}
+                    {own ? ` · ${t("workshop.maps.tiles.yours")}` : ""}
                   </span>
                 </span>
                 <span className="font-mono text-[9px] tabular-nums text-amber-200/80">{counts[char] ?? 0}</span>
@@ -126,7 +129,7 @@ export function MapTilesetPanel({
           onClick={() => onSkin({ id: skin.id, bind: {} })}
           className="flex min-h-8 items-center gap-1 text-[11px] text-stone-400 hover:text-amber-200"
         >
-          <RotateCcw className="size-3" /> Back to the skin&apos;s own materials
+          <RotateCcw className="size-3" /> {t("workshop.maps.tiles.restoreOwn")}
         </button>
       ) : null}
 
@@ -182,20 +185,21 @@ function MaterialPicker({
   onPick: (material: string) => void;
   onClose: () => void;
 }) {
+  const { t } = useI18n();
   const [query, setQuery] = useState("");
   const groups = useMemo(() => (char ? materialChoices(tiles, char, genre, theme, query) : []), [tiles, char, genre, theme, query]);
   return (
     <Dialog
       open={char !== null}
       onOpenChange={(open) => (open ? undefined : onClose())}
-      title={char ? `${SKIN_ROLES[char].label}: painted with` : "Material"}
+      title={char ? t("workshop.maps.tiles.materialFor", { role: t(`workshop.maps.tiles.role.${char === "." ? "floor" : char === "#" ? "wall" : char === "~" ? "water" : char === "," ? "rough" : char === "+" ? "door" : "lowwall"}` as never) }) : t("workshop.maps.tiles.material")}
       width="w-[min(94vw,44rem)]"
     >
       <input
         value={query}
         onChange={(event) => setQuery(event.target.value)}
-        placeholder="Find a material: granite, moss, lava"
-        aria-label="Find a material"
+        placeholder={t("workshop.maps.tiles.findMaterial")}
+        aria-label={t("workshop.maps.tiles.findMaterialAria")}
         className={cn(mapInput, "mb-3")}
       />
       <div className="space-y-4">
@@ -226,14 +230,14 @@ function MaterialPicker({
                   />
                   <span className="block truncate px-1.5 py-1 text-[10px] text-stone-200">
                     {tile.label ?? tile.id}
-                    {tile.id === skinsOwn ? <span className="ml-1 text-amber-400/80">skin</span> : null}
+                    {tile.id === skinsOwn ? <span className="ml-1 text-amber-400/80">{t("workshop.maps.tiles.skinMarker")}</span> : null}
                   </span>
                 </button>
               ))}
             </div>
           </section>
         ))}
-        {!groups.length ? <FinePrint>Nothing in the tile set matches that.</FinePrint> : null}
+        {!groups.length ? <FinePrint>{t("workshop.maps.tiles.nothingMatches")}</FinePrint> : null}
       </div>
     </Dialog>
   );
