@@ -262,7 +262,7 @@ export function ArchetypeFields({
           }
           hint={
             rules
-              ? t("workshop.homebrew.archetype.ui.profileHint", { ability: t(`workshop.homebrew.species.ability.${rules.ability}`), list: t(`workshop.homebrew.class.ui.name.${rules.list}`), schoolOne: rules.schools[0], schoolTwo: rules.schools[1] })
+              ? t("workshop.homebrew.archetype.ui.profileHint", { ability: t(`workshop.homebrew.species.ability.${rules.ability}`), list: t(`workshop.homebrew.class.ui.name.${rules.list}`), schoolOne: t(`workshop.homebrew.spell.school.${rules.schools[0]}`), schoolTwo: t(`workshop.homebrew.spell.school.${rules.schools[1]}`) })
               : t("workshop.homebrew.archetype.ui.profileFallback", { className: capital(classId) })
           }
         />
