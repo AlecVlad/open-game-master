@@ -2,6 +2,7 @@
 
 import { Loader2, Mic, Square, X } from "lucide-react";
 import { useRef, type ReactNode } from "react";
+import { useT } from "@/lib/i18n/provider";
 import { cn } from "@/lib/cn";
 import { DICTATION_MAX_MS, DICTATION_WARN_MS, formatElapsed } from "@/lib/dictation";
 import { useDictation } from "@/lib/use-dictation";
@@ -22,7 +23,7 @@ export function DictateField({
   disabled,
   single,
   className,
-  label = "Dictate",
+  label,
 }: {
   children: ReactNode;
   // Called with the words heard. Append them with appendDictation().
@@ -34,6 +35,8 @@ export function DictateField({
   // What the field is, for the button's accessible name.
   label?: string;
 }) {
+  const t = useT();
+  const fieldLabel = label ?? t("dictate.defaultLabel");
   const boxRef = useRef<HTMLDivElement | null>(null);
   const dictation = useDictation({
     onTranscript: (text) => {
@@ -96,8 +99,8 @@ export function DictateField({
             disabled={(disabled && !busy) || state === "transcribing"}
             aria-pressed={recording}
             data-state={state}
-            aria-label={recording ? `Finish dictating: ${label}` : `${label}: speak instead of typing`}
-            title={recording ? "Tap to finish. The words land in the field." : "Speak instead of typing. Tap to start, tap again to finish."}
+            aria-label={recording ? t("dictate.aria.finish", { label: fieldLabel }) : t("dictate.aria.start", { label: fieldLabel })}
+            title={recording ? t("dictate.title.finish") : t("dictate.title.start")}
             className={cn("dictate-mic", recording && "dictate-mic-live")}
           >
             {state === "transcribing" || state === "starting" ? (
@@ -142,10 +145,11 @@ function DictateStatus({
   onDiscard: () => void;
   onDismiss: () => void;
 }) {
+  const t = useT();
   if (state === "starting") {
     return (
       <p role="status" className="dictate-status">
-        <span className="breathe">Waiting for the microphone...</span>
+        <span className="breathe">{t("dictate.waitingMicrophone")}</span>
       </p>
     );
   }
@@ -157,10 +161,10 @@ function DictateStatus({
           <span className="dictate-dot" aria-hidden="true" />
           <span className="dictate-time">{formatElapsed(elapsed)}</span>
           <span className={cn("min-w-0 truncate", closing && "dictate-closing")}>
-            {closing ? `Stops itself at ${formatElapsed(DICTATION_MAX_MS)}` : "Listening. Tap the square when you are done."}
+            {closing ? t("dictate.stopsAt", { time: formatElapsed(DICTATION_MAX_MS) }) : t("dictate.listening")}
           </span>
           <button type="button" onClick={onDiscard} className="dictate-discard">
-            Discard
+            {t("dictate.discard")}
           </button>
         </p>
         {/* The device's recognizer shows its words as they come; the tail
@@ -173,7 +177,7 @@ function DictateStatus({
     return (
       <p role="status" className="dictate-status">
         <span className="breathe">
-          {progress ? `Writing down what you said (part ${Math.min(progress.done + 1, progress.total)} of ${progress.total})...` : "Writing down what you said..."}
+          {progress ? t("dictate.transcribingPart", { part: Math.min(progress.done + 1, progress.total), total: progress.total }) : t("dictate.transcribing")}
         </span>
       </p>
     );
@@ -182,7 +186,7 @@ function DictateStatus({
     return (
       <p role="alert" className="dictate-status dictate-error">
         <span className="min-w-0 flex-1">{hint}</span>
-        <button type="button" onClick={onDismiss} aria-label="Dismiss" className="dictate-discard">
+        <button type="button" onClick={onDismiss} aria-label={t("dictate.dismiss")} className="dictate-discard">
           <X className="size-3" />
         </button>
       </p>
