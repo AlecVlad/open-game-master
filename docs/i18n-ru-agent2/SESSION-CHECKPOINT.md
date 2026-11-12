@@ -5,7 +5,7 @@ Single restore point for Russian localization. After a chat interruption, read o
 ## State
 - Repository: `AlecVlad/open-game-master`
 - Branch: `i18n-ru-agent2` — verify current HEAD on resume; do not trust a stored SHA.
-- Active work: **Block 2 — Workshop import flows**.
+- Active work: **Block 2 — Workshop: audit and localization of remaining editors and content workflows**.
 - Block 1 — game session — remains formally open; do not create its DONE flag, merge branches, or open a PR.
 - `STATUS.md` is an older detailed log and may lag this checkpoint. This checkpoint is authoritative for the current state.
 - `PLAN.md` contains block boundaries and completion criteria; consult only when scope is unclear.
@@ -123,7 +123,11 @@ Single restore point for Russian localization. After a chat interruption, read o
 - Added 58 EN/RU base messages in `workshop.ts`; Russian plural forms were added for corner-count instructions. Static verification: keys, placeholders and duplicate checks passed.
 
 ## Next work
-Continue the Atlas audit with `AtlasRegion.tsx`, `AtlasEdit.tsx`, `AtlasParty.tsx` and `PlaceBattleMaps.tsx`, then `TimelineView.tsx`, `SecretsView.tsx` and `WikiView.tsx`. Localize fixed interface text and accessibility labels, while leaving user-created names, custom type/field names and content alone. Inspect `useWorld.ts` error messages before translating API errors. Then continue the remaining Workshop editors. Do not sync upstream or merge branches during translation.
+- The WorldForge pass is complete across all 29 files in `src/app/workshop/world/`; do not repeat its completed Atlas, timeline, secrets, wiki or supporting-tool work without a targeted reason.
+- Continue Block 2 with a source-first audit of the remaining Workshop systems named in `PLAN.md`: Plugin Wizard, Monster Editor, Map Editor, Encounter Form and Lore Editor. Some pieces may already have translations; verify integration and uncovered UI before changing anything.
+- Finish the remaining creation/edit/save/import/export/publish paths, including validation, known system errors, empty/loading states and accessibility labels.
+- The Reference module is not confirmed complete: `mainPage`, `comparison`, `desk`, `badges`, `calculators` and its EN/RU message wiring still need a fresh source audit.
+- Do not sync upstream, merge branches or open a PR during translation.
 
 ## Low-token work protocol
 - Read this file, then only the next target source file(s) and exact dictionary sections needed.
@@ -133,7 +137,6 @@ Continue the Atlas audit with `AtlasRegion.tsx`, `AtlasEdit.tsx`, `AtlasParty.ts
 - After each completed unit, update this checkpoint. Keep it short.
 - Preserve API values, IDs, slugs, game mechanics, user-authored names/text and campaign data. Translate fixed UI text and known system messages only.
 - Local validation (TypeScript, lint, tests, production build and browser checks) is performed on the user's local machine only after an explicit user command. Do not start these checks or use Remote Desktop independently.
--1 on the user's local machine. Do not claim these checks unless actually run.
 
 ## WorldForge — entry page and Atlas — 12 November 2026
 - `EntityPage.tsx`: completed the missing 57 EN/RU dictionary messages for the entry-page UI; checked all source keys and placeholder parity.
