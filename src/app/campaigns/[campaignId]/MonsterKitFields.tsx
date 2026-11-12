@@ -1,5 +1,7 @@
 "use client";
 
+import { useI18n } from "@/lib/i18n/provider";
+
 import { applyHalfDragon, DRAGON_COLORS, type DragonColor } from "@/lib/bestiary/half-dragon";
 import { Plus, Wand2 } from "lucide-react";
 import { useState } from "react";
@@ -68,6 +70,7 @@ export function TermPicker({
   // What the known terms mean, one line each, behind a ⓘ in the caption.
   glossary?: readonly GlossaryEntry[];
 }) {
+  const { t } = useI18n();
   const extras = parseTerms(value).filter(
     (term) => !known.some((entry) => textKey(entry) === textKey(term)),
   );
@@ -130,6 +133,7 @@ export function SpeedPicker({
   value: string;
   onChange: (value: string) => void;
 }) {
+  const { t } = useI18n();
   const speeds = parseSpeed(value);
   const set = (mode: "walk" | (typeof MOVEMENT_MODES)[number], feet: number) =>
     onChange(formatSpeed({ ...speeds, [mode]: feet }));
@@ -190,6 +194,7 @@ export function MonsterKitPanel({
   draft: MonsterDraft;
   onChange: (draft: MonsterDraft) => void;
 }) {
+  const { t } = useI18n();
   const [ancestryId, setAncestryId] = useState("");
   const [classId, setClassId] = useState("");
   const [subclass, setSubclass] = useState("");
