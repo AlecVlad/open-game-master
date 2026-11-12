@@ -155,6 +155,12 @@ for (const key of dmSquarePickMessages) {
   assert.ok(key in DICTIONARIES.ru, `Russian battlemap square-pick message missing: ${key}`);
 }
 
+const encounterDeployMessages = ["campaign.session.encounterPrep.deploy"];
+for (const key of encounterDeployMessages) {
+  assert.ok(key in DICTIONARIES.en, `English encounter deploy message missing: ${key}`);
+  assert.ok(key in DICTIONARIES.ru, `Russian encounter deploy message missing: ${key}`);
+}
+
 const dmBestiaryMessages = [
   "campaign.dmBestiary.loadWhat",
   "campaign.dmBestiary.sourceUnavailable",
