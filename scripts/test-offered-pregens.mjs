@@ -133,6 +133,13 @@ await test("a player previews the pregen at the table's level and takes the seat
   assert.equal(original.level, 1);
   assert.equal(original.sheet.subclass, "");
 
+  // The same player sees a structured "already mine" refusal on a repeated
+  // preview; the table's door may also explain that their first seat is taken.
+  const ownPreview = await table.preview(table.player);
+  const ownClaim = ownPreview.json.preview.problemCodes.indexOf("PREGEN_ALREADY_PLAYED_BY_YOU");
+  assert.ok(ownClaim >= 0, ownPreview.json.preview.problems.join("; "));
+  assert.deepEqual(ownPreview.json.preview.problemParams[ownClaim], { name: "Thessaly" });
+
   // The player sees it as theirs; the next player sees it taken.
   assert.equal((await table.list(table.player))[0].taken, "mine");
   const theirs = await table.list(table.second);
