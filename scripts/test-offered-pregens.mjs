@@ -141,8 +141,13 @@ await test("a player previews the pregen at the table's level and takes the seat
   const second = await table.preview(table.second);
   assert.equal(second.json.preview.ok, false);
   assert.ok(second.json.preview.problems.some((line) => /already taken/.test(line)), second.json.preview.problems.join("; "));
+  const takenProblem = second.json.preview.problems.findIndex((line) => /already taken/.test(line));
+  assert.equal(second.json.preview.problemCodes[takenProblem], "PREGEN_ALREADY_TAKEN");
+  assert.deepEqual(second.json.preview.problemParams[takenProblem], { name: "Thessaly" });
   const refused = await table.take(table.second);
   assert.equal(refused.status, 409);
+  assert.equal(refused.json.errorCode, "PREGEN_ALREADY_TAKEN");
+  assert.deepEqual(refused.json.errorParams, { name: "Thessaly" });
   assert.equal(table.sheets.getSheetForUser(table.campaignId, table.second.id), null);
 
   // The first player gives the seat up in the lobby: the pregen is free again.
@@ -199,10 +204,15 @@ await test("one Thessaly per table: the copy seated again holds the pregen, and 
   const refused = await seatCopy(table.player, copyId);
   assert.equal(refused.status, 409, JSON.stringify(refused.json));
   assert.match(refused.json.error, /another player already plays at this table/);
+  assert.equal(refused.json.errorCode, "PREGEN_COPY_PLAYED_BY_ANOTHER");
+  assert.deepEqual(refused.json.errorParams, { name: "Thessaly" });
   assert.equal(table.sheets.getSheetForUser(table.campaignId, table.player.id), null, "the refused copy was seated");
   const preview = await table.as(table.player, table.route.preview, "POST", { libraryCharacterId: copyId });
   assert.equal(preview.json.preview.ok, false);
-  assert.ok(preview.json.preview.problems.some((line) => /another player already plays/.test(line)), preview.json.preview.problems.join("; "));
+  const heldProblem = preview.json.preview.problems.findIndex((line) => /another player already plays/.test(line));
+  assert.ok(heldProblem >= 0, preview.json.preview.problems.join("; "));
+  assert.equal(preview.json.preview.problemCodes[heldProblem], "PREGEN_COPY_PLAYED_BY_ANOTHER");
+  assert.deepEqual(preview.json.preview.problemParams[heldProblem], { name: "Thessaly" });
 
   const duplicated = await table.as(table.player, cloneRoute, "POST", undefined, { characterId: copyId });
   assert.equal(duplicated.status, 201, JSON.stringify(duplicated.json));
@@ -227,6 +237,8 @@ await test("a player does not field two copies of one pregen at a table that all
   const refused = await table.as(table.player, sheetRoute, "POST", { libraryCharacterId: duplicate.id });
   assert.equal(refused.status, 409, JSON.stringify(refused.json));
   assert.match(refused.json.error, /You already play/);
+  assert.equal(refused.json.errorCode, "PREGEN_COPY_ALREADY_PLAYED_BY_YOU");
+  assert.deepEqual(refused.json.errorParams, { name: "Thessaly" });
   // The copy itself is picked again, not refused.
   assert.equal((await table.as(table.player, sheetRoute, "POST", { libraryCharacterId: copyId })).status, 201);
   table.world.close();
