@@ -725,6 +725,8 @@ export const ruCampaignSession: Partial<Record<keyof typeof enCampaignSession, s
   "campaign.omissionReport.reason.region": "Пакет мира не содержит карт. Карта региона остаётся в полном наборе мастерской.",
   "campaign.omissionReport.reason.rules": "Пакет не задаёт правил. Установивший его игровой стол продолжает использовать собственные правила, пока не прочитает ваши.",
   "campaign.session.messageItem.speakerThroughGm": "{name}, от лица ведущего",
+  "campaign.session.messageContent.illustrationFailed": "Не удалось создать иллюстрацию, но история продолжается.",
+  "campaign.session.messageContent.waitingForRender": "Ожидаем очереди на создание изображения…",
   "campaign.session.dmStatus.thinking.1": "Ведущий обдумывает исход…",
   "campaign.session.dmStatus.thinking.2": "Ведущий советуется с прихотями судьбы…",
   "campaign.session.dmStatus.thinking.3": "Где-то d20 затаил дыхание…",
