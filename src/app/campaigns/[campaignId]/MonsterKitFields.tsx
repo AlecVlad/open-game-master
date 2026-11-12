@@ -256,7 +256,7 @@ export function MonsterKitPanel({
             setClassId(next);
             setSubclass("");
           }}
-          options={[{ value: "", label: "Pick one" }, ...CLASS_KIT_OPTIONS.map((klass) => ({ value: klass.id as string, label: klass.name }))]}
+          options={[{ value: "", label: t("workshop.monsterEditor.kit.pickOne") }, ...CLASS_KIT_OPTIONS.map((klass) => ({ value: klass.id as string, label: klass.name }))]}
         />
         <Select
           label={t("workshop.monsterEditor.kit.subclass")}
@@ -377,7 +377,7 @@ export function MonsterKitPanel({
           value={weaponName}
           onChange={setWeaponName}
           className="w-44"
-          options={[{ value: "", label: "Pick one" }, ...weaponOptionsFor(classId).map((weapon) => ({ value: weapon.name, label: `${weapon.name} (${weapon.damage})` }))]}
+          options={[{ value: "", label: t("workshop.monsterEditor.kit.pickOne") }, ...weaponOptionsFor(classId).map((weapon) => ({ value: weapon.name, label: `${weapon.name} (${weapon.damage})` }))]}
         />
         <div className="flex flex-col gap-0.5">
           <span className="text-[10px] uppercase tracking-wide text-stone-500">{t("workshop.monsterEditor.kit.abilityMod")}</span>
@@ -402,7 +402,7 @@ export function MonsterKitPanel({
           }}
           className="rounded-md border border-stone-700 px-2 py-1 text-[11px] text-stone-300 hover:text-amber-100 disabled:opacity-40"
         >
-          {attacksFull ? "{t("workshop.monsterEditor.kit.attackFull")}" : "{t("workshop.monsterEditor.kit.addAttack")}"}
+          {attacksFull ? t("workshop.monsterEditor.kit.attackFull") : t("workshop.monsterEditor.kit.addAttack")}
         </button>
         <span className="pb-1 text-[10px] text-stone-600">
           {t("workshop.monsterEditor.kit.toHit", { bonus: proficiencyBonus(level) + Math.max(0, weaponMod), level })}
