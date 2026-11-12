@@ -399,6 +399,7 @@ for (const key of placePartOfMessages) {
 const sharedComponentMessages = [
   "common.actionsFor",
   "hotkeyOverlay.title", "hotkeyOverlay.footer",
+  "voicePicker.serverDefault", "voicePicker.serverDefaultVoice", "voicePicker.custom", "voicePicker.customHint", "voicePicker.customAria",
   "numberStepper.lower", "numberStepper.raise",
   "markdown.roll", "markdown.targetType.lore", "markdown.targetType.npc", "markdown.targetType.place", "markdown.targetType.map",
   "markdown.unresolvedLink", "markdown.onlyGmReads",
