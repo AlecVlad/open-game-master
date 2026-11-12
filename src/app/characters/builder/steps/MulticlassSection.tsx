@@ -315,9 +315,9 @@ function ExtraClassCard({
   index: number;
   numbers: boolean;
 }) {
+  const { t, tp } = useI18n();
   const row = entry.klass;
   const name = row.name;
-  const lower = name.toLowerCase();
   // As many levels as it has plus all but one of the first class's.
   const most = entry.level + Math.max(0, derived.primaryLevel - 1);
   const grant = multiclassGrantsFor(row.id);
@@ -335,7 +335,7 @@ function ExtraClassCard({
   );
   return (
     <section
-      aria-label={`${name}, ${entry.level} ${entry.level === 1 ? "level" : "levels"}`}
+      aria-label={t("builder.multi.class.aria", { name, level: entry.level, levelWord: tp("builder.multi.levelWord", entry.level) })}
       className="mb-3 rounded-lg border border-stone-700/70 bg-stone-950/40 p-3"
       data-extra-class={row.id}
     >
@@ -343,53 +343,53 @@ function ExtraClassCard({
         <h3 className="grow text-sm text-amber-100">
           {name}{" "}
           <span className="text-xs text-stone-500">
-            {hitDieChip(row.hitDie, numbers)}
+            {hitDieLabel(row.hitDie, numbers, t)}
           </span>
         </h3>
         <button
           type="button"
           onClick={() => state.removeExtraClass(index)}
-          aria-label={`Remove ${name}`}
+          aria-label={t("builder.multi.remove")}
           className="inline-flex min-h-11 min-w-11 items-center justify-center gap-1 rounded-md px-2 text-xs text-stone-400 transition-colors hover:bg-stone-800 hover:text-stone-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-400"
         >
           <Trash2 aria-hidden="true" className="size-4" />
-          Remove
+          {t("builder.multi.remove")}
         </button>
       </div>
-      <Field label={`${name} levels`} className="mt-2">
+      <Field label={t("builder.multi.class.levels", { name })} className="mt-2">
         <Select<string>
           value={String(entry.level)}
           onChange={(value) => state.changeExtraLevel(index, Number(value))}
-          label={`${name} levels`}
+          label={t("builder.multi.class.levels", { name })}
           className="w-full"
           options={Array.from({ length: Math.max(1, most) }, (_, at) => ({ value: String(at + 1), label: String(at + 1) }))}
         />
       </Field>
-      <p className="mt-2 text-xs text-stone-400">Adds {describeGrant(grant)}. No saving throws: those are your first class&apos;s.</p>
+      <p className="mt-2 text-xs text-stone-400">{t("builder.multi.extra.adds", { grants: grantLabel(grant, t) })} {t("builder.multi.extra.noSaves")}</p>
       {pickLevel !== null ? (
         entry.level >= pickLevel ? (
           <ExtraSubclassField state={state} entry={entry} index={index} />
         ) : (
           <p className="mt-2 text-xs text-stone-500">
-            A {lower} chooses a <GameTerm id="subclass">subclass</GameTerm> at its level {pickLevel}; at {entry.level}{" "}
-            there is nothing to pick yet.
+            {t("builder.multi.subclass.wait", { klass: name, pickLevel, level: entry.level })}
           </p>
         )
       ) : null}
       {grant.skillChoice ? (
-        <Field label={`Skill from your ${lower} levels (pick ${grant.skillChoice.count})`} className="mt-3">
+        <Field label={t("builder.multi.skill.fromLevels", { klass: name, count: grant.skillChoice.count })} className="mt-3">
           <div className="flex flex-wrap gap-2">
             {skillPool.map((skillId) => {
               const skill = SRD_SKILLS.find((candidate) => candidate.id === skillId);
               const selected = entry.skills.some((own) => textKey(own) === textKey(skillId));
               const taken = elsewhere.has(textKey(skillId));
+              const label = skillLabel(skillId, skill?.name ?? skillId, t);
               return (
                 <PickPill
                   key={skillId}
-                  label={skill?.name ?? skillId}
+                  label={label}
                   selected={selected}
                   disabled={taken}
-                  info={{ text: taken ? `${skill?.name ?? skillId} is already yours from elsewhere.` : describeSkill(skillId) }}
+                  info={{ text: taken ? t("builder.multi.skill.alreadyYours", { skill: label }) : describeSkill(skillId) }}
                   onClick={() => {
                     const count = grant.skillChoice?.count ?? 1;
                     const next = selected
@@ -402,8 +402,8 @@ function ExtraClassCard({
                     state.changeExtraSkills(index, next);
                   }}
                 >
-                  {skill?.name ?? skillId}
-                  {taken ? " (yours)" : ""}
+                  {label}
+                  {taken ? ` ${t("builder.multi.skill.yours")}` : ""}
                 </PickPill>
               );
             })}
@@ -412,7 +412,7 @@ function ExtraClassCard({
       ) : null}
       {features.length ? (
         <p className="mt-3 text-xs text-stone-400">
-          At {lower} level {entry.level}: {features.map((feature) => feature.name).join(", ")}.
+          {t("builder.multi.featuresAt", { klass: name, level: entry.level, features: features.map((feature) => feature.name).join(", ") })}
         </p>
       ) : null}
     </section>
@@ -423,17 +423,18 @@ function ExtraClassCard({
 // then the workshop's and the content pack's, as the first class's picker
 // offers them (usePickerGroups.ts).
 function ExtraSubclassField({ state, entry, index }: { state: BuilderState; entry: ExtraClassRow; index: number }) {
+  const { t } = useI18n();
   const { archetypes } = useArchetypeOptions(entry.klass.id);
   const groups = useMemo<PickerGroup[]>(() => {
     const builtIn = subclassNamesFor(entry.klass.id);
     const known = new Set(builtIn.map(textKey));
     const others = archetypes.filter((archetype) => !known.has(textKey(archetype.name)));
     return [
-      { label: null, options: [{ id: "", name: "None yet" }] },
+      { label: null, options: [{ id: "", name: t("builder.multi.subclass.noneYet") }] },
       ...(builtIn.length
         ? [
             {
-              label: "Full features",
+              label: t("builder.multi.subclass.fullFeatures"),
               options: builtIn.map((subclassName) => ({
                 id: subclassName,
                 name: subclassName,
@@ -443,27 +444,27 @@ function ExtraSubclassField({ state, entry, index }: { state: BuilderState; entr
           ]
         : []),
       ...(others.length
-        ? [{ label: "More subclasses", options: others.map((archetype) => ({ id: archetype.name, name: archetype.name, infoText: archetype.desc })) }]
+        ? [{ label: t("builder.multi.subclass.more"), options: others.map((archetype) => ({ id: archetype.name, name: archetype.name, infoText: archetype.desc })) }]
         : []),
     ];
-  }, [entry.klass.id, archetypes]);
+  }, [entry.klass.id, archetypes, t]);
   const blurb = entry.subclass ? subclassBlurb(entry.klass.id, entry.subclass) : "";
   return (
-    <Field label={`${entry.klass.name} subclass`} className="mt-3">
+    <Field label={t("builder.multi.subclass.label", { klass: entry.klass.name })} className="mt-3">
       <OptionPicker
         value={entry.subclass}
         groups={groups}
-        placeholder="None yet"
+        placeholder={t("builder.multi.subclass.noneYet")}
         className={inputClass}
         onChange={(name) => state.changeExtraSubclass(index, name)}
       />
       {entry.subclass ? (
         <span className="mt-1 flex items-start gap-1 text-xs text-stone-500">
-          <span className="grow">{blurb || "A specialization within the class."}</span>
+          <span className="grow">{blurb || t("builder.multi.subclass.specialization")}</span>
           {blurb ? <InfoButton label={entry.subclass} text={blurb} /> : null}
         </span>
       ) : (
-        <span className="mt-1 block text-xs text-amber-300">Still to choose.</span>
+        <span className="mt-1 block text-xs text-amber-300">{t("builder.multi.subclass.still")}</span>
       )}
     </Field>
   );
