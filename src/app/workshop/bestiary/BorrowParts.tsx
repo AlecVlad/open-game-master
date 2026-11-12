@@ -34,6 +34,7 @@ function statsOf(entry: { source: string; name: string; data: Record<string, unk
 }
 
 export function BorrowParts({ draft, onChange }: { draft: MonsterDraft; onChange: (draft: MonsterDraft) => void }) {
+  const { t } = useI18n();
   const [source, setSource] = useState<{ name: string; parts: BorrowPart[] } | null>(null);
   const [taken, setTaken] = useState<Set<string>>(() => new Set());
   return (
