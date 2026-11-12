@@ -144,6 +144,20 @@ for (const key of campaignRulesMessages) {
   assert.ok(key in DICTIONARIES.ru, `Russian campaign-rules message missing: ${key}`);
 }
 
+const mapApiErrorMessages = [
+  "campaign.mapPanel.error.locationNotFound",
+  "campaign.mapPanel.error.imageNotUploaded",
+  "campaign.mapPanel.error.imageModelUnavailable",
+  "campaign.mapPanel.error.uploadInvalid",
+  "campaign.mapPanel.error.uploadUnsupportedType",
+  "campaign.mapPanel.error.uploadTooLarge",
+  "campaign.mapPanel.error.uploadDimensionsTooLarge",
+];
+for (const key of mapApiErrorMessages) {
+  assert.ok(key in DICTIONARIES.en, `English map API error message missing: ${key}`);
+  assert.ok(key in DICTIONARIES.ru, `Russian map API error message missing: ${key}`);
+}
+
 const mapPopulateMessages = [
   "campaign.mapPanel.populate.alreadyPopulated",
   "campaign.mapPanel.populate.placeNotFound",
