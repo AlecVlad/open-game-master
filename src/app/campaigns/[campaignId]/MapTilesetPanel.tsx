@@ -7,7 +7,6 @@ import { Dialog } from "@/components/ui/Dialog";
 import { Select } from "@/components/ui/Select";
 import {
   SKIN_CHARS,
-  SKIN_ROLES,
   defaultSkinFor,
   skinById,
   skinChoices,
