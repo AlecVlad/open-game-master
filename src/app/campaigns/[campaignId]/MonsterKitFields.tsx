@@ -22,7 +22,7 @@ import {
   addAttack,
   armorOptionsFor,
   classFeatureLines,
-  describeChassis,
+  chassisDescription,
   findWeapon,
   formatSpeed,
   hasTerm,
@@ -51,6 +51,16 @@ const input =
 
 const chip =
   "rounded-full border px-2 py-0.5 text-[10px] transition-colors duration-150";
+
+const TRANSLATABLE_CLASSES = new Set([
+  "barbarian", "bard", "cleric", "druid", "fighter", "monk", "paladin",
+  "ranger", "rogue", "sorcerer", "warlock", "wizard", "artificer",
+]);
+
+const CREATURE_TYPE_IDS = [
+  "aberration", "beast", "celestial", "construct", "dragon", "elemental",
+  "fey", "fiend", "giant", "humanoid", "monstrosity", "ooze", "plant", "undead",
+] as const;
 
 // A term list stored as one comma-joined string. The catalogue is offered as
 // chips; anything not in it stays typeable, because a monster immune to
@@ -219,6 +229,7 @@ export function MonsterKitPanel({
   const subclasses = subclassOptionsFor(classId);
   const features = classFeatureLines(classId, subclass, level);
   const chassis = { classId, subclass, level, con, ancestryId };
+  const chassisDetails = chassisDescription(chassis);
   const traitsFull = draft.stats.traits.length >= MAX_TRAITS;
   const attacksFull = draft.stats.attacks.length >= 4;
 
@@ -256,7 +267,7 @@ export function MonsterKitPanel({
             setClassId(next);
             setSubclass("");
           }}
-          options={[{ value: "", label: t("workshop.monsterEditor.kit.pickOne") }, ...CLASS_KIT_OPTIONS.map((klass) => ({ value: klass.id as string, label: klass.name }))]}
+          options={[{ value: "", label: t("workshop.monsterEditor.kit.pickOne") }, ...CLASS_KIT_OPTIONS.map((klass) => ({ value: klass.id as string, label: TRANSLATABLE_CLASSES.has(klass.id) ? t(`charSheet.class.${klass.id}` as never) : klass.name }))]}
         />
         <Select
           label={t("workshop.monsterEditor.kit.subclass")}
@@ -281,8 +292,15 @@ export function MonsterKitPanel({
           {t("workshop.monsterEditor.kit.takeClass")}
         </button>
       </div>
-      {classId ? (
-        <p className="reveal text-[10px] text-stone-600">{describeChassis(chassis)}</p>
+      {classId && chassisDetails ? (
+        <p className="reveal text-[10px] text-stone-600">
+          {t("workshop.monsterEditor.kit.chassisSummary", {
+            hitDie: `d${chassisDetails.hitDie}`,
+            hitPoints: chassisDetails.hitPoints,
+            saves: chassisDetails.saves.map((ability) => t(`workshop.monsterEditor.stats.ability.${ability}` as never)).join(", "),
+            proficiency: chassisDetails.proficiency,
+          })}
+        </p>
       ) : null}
 
       {features.length ? (
@@ -333,10 +351,17 @@ export function MonsterKitPanel({
             if (!dragon) return;
             const made = applyHalfDragon(draft, dragon);
             if ("error" in made) {
-              setTemplateNote(made.error);
+              const type = (CREATURE_TYPE_IDS as readonly string[]).includes(made.creatureType)
+                ? t(`workshop.monsterEditor.defence.creatureType.${made.creatureType}` as never)
+                : made.creatureType;
+              setTemplateNote(t("workshop.monsterEditor.kit.halfDragon.unsupportedType", { type }));
               return;
             }
-            setTemplateNote(made.note);
+            setTemplateNote(t(`workshop.monsterEditor.kit.halfDragon.${made.noteCode}` as never, {
+              color: t(`workshop.monsterEditor.kit.dragonColor.${made.color}` as never).toLowerCase(),
+              cr: made.cr,
+              challenge: made.prerequisite,
+            }));
             onChange(made.draft);
           }}
           className="rounded-md border border-stone-700 px-2 py-1 text-[11px] text-stone-300 hover:text-amber-100 disabled:opacity-40"
