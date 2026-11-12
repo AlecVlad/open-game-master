@@ -3103,4 +3103,6 @@ export const ruWorkshop: Partial<Record<keyof typeof enWorkshop, string>> = {
   "workshop.maps.addon.building": "Создание карты",
   "workshop.maps.addon.stop": "Остановить",
   "workshop.maps.addon.build": "Создать карту",
+  "workshop.maps.forge.previewEmpty.library": "Сначала назовите место, затем запустите генерацию. Карта появится здесь.",
+  "workshop.maps.forge.previewEmpty.studio": "Запустите генерацию, и карта появится здесь.",
 };
