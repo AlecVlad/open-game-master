@@ -318,9 +318,9 @@ export function LeadEditDialog({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(patch),
         });
-        const data = (await response.json().catch(() => ({}))) as { error?: string; held?: string[] };
+        const data = (await response.json().catch(() => ({}))) as { error?: string; errorCode?: string; held?: string[] };
         if (!response.ok) {
-          setError(data.error === "Character not found." ? t("campaign.session.leadEdit.error.characterNotFound") : t("campaign.session.leadEdit.error.save"));
+          setError(data.errorCode === "CHARACTER_NOT_FOUND" ? t("campaign.session.leadEdit.error.characterNotFound") : t("campaign.session.leadEdit.error.save"));
           return;
         }
         offerCorrectionReason(campaignId, data);
