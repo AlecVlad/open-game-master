@@ -7,8 +7,6 @@ import { useI18n } from "@/lib/i18n/provider";
 import { encodeImageForUpload } from "@/lib/image-encode";
 import {
   BRUSHES,
-  BRUSH_EFFECTS,
-  BRUSH_LABELS,
   MAX_BRUSH_RADIUS,
   type Brush as BrushName,
 } from "@/lib/battlemap/paint";
