@@ -69,6 +69,12 @@ const STABLE_REFUSAL_CODES: Readonly<Record<string, string>> = {
   "This subclass is not configured to use the third-caster spellcasting progression.": "THIRD_CASTER_NOT_CONFIGURED",
 };
 
+// Return codes in the same order as the messages. Unknown, variable diagnostics
+// deliberately stay null until their source can provide structured parameters.
+export function refusalCodes(problems: string[]): Array<string | null> {
+  return problems.map((problem) => STABLE_REFUSAL_CODES[problem] ?? null);
+}
+
 // The refusal every door answers with: the first problem as the message a
 // screen shows, and the whole list for one that can show more. Codes are
 // additive; the original English strings stay for older clients and logs.
@@ -77,7 +83,7 @@ export function refusal(problems: string[], status = 400): Response {
     {
       error: problems[0] ?? "That character is not within the rules.",
       problems,
-      problemCodes: problems.map((problem) => STABLE_REFUSAL_CODES[problem] ?? null),
+      problemCodes: refusalCodes(problems),
     },
     { status },
   );
