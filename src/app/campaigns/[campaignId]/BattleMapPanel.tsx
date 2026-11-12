@@ -1293,7 +1293,7 @@ export function BattleMapPanel({
       case "draw": if (canDraw) { setDrawing(current => !current); setToolsOpen(false); } break;
       case "tool": if (canDirect) { setTool(value as BoardTool); setHeld(null); setTeleporting(null); setMeasureOrigin(null); } break;
       case "place-kind": setPlaceKind(value as AdhocTokenKind); break;
-      case "place-name": if ((value?.length ?? 0) <= ADHOC_NAME_MAX) setPlaceName(value ?? ""); else setError(t("campaign.session.battle.error.nameTooLong", { max: ADHOC_NAME_MAX })); break;
+      case "place-name": if ((value?.length ?? 0) <= ADHOC_NAME_MAX) setPlaceName(value ?? ""); else setError(t("campaign.session.battle.error.maxNameLength", { max: ADHOC_NAME_MAX })); break;
       case "measure-shape": setShape(value as TemplateShape); setMeasure(null); setMeasureOrigin(null); break;
       case "measure-size": setSizeFeet(Number(value)); setMeasure(null); setMeasureOrigin(null); break;
       case "measure-clear": setMeasure(null); setMeasureOrigin(null); break;
@@ -1303,7 +1303,7 @@ export function BattleMapPanel({
       case "draw-ttl": setDrawTtl(current => !current); break;
       case "draw-erase": void eraseDrawings(); break;
       case "order-entry": setOrderEntry(value ?? ""); break;
-      case "order-name": if ((value?.length ?? 0) <= ENTRY_NAME_MAX) setOrderName(value ?? ""); else setError(t("campaign.session.battle.error.nameTooLong", { max: ENTRY_NAME_MAX })); break;
+      case "order-name": if ((value?.length ?? 0) <= ENTRY_NAME_MAX) setOrderName(value ?? ""); else setError(t("campaign.session.battle.error.maxEntryNameLength", { max: ENTRY_NAME_MAX })); break;
       case "order-score": { const score = Number(value); if (/^-?\d+$/.test(value ?? "") && Number.isInteger(score) && score >= MIN_INITIATIVE && score <= MAX_INITIATIVE) setOrderScore(score); else setError(t("campaign.session.battle.error.initiativeRange", { min: MIN_INITIATIVE, max: MAX_INITIATIVE })); break; }
       case "order-up": case "order-down": if (selectedEntry) editOrder({ op: "move", id: selectedEntry.id, direction: action === "order-up" ? "up" : "down" }); break;
       case "order-delay": if (selectedEntry) editOrder({ op: "delay", id: selectedEntry.id }); break;
@@ -1747,7 +1747,7 @@ export function BattleMapPanel({
       <button
         type="button"
         onClick={() => setPointing((current) => !current)}
-        title=t("campaign.session.battle.pointTile")
+        title={t("campaign.session.battle.pointTile")}
         aria-pressed={pointing}
         className={`rounded p-1 ${
           pointing ? "bg-amber-950/60 text-amber-300" : "text-stone-400 hover:bg-stone-900"
@@ -1759,7 +1759,7 @@ export function BattleMapPanel({
         <button
           type="button"
           onClick={() => setDrawing((current) => !current)}
-          title=t("campaign.session.battle.drawBoard")
+          title={t("campaign.session.battle.drawBoard")}
           aria-pressed={drawing}
           className={`rounded p-1 ${
             drawing ? "bg-amber-950/60 text-amber-300" : "text-stone-400 hover:bg-stone-900"
