@@ -101,7 +101,7 @@ export function SpellcastingEditor({ draft, onChange }: Props) {
               <OptionalStepper label={t("workshop.monsterEditor.spell.spellAttackBonus")} min={-5} max={20} fallback={5} value={casting.attack} onChange={(attack) => set({ ...casting, attack: attack === "" ? undefined : attack })} />
             </Field>
             <Field label={t("workshop.monsterEditor.spell.casterLevel")}>
-              <OptionalStepper label="Caster level" min={1} max={20} fallback={5} value={casting.casterLevel} onChange={(casterLevel) => set({ ...casting, casterLevel: casterLevel === "" ? undefined : casterLevel })} />
+              <OptionalStepper label={t("workshop.monsterEditor.spell.casterLevel")} min={1} max={20} fallback={5} value={casting.casterLevel} onChange={(casterLevel) => set({ ...casting, casterLevel: casterLevel === "" ? undefined : casterLevel })} />
             </Field>
           </div>
           <Field label={t("workshop.monsterEditor.spell.slots")}>
