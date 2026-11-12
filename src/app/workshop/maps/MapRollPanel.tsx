@@ -8,7 +8,6 @@ import { Chip, FinePrint } from "@/app/campaigns/[campaignId]/mapUi";
 import { Select } from "@/components/ui/Select";
 import { sceneOptions } from "@/lib/ambience/catalog";
 import { dieSpins, forgeGenerate, freshSeed } from "@/app/workshop/maps/forge";
-import { THEME_LABELS } from "@/app/workshop/maps/types";
 import { useI18n } from "@/lib/i18n/provider";
 
 // The Roll tool's options (N on the rail): the forge's kind of place and
