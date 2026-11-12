@@ -123,6 +123,11 @@ for (const key of campaignApiMessages) {
 }
 
 // Character bundle import: fixed format errors and sheet refusals are translated by code.
+for (const key of ["characters.err.notFound"]) {
+  assert.ok(key in DICTIONARIES.en, `English character message missing: ${key}`);
+  assert.ok(key in DICTIONARIES.ru, `Russian character message missing: ${key}`);
+}
+
 const characterImportMessages = [
   "characters.err.import.tooLarge",
   "characters.err.import.notCharacter",
