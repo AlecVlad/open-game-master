@@ -40,16 +40,20 @@ export async function POST(
     return context;
   }
   if (!capsFor(context).needsCharacter) {
-    return Response.json({ error: "The GM seat plays no character." }, { status: 400 });
+    return Response.json({ error: "The GM seat plays no character.", errorCode: "GM_SEAT_NO_CHARACTER" }, { status: 400 });
   }
   const door = heroDoorFor(context.campaign, context.user.id);
   if (!door.open) {
-    return Response.json({ error: HERO_DOOR_SHUT }, { status: 409 });
+    return Response.json({ error: HERO_DOOR_SHUT, errorCode: "HERO_ALREADY_HAS_CHARACTER" }, { status: 409 });
   }
   const parsed = bodySchema.safeParse(await request.json().catch(() => ({})));
   if (!parsed.success) {
+    const picksInvalid = parsed.error.issues.some((issue) => issue.path[0] === "picks");
     return Response.json(
-      { error: parsed.error.issues.some((issue) => issue.path[0] === "picks") ? "Those picks could not be read." : "Pick a hero." },
+      {
+        error: picksInvalid ? "Those picks could not be read." : "Pick a hero.",
+        errorCode: picksInvalid ? "PICKS_COULD_NOT_BE_READ" : "PICK_ONE_HERO",
+      },
       { status: 400 },
     );
   }
@@ -57,7 +61,7 @@ export async function POST(
   // A DM's own pregens are in their own library, where they take them from.
   const offer = offeredPregenFor(campaignId, parsed.data.id);
   if (!offer || offer.character.userId === context.user.id) {
-    return Response.json({ error: "No such hero." }, { status: 404 });
+    return Response.json({ error: "No such hero.", errorCode: "HERO_NOT_FOUND" }, { status: 404 });
   }
   const taken = claimRefusal(offer, context.user.id);
   if (taken) {
