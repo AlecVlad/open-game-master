@@ -5,6 +5,7 @@ import { SectionHead } from "@/components/ui/SectionHead";
 import { AlertTriangle, CheckCircle2, Download, FileUp, Loader2, Server, Trash2 } from "lucide-react";
 import { appConfirm } from "@/components/ui/ConfirmDialog";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { UnofficialPackNotice } from "@/components/UnofficialPackNotice";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui";
@@ -44,9 +45,6 @@ function download(name: string, payload: unknown) {
   URL.revokeObjectURL(url);
 }
 
-// Said when Download or Install stops for a save that did not land.
-const NOT_SAVED = "The draft on screen is not saved, so nothing was built from the older copy on the server. Your changes are kept here. Try again.";
-
 export function PublishSection({
   draft,
   onDraft,
@@ -66,6 +64,8 @@ export function PublishSection({
   saved: boolean;
   onClear: () => Promise<void>;
 }) {
+  const { t, tp } = useI18n();
+  const NOT_SAVED = t("workshop.plugin.publish.notSaved");
   const check = checkDraft(draft);
   const bytes = draftBytes(draft);
   const [busy, setBusy] = useState("");
@@ -85,16 +85,16 @@ export function PublishSection({
         const data = await response.json().catch(() => ({}));
         if (!live) return;
         if (!response.ok) {
-          setReportError(data.error ?? "What the pack leaves out could not be read.");
+          setReportError(data.error ?? t("workshop.plugin.publish.reportReadFailed"));
           return;
         }
         setReport({ pulled: data.pulled, omissions: data.omissions ?? [] });
       })
-      .catch(() => live && setReportError("Could not reach the server to read what the pack leaves out."));
+      .catch(() => live && setReportError(t("workshop.plugin.publish.reportServerFailed")));
     return () => {
       live = false;
     };
-  }, [workshopId]);
+  }, [workshopId, t]);
 
   const omissions = useMemo(() => {
     if (!report) return [];
@@ -131,7 +131,7 @@ export function PublishSection({
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError(data.error ?? "That could not be built.");
+        setError(data.error ?? t("workshop.plugin.publish.buildFailed"));
         setServerProblems(data.problems ?? []);
         return;
       }
@@ -147,7 +147,7 @@ export function PublishSection({
         setNotice((current) => `${current} The content pack is not installed here, so monster slugs and spell names were not checked.`);
       }
     } catch {
-      setError("Could not reach the server.");
+      setError(t("workshop.plugin.publish.serverFailed"));
     } finally {
       setBusy("");
     }
@@ -171,14 +171,14 @@ export function PublishSection({
   async function onFile(file: File) {
     setError("");
     if (file.size > MAX_MANIFEST_BYTES) {
-      setError("That file is larger than 16 MB, so it is not a world pack.");
+      setError(t("workshop.plugin.publish.fileTooLarge"));
       return;
     }
     let raw: unknown;
     try {
       raw = JSON.parse(await file.text());
     } catch {
-      setError("That file is not JSON.");
+      setError(t("workshop.plugin.publish.notJson"));
       return;
     }
     const parsed = draftFromPack(raw);
@@ -197,7 +197,7 @@ export function PublishSection({
       const response = await fetch(`/api/worlds/${encodeURIComponent(packId)}`);
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError(data.error ?? "That world could not be read.");
+        setError(data.error ?? t("workshop.plugin.publish.worldReadFailed"));
         return;
       }
       const parsed = draftFromPack(data.pack);
