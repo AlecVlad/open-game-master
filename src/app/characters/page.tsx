@@ -20,6 +20,7 @@ import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui";
 import { navigateTo } from "@/lib/navigation";
 import { useI18n } from "@/lib/i18n/provider";
+import { refusalText } from "@/app/characters/builder/refusal";
 import { characterBackgroundName, characterClassName, characterRaceName, characterSubclassName } from "@/lib/i18n/character-names";
 import { prefersReducedMotion, useLowEffects } from "@/lib/effects-mode";
 import { PortraitToast, RosterPortraitSlot, RosterPortraitStatus } from "@/app/characters/RosterPortrait";
@@ -260,7 +261,7 @@ export default function CharactersPage() {
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setImportError(data.error || t("characters.err.import"));
+        setImportError(refusalText(data, t("characters.err.import"), t));
         return;
       }
       if (data.character) {
