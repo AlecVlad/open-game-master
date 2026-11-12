@@ -9,7 +9,7 @@ import { removeObjects, setDmOnly, type MapObjects } from "@/lib/battlemap/objec
 import { resolveSkin, type MapSkin } from "@/lib/battlemap/skins";
 import { HotkeyOverlay } from "@/components/ui/HotkeyOverlay";
 import { Select } from "@/components/ui/Select";
-import { SAVE_LABEL, type SaveState } from "@/lib/use-autosave";
+import { type SaveState } from "@/lib/use-autosave";
 import { useMapSelection } from "@/app/campaigns/[campaignId]/useMapSelection";
 import { BRUSH_LABELS, type Brush as BrushName } from "@/lib/battlemap/paint";
 import { TERRAIN, tileAt } from "@/lib/battlemap/types";
@@ -27,6 +27,7 @@ import { MapTilesetPanel } from "@/app/campaigns/[campaignId]/MapTilesetPanel";
 import { MapInspector, MapStatusLine, createHoverStore } from "@/app/campaigns/[campaignId]/MapInspector";
 import type { MapToast } from "@/app/campaigns/[campaignId]/MapToasts";
 import { skinSwatches } from "@/app/campaigns/[campaignId]/mapUi";
+import { useI18n } from "@/lib/i18n/provider";
 import { useCatalogue, usePaintedGround, usePaintedPreference } from "@/app/campaigns/[campaignId]/useMapPaint";
 import {
   LIBRARY_CAPS,
@@ -57,15 +58,45 @@ const CHAR_TO_BRUSH = Object.fromEntries(
 ) as Record<string, BrushName>;
 
 const EMPTY_SKIN: MapSkin = { id: "", bind: {} };
+
+const TOOL_LABEL_KEYS: Record<string, string> = {
+  brush: "workshop.maps.tools.brush",
+  line: "workshop.maps.tools.line",
+  rect: "workshop.maps.tools.outline",
+  box: "workshop.maps.tools.box",
+  fill: "workshop.maps.tools.fill",
+  stamp: "workshop.maps.tools.stamp",
+  pick: "workshop.maps.tools.pick",
+  select: "workshop.maps.tools.select",
+  light: "workshop.maps.tools.light",
+  door: "workshop.maps.tools.door",
+  label: "workshop.maps.tools.label",
+  prop: "workshop.maps.tools.prop",
+  zone: "workshop.maps.tools.lightZone",
+  roll: "workshop.maps.tools.roll",
+  pan: "workshop.maps.tools.move",
+  backdrop: "workshop.maps.tools.alignPicture",
+};
+
+const BRUSH_LABEL_KEYS: Record<BrushName, string> = {
+  floor: "workshop.maps.brush.floor",
+  wall: "workshop.maps.brush.wall",
+  water: "workshop.maps.brush.water",
+  difficult: "workshop.maps.brush.difficult",
+  door: "workshop.maps.brush.door",
+  lowwall: "workshop.maps.brush.lowwall",
+  climb: "workshop.maps.brush.climb",
+};
 const LAYERS: MapLayer[] = ["labels", "props", "lights", "zones", "doors", "terrain", "backdrop", "overlay", "drawings"];
 
 function SaveDot({ state }: { state: SaveState }) {
+  const { t } = useI18n();
   const tone = state === "error" ? "bg-red-400 text-red-300" : state === "saving" || state === "dirty" ? "bg-amber-400 text-stone-400" : "bg-emerald-400 text-emerald-300";
   const [dot, text] = tone.split(" ");
   return (
     <span aria-live="polite" className={cn("flex shrink-0 items-center gap-1.5 font-mono text-[10px]", text)}>
       <span aria-hidden="true" className={cn("size-1.5 rounded-full", dot, state === "saving" && "map-save-pulse")} />
-      {state === "idle" ? "saved" : SAVE_LABEL[state].toLowerCase()}
+      {t(`workshop.maps.editor.${state === "idle" || state === "saved" ? "saved" : state === "error" ? "notSaved" : state}` as never)}
     </span>
   );
 }
@@ -101,6 +132,7 @@ export function MapEditor({
   // True inside the workshop's sheet, whose close button needs the corner.
   inSheet?: boolean;
 }) {
+  const { t } = useI18n();
   const canDeploy = state.board !== null;
   // Tags already used on the other maps, offered beside the tag field.
   const knownTags = collectTags(state.maps.filter((map) => map.id !== selected.id));
@@ -234,7 +266,8 @@ export function MapEditor({
   }
 
   const held = MODES.find((entry) => entry.mode === tools.mode);
-  const holding = held ? (isPaintMode(tools.mode) ? `${held.label} · ${BRUSH_LABELS[tools.brush]}` : held.label) : "Nothing";
+  const toolLabel = held ? t(TOOL_LABEL_KEYS[tools.mode] as never) : t("workshop.maps.editor.noTool");
+  const holding = held ? (isPaintMode(tools.mode) ? `${toolLabel} · ${t(BRUSH_LABEL_KEYS[tools.brush] as never)}` : toolLabel) : toolLabel;
   const backdropPanel = (
     <BackdropControls
       backdrop={selected.backdrop}
@@ -253,17 +286,17 @@ export function MapEditor({
         <button
           type="button"
           disabled={busy || !canDeploy}
-          title={canDeploy ? "Replace the board's ground with this map" : "Nothing is on the table to replace"}
+          title={t(canDeploy ? "workshop.maps.editor.deployTitle" : "workshop.maps.editor.deployUnavailable")}
           onClick={() => void act("deploy")}
           className="flex h-9 items-center gap-1.5 whitespace-nowrap rounded-lg bg-gradient-to-b from-amber-100 via-amber-200 to-amber-400 px-3 text-amber-950 shadow-[0_1px_0_rgba(253,247,231,0.6)_inset,0_2px_8px_rgba(4,2,12,0.5)] disabled:opacity-45 motion-magnet"
         >
           <Upload className="size-3.5" />
-          <span className="font-display text-[11px] font-semibold uppercase tracking-[0.12em]">Put it on the table</span>
+          <span className="font-display text-[11px] font-semibold uppercase tracking-[0.12em]">{t("workshop.maps.editor.deploy")}</span>
         </button>
       )}
       <DropdownMenu.Root>
         <DropdownMenu.Trigger asChild>
-          <button type="button" aria-label="More for this map" className="flex size-9 items-center justify-center rounded-lg border border-stone-700 text-stone-300 hover:text-amber-200">
+          <button type="button" aria-label={t("workshop.maps.editor.moreAria")} className="flex size-9 items-center justify-center rounded-lg border border-stone-700 text-stone-300 hover:text-amber-200">
             <MoreVertical className="size-4" />
           </button>
         </DropdownMenu.Trigger>
@@ -274,22 +307,22 @@ export function MapEditor({
                 disabled={busy || !state.hasParty || state.board !== null}
                 title={
                   !state.hasParty
-                    ? "There is nobody to put on it yet"
+                    ? t("workshop.maps.editor.noParty")
                     : state.board
-                      ? "Something is already on the table"
-                      : "Put the party on this map with nobody to fight"
+                      ? t("workshop.maps.editor.boardOccupied")
+                       : t("workshop.maps.editor.openSceneTitle")
                 }
                 onSelect={() => void act("open-scene")}
                 className={menuItem}
               >
-                <Play className="size-4" /> Open it as a scene
+                <Play className="size-4" /> {t("workshop.maps.editor.openScene")}
               </DropdownMenu.Item>
             )}
-            <DropdownMenu.Item disabled={busy} aria-label={`Duplicate ${selected.name}`} onSelect={() => void duplicate()} className={menuItem}>
-              <Copy className="size-4" /> Duplicate
+            <DropdownMenu.Item disabled={busy} aria-label={t("workshop.maps.editor.duplicateAria", { name: selected.name })} onSelect={() => void duplicate()} className={menuItem}>
+              <Copy className="size-4" /> {t("workshop.maps.editor.duplicate")}
             </DropdownMenu.Item>
             <DropdownMenu.Item disabled={busy} onSelect={() => void remove()} className={cn(menuItem, "data-[highlighted]:text-red-300")}>
-              <Trash2 className="size-4" /> Forget it
+              <Trash2 className="size-4" /> {t("workshop.maps.editor.delete")}
             </DropdownMenu.Item>
           </DropdownMenu.Content>
         </DropdownMenu.Portal>
@@ -472,22 +505,22 @@ export function MapEditor({
               <div className="grid grid-cols-2 gap-1.5">
                 <Select<string>
                   value={selected.theme}
-                  label="Theme"
+                  label={t("workshop.maps.editor.theme")}
                   size="sm"
                   onChange={(theme) => void patch({ theme })}
                   className="w-full"
-                  options={MAP_THEMES.map((theme) => ({ value: theme as string, label: THEME_LABELS[theme] }))}
+                  options={MAP_THEMES.map((theme) => ({ value: theme as string, label: t(`workshop.maps.theme.${theme}` as never) }))}
                 />
                 <Select<string>
                   value={selected.ambient}
-                  label="Ambient light"
+                  label={t("workshop.maps.editor.ambientLight")}
                   size="sm"
                   onChange={(ambient) => void patch({ ambient })}
                   className="w-full"
                   options={[
-                    { value: "bright", label: "Daylight" },
-                    { value: "dim", label: "Dim" },
-                    { value: "dark", label: "Dark" },
+                    { value: "bright", label: t("workshop.maps.light.bright") },
+                    { value: "dim", label: t("workshop.maps.light.dim") },
+                    { value: "dark", label: t("workshop.maps.light.dark") },
                   ]}
                 />
               </div>
