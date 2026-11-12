@@ -132,7 +132,7 @@ export function WorldFields({ draft, onDraft }: SectionProps) {
           label={t("workshop.plugin.identity.baseGenre")}
           value={draft.baseGenre}
           onChange={(baseGenre) => set({ baseGenre })}
-          options={GENRE_OPTIONS.map((option) => ({ value: option.value as WorldPackDraft["baseGenre"], label: option.label }))}
+          options={GENRE_OPTIONS.map((option) => ({ value: option.value as WorldPackDraft["baseGenre"], label: t(`createCampaign.identity.genre.${option.value}.name` as never) }))}
         />
         <span className="mt-1 block text-[11px] text-stone-500">
           {t("workshop.plugin.identity.baseGenre.hint")}
