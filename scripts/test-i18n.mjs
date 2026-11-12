@@ -92,6 +92,58 @@ for (const key of tableViewMessages) {
   assert.ok(key in DICTIONARIES.ru, `Russian table-view message missing: ${key}`);
 }
 
+const campaignRulesMessages = [
+  "campaign.session.rules.houseRules",
+  "campaign.session.rules.loading",
+  "campaign.session.rules.noneSet",
+  "campaign.session.rules.loadFailed",
+  "campaign.session.rules.invalidSettings",
+  "campaign.session.rules.houseRulesPlaceholder",
+  "campaign.session.rules.houseRulesAria",
+  "campaign.session.rules.save",
+  "campaign.session.rules.saving",
+  "campaign.session.rules.unsaved",
+  "campaign.session.rules.saveFailed",
+  "campaign.session.rules.changeFailed",
+  "campaign.session.rules.network",
+  "campaign.session.rules.restHint",
+  "campaign.session.rules.noVariants",
+  "campaign.session.rules.sections",
+  "campaign.session.rules.sectionsHint",
+  "campaign.session.rules.section.disable",
+  "campaign.session.rules.section.enable",
+  "campaign.session.rules.section.pin",
+  "campaign.session.rules.section.unpin",
+  "campaign.session.prep.aria",
+  "createCampaign.experience.variantRules.title",
+  "createCampaign.experience.variantRules.restLengths",
+  "createCampaign.experience.variantRules.on",
+  "createCampaign.experience.variantRules.off",
+  "createCampaign.experience.variantRules.flanking.label",
+  "createCampaign.experience.variantRules.flanking.tip",
+  "createCampaign.experience.variantRules.criticalFumbles.label",
+  "createCampaign.experience.variantRules.criticalFumbles.tip",
+  "createCampaign.experience.variantRules.encumbrance.label",
+  "createCampaign.experience.variantRules.encumbrance.tip",
+  "createCampaign.experience.variantRules.lingeringInjuries.label",
+  "createCampaign.experience.variantRules.lingeringInjuries.tip",
+  "createCampaign.experience.variantRules.powerfulCritical.label",
+  "createCampaign.experience.variantRules.powerfulCritical.tip",
+  "createCampaign.experience.variantRules.criticalDamageMods.label",
+  "createCampaign.experience.variantRules.criticalDamageMods.tip",
+  "createCampaign.experience.variantRules.ammunition.label",
+  "createCampaign.experience.variantRules.ammunition.tip",
+  "createCampaign.experience.variantRules.supplies.label",
+  "createCampaign.experience.variantRules.supplies.tip",
+  "createCampaign.experience.variantRules.rest.standard",
+  "createCampaign.experience.variantRules.rest.gritty",
+  "createCampaign.experience.variantRules.rest.heroic",
+];
+for (const key of campaignRulesMessages) {
+  assert.ok(key in DICTIONARIES.en, `English campaign-rules message missing: ${key}`);
+  assert.ok(key in DICTIONARIES.ru, `Russian campaign-rules message missing: ${key}`);
+}
+
 const sharedComponentMessages = [
   "common.actionsFor",
   "about.title", "about.error.load", "about.loading", "about.version", "about.serverName",
