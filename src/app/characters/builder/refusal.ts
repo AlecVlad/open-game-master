@@ -8,6 +8,7 @@ const REFUSAL_MESSAGE_KEYS = {
   NOT_CHARACTER_FILE: "characters.err.import.notCharacter",
   NOT_OGM_CHARACTER_FILE: "characters.err.import.notOgm",
   INVALID_CHARACTER_FILE_JSON: "characters.err.import.invalidJson",
+  CHARACTER_NOT_FOUND: "characters.err.notFound",
 } satisfies Record<string, MessageKey>;
 
 // API refusals keep their original prose for older clients and unknown
