@@ -142,6 +142,7 @@ export function MapStatusLine({
   holding: string;
   extra?: ReactNode;
 }) {
+  const { t } = useI18n();
   const hover = useHover(store);
   const brush = hover && hover.x < width && hover.y < height ? CHAR_TO_BRUSH[tileAt(terrain, width, hover.x, hover.y)] : undefined;
   const cell = (name: string, value: ReactNode) => (
