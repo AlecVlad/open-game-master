@@ -109,6 +109,9 @@ await test("a ticked pregen of a workshop this table was not made from is not of
 await test("a player previews the pregen at the table's level and takes the seat with a copy; the DM's pregen is unchanged.", async () => {
   const table = await openTable();
   await table.offer(true);
+  const switchPreview = await table.preview(table.player, { flow: "replace" });
+  assert.equal(switchPreview.json.preview.ok, false);
+  assert.equal(switchPreview.json.preview.problemCodes[0], "OFFERED_PREGEN_JOIN_ONLY");
   const preview = await table.preview(table.player);
   assert.equal(preview.status, 200, JSON.stringify(preview.json));
   assert.equal(preview.json.preview.ok, true, preview.json.preview.problems.join("; "));
