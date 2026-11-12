@@ -1179,7 +1179,7 @@ export function BattleMapPanel({
     lines: [...(encounter.orderReady ? encounter.order.map((entry, index) => {
       const extra = extraTurnTag(entry);
       const extraTitle = !extra ? "" : entry.reflex
-        ? entry.extra ? t("campaign.session.battle.extraTurn.extraNow", { feature: entry.extra }) : t("campaign.session.battle.extraTurn.thiefReflex")
+        ? entry.extraTurn ? t("campaign.session.battle.extraTurn.extraNow", { feature: entry.extraTurn }) : t("campaign.session.battle.extraTurn.thiefReflex")
         : t("campaign.session.battle.extraTurn.extraTurn");
       const extraShort = !extra ? "" : entry.reflex
         ? t("campaign.session.battle.extraTurn.shortSecond") : t("campaign.session.battle.extraTurn.shortExtra");
