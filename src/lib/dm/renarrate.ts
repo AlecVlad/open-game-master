@@ -188,11 +188,11 @@ export async function runRenarrate(input: {
   // model was working (a lore-check rewrite, or a double-tapped reroll).
   const current = getCampaignMessage(input.messageId);
   if (!current || current.campaignId !== input.campaignId) {
-    return { error: "Message not found.", status: 404 };
+    return { error: "Message not found.", errorCode: "MESSAGE_NOT_FOUND", status: 404 };
   }
   const appended = appendVariant(seedVariants(current.variants ?? [], current.content), content);
   if (appended.capped) {
-    return { error: `That is all ${MAX_VARIANTS} takes; pick one.`, status: 409 };
+    return { error: `That is all ${MAX_VARIANTS} takes; pick one.`, errorCode: "VARIANTS_CAPPED", status: 409 };
   }
   // The take and its correction ledger row land together.
   const { updated, correctionId } = getDatabase().transaction(() => {
@@ -228,11 +228,11 @@ export function selectRenarrateVariant(input: {
 }): RenarrateResult {
   const campaign = getCampaignById(input.campaignId);
   if (!campaign) {
-    return { error: "Campaign not found.", status: 404 };
+    return { error: "Campaign not found.", errorCode: "CAMPAIGN_NOT_FOUND", status: 404 };
   }
   const message = getCampaignMessage(input.messageId);
   if (!message || message.campaignId !== input.campaignId) {
-    return { error: "Message not found.", status: 404 };
+    return { error: "Message not found.", errorCode: "MESSAGE_NOT_FOUND", status: 404 };
   }
   const variants = seedVariants(message.variants ?? [], message.content);
   const index = resolveVariantIndex(variants, input.index);
