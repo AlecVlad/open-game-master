@@ -3248,4 +3248,5 @@ export const enWorkshop = {
   "workshop.maps.selection.dialog.changeLabel": "Change the label",
   "workshop.maps.selection.apply": "Apply",
   "workshop.maps.canvas.battleMap": "Battle map",
+  "workshop.maps.selection.cancel": "Cancel",
 } satisfies Record<string, string>;
