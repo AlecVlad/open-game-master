@@ -133,7 +133,7 @@ function CampaignCharacterPageInner({ campaignId }: { campaignId: string }) {
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError(refusalText(data, t("campaign.session.characterJoin.error.save")));
+        setError(refusalText(data, t("campaign.session.characterJoin.error.save"), t));
         return;
       }
       // Seated: an unfinished character kept for this table is done with.
