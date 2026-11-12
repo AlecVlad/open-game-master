@@ -363,7 +363,7 @@ export function GameSettingsPanel({
   const context = {
     packName: selectedPack?.name ?? null,
     genreName: preset.name,
-    voiceName: voiceLabel(voices, settings.ttsVoice),
+    voiceName: voiceLabel(voices, settings.ttsVoice, t),
     narrationOff,
     statsRule,
     lastingCompanions,
