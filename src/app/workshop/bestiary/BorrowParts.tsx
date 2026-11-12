@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { Check, Plus, X } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui";
@@ -17,11 +18,11 @@ import { addChip, chipRow } from "@/app/workshop/kit";
 // what the engine already runs for the published monster.
 
 const KIND_WORDS: Record<BorrowPart["kind"], string> = {
-  attack: "Attack",
-  ability: "Action",
-  trait: "Trait",
-  spellcasting: "Spells",
-  regeneration: "Regeneration",
+  attack: t("workshop.monsterEditor.borrow.kind.attack"),
+  ability: t("workshop.monsterEditor.borrow.kind.ability"),
+  trait: t("workshop.monsterEditor.borrow.kind.trait"),
+  spellcasting: t("workshop.monsterEditor.borrow.kind.spellcasting"),
+  regeneration: t("workshop.monsterEditor.borrow.kind.regeneration"),
 };
 
 function statsOf(entry: { source: string; name: string; data: Record<string, unknown> }): EnemyStats {
@@ -37,11 +38,11 @@ export function BorrowParts({ draft, onChange }: { draft: MonsterDraft; onChange
   const [taken, setTaken] = useState<Set<string>>(() => new Set());
   return (
     <div className="flex flex-col gap-2">
-      <SectionHead title="Borrow from the books" glyph="tab-reference" className="mb-0" />
+      <SectionHead title={t("workshop.monsterEditor.borrow.title")} glyph="tab-reference" className="mb-0" />
       <ContentPick
         kind="monsters"
-        label="Find a monster to borrow a part from"
-        placeholder="Borrow from... adult red dragon, ghoul, mage"
+        label={t("workshop.monsterEditor.borrow.find")}
+        placeholder={t("workshop.monsterEditor.borrow.placeholder")}
         onPick={(entry) => {
           setSource({ name: entry.name, parts: borrowParts(statsOf(entry)) });
           setTaken(new Set());
@@ -51,7 +52,7 @@ export function BorrowParts({ draft, onChange }: { draft: MonsterDraft; onChange
         <div className="reveal flex flex-col gap-1 rounded-lg border border-stone-800 bg-stone-950/50 p-2">
           <span className="flex items-center justify-between gap-2 text-xs text-stone-300">
             From {source.name}
-            <button type="button" aria-label="Close the borrowed monster" onClick={() => setSource(null)} className={cn(ui.iconAction, "pk-always pk-tap")}>
+            <button type="button" aria-label={t("workshop.monsterEditor.borrow.close")} onClick={() => setSource(null)} className={cn(ui.iconAction, "pk-always pk-tap")}>
               <X className="size-3.5" />
             </button>
           </span>
@@ -81,7 +82,7 @@ export function BorrowParts({ draft, onChange }: { draft: MonsterDraft; onChange
               })}
             </ul>
           ) : (
-            <p className="text-[11px] text-stone-500">Nothing on this block travels on its own.</p>
+            <p className="text-[11px] text-stone-500">{t("workshop.monsterEditor.borrow.none")}</p>
           )}
         </div>
       ) : null}
