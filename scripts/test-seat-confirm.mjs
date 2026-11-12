@@ -219,6 +219,7 @@ await test("the door rules show before the seat is offered: a second hero, a swi
   const join = await previewAs(table, { libraryCharacterId: second.id });
   assert.equal(join.json.preview.ok, false);
   assert.match(join.json.preview.problems[0], /already have a character/);
+  assert.equal(join.json.preview.problemCodes[0], "HERO_ALREADY_HAS_CHARACTER");
 
   const swap = await previewAs(table, { libraryCharacterId: second.id, flow: "replace" });
   assert.equal(swap.json.preview.ok, true, swap.json.preview.problems.join(" | "));
@@ -227,6 +228,7 @@ await test("the door rules show before the seat is offered: a second hero, a swi
   const late = await previewAs(table, { libraryCharacterId: second.id, flow: "replace" });
   assert.equal(late.json.preview.ok, false);
   assert.match(late.json.preview.problems[0], /only be changed in the lobby/);
+  assert.equal(late.json.preview.problemCodes[0], "CAMPAIGN_NOT_LOBBY");
   table.world.close();
 });
 
@@ -258,6 +260,7 @@ await test("a hero the quiz built is previewed by the table's door, stored by no
   // One hero at a time.
   const both = await previewAs(table, { sheet, pregenId: "kara" });
   assert.equal(both.status, 400);
+  assert.equal(both.json.errorCode, "PICK_ONE_HERO");
   table.world.close();
 });
 
@@ -275,9 +278,11 @@ await test("an ally the DM plays, a stranger's hero and an unknown starter are r
   const theirs = await table.call(table.libraryRoute, "POST", { level: 1, sheet: { ...LEGAL_FIGHTER, name: "Theirs" } });
   const stolen = await previewAs(table, { libraryCharacterId: theirs.json.character.id });
   assert.equal(stolen.status, 404);
+  assert.equal(stolen.json.errorCode, "CHARACTER_NOT_FOUND");
 
   const nobody = await previewAs(table, { pregenId: "nobody" });
   assert.equal(nobody.status, 404);
+  assert.equal(nobody.json.errorCode, "HERO_NOT_FOUND");
   const both = await previewAs(table, { pregenId: "kara", libraryCharacterId: "x" });
   assert.equal(both.status, 400);
   table.world.close();
