@@ -38,3 +38,40 @@ export const MAP_TOOL_HINT_KEYS: Record<string, string> = {
   pan: "workshop.maps.tools.hint.pan",
   backdrop: "workshop.maps.tools.hint.backdrop",
 };
+export const MAP_BRUSH_LABEL_KEYS: Record<string, string> = {
+  floor: "workshop.maps.brush.floor",
+  wall: "workshop.maps.brush.wall",
+  water: "workshop.maps.brush.water",
+  difficult: "workshop.maps.brush.difficult",
+  door: "workshop.maps.brush.door",
+  lowwall: "workshop.maps.brush.lowwall",
+  climb: "workshop.maps.brush.climb",
+};
+
+export const MAP_BRUSH_EFFECT_KEYS: Record<string, string> = {
+  floor: "workshop.maps.tools.brushEffect.floor",
+  wall: "workshop.maps.tools.brushEffect.wall",
+  water: "workshop.maps.tools.brushEffect.water",
+  difficult: "workshop.maps.tools.brushEffect.difficult",
+  door: "workshop.maps.tools.brushEffect.door",
+  lowwall: "workshop.maps.tools.brushEffect.lowwall",
+  climb: "workshop.maps.tools.brushEffect.climb",
+};
+
+export const MAP_STAMP_LABEL_KEYS: Record<string, string> = {
+  room: "workshop.maps.tools.stamp.room",
+  hall: "workshop.maps.tools.stamp.hall",
+  cavern: "workshop.maps.tools.stamp.cavern",
+  pillars: "workshop.maps.tools.stamp.pillars",
+  pool: "workshop.maps.tools.stamp.pool",
+  rubble: "workshop.maps.tools.stamp.rubble",
+};
+
+export const MAP_STAMP_EFFECT_KEYS: Record<string, string> = {
+  room: "workshop.maps.tools.stampEffect.room",
+  hall: "workshop.maps.tools.stampEffect.hall",
+  cavern: "workshop.maps.tools.stampEffect.cavern",
+  pillars: "workshop.maps.tools.stampEffect.pillars",
+  pool: "workshop.maps.tools.stampEffect.pool",
+  rubble: "workshop.maps.tools.stampEffect.rubble",
+};
