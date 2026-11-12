@@ -217,4 +217,11 @@ export const enBuilderRemaining = {
   "builder.race.repeatSkill.label": "Skill in place of a repeated one {index}",
   "builder.race.tool.label": "Tool proficiency",
   "builder.race.tool.placeholder": "Choose a tool...",
+  "builder.racialCantrip.title": "Bonus:",
+  "builder.racialCantrip.progress": "({picked} of {count} picked)",
+  "builder.racialCantrip.help": "Cantrips are small spells you can cast as often as you like. Pick from the list below (tap ⓘ to read what each does), or search by name.",
+  "builder.racialCantrip.all": "Every {list} cantrip",
+  "builder.racialCantrip.search.label": "Or search by name:",
+  "builder.racialCantrip.search.placeholder": "Search cantrips...",
+  "builder.kit.armorClassWithKit": "Armor class with this kit",
 } satisfies Record<string, string>;
