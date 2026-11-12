@@ -554,7 +554,7 @@ export function DmEncounterPrepPanel({
                         onClick={() => void deploy(template.id, !template.cued)}
                         className={cn(cue && template.cued ? ui.btnSecondary : ui.btnPrimary, "h-9 px-3 text-[11px]")}
                       >
-                        {cue ? (template.cued ? "Take back" : "Cue") : "Deploy"}
+                        {cue ? (template.cued ? t("campaign.session.encounterPrep.takeBack") : t("campaign.session.encounterPrep.cue")) : t("campaign.session.encounterPrep.deploy")}
                       </button>
                       <RowMenu items={items} label={template.name} />
                     </div>
