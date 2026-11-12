@@ -354,7 +354,7 @@ export function MonsterKitPanel({
   const weaponLabel = (name: string) =>
     WEAPON_NAME_KEYS[name] ? t(WEAPON_NAME_KEYS[name] as never) : name;
   const weaponDamageLabel = (damage: string) => {
-    const match = /^(\\d+d\\d+|\\d+)\\s+([a-z]+)$/i.exec(damage.trim());
+    const match = /^(\d+d\d+|\d+)\s+([a-z]+)$/i.exec(damage.trim());
     if (match && (DAMAGE_TYPES as readonly string[]).includes(match[2].toLowerCase())) {
       return `${match[1]} ${t(`workshop.monsterEditor.defence.damageType.${match[2].toLowerCase()}` as never).toLowerCase()}`;
     }
