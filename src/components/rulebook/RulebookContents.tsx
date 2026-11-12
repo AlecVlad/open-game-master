@@ -328,7 +328,7 @@ export function RulebookContents({
 
               <p className="rb-legal">
                 {t("rulebook.legalNotice")}
-                Wizards of the Coast LLC, licensed under{" "}
+
                 <a href={contents.source.licenseUrl} target="_blank" rel="noreferrer">
                   CC-BY-4.0
                 </a>
