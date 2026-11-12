@@ -3,6 +3,8 @@
 import { memo, useCallback, useEffect, useMemo, useRef } from "react";
 import { SectionHead } from "@/components/ui/SectionHead";
 import { D20Spinner } from "@/components/ui/D20Spinner";
+import { useI18n } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages/index";
 import type { CampaignMember } from "@/lib/campaign-types";
 import type { CastMember } from "@/lib/dm/cast";
 import type { CampaignMessage } from "@/lib/db/messages";
@@ -47,7 +49,7 @@ function hashString(value: string): number {
 // one turn to the next. Keyed on the id (not the message count, which the
 // 200-message cap pins in long sessions) and salted with the status, so the
 // beats within a single turn read differently too.
-function dmStatusPhrase(status: DmStatus, turnKey: string): string {
+function dmStatusPhrase(status: DmStatus, turnKey: string): MessageKey | "" {
   if (status === "idle") {
     return "";
   }
@@ -74,6 +76,7 @@ const DmDraftBubble = memo(function DmDraftBubble({
   measurementSystem: MeasurementSystem;
   tableLanguage: string;
 }) {
+  const { t } = useI18n();
   const dmDraft = useDmDraft();
   useEffect(() => {
     follow(dmDraft ? "auto" : "smooth");
@@ -82,7 +85,7 @@ const DmDraftBubble = memo(function DmDraftBubble({
   if (dmDraft) {
     return (
       <div className="session-dm animate-fade-up">
-        <SectionHead title="Game Master" glyph="tab-dm" level="h4" />
+        <SectionHead title={t("common.gameMaster")} glyph="tab-dm" level="h4" />
         <p className="session-dm-body whitespace-pre-wrap text-pretty font-serif text-base leading-relaxed text-stone-100">
           <Prose text={dmDraft} measurementSystem={measurementSystem} tableLanguage={tableLanguage} />
           <span className="stream-caret" aria-hidden="true" />
@@ -176,11 +179,13 @@ export function MessageList({
   // A shop's "is open" line opens the Market on that shop.
   onBrowseShop?: (shopId: string) => void;
 }) {
+  const { t } = useI18n();
   const containerRef = useRef<HTMLDivElement>(null);
   const nearBottomRef = useRef(true);
   const lastTopRef = useRef(0);
   const scrollPendingRef = useRef(false);
-  const statusPhrase = dmStatusPhrase(dmStatus, messages[messages.length - 1]?.id ?? "");
+  const statusPhraseKey = dmStatusPhrase(dmStatus, messages[messages.length - 1]?.id ?? "");
+  const statusPhrase = statusPhraseKey ? t(statusPhraseKey) : "";
   const rollsById = useMemo(() => new Map(rolls.map((roll) => [roll.id, roll])), [rolls]);
   const gone = useGoneCompanions(campaignId, `${goneRefreshKey}:${departing.length}`);
   const sheetsById = useMemo(() => transcriptSheets(sheets, departing, gone), [sheets, departing, gone]);
