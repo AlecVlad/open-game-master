@@ -21,6 +21,53 @@ const SUPPORT_LABEL: Record<NonNullable<RulebookPageResponse["crosswalk"]>["supp
   reference: "rulebook.support.reference",
 };
 
+const WHERE_MESSAGE: Partial<Record<string, MessageKey>> = {
+  "half-dragon-template": "rulebook.where.halfDragonTemplate",
+  "customizing-npcs": "rulebook.where.customizingNpcs",
+  "racial-traits": "rulebook.where.racialTraits",
+  "beyond-1st-level": "rulebook.where.beyondFirstLevel",
+  multiclassing: "rulebook.where.multiclassing",
+  alignment: "rulebook.where.alignment",
+  languages: "rulebook.where.languages",
+  inspiration: "rulebook.where.inspiration",
+  backgrounds: "rulebook.where.backgrounds",
+  coinage: "rulebook.where.coinage",
+  "selling-treasure": "rulebook.where.sellingTreasure",
+  armor: "rulebook.where.armor",
+  weapons: "rulebook.where.weapons",
+  "adventuring-gear": "rulebook.where.adventuringGear",
+  tools: "rulebook.where.tools",
+  "mounts-and-vehicles": "rulebook.where.mountsAndVehicles",
+  "trade-goods": "rulebook.where.tradeGoods",
+  expenses: "rulebook.where.expenses",
+  feats: "rulebook.where.feats",
+  "using-ability-scores": "rulebook.where.abilityScores",
+  adventuring: "rulebook.where.adventuring",
+  combat: "rulebook.where.combat",
+  spellcasting: "rulebook.where.spellcasting",
+  "spell-lists": "rulebook.where.spellLists",
+  traps: "rulebook.where.traps",
+  diseases: "rulebook.where.diseases",
+  madness: "rulebook.where.madness",
+  objects: "rulebook.where.objects",
+  poisons: "rulebook.where.poisons",
+  "magic-items": "rulebook.where.magicItems",
+  "sentient-magic-items": "rulebook.where.sentientMagicItems",
+  artifacts: "rulebook.where.artifacts",
+  "monster-statistics": "rulebook.where.monsterStatistics",
+  "nonplayer-characters": "rulebook.where.nonplayerCharacters",
+  conditions: "rulebook.where.conditions",
+  "gods-of-the-multiverse": "rulebook.where.gods",
+  "the-planes-of-existence": "rulebook.where.planes",
+  "legal-information": "rulebook.where.legalInformation",
+};
+
+const FAMILY_TEMPLATE_MESSAGE: Partial<Record<string, MessageKey>> = {
+  "ammunition-1-2-or-3": "rulebook.template.ammunitionFamily",
+  "armor-1-2-or-3": "rulebook.template.armorFamily",
+  "shield-1-2-or-3": "rulebook.template.shieldFamily",
+};
+
 export function PagePrep({ data, canStart = true }: { data: RulebookPageResponse; canStart?: boolean }) {
   const { t } = useI18n();
   const crosswalk = data.crosswalk;
@@ -49,11 +96,13 @@ export function PagePrep({ data, canStart = true }: { data: RulebookPageResponse
     }
   }
   const copyable = canStart && crosswalk.editor && !(crosswalk.editor === "monster" && crosswalk.template);
+  const whereKey = WHERE_MESSAGE[data.page.id] ?? (data.page.kind === "spell" ? crosswalk.support === "engine" ? "rulebook.where.spellEngine" : "rulebook.where.spellEditable" : data.page.kind === "item" ? crosswalk.support === "engine" ? "rulebook.where.itemEngine" : "rulebook.where.itemEditable" : crosswalk.editor === "monster" ? "rulebook.where.monster" : crosswalk.editor === "race" ? "rulebook.where.race" : crosswalk.editor === "archetype" ? "rulebook.where.class" : undefined);
+  const templateMessage = FAMILY_TEMPLATE_MESSAGE[data.page.id];
   return (
     <div className="rb-prep" data-support={crosswalk.support} data-testid="rulebook-prep">
       <p>
-        <span className="rb-prep-label">{t(SUPPORT_LABEL[crosswalk.support])}:</span> {crosswalk.where}
-        {crosswalk.template ? <span className="rb-prep-note"> {crosswalk.template === "half-dragon" || crosswalk.template === "npc" ? "" : `(${crosswalk.template})`}</span> : null}
+        <span className="rb-prep-label">{t(SUPPORT_LABEL[crosswalk.support])}:</span> {whereKey ? t(whereKey) : crosswalk.where}
+        {crosswalk.template ? <span className="rb-prep-note"> {crosswalk.template === "half-dragon" || crosswalk.template === "npc" ? "" : templateMessage ? `(${t(templateMessage)})` : `(${crosswalk.template})`}</span> : null}
       </p>
       {copyable ? (
         <button type="button" onClick={() => void startFrom()} disabled={busy} className="rb-turn-link rb-prep-start motion-press">
