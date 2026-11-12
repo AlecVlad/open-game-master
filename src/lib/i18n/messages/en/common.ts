@@ -12,6 +12,7 @@ export const enCommon = {
   "appearance.scale": "Interface scale",
   "appearance.reset": "Reset",
   "common.action.save": "Save",
+  "common.gameMaster": "Game Master",
   "common.actionsFor": "Actions for {label}",
   "voicePicker.narratorLanguageNote": "Kokoro has no {language} voice, so narration is read by a voice of another language.",
   "safetyTone.safety.label": "Safety",
