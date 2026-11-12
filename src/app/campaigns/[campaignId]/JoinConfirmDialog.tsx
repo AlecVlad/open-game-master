@@ -64,7 +64,7 @@ async function askPreview(campaignId: string, body: unknown, t: ReturnType<typeo
     });
     const data = await response.json().catch(() => ({}));
     if (!response.ok || !data.preview) {
-      return { error: refusalText(data, t("campaign.joinConfirm.error.preview")) };
+      return { error: refusalText(data, t("campaign.joinConfirm.error.preview"), t) };
     }
     return { preview: data.preview };
   } catch {
@@ -171,7 +171,7 @@ export function JoinConfirmDialog({
       });
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        setError(refusalText(data, t("campaign.joinConfirm.error.seat")));
+        setError(refusalText(data, t("campaign.joinConfirm.error.seat"), t));
         return;
       }
       onSeated();
