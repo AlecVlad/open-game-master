@@ -3,6 +3,7 @@
 import { rowIcon } from "@/app/workshop/kit";
 import { Plus, X } from "lucide-react";
 import { useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { AddFromList, type AddOption } from "@/components/ui/AddFromList";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui";
@@ -80,6 +81,7 @@ export function PairList<T extends Record<string, string>>({
   empty: string;
   max?: number;
 }) {
+  const { t } = useI18n();
   return (
     <div className="space-y-1.5">
       {items.length === 0 ? <p className="reveal text-xs italic text-stone-500">{empty}</p> : null}
@@ -108,7 +110,7 @@ export function PairList<T extends Record<string, string>>({
           <button
             type="button"
             onClick={() => onChange(removeAt(items, index))}
-            aria-label={`Remove ${item[first.key] || "this row"}`}
+            aria-label={t("workshop.plugin.fields.removeRow", { name: String(item[first.key] || t("workshop.plugin.fields.rowFallback")) })}
             className={cn(ui.iconAction, rowIcon, "hover:text-red-300")}
           >
             <X className="size-3.5" />
@@ -145,6 +147,7 @@ export function LineList({
   empty: string;
   max?: number;
 }) {
+  const { t } = useI18n();
   return (
     <div className="space-y-1.5">
       {items.length === 0 ? <p className="reveal text-xs italic text-stone-500">{empty}</p> : null}
@@ -161,7 +164,7 @@ export function LineList({
           <button
             type="button"
             onClick={() => onChange(removeAt(items, index))}
-            aria-label="Remove this line"
+            aria-label={t("workshop.plugin.fields.removeLine")}
             className={cn(ui.iconAction, rowIcon, "hover:text-red-300")}
           >
             <X className="size-3.5" />
@@ -205,6 +208,7 @@ export function ChipList({
   removeLabelFor?: (label: string) => string;
   max?: number;
 }) {
+  const { t } = useI18n();
   const [typed, setTyped] = useState("");
   const add = (value: string) => {
     const trimmed = value.trim().slice(0, maxLength);
@@ -239,7 +243,7 @@ export function ChipList({
         ))}
       </ul>
       {options ? (
-        <AddFromList prompt={prompt ?? "Add"} options={remaining ?? []} onPick={add} />
+        <AddFromList prompt={prompt ?? t("workshop.plugin.fields.add")} options={remaining ?? []} onPick={add} />
       ) : (
         <div className="flex gap-1.5">
           <input
@@ -257,7 +261,7 @@ export function ChipList({
             className={cn(input, "min-w-0 flex-1")}
           />
           <button type="button" onClick={() => add(typed)} disabled={!typed.trim()} className={cn(ui.btnSmall, "text-xs")}>
-            <Plus className="size-3.5" /> Add
+            <Plus className="size-3.5" /> {t("workshop.plugin.fields.add")}
           </button>
         </div>
       )}
