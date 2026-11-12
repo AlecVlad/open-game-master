@@ -11,8 +11,35 @@ import { Dialog } from "@/components/ui/Dialog";
 import type { ItemSheet } from "@/lib/help/item-sheet";
 import { firstSentence, parseRulesBlocks } from "@/lib/help/rules-text";
 import { textKey } from "@/lib/language/text-logic";
-import { useT } from "@/lib/i18n/provider";
+import { useI18n, useT } from "@/lib/i18n/provider";
+import type { Lang } from "@/lib/i18n/core";
+import type { Need } from "@/lib/content/needs-logic";
+import type { MessageKey } from "@/lib/i18n/messages/index";
 
+const NEED_MESSAGE_KEYS: Record<Need, MessageKey> = {
+  strife: "infoDialog.need.strife",
+  fatigue: "infoDialog.need.fatigue",
+  rattled: "infoDialog.need.rattled",
+  "expertise dice": "infoDialog.need.expertiseDice",
+  exertion: "infoDialog.need.exertion",
+  maneuvers: "infoDialog.need.maneuvers",
+  bloodied: "infoDialog.need.bloodied",
+  "ley lines": "infoDialog.need.leyLines",
+};
+
+function contentNeedsNote(needs: readonly Need[], t: ReturnType<typeof useT>, lang: Lang): string | null {
+  const levelUp = needs.filter((need) => need !== "ley lines");
+  const parts: string[] = [];
+  if (levelUp.length) {
+    const labels = levelUp.map((need) => t(NEED_MESSAGE_KEYS[need]));
+    const list = new Intl.ListFormat(lang, { style: "long", type: "conjunction" }).format(labels);
+    parts.push(t(levelUp.length === 1 ? "infoDialog.contentNeeds.one" : "infoDialog.contentNeeds.many", { needs: list }));
+  }
+  if (needs.includes("ley lines")) {
+    parts.push(t("infoDialog.contentNeeds.leyLines"));
+  }
+  return parts.length ? parts.join("\n\n") : null;
+}
 // The "what does this do?" affordance, used everywhere a game term appears.
 //
 // Built on the shared Dialog rather than a popover on purpose: Radix tooltips
@@ -102,7 +129,7 @@ export function renderRules(text: string): ReactNode {
 // Loads a content-pack entry's description on first open, so opening a sheet
 // with forty spells on it costs nothing until one is actually inspected.
 function ContentBody({ reference }: { reference: ContentRef }) {
-  const t = useT();
+  const { t, lang } = useI18n();
   // The table the dialog opened at reads its DMs' homebrew.
   const campaignId = useContentCampaign();
   const [state, setState] = useState<{ text: string | null; loading: boolean }>({
@@ -115,14 +142,15 @@ function ContentBody({ reference }: { reference: ContentRef }) {
     async function load() {
       try {
         const { describeContentEntry } = await import("@/lib/help");
-        const { needsNote } = await import("@/lib/content/levelup-logic");
-        const { BEST_EFFORT_NOTE } = await import("@/lib/content/reading-logic");
         // An entry built on rules this game does not play, or played from
         // mechanics the app read and nobody checked, says so first (issue
         // #570).
-        const withNote = (entry: { needs?: Parameters<typeof needsNote>[0]; bestEffort?: boolean } | undefined, text: string | null) => {
-          const notes = [needsNote(entry?.needs ?? []), entry?.bestEffort ? BEST_EFFORT_NOTE : null].filter(Boolean);
-          return text && notes.length ? `${notes.join("\n\n")}\n\n${text}` : text;
+        const withNote = (entry: { needs?: Need[]; bestEffort?: boolean } | undefined, text: string | null) => {
+          const notes = [
+            contentNeedsNote(entry?.needs ?? [], t, lang),
+            entry?.bestEffort ? t("infoDialog.contentBestEffort") : null,
+          ].filter((note): note is string => Boolean(note));
+          return text && notes.length ? [...notes, text].join("\n\n") : text;
         };
         const response = await fetch(
           `/api/content/${reference.kind}/${encodeURIComponent(reference.slug)}${scopeQuery(campaignId)}`,
