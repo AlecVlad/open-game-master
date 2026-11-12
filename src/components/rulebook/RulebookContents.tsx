@@ -327,8 +327,7 @@ export function RulebookContents({
               </nav>
 
               <p className="rb-legal">
-                {t("rulebook.legalNotice")}
-
+                {t("rulebook.legalNotice")}{" "}
                 <a href={contents.source.licenseUrl} target="_blank" rel="noreferrer">
                   CC-BY-4.0
                 </a>
