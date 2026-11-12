@@ -145,7 +145,7 @@ function ContentBody({ reference }: { reference: ContentRef }) {
         // An entry built on rules this game does not play, or played from
         // mechanics the app read and nobody checked, says so first (issue
         // #570).
-        const withNote = (entry: { needs?: Need[]; bestEffort?: boolean } | undefined, text: string | null) => {
+        const withNote = (entry: { needs?: readonly Need[]; bestEffort?: boolean } | undefined, text: string | null) => {
           const notes = [
             contentNeedsNote(entry?.needs ?? [], t, lang),
             entry?.bestEffort ? t("infoDialog.contentBestEffort") : null,
@@ -188,7 +188,7 @@ function ContentBody({ reference }: { reference: ContentRef }) {
     return () => {
       cancelled = true;
     };
-  }, [reference.kind, reference.slug, reference.name, campaignId]);
+  }, [reference.kind, reference.slug, reference.name, campaignId, t, lang]);
 
   if (state.loading) {
     return (
