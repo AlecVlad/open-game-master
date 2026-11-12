@@ -15,9 +15,26 @@ import { classWords } from "@/lib/sheet-words";
 //
 // Pure, for scripts/test-seat-confirm.mjs.
 
+export type JoinChangeClass = { id: string; name: string; level: number };
+
+export type JoinChangeDetail =
+  | { kind: "ownLevel"; level: number }
+  | { kind: "levelUp"; from: number; to: number }
+  | { kind: "levelDown"; level: number; from: number }
+  | { kind: "classes"; from: JoinChangeClass[]; to: JoinChangeClass[] }
+  | { kind: "hitPoints"; from: number; to: number }
+  | { kind: "improvementsReturned"; count: number }
+  | { kind: "featsReturned"; feats: string[] }
+  | { kind: "spellcastingLost" }
+  | { kind: "spellsReturned"; spells: string[] }
+  | { kind: "spellSlots"; slots: Array<{ level: number; count: number }> }
+  | { kind: "noSpellSlots" };
+
 export type JoinChanges = {
   // One line per change, in the order a player cares about.
   changes: string[];
+  // Structured equivalents for clients that render the summary in their own language.
+  changeDetails?: JoinChangeDetail[];
   // Choices the level earned and the hero has not made, as the character
   // sheet says (owedChoices): the first level-up takes the class's own.
   owed: string[];
@@ -86,6 +103,22 @@ function slotLine(sheet: Sheet): string {
   return slots.join(", ");
 }
 
+function slotDetails(sheet: Sheet): Array<{ level: number; count: number }> {
+  return Object.entries(sheet.spellcasting?.slots ?? {})
+    .filter(([, slot]) => slot.max > 0)
+    .sort(([a], [b]) => Number(a) - Number(b))
+    .map(([level, slot]) => ({ level: Number(level), count: slot.max }));
+}
+
+function classDetails(sheet: Sheet, level: number): JoinChangeClass[] {
+  const entries = sheet.classes?.length ? sheet.classes : [{ id: sheet.class, level }];
+  return entries.map((entry) => ({
+    id: entry.id,
+    name: classWords(entry.id),
+    level: entry.level,
+  }));
+}
+
 // "fighter 3 / plague doctor 2": the classes in words, as the rest of the
 // confirmation reads them (src/lib/sheet-words.ts); the line printed ids.
 function classLine(sheet: Sheet, level: number): string {
@@ -101,22 +134,32 @@ export function joinChanges(
   owedContext: OwedContext = {},
 ): JoinChanges {
   const changes: string[] = [];
+  const changeDetails: JoinChangeDetail[] = [];
   if (storedLevel === tableLevel) {
     changes.push(`Plays at its own level, ${tableLevel}.`);
+    changeDetails.push({ kind: "ownLevel", level: tableLevel });
   } else if (storedLevel < tableLevel) {
     changes.push(`Goes up from level ${storedLevel} to ${tableLevel} for this table.`);
+    changeDetails.push({ kind: "levelUp", from: storedLevel, to: tableLevel });
   } else {
     changes.push(`Plays at level ${tableLevel} here, down from ${storedLevel}.`);
+    changeDetails.push({ kind: "levelDown", level: tableLevel, from: storedLevel });
   }
 
   const storedClasses = classLine(stored, storedLevel);
   const seatedClasses = classLine(seated, tableLevel);
   if ((stored.classes ?? []).length > 1 && storedClasses !== seatedClasses) {
     changes.push(`Classes: ${storedClasses} becomes ${seatedClasses}.`);
+    changeDetails.push({
+      kind: "classes",
+      from: classDetails(stored, storedLevel),
+      to: classDetails(seated, tableLevel),
+    });
   }
 
   if (stored.maxHp !== seated.maxHp) {
     changes.push(`Hit points: ${stored.maxHp} becomes ${seated.maxHp}.`);
+    changeDetails.push({ kind: "hitPoints", from: stored.maxHp, to: seated.maxHp });
   }
 
   const givenBack = (stored.asiChoices ?? []).length - (seated.asiChoices ?? []).length;
@@ -126,20 +169,28 @@ export function joinChanges(
     changes.push(
       `Gives back ${plural(givenBack, "Ability Score Improvement")} this level has not earned${feats.length ? `, with ${feats.join(", ")}` : ""}.`,
     );
+    changeDetails.push({ kind: "improvementsReturned", count: givenBack });
+    if (feats.length) {
+      changeDetails.push({ kind: "featsReturned", feats });
+    }
   }
 
   const seatedSpells = new Set(spellsOf(seated).map(textKey));
   const lostSpells = spellsOf(stored).filter((name) => !seatedSpells.has(textKey(name)));
   if (stored.spellcasting && !seated.spellcasting) {
     changes.push("Loses its spellcasting with the class levels it gives back.");
+    changeDetails.push({ kind: "spellcastingLost" });
   } else if (lostSpells.length) {
     changes.push(`Gives back ${plural(lostSpells.length, "spell")} this level cannot hold: ${lostSpells.join(", ")}.`);
+    changeDetails.push({ kind: "spellsReturned", spells: lostSpells });
   }
 
   const storedSlots = slotLine(stored);
   const seatedSlots = slotLine(seated);
   if (seated.spellcasting && storedSlots !== seatedSlots) {
     changes.push(seatedSlots ? `Spell slots: ${seatedSlots}.` : "No spell slots at this level.");
+    const slots = slotDetails(seated);
+    changeDetails.push(slots.length ? { kind: "spellSlots", slots } : { kind: "noSpellSlots" });
   }
 
   // Owed choices read the sheet at the level it plays; the seated sheet's
@@ -159,5 +210,5 @@ export function joinChanges(
     race: seated.race,
   } as Parameters<typeof owedChoiceGroups>[0], owedContext);
 
-  return { changes, owed: [...groups.levelUp, ...groups.onSheet], owedOnSheet: groups.onSheet };
+  return { changes, changeDetails, owed: [...groups.levelUp, ...groups.onSheet], owedOnSheet: groups.onSheet };
 }
