@@ -5453,4 +5453,12 @@ export const ruCampaignPanels: Partial<Record<keyof typeof enCampaignPanels, str
   "campaign.session.characterJoin.submit.join": "Вступить в группу",
   "campaign.session.characterJoin.error.save": "Не удалось сохранить персонажа.",
   "campaign.session.characterJoin.error.server": "Не удалось связаться с сервером.",
+  "campaign.pregenPicker.brakk.tagline": "Бракк, человек-варвар",
+  "campaign.pregenPicker.brakk.blurb": "Сначала бьёт, потом задаёт вопросы. Размахивай двуручной секирой, стой под ударами и защищай остальных собой.",
+  "campaign.pregenPicker.kara.tagline": "Кара, человек-боец",
+  "campaign.pregenPicker.kara.blurb": "Щит, меч и кольчуга. Самая надёжная опора отряда: её трудно ранить, ещё труднее сдвинуть с места, и у неё всегда есть план отхода.",
+  "campaign.pregenPicker.vex.tagline": "Векс, человек-плут",
+  "campaign.pregenPicker.vex.blurb": "Замки, тени и рапира. Разведывай путь, находи ловушки раньше, чем они найдут тебя, и бей по уязвимым местам.",
+  "campaign.pregenPicker.sera.tagline": "Сера, человек-жрец домена жизни",
+  "campaign.pregenPicker.sera.blurb": "Булава, щит и руки целителя. Поддерживает отряд заклинаниями «Лечение ран» и «Благословение», а при необходимости сама удерживает строй.",
 };
