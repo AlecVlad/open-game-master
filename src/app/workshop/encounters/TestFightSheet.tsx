@@ -33,9 +33,11 @@ import type { PreparedEncounter } from "@/app/workshop/encounters/types";
 export type TestFightInfo = {
   ready: boolean;
   reason: string;
+  reasonCode?: "no-ai" | null;
   // Set when the server's "Who may start campaigns and workshops" keeps this
   // person from starting one; an older host leaves it out.
   refused?: string;
+  refusedCode?: "admin-only" | null;
   standIns: { size: number; level: number; classes: string[] };
   open: { id: string; title: string; createdAt: string } | null;
 };
@@ -338,7 +340,7 @@ export function TestFightSheet({
         {info?.refused ? (
           <p className="flex items-start gap-2 rounded-lg border border-stone-700/60 bg-stone-950/40 px-3 py-2 text-xs text-stone-300" data-testid="test-fight-refused">
             <GameIcon icon={{ kind: "glyph", key: "ui-ai" }} size="size-5" className="shrink-0" />
-            {info.refused}
+            {info.refusedCode === "admin-only" ? t("workshop.testFight.refused.adminOnly") : info.refused}
           </p>
         ) : info?.ready ? (
           <fieldset className="space-y-2">
@@ -361,7 +363,7 @@ export function TestFightSheet({
         ) : info ? (
           <p className="flex items-start gap-2 rounded-lg border border-stone-700/60 bg-stone-950/40 px-3 py-2 text-xs text-stone-300" data-testid="test-fight-not-ready">
             <GameIcon icon={{ kind: "glyph", key: "ui-ai" }} size="size-5" className="shrink-0" />
-            {info.reason}
+            {info.reasonCode === "no-ai" ? t("workshop.testFight.readiness.noAi") : info.reason}
           </p>
         ) : null}
         {info?.open ? (
