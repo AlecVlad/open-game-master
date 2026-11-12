@@ -378,7 +378,7 @@ export function GameSettingsPanel({
   function body(id: TableGroupId) {
     switch (id) {
       case "world":
-        return <WorldGroup {...base} packs={packs} selectedPack={selectedPack} preset={preset} />;
+        return <WorldGroup {...base} packs={packs} selectedPack={selectedPack} />;
       case "character":
         return <CharacterGroup {...base} serverRerollLabel={serverRerollLabel} />;
       case "narration":
