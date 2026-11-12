@@ -850,4 +850,11 @@ export const enCampaignSession = {
   "campaign.npcEditor.raceOption.bugbear": "Bugbear",
   "campaign.npcEditor.raceOption.lizardfolk": "Lizardfolk",
   "campaign.npcEditor.raceOption.orc": "Orc",
+  "campaign.tableBreak.error.pause": "Could not pause the table.",
+  "campaign.tableBreak.error.resume": "Could not resume the table.",
+  "campaign.sessionHold.error.end": "Could not end the session.",
+  "campaign.sessionHold.error.start": "Could not start the session.",
+  "campaign.sessionHold.confirmEnd.body": "Play stops for everyone where it stands, and waits for the next session. Nothing is lost: the story, every sheet, the board and any fight under way stay exactly as they are, and table talk stays open. To finish the campaign for good, use End the campaign in the settings instead.",
+  "campaign.session.sendActionError": "Could not send your action.",
+  "campaign.session.networkError": "Could not reach the server.",
 } satisfies Record<string, string>;
