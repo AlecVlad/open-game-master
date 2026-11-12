@@ -31,10 +31,10 @@ export async function POST(request: Request) {
   const form = await request.formData().catch(() => null);
   const audio = form?.get("audio");
   if (!(audio instanceof File)) {
-    return Response.json({ error: "Send audio as multipart field 'audio'." }, { status: 400 });
+    return Response.json({ error: "Send audio as multipart field 'audio'.", errorCode: "MISSING_AUDIO" }, { status: 400 });
   }
   if (audio.size > MAX_AUDIO_BYTES) {
-    return Response.json({ error: "Recording too long." }, { status: 413 });
+    return Response.json({ error: "Recording too long.", errorCode: "RECORDING_TOO_LONG" }, { status: 413 });
   }
 
   // The campaign the clip was recorded at, honoured only for a member: its
@@ -64,7 +64,7 @@ export async function POST(request: Request) {
   recordUsage({ kind: "stt", role: "dictation", backend: "whisper", paid: false, units: 1 });
   if (backend === "none") {
     return Response.json(
-      { error: "This server has no speech-to-text. An admin can install it under Admin > Speech." },
+      { error: "This server has no speech-to-text. An admin can install it under Admin > Speech.", errorCode: "NO_SPEECH_TO_TEXT" },
       { status: 503 },
     );
   }
@@ -83,7 +83,7 @@ export async function POST(request: Request) {
     });
     if (!response.ok) {
       return Response.json(
-        { error: "The speech service could not transcribe that." },
+        { error: "The speech service could not transcribe that.", errorCode: "SPEECH_SERVICE_FAILED" },
         { status: 502 },
       );
     }
@@ -91,7 +91,7 @@ export async function POST(request: Request) {
     return Response.json({ text: (data.text ?? "").trim() });
   } catch {
     return Response.json(
-      { error: "Speech service unreachable. Is odm-stt running on this server?" },
+      { error: "Speech service unreachable. Is odm-stt running on this server?", errorCode: "SPEECH_SERVICE_UNREACHABLE" },
       { status: 502 },
     );
   }
@@ -104,7 +104,7 @@ async function builtin(audio: File, language: string | null) {
   const decoded = decodeWav(new Uint8Array(await audio.arrayBuffer()));
   if (!decoded || decoded.sampleRate !== SPEECH_SAMPLE_RATE) {
     return Response.json(
-      { error: "This server wants 16 kHz WAV for dictation. Reload the page and try again." },
+      { error: "This server wants 16 kHz WAV for dictation. Reload the page and try again.", errorCode: "AUDIO_FORMAT_UNSUPPORTED" },
       { status: 415 },
     );
   }
@@ -112,7 +112,7 @@ async function builtin(audio: File, language: string | null) {
     return Response.json({ text: await transcribeBuiltin(decoded.samples, language) });
   } catch (error) {
     console.error("[speech] built-in transcription failed", error);
-    return Response.json({ error: "The built-in speech engine could not transcribe that." }, { status: 502 });
+    return Response.json({ error: "The built-in speech engine could not transcribe that.", errorCode: "BUILTIN_TRANSCRIPTION_FAILED" }, { status: 502 });
   }
 }
 
@@ -135,13 +135,16 @@ async function openAi(audio: File, language: string | null) {
       const detail = await response.text().catch(() => "");
       console.error(`[speech] OpenAI transcription failed (${response.status}): ${detail.slice(0, 300)}`);
       return Response.json(
-        { error: response.status === 401 ? "OpenAI refused the key for transcription." : "OpenAI could not transcribe that." },
+        {
+          error: response.status === 401 ? "OpenAI refused the key for transcription." : "OpenAI could not transcribe that.",
+          errorCode: response.status === 401 ? "OPENAI_KEY_REJECTED" : "OPENAI_TRANSCRIPTION_FAILED",
+        },
         { status: 502 },
       );
     }
     const data = (await response.json()) as { text?: string };
     return Response.json({ text: (data.text ?? "").trim() });
   } catch {
-    return Response.json({ error: "Could not reach OpenAI for transcription." }, { status: 502 });
+    return Response.json({ error: "Could not reach OpenAI for transcription.", errorCode: "OPENAI_UNREACHABLE" }, { status: 502 });
   }
 }
