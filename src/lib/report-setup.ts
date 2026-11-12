@@ -78,6 +78,9 @@ export type ReportSetup = {
   voiceChat?: { on: boolean; mode: string; transcribes: boolean };
   // What is below the supported minimum or not answering, in plain words.
   checkFirst?: string[];
+  // Parallel structured diagnostics for the UI. Plain checkFirst stays in the
+  // exported report for older clients and the GitHub form.
+  checkFirstItems?: ReportCheckFirstItem[];
   // The app's own facts, added in the browser (src/lib/shell-report.ts).
   app?: ShellReportFacts;
 };
