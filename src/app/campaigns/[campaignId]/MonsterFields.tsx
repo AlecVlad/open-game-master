@@ -325,19 +325,58 @@ export function SizeAndDefences({
 // will not trust a difficulty rating they cannot audit, and the ratings
 // worth auditing are exactly the ones that disagree with their instinct.
 export function Working({ parts, notes }: { parts: CrPart[]; notes: string[] }) {
-  const { t } = useI18n();
+  const { t, tp } = useI18n();
+  const labelKeys: Record<string, string> = {
+    "Hit points": "hitPoints",
+    "Armour class": "armourClass",
+    "Damage per round": "damageRound",
+    "Attack bonus": "attackBonus",
+    Toughness: "toughness",
+    "The routine": "routine",
+    "The average": "average",
+  };
+  const translateText = (value: string): string => {
+    let match = value.match(/^(\d+) hit points is the CR ([\d/]+) band \((\d+) to (\d+)\)\.$/);
+    if (match) return t("workshop.monsterEditor.rating.hpBand", { hp: Number(match[1]), cr: match[2], min: Number(match[3]), max: Number(match[4]) });
+    match = value.match(/^AC (\d+) is what CR ([\d/]+) expects, so it moves nothing\.$/);
+    if (match) return t("workshop.monsterEditor.rating.acMatches", { ac: Number(match[1]), cr: match[2] });
+    match = value.match(/^AC (\d+) against the expected (\d+) is ([+-]?\d+) ratings?, one per 2 points\.$/);
+    if (match) return tp("workshop.monsterEditor.rating.acAdjust", Math.abs(Number(match[3])), { ac: Number(match[1]), expected: Number(match[2]), adjustment: match[3] });
+    match = value.match(/^(\d+) damage a round is the CR ([\d/]+) band \((\d+) to (\d+)\)\.$/);
+    if (match) return t("workshop.monsterEditor.rating.dprBand", { dpr: Number(match[1]), cr: match[2], min: Number(match[3]), max: Number(match[4]) });
+    match = value.match(/^([+-]?\d+) is what CR ([\d/]+) expects, so it moves nothing\.$/);
+    if (match) return t("workshop.monsterEditor.rating.attackMatches", { bonus: match[1], cr: match[2] });
+    match = value.match(/^([+-]?\d+) against the expected ([+-]?\d+) is ([+-]?\d+) ratings?, one per 2 points\.$/);
+    if (match) return tp("workshop.monsterEditor.rating.attackAdjust", Math.abs(Number(match[3])), { bonus: match[1], expected: match[2], adjustment: match[3] });
+    match = value.match(/^(\d+) swings? of (.+) at ([\d.]+) average(, plus (\d+) added by hand)?\.$/);
+    if (match) {
+      const extra = match[5] ? t("workshop.monsterEditor.rating.extra", { extra: Number(match[5]) }) : "";
+      return tp("workshop.monsterEditor.rating.routine", Number(match[1]), { swings: Number(match[1]), name: match[2], average: match[3], extra });
+    }
+    match = value.match(/^Defensive CR ([\d/]+) and offensive CR ([\d/]+), averaged and rounded up\.$/);
+    if (match) return t("workshop.monsterEditor.rating.averageDetail", { defensive: match[1], offensive: match[2] });
+    match = value.match(/^Immune to (\d+) common damage types, worth x([\d.]+) hit points around CR ([\d/]+)\.$/);
+    if (match) return t("workshop.monsterEditor.rating.note.immune", { count: Number(match[1]), multiplier: match[2], cr: match[3] });
+    match = value.match(/^Resistant to (\d+) common damage types, worth x([\d.]+) hit points around CR ([\d/]+)\.$/);
+    if (match) return t("workshop.monsterEditor.rating.note.resist", { count: Number(match[1]), multiplier: match[2], cr: match[3] });
+    if (value.startsWith("This one casts spells") || value.startsWith("This creature casts spells")) return t("workshop.monsterEditor.rating.note.spells");
+    if (value.startsWith("There are dice in the traits")) return t("workshop.monsterEditor.rating.note.traits");
+    if (value === "No attacks, so the offensive rating rests on nothing.") return t("workshop.monsterEditor.rating.note.noAttacks");
+    if (value.startsWith("The engine caps a multiattack")) return t("workshop.monsterEditor.rating.note.capped");
+    return value;
+  };
   return (
     <div className="flex flex-col gap-1 rounded-lg border border-stone-800 bg-stone-950/60 p-2">
       {parts.map((part) => (
         <div key={part.label} className="flex flex-wrap items-baseline gap-x-2 text-[11px]">
-          <span className="w-28 shrink-0 text-stone-500">{part.label}</span>
+          <span className="w-28 shrink-0 text-stone-500">{labelKeys[part.label] ? t(`workshop.monsterEditor.rating.${labelKeys[part.label]}` as never) : part.label}</span>
           <span className="w-16 shrink-0 text-amber-100">{part.value}</span>
-          <span className="flex-1 text-stone-500">{part.detail}</span>
+          <span className="flex-1 text-stone-500">{translateText(part.detail)}</span>
         </div>
       ))}
       {notes.map((note) => (
         <p key={note} className="text-[10px] text-amber-300/70">
-          {note}
+          {translateText(note)}
         </p>
       ))}
     </div>
