@@ -14,6 +14,7 @@ import type { StoredRoll } from "@/lib/db/rolls";
 import type { TranscriptSheet } from "@/app/campaigns/[campaignId]/departing";
 import type { MediaStatus } from "@/app/campaigns/[campaignId]/useCampaignStream";
 import { SystemMessage } from "@/app/campaigns/[campaignId]/MessageParts";
+import { useI18n } from "@/lib/i18n/provider";
 import type { SystemGlyph } from "@/lib/system-glyphs";
 
 // What a DM passage is made of: the prose (with its inline roll cards and
@@ -38,6 +39,7 @@ export function MediaPlaceholder({
   status?: MediaStatus;
   fallbackStartedAt: string;
 }) {
+  const { t } = useI18n();
   const [now, setNow] = useState(() => Date.now());
   const failed = status?.state === "failed";
   useEffect(() => {
@@ -53,7 +55,7 @@ export function MediaPlaceholder({
       <p className="live-in mt-3 flex items-start gap-1.5 text-xs text-stone-600">
         <ImageOff className="mt-0.5 size-3.5 shrink-0" />
         <span>
-          Illustration failed; the story carries on.
+          {t("campaign.session.messageContent.illustrationFailed")}
           {status?.reason ? <span className="block text-stone-500">{status.reason}</span> : null}
         </span>
       </p>
@@ -63,7 +65,7 @@ export function MediaPlaceholder({
     <div className="mt-3 flex aspect-video max-h-56 w-full max-w-md flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed border-stone-800 bg-stone-950/40">
       <Loader2 className="size-5 animate-spin text-amber-700" />
       <p className="text-xs text-stone-400">
-        {status?.state === "queued" ? "Waiting for the render queue..." : label}
+        {status?.state === "queued" ? t("campaign.session.messageContent.waitingForRender") : label}
       </p>
       <p className="font-mono text-[11px] text-stone-600">
         {formatElapsed(status?.startedAt ?? fallbackStartedAt, now)}
