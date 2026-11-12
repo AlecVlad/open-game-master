@@ -1176,7 +1176,16 @@ export function BattleMapPanel({
   const selectedIndex = selectedEntry ? encounter?.order.indexOf(selectedEntry) ?? -1 : -1;
   const orderPanel: BoardPanel | null = encounter && orderOpen ? {
     title: t("campaign.session.battle.initiativeTitle", { round: view.round }),
-    lines: [...(encounter.orderReady ? encounter.order.map((entry, index) => `${index === encounter.turnIndex ? "▶ " : ""}${entry.name}${entry.initiative !== undefined ? ` · ${entry.initiative}` : ""}${entry.hidden ? " · hidden" : ""}${extraTurnTag(entry) ? ` · ${extraTurnTag(entry)!.title}` : ""}${offSide(encounter, entry.id, entry.kind) ? ` · ${sideWords(offSide(encounter, entry.id, entry.kind)!)}` : ""}`) : [t("campaign.session.battle.waitingInitiative"), ...(encounter.staged ?? []).map(entry => `${entry.name}: ${entry.initiative}`)]), ...(canDirect ? [t("campaign.session.battle.rewindOrderHint"), ...(encounter.enemiesDue?.length ? [`Enemy turns due: ${encounter.enemiesDue.map(entry => `${entry.name}${entry.acted ? " (acted)" : ""}`).join(", ")}`] : [])] : []), ...(error ? [error] : [])],
+    lines: [...(encounter.orderReady ? encounter.order.map((entry, index) => {
+      const extra = extraTurnTag(entry);
+      const extraTitle = !extra ? "" : entry.reflex
+        ? entry.extra ? t("campaign.session.battle.extraTurn.extraNow", { feature: entry.extra }) : t("campaign.session.battle.extraTurn.thiefReflex")
+        : t("campaign.session.battle.extraTurn.extraTurn");
+      const extraShort = !extra ? "" : entry.reflex
+        ? t("campaign.session.battle.extraTurn.shortSecond") : t("campaign.session.battle.extraTurn.shortExtra");
+      const side = offSide(encounter, entry.id, entry.kind);
+      return `${index === encounter.turnIndex ? "▶ " : ""}${entry.name}${entry.initiative !== undefined ? ` · ${entry.initiative}` : ""}${entry.hidden ? ` · ${t("campaign.session.battle.hidden")}` : ""}${extra ? ` · ${extraShort}: ${extraTitle}` : ""}${side ? ` · ${sideWords(side, t)}` : ""}`;
+    }) : [t("campaign.session.battle.waitingInitiative"), ...(encounter.staged ?? []).map(entry => `${entry.name}: ${entry.initiative}`)]), ...(canDirect ? [t("campaign.session.battle.rewindOrderHint"), ...(encounter.enemiesDue?.length ? [t("campaign.session.battle.enemyTurnsDue", { names: encounter.enemiesDue.map(entry => `${entry.name}${entry.acted ? ` (${t("campaign.session.battle.acted")})` : ""}`).join(", ") })] : [])] : []), ...(error ? [error] : [])],
     controls: [...(canDirect && encounter.orderReady ? [
       choose("order-entry", t("campaign.session.battle.combatant"), selectedEntry?.id ?? "", encounter.order.map(entry => option(entry.id, entry.name))),
       { id: "order-up" as const, label: t("campaign.session.battle.orderUp"), disabled: selectedIndex > 0 ? null : t("campaign.session.battle.alreadyFirst") }, { id: "order-down" as const, label: t("campaign.session.battle.orderDown"), disabled: selectedIndex >= 0 && selectedIndex < encounter.order.length - 1 ? null : t("campaign.session.battle.alreadyLast") },
@@ -1658,10 +1667,10 @@ export function BattleMapPanel({
       {cam.locked ? (
         <div className="absolute bottom-2 left-2 z-10 flex items-center gap-2 rounded-md border border-amber-800/60 bg-stone-950/90 px-2 py-1 text-[11px] text-amber-200 shadow-elev-1">
           <Lock className="size-3" />
-          The GM is steering the view
+          {t("campaign.session.battle.dmSteeringView")}
           {cam.canRelease ? (
             <button type="button" onClick={releaseCamera} className="ml-1 text-stone-300 underline">
-              look around anyway
+              {t("campaign.session.battle.lookAround")}
             </button>
           ) : null}
         </div>
@@ -1774,15 +1783,15 @@ export function BattleMapPanel({
           {scene ? (
             <>
               <Footprints className="size-4 text-amber-400" />
-              Exploring
+              {t("campaign.session.battle.exploring")}
             </>
           ) : (
             <>
               <Swords className="size-4 text-red-400" />
-              Round {view.round}
+              {t("campaign.session.battle.round", { round: view.round })}
               {view.currentTurnName ? (
                 <span className="text-xs font-normal text-stone-400">
-                  {view.currentTurnName}&apos;s turn
+                  {t("campaign.session.battle.currentTurnName", { name: view.currentTurnName })}
                 </span>
               ) : null}
             </>
