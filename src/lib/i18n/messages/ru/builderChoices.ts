@@ -55,6 +55,7 @@ export const ruBuilderChoices: Partial<Record<keyof typeof enBuilderChoices, str
   "builder.class.group.callingsOf": "Классы мира: {name}",
   "builder.class.group.standard": "Стандартные классы (основные правила D&D 5e)",
   "builder.group.fromBook": "Из книги «{name}»",
+  "builder.group.otherBooks": "Другие книги",
   "builder.group.fromSetting": "Из сеттинга «{name}»",
   "builder.background.group.all": "Все предыстории",
   "builder.background.group.livesIn": "Жители мира: {name}",
