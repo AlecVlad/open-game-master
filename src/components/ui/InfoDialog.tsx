@@ -102,6 +102,7 @@ export function renderRules(text: string): ReactNode {
 // Loads a content-pack entry's description on first open, so opening a sheet
 // with forty spells on it costs nothing until one is actually inspected.
 function ContentBody({ reference }: { reference: ContentRef }) {
+  const t = useT();
   // The table the dialog opened at reads its DMs' homebrew.
   const campaignId = useContentCampaign();
   const [state, setState] = useState<{ text: string | null; loading: boolean }>({
@@ -164,15 +165,14 @@ function ContentBody({ reference }: { reference: ContentRef }) {
   if (state.loading) {
     return (
       <p className="flex items-center gap-2 text-sm text-stone-500">
-        <Loader2 className="size-4 animate-spin" /> Looking it up...
+        <Loader2 className="size-4 animate-spin" /> {t("infoDialog.loading")}
       </p>
     );
   }
   if (!state.text) {
     return (
       <p className="text-sm text-stone-500">
-        No description available. The content pack may not be installed, or this entry was added by
-        hand.
+        {t("infoDialog.noDescription")}
       </p>
     );
   }
@@ -260,7 +260,7 @@ function ItemBody({ reference }: { reference: ContentRef }) {
   if (state.loading) {
     return (
       <p className="flex items-center gap-2 text-sm text-stone-500">
-        <Loader2 className="size-4 animate-spin" /> Looking it up...
+        <Loader2 className="size-4 animate-spin" /> {t("infoDialog.loading")}
       </p>
     );
   }
@@ -268,59 +268,59 @@ function ItemBody({ reference }: { reference: ContentRef }) {
   if (!sheet) {
     return (
       <p className="text-sm text-stone-500">
-        No details available. The content pack may not be installed, or this item was added by hand.
+        {t("infoDialog.noDetails")}
       </p>
     );
   }
 
   const tags = [
     sheet.rarity,
-    sheet.attunement ? "Requires attunement" : null,
-    sheet.bonus ? `+${sheet.bonus} magic` : null,
+    sheet.attunement ? t("infoDialog.requiresAttunement") : null,
+    sheet.bonus ? t("infoDialog.magicBonus", { bonus: sheet.bonus }) : null,
   ].filter((tag): tag is string => Boolean(tag));
   const tiles: Array<{ label: string; value: string | null; note?: string | null }> = [
-    { label: "Weight", value: sheet.weight },
-    { label: "Value", value: sheet.cost },
+    { label: t("infoDialog.weight"), value: sheet.weight },
+    { label: t("infoDialog.value"), value: sheet.cost },
   ];
   if (sheet.armor) {
-    tiles.push({ label: sheet.armor.shield ? "AC bonus" : "Armor class", value: sheet.armor.ac });
+    tiles.push({ label: t(sheet.armor.shield ? "infoDialog.acBonus" : "infoDialog.armorClass"), value: sheet.armor.ac });
   }
   if (sheet.weapon) {
     tiles.push({
-      label: "Damage",
-      value: sheet.weapon.damage ?? "None",
+      label: t("infoDialog.damage"),
+      value: sheet.weapon.damage ?? t("infoDialog.none"),
       note: sheet.weapon.damageType,
     });
     if (sheet.weapon.range) {
-      tiles.push({ label: "Range", value: sheet.weapon.range });
+      tiles.push({ label: t("infoDialog.range"), value: sheet.weapon.range });
     }
   }
 
   const armorRows: Array<{ label: string; text: string | null }> = [];
   if (sheet.armor) {
     if (sheet.armor.shield) {
-      armorRows.push({ label: "Shield", text: "Carried in one hand; only one shield counts at a time." });
+      armorRows.push({ label: t("infoDialog.shield"), text: t("infoDialog.shieldNote") });
     }
     if (sheet.armor.dex) {
-      armorRows.push({ label: "Dexterity", text: sheet.armor.dex });
+      armorRows.push({ label: t("infoDialog.dexterity"), text: sheet.armor.dex });
     }
     armorRows.push({
-      label: "Strength",
+      label: t("infoDialog.strength"),
       text: sheet.armor.strength
-        ? `Needs ${sheet.armor.strength}; below that, your speed drops by 10 feet while wearing it.`
-        : "No minimum.",
+        ? t("infoDialog.strengthRequired", { strength: sheet.armor.strength })
+        : t("infoDialog.strengthNone"),
     });
     armorRows.push({
-      label: "Stealth",
+      label: t("infoDialog.stealth"),
       text: sheet.armor.stealthDisadvantage
-        ? "Disadvantage on Dexterity (Stealth) checks while wearing it."
-        : "No penalty.",
+        ? t("infoDialog.stealthDisadvantage")
+        : t("infoDialog.stealthNone"),
     });
   }
   const weaponRows: Array<{ label: string; text: string | null }> = [];
   if (sheet.weapon) {
     if (sheet.bonus) {
-      weaponRows.push({ label: `+${sheet.bonus} weapon`, text: `Adds ${sheet.bonus} to attack and damage rolls.` });
+      weaponRows.push({ label: t("infoDialog.weaponBonusLabel", { bonus: sheet.bonus }), text: t("infoDialog.weaponBonusNote", { bonus: sheet.bonus }) });
     }
     for (const property of sheet.weapon.properties) {
       weaponRows.push({ label: property.name, text: property.blurb });
@@ -329,7 +329,7 @@ function ItemBody({ reference }: { reference: ContentRef }) {
       weaponRows.push({ label: `${capitalize(sheet.weapon.damageType)}`, text: sheet.weapon.damageBlurb });
     }
     if (!sheet.weapon.damage) {
-      weaponRows.push({ label: "No damage", text: "It does not hurt on its own; its special rules say what it does." });
+      weaponRows.push({ label: t("infoDialog.noDamageLabel"), text: t("infoDialog.noDamageNote") });
     }
   }
 
@@ -400,6 +400,7 @@ export function InfoButton({
   size?: "sm" | "md";
 }) {
   const [open, setOpen] = useState(false);
+  const t = useT();
   // Nothing to say and nothing to look up: render no control at all rather
   // than a button that opens an empty box.
   if (!text?.trim() && !reference) {
@@ -414,7 +415,7 @@ export function InfoButton({
           event.stopPropagation();
           setOpen(true);
         }}
-        aria-label={`What is ${label}?`}
+        aria-label={t("infoDialog.whatIs", { label })}
         // tap-reach: the glyph stays small in its line, a finger gets 40 px
         // round it (audit WA-08).
         className={cn(
