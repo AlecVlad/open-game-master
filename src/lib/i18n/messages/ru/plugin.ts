@@ -134,4 +134,13 @@ export const ruPlugin: Partial<Record<keyof typeof enPlugin, string>> = {
   "workshop.plugin.setting.person.placeholder": "Имя персонажа",
   "workshop.plugin.setting.placesGroup": "Места",
   "workshop.plugin.setting.place.placeholder": "Название места",
+  "workshop.plugin.panel.draft": "Черновик",
+  "workshop.plugin.panel.entries.one": "{count} запись",
+  "workshop.plugin.panel.entries.other": "{count} записей",
+  "workshop.plugin.panel.entries.few": "{count} записи",
+  "workshop.plugin.panel.entries.many": "{count} записей",
+  "workshop.plugin.panel.pictures.one": "{count} иллюстрация",
+  "workshop.plugin.panel.pictures.other": "{count} иллюстраций",
+  "workshop.plugin.panel.pictures.few": "{count} иллюстрации",
+  "workshop.plugin.panel.pictures.many": "{count} иллюстраций",
 };
