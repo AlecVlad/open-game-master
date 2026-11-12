@@ -67,6 +67,8 @@ const STABLE_REFUSAL_CODES: Readonly<Record<string, string>> = {
   "This table turns multiclassing off; a character made here holds one class.": "MULTICLASS_DISABLED",
   "A character holds each class once; the class list names one twice.": "DUPLICATE_CLASS",
   "This subclass is not configured to use the third-caster spellcasting progression.": "THIRD_CASTER_NOT_CONFIGURED",
+  "You already have a character in this campaign.": "HERO_ALREADY_HAS_CHARACTER",
+  "Characters can only be changed in the lobby.": "CAMPAIGN_NOT_LOBBY",
 };
 
 // Return codes in the same order as the messages. Unknown, variable diagnostics
