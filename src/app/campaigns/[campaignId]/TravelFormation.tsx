@@ -242,7 +242,7 @@ export function TravelFormation({
                 <button
                   type="button"
                   className={cn(ui.btnSmall, "text-[11px]")}
-                  aria-label={`Leave ${nameOf(id)} out of the formation`}
+                  aria-label={t("campaign.session.formation.removeFromFormation", { name: nameOf(id) })}
                   onClick={() => setEditing(draft.filter((entry) => entry !== id))}
                 >
                   {t("campaign.session.formation.out")}
