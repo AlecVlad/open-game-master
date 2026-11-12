@@ -14,7 +14,6 @@ import { useTtsVoices, voiceLabel } from "@/components/VoicePicker";
 import { CharacterVoices } from "@/app/campaigns/[campaignId]/CharacterVoices";
 import { DetailGroup } from "@/app/create-campaign/fields";
 import type { GameSettings } from "@/lib/schemas/game-settings";
-import { describeTableReroll } from "@/lib/srd/ability-rerolls";
 import { useServerRerollBelow } from "@/app/characters/builder/useTableRules";
 import { transcribesVoice, useCapabilities } from "@/lib/use-capabilities";
 
