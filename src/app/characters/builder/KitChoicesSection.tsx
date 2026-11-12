@@ -2,6 +2,7 @@
 
 import { Shield } from "lucide-react";
 import { useId } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { contentSlug } from "@/lib/help";
 import {
   kitSlotsByLine,
@@ -44,6 +45,7 @@ export default function KitChoicesSection({
   onOption: (line: number, option: number) => void;
   onPick: (slot: number, name: string) => void;
 }) {
+  const { t } = useI18n();
   const slotLines = kitSlotsByLine(kit, choices.options);
   const captionId = useId();
   return (
@@ -108,7 +110,7 @@ export default function KitChoicesSection({
       })}
       <div className="flex items-baseline gap-2">
         <Shield className="size-3.5 self-center text-amber-300/80" aria-hidden="true" />
-        <span className="text-xs text-stone-400">Armor class with this kit</span>
+        <span className="text-xs text-stone-400">{t("builder.kit.armorClassWithKit")}</span>
         <span key={armorClass.value} className="reveal font-mono text-sm text-amber-200">
           {armorClass.value}
         </span>
