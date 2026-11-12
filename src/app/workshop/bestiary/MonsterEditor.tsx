@@ -79,6 +79,22 @@ export function MonsterEditor({
 }) {
   const { t, tp } = useI18n();
   const sheet = layout === "sheet";
+  const ratingLabelKeys: Record<string, string> = {
+    "Hit points": "hitPoints",
+    "Armour class": "armourClass",
+    "Damage per round": "damageRound",
+    "Attack bonus": "attackBonus",
+    Toughness: "toughness",
+    "The routine": "routine",
+    "The average": "average",
+  };
+  const ratingVerdictKeys: Record<string, string> = {
+    "as expected": "asExpected",
+    "above expected": "above",
+    "below expected": "below",
+    "too low": "low",
+    "too high": "high",
+  };
   const setStats = (patch: Partial<MonsterDraft["stats"]>) =>
     onDraft({ ...draft, stats: { ...draft.stats, ...patch } });
   const [openFolds, setOpenFolds] = useState<ReadonlySet<MonsterFold>>(new Set());
@@ -204,14 +220,14 @@ export function MonsterEditor({
       <div className="stagger-pop flex flex-wrap gap-x-4 gap-y-1 text-[11px]">
         {readout.against.map((row) => (
           <span key={row.label} className="text-stone-500">
-            {t(`workshop.monsterEditor.rating.${row.label.toLowerCase().replace(/[^a-z]+/g, "")}` as never)}{" "}
+            {t(`workshop.monsterEditor.rating.${ratingLabelKeys[row.label] ?? row.label}` as never)}{" "}
             <span
               className={cn(row.verdict === "as expected" ? "text-stone-400" : "text-amber-300/80")}
             >
               {row.stat}
             </span>{" "}
             <span className="text-stone-600">
-              ({t(`workshop.monsterEditor.rating.verdict.${row.verdict.replace(/\s+/g, "")}` as never)}, ПО {crLabel(readout.statedCr)}, ожидается {row.expected})
+              ({t(`workshop.monsterEditor.rating.verdict.${ratingVerdictKeys[row.verdict] ?? row.verdict}` as never)}, ПО {crLabel(readout.statedCr)}, ожидается {row.expected})
             </span>
           </span>
         ))}
