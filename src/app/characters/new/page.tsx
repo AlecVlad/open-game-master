@@ -57,7 +57,7 @@ function NewCharacterInner() {
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError(refusalText(data, t("charUse.new.err")));
+        setError(refusalText(data, t("charUse.new.err"), t));
         return;
       }
       clearBuilderDraft(DRAFT_KEY);
