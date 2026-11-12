@@ -199,6 +199,22 @@ for (const key of renarrateMessages) {
   assert.ok(key in DICTIONARIES.en, `English narration-reroll message missing: ${key}`);
   assert.ok(key in DICTIONARIES.ru, `Russian narration-reroll message missing: ${key}`);
 }
+const placePartOfMessages = [
+  "campaign.overworld.placePartOf.title",
+  "campaign.overworld.placePartOf.description",
+  "campaign.overworld.placePartOf.aria",
+  "campaign.overworld.placePartOf.ownPlace",
+  "campaign.overworld.placePartOf.partOf",
+  "campaign.overworld.placePartOf.addParentHint",
+  "campaign.overworld.placePartOf.error.generic",
+  "campaign.overworld.placePartOf.error.serverTooOld",
+  "campaign.overworld.placePartOf.error.network",
+];
+for (const key of placePartOfMessages) {
+  assert.ok(key in DICTIONARIES.en, `English place-parent message missing: ${key}`);
+  assert.ok(key in DICTIONARIES.ru, `Russian place-parent message missing: ${key}`);
+}
+
 const sharedComponentMessages = [
   "common.actionsFor",
   "dialog.close",
