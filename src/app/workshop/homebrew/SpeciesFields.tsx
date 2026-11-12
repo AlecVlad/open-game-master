@@ -251,7 +251,7 @@ export function SpeciesFields({ data, set }: Props) {
           value={capital(String(data.size ?? "Medium").toLowerCase())}
           options={["Tiny", "Small", "Medium", "Large"].map((value) => ({ value, label: t(`workshop.homebrew.species.main.size.${value.toLowerCase()}`) }))}
           onChange={(size) => set({ size })}
-          hint="A Small creature swings a heavy weapon at disadvantage."
+          hint={t("workshop.homebrew.species.main.size.smallHeavyHint")}
         />
         <NumberField label={t("workshop.homebrew.species.main.speed")} value={speed} min={5} max={120} step={5} onChange={(walk) => set({ speed: { walk: walk === "" ? 30 : walk } })} />
         <TextField
