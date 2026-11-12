@@ -2257,7 +2257,7 @@ export const ruWorkshop: Partial<Record<keyof typeof enWorkshop, string>> = {
   "workshop.homebrew.itemMagic.dice.type": "Тип",
   "workshop.homebrew.itemMagic.dice.weaponType": "Тип оружия",
   "workshop.homebrew.itemMagic.dice.ranged": "Только для дальних атак",
-  "workshop.homebrew.itemMagic.dice.remove": undefined,
+  "workshop.homebrew.itemMagic.dice.remove": "Удалить кости урона",
   "workshop.homebrew.itemMagic.dice.onlyAgainst": "Только против",
   "workshop.homebrew.itemMagic.dice.add": "Добавить кости",
   "workshop.homebrew.itemMagic.magic.weaponRiders.title": "Дополнительные эффекты магического оружия",
