@@ -10,7 +10,7 @@ import { SectionHead } from "@/components/ui/SectionHead";
 import { NumberField, TextArea, TextField, ToggleChips } from "@/app/workshop/homebrew/fields";
 import { ChipList } from "@/app/workshop/plugin/fields";
 import { languageLabel, languageOptions, toolLabel, toolOptions } from "@/app/workshop/homebrew/catalogLabels";
-import { LANGUAGES, TOOL_PROFICIENCIES } from "@/lib/workshop/pickers";
+import { TOOL_PROFICIENCIES } from "@/lib/workshop/pickers";
 import { SKILL_IDS } from "@/lib/homebrew/item-magic-schema";
 import { backgroundMechanics } from "@/lib/content/mechanics";
 import { splitPurse } from "@/lib/characters/options";
