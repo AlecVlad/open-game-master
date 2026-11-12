@@ -305,7 +305,7 @@ export function LanguagesAndHabitat({ draft, onChange }: { draft: MonsterDraft; 
             <input
               value={stats.languages ?? ""}
               maxLength={200}
-              placeholder="Всеобщий, гоблинский"
+              placeholder={t("workshop.monsterEditor.stats.languagesPlaceholder")}
               onChange={(event) => set({ languages: event.target.value || undefined })}
               className={cn(ui.input, "min-w-32 flex-1")}
             />
