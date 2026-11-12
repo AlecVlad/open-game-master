@@ -96,7 +96,7 @@ export function PagePrep({ data, canStart = true }: { data: RulebookPageResponse
     }
   }
   const copyable = canStart && crosswalk.editor && !(crosswalk.editor === "monster" && crosswalk.template);
-  const whereKey = WHERE_MESSAGE[data.page.id] ?? (data.page.kind === "spell" ? crosswalk.support === "engine" ? "rulebook.where.spellEngine" : "rulebook.where.spellEditable" : data.page.kind === "item" ? crosswalk.support === "engine" ? "rulebook.where.itemEngine" : "rulebook.where.itemEditable" : crosswalk.editor === "monster" ? "rulebook.where.monster" : crosswalk.editor === "race" ? "rulebook.where.race" : crosswalk.editor === "archetype" ? "rulebook.where.class" : undefined);
+  const whereKey: MessageKey | undefined = WHERE_MESSAGE[data.page.id] ?? (data.page.kind === "spell" ? crosswalk.support === "engine" ? "rulebook.where.spellEngine" : "rulebook.where.spellEditable" : data.page.kind === "item" ? crosswalk.support === "engine" ? "rulebook.where.itemEngine" : "rulebook.where.itemEditable" : crosswalk.editor === "monster" ? "rulebook.where.monster" : crosswalk.editor === "race" ? "rulebook.where.race" : crosswalk.editor === "archetype" ? "rulebook.where.class" : undefined);
   const templateMessage = FAMILY_TEMPLATE_MESSAGE[data.page.id];
   return (
     <div className="rb-prep" data-support={crosswalk.support} data-testid="rulebook-prep">
