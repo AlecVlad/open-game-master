@@ -52,6 +52,8 @@ export type JoinPreview = JoinChanges & {
   // Whether the table's rules let the hero in, and what stops it if not.
   ok: boolean;
   problems: string[];
+  // Codes align with problems; null means the message is dynamic or unknown.
+  problemCodes?: Array<string | null>;
   // A table that rolls hit points rolls them when the seat is taken, so the
   // number shown here is one throw, not the one the hero keeps.
   rollsHp: boolean;
