@@ -236,7 +236,7 @@ export function MulticlassSection({
               {derived.shownAbilities ? "" : ` ${t("builder.multi.add.help.scoresPending")}`}
             </p>
             <ul
-              aria-label={t("builder.multi.add.aria", { ordinal: next === "second" ? t("builder.multi.ordinal.second") : t("builder.multi.ordinal.third") })}
+              aria-label={t("builder.multi.add.aria")}
               className="grid gap-1.5 sm:grid-cols-2"
               onKeyDown={roving.onKeyDown}
               onFocus={roving.onFocus}
@@ -292,7 +292,7 @@ export function MulticlassSection({
         </div>
       ) : allowed && extras.length < MULTICLASS_CAP - 1 && extras.length ? (
         <p className="mt-3 text-xs text-stone-500">
-          {t("builder.multi.noLevel", { klass: klass.name, ordinal: next === "second" ? t("builder.multi.ordinal.second") : t("builder.multi.ordinal.third") })}
+          {t("builder.multi.noLevel", { klass: klass.name })}
         </p>
       ) : null}
     </StepPanel>
