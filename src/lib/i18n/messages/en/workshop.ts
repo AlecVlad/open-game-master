@@ -3249,4 +3249,5 @@ export const enWorkshop = {
   "workshop.maps.selection.apply": "Apply",
   "workshop.maps.canvas.battleMap": "Battle map",
   "workshop.maps.selection.cancel": "Cancel",
+  "workshop.maps.hotkeys.phoneHint": "Every key has a button on screen; on a phone the buttons are the way in.",
 } satisfies Record<string, string>;
