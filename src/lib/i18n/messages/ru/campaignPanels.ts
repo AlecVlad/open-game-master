@@ -5461,4 +5461,12 @@ export const ruCampaignPanels: Partial<Record<keyof typeof enCampaignPanels, str
   "campaign.pregenPicker.vex.blurb": "Замки, тени и рапира. Разведывай путь, находи ловушки раньше, чем они найдут тебя, и бей по уязвимым местам.",
   "campaign.pregenPicker.sera.tagline": "Сера, человек-жрец домена жизни",
   "campaign.pregenPicker.sera.blurb": "Булава, щит и руки целителя. Поддерживает отряд заклинаниями «Лечение ран» и «Благословение», а при необходимости сама удерживает строй.",
+  "campaign.joinConfirm.owed.subclass.label": "Подкласс класса «{className}»",
+  "campaign.joinConfirm.owed.subclass.dueAt": "(выбирается на {level}-м уровне класса «{className}»)",
+  "campaign.joinConfirm.owed.classSkills": "Навыки класса: выберите {count}",
+  "campaign.joinConfirm.owed.asi.one": "Повышение характеристик: два пункта или одна черта.",
+  "campaign.joinConfirm.owed.asi.few": "{count} повышения характеристик: по два пункта или одной черте за каждое.",
+  "campaign.joinConfirm.owed.asi.many": "{count} повышений характеристик: по два пункта или одной черте за каждое.",
+  "campaign.joinConfirm.owed.asi.other": "{count} повышения характеристик: по два пункта или одной черте за каждое.",
+  "campaign.joinConfirm.owed.expertise": "Экспертность: выберите {count} навыка персонажа {name}, для которых бонус мастерства будет удвоен.",
 };
