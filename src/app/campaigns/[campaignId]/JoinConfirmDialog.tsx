@@ -58,7 +58,11 @@ type Translate = ReturnType<typeof useI18n>["t"];
 
 function previewProblemText(problem: string, index: number, preview: Preview, t: Translate): string {
   return refusalText(
-    { error: problem, problemCodes: [preview.problemCodes?.[index] ?? null] },
+    {
+      error: problem,
+      problemCodes: [preview.problemCodes?.[index] ?? null],
+      problemParams: [preview.problemParams?.[index] ?? null],
+    },
     problem,
     t,
   );
