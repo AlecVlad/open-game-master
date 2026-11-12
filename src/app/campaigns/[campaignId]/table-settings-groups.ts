@@ -190,7 +190,7 @@ export function tableGroupSummary(
           settings.measurementSystem === "si" ? "SI" : "Imperial",
         ),
         aiNarrates
-          ? s(`summary.length.${settings.campaignLength}`, `${CAMPAIGN_LENGTH_LABELS[settings.campaignLength].split(" (")[0]} campaign`)
+          ? s(`summary.length.${settings.campaignLength}`, `${CAMPAIGN_LENGTH_LABELS[settings.campaignLength].split(" (")[0]} length`)
           : null,
       ].filter(Boolean).join(" · ");
     case "character":
@@ -204,7 +204,7 @@ export function tableGroupSummary(
           settings.dicePolicy === "real_allowed" ? "summary.dice.real" : "summary.dice.digital",
           settings.dicePolicy === "real_allowed" ? "real dice allowed" : "digital dice",
         ),
-        context.statsRule,
+        t ? context.statsRule : `stats: ${context.statsRule}`,
         s(
           settings.multiclassingEnabled ? "summary.multiclass.on" : "summary.multiclass.off",
           `multiclassing ${onOff(settings.multiclassingEnabled)}`,
