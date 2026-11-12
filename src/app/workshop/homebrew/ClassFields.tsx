@@ -222,6 +222,7 @@ function ArmorTraining({ armor, onChange }: { armor: string[]; onChange: (armor:
     <Field label={t("workshop.homebrew.class.ui.armorTraining")} hint={nonmetal ? t("workshop.homebrew.class.ui.armorTraining.druidHint") : undefined} plain>
       <ToggleChips
         options={ARMOR_TRAINING}
+        labels={Object.fromEntries(ARMOR_TRAINING.map((value) => [value, t(`workshop.homebrew.item.armor.category.${value === "shields" ? "shield" : value}`)]))}
         selected={shown}
         onChange={(next) => onChange(next.map((entry) => (entry === "shields" && nonmetal ? NONMETAL_SHIELDS : entry)))}
       />
@@ -240,12 +241,12 @@ function WeaponTraining({ weapons, onChange }: { weapons: string[]; onChange: (w
   return (
     <Field label={t("workshop.homebrew.class.ui.weaponTraining")} plain>
       <div className="space-y-1.5">
-        <ToggleChips options={WEAPON_TRAINING} selected={categories} onChange={(next) => onChange([...next, ...named])} />
+        <ToggleChips options={WEAPON_TRAINING} labels={Object.fromEntries(WEAPON_TRAINING.map((value) => [value, t(`workshop.homebrew.item.weapon.category.${value}`)]))} selected={categories} onChange={(next) => onChange([...next, ...named])} />
         <div className="flex flex-wrap items-center gap-1.5 text-xs">
           {named.map((weapon) => (
             <span key={weapon} className="live-in inline-flex items-center rounded-md border border-stone-700 pl-2 text-stone-200">
               {weapon}
-              <button type="button" aria-label={`Remove ${weapon}`} onClick={() => onChange(weapons.filter((entry) => entry !== weapon))} className={cn(ui.iconAction, rowIcon, "hover:text-red-300")}>
+              <button type="button" aria-label={t("workshop.homebrew.class.ui.removeWeapon", { name: weapon })} onClick={() => onChange(weapons.filter((entry) => entry !== weapon))} className={cn(ui.iconAction, rowIcon, "hover:text-red-300")}>
                 <X className="size-3.5" />
               </button>
             </span>
