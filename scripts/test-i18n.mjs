@@ -150,6 +150,10 @@ const sharedComponentMessages = [
   "dictate.transcribingPart", "dictate.dismiss",
   "dictationShortcut.pressKeys", "dictationShortcut.none", "dictationShortcut.cancel", "dictationShortcut.change",
   "dictationShortcut.set", "dictationShortcut.clear", "dictationShortcut.saved", "dictationShortcut.hint.listening", "dictationShortcut.hint.idle",
+  "dictationShortcut.problem.system", "dictationShortcut.problem.ptt", "dictationShortcut.problem.editing",
+  "dictationShortcut.problem.reservedFunction", "dictationShortcut.problem.closeWindow", "dictationShortcut.problem.typing",
+  "dictationShortcut.problem.browserShortcut", "dictationShortcut.problem.browserMenu",
+  "dictationShortcut.problem.desktopShortcut", "dictationShortcut.problem.altgrCharacter",
 ];
 for (const key of sharedComponentMessages) {
   assert.ok(key in DICTIONARIES.en, `English shared-component message missing: ${key}`);
