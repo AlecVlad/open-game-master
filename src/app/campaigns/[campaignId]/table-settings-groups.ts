@@ -315,8 +315,21 @@ export function tableGroupSummary(
     case "console": {
       const { messages, rolls } = settings.beatReminder;
       if (!messages && !rolls) return s("summary.console.never", "Never reminded");
-      const actions = messages ? s("summary.console.actions", `after ${messages} actions`, { count: messages }) : null;
-      const rollCount = rolls ? s("summary.console.rolls", `after ${rolls} rolls`, { count: rolls }) : null;
+      const plural = (count: number) => {
+        const lastTwo = count % 100;
+        const last = count % 10;
+        return last === 1 && lastTwo !== 11
+          ? "one"
+          : last >= 2 && last <= 4 && (lastTwo < 12 || lastTwo > 14)
+            ? "few"
+            : "many";
+      };
+      const actions = messages
+        ? s(`summary.console.afterAction.${plural(messages)}`, `after ${messages} actions`, { count: messages })
+        : null;
+      const rollCount = rolls
+        ? s(`summary.console.afterRoll.${plural(rolls)}`, `after ${rolls} rolls`, { count: rolls })
+        : null;
       return actions && rollCount
         ? s("summary.console.both", `${actions} or ${rollCount}`, { actions, rolls: rollCount })
         : actions ?? rollCount ?? "";
@@ -339,18 +352,18 @@ export const ROW_GROUP: Record<string, TableGroupId> = {
 // Words a person might search for that the group's title and summary do not
 // say: the controls' own labels and the everyday names for them.
 const KEYWORDS: Record<TableGroupId, string> = {
-  world: "world pack setting genre universe language length saga custom",
-  character: "dice real dice digital hit points hp level wealth gold kit gear stats ability scores reroll 4d6 multiclass multiclassing class",
-  narration: "narration narrator voice voices read aloud speech tts speak pace character voices volume",
-  atmosphere: "maps map ambience music sound audio scene theatre inserts faces portraits",
-  safety: "safety x-card lines veils boundaries content tone strictness dc family mature",
-  ai: "ai story setup plot outcome check prose narration length short rich verbose style notes voice pacing living world simulation allies companions guests party members assist monsters cover",
-  memory: "memory history compaction recall retrieval rules lore chapter summaries stages model advanced",
-  bonds: "bonds relationships standing romance conscience companions values deeds ultimatum leave turn",
-  players: "players permissions mid-game joining invite held responses floor item offers loot gold vitals damage healing approvals confirm",
-  console: "gm dm reminders remind nudge beats record",
-  board: "battle board draw drawing enemy intent",
-  voiceChat: "voice chat call microphone mic talk proximity hearing whisper shout walls downed deaf transcription transcribe turns",
+  world: "world pack setting genre universe language length saga custom мир сеттинг жанр вселенная язык длительность сага",
+  character: "dice real dice digital hit points hp level wealth gold kit gear stats ability scores reroll 4d6 multiclass multiclassing class кости хиты здоровье уровень богатство золото снаряжение характеристики переброс класс",
+  narration: "narration narrator voice voices read aloud speech tts speak pace character voices volume озвучивание рассказчик голос голоса речь темп персонажи громкость",
+  atmosphere: "maps map ambience music sound audio scene theatre inserts faces portraits карты атмосфера музыка звук сцена театр портреты",
+  safety: "safety x-card lines veils boundaries content tone strictness dc family mature безопасность ограничения запреты темы границы тон",
+  ai: "ai story setup plot outcome check prose narration length short rich verbose style notes voice pacing living world simulation allies companions guests party members assist monsters cover ии сюжет подготовка проверка повествование длина стиль голоса живой мир симуляция союзники спутники гости чудовища",
+  memory: "memory history compaction recall retrieval rules lore chapter summaries stages model advanced память история сжатие поиск воспоминания правила лор главы итоги этапы модель",
+  bonds: "bonds relationships standing romance conscience companions values deeds ultimatum leave turn связи отношения репутация романтика совесть спутники ценности поступки ультиматум уход предательство",
+  players: "players permissions mid-game joining invite held responses floor item offers loot gold vitals damage healing approvals confirm игроки разрешения присоединение приглашение ответы предметы добыча золото урон лечение подтверждение",
+  console: "gm dm reminders remind nudge beats record ведущий напоминания действия броски записать",
+  board: "battle board draw drawing enemy intent поле бой рисование противник намерения",
+  voiceChat: "voice chat call microphone mic talk proximity hearing whisper shout walls downed deaf transcription transcribe turns голосовой чат звонок микрофон речь расстояние слух шёпот крик стены без сознания расшифровка очередь",
 };
 
 // Whether a group answers what was typed into the panel's search: every word
