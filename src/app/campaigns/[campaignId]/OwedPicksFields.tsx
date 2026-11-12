@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { InfoButton } from "@/components/ui/InfoDialog";
 import { cn } from "@/lib/cn";
 import { describeSkill } from "@/lib/help";
@@ -34,7 +35,46 @@ export type PicksDraft = {
 
 export const EMPTY_DRAFT: PicksDraft = { subclasses: {}, asiChoices: [], featChoices: {}, skills: [], expertise: [] };
 
-const skillName = (id: string) => findSkill(id)?.name ?? id.replace(/_/g, " ");
+type Translate = ReturnType<typeof useI18n>["t"];
+
+const SKILL_KEYS: Record<string, string> = {
+  acrobatics: "builder.multi.skill.acrobatics",
+  animal_handling: "builder.multi.skill.animalHandling",
+  arcana: "builder.multi.skill.arcana",
+  athletics: "builder.multi.skill.athletics",
+  deception: "builder.multi.skill.deception",
+  history: "builder.multi.skill.history",
+  insight: "builder.multi.skill.insight",
+  intimidation: "builder.multi.skill.intimidation",
+  investigation: "builder.multi.skill.investigation",
+  medicine: "builder.multi.skill.medicine",
+  nature: "builder.multi.skill.nature",
+  perception: "builder.multi.skill.perception",
+  performance: "builder.multi.skill.performance",
+  persuasion: "builder.multi.skill.persuasion",
+  religion: "builder.multi.skill.religion",
+  sleight_of_hand: "builder.multi.skill.sleightOfHand",
+  stealth: "builder.multi.skill.stealth",
+  survival: "builder.multi.skill.survival",
+};
+
+const skillName = (id: string, t: Translate) => {
+  const key = SKILL_KEYS[id];
+  return key ? t(key as never) : findSkill(id)?.name ?? id.replace(/_/g, " ");
+};
+
+const className = (id: string, fallback: string, t: Translate) => {
+  const key = `charSheet.class.${id}`;
+  const translated = t(key as never);
+  return translated === key ? fallback : translated;
+};
+
+const subclassName = (classId: string, name: string, t: Translate) => {
+  const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+  const key = `workshop.monsterEditor.kit.subclass.${classId}.${slug}`;
+  const translated = t(key as never);
+  return translated === key ? name : translated;
+};
 
 // The pressable itself is the whole chip, a finger-sized target with a focus
 // ring of its own; a skill's ⓘ sits beside it, never inside it.
@@ -112,6 +152,7 @@ export function OwedPicksFields({
   onChange: (draft: PicksDraft) => void;
   featDescOf: (name: string) => string;
 }) {
+  const { t, tp } = useI18n();
   const training = useMemo(() => trainingFor(owed, draft), [owed, draft]);
   const setFeatPicks = (feat: string, picks: FeatPicks) =>
     onChange({ ...draft, featChoices: withFeatChoice(draft.featChoices, feat, picks) });
@@ -126,7 +167,7 @@ export function OwedPicksFields({
       {owed.subclasses.map((entry) => (
         <fieldset key={entry.classId} className="space-y-1.5" data-owed-subclass={entry.classId}>
           <legend className="text-stone-200">
-            {entry.className} subclass <span className="text-xs text-stone-400">(due at {entry.className} level {entry.dueAt})</span>
+            {t("campaign.joinConfirm.owed.subclass.label", { className: className(entry.classId, entry.className, t) })} <span className="text-xs text-stone-400">{t("campaign.joinConfirm.owed.subclass.dueAt", { className: className(entry.classId, entry.className, t), level: entry.dueAt })}</span>
           </legend>
           <div className="max-h-56 space-y-1.5 overflow-y-auto pr-1">
             {entry.options.map((option) => {
@@ -139,7 +180,7 @@ export function OwedPicksFields({
                     onClick={() => onChange({ ...draft, subclasses: { ...draft.subclasses, [entry.classId]: picked ? "" : option } })}
                     className="min-h-11 grow rounded py-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/70"
                   >
-                    {option}
+                    {subclassName(entry.classId, option, t)}
                   </button>
                   <InfoButton label={option} text={subclassBlurb(entry.classId, option) || undefined} />
                 </div>
@@ -168,7 +209,7 @@ export function OwedPicksFields({
       {owed.skills.count ? (
         <fieldset className="space-y-1.5" data-owed-skills>
           <legend className="text-stone-200">
-            Class skills: pick {owed.skills.count}
+            {t("campaign.joinConfirm.owed.classSkills", { count: owed.skills.count })}
           </legend>
           <div className="flex flex-wrap gap-1.5">
             {owed.skills.options.map((id) => {
@@ -176,9 +217,9 @@ export function OwedPicksFields({
               return (
                 <span key={id} className="inline-flex items-center">
                   <button type="button" aria-pressed={picked} className={chip(picked)} onClick={() => onChange({ ...draft, skills: toggle(draft.skills, id, owed.skills.count) })}>
-                    {skillName(id)}
+                    {skillName(id, t)}
                   </button>
-                  <InfoButton label={skillName(id)} text={describeSkill(id) ?? undefined} />
+                  <InfoButton label={skillName(id, t)} text={describeSkill(id) ?? undefined} />
                 </span>
               );
             })}
@@ -189,7 +230,7 @@ export function OwedPicksFields({
       {owed.asi ? (
         <div className="space-y-1.5" data-owed-asi>
           <p className="text-stone-200">
-            {owed.asi === 1 ? "An Ability Score Improvement" : `${owed.asi} Ability Score Improvements`}: two points, or a feat, each.
+            {tp("campaign.joinConfirm.owed.asi", owed.asi)}
           </p>
           <AsiFeatEditor
             slotLevels={owed.asiLevels}
@@ -208,7 +249,7 @@ export function OwedPicksFields({
       {owed.expertise.count ? (
         <fieldset className="space-y-1.5" data-owed-expertise>
           <legend className="text-stone-200">
-            Expertise: pick {owed.expertise.count} of {name}&apos;s skills to double their proficiency bonus in
+            {t("campaign.joinConfirm.owed.expertise", { count: owed.expertise.count, name })}
           </legend>
           <div className="flex flex-wrap gap-1.5">
             {[...new Set([...owed.expertise.options, ...draft.skills.filter((id) => skillsHeld.includes(id))])].map((id) => {
