@@ -3364,8 +3364,9 @@ export const ruCampaignPanels: Partial<Record<keyof typeof enCampaignPanels, str
   "campaign.session.party.backstory.note.saved": "Сохранено. Ведущий будет учитывать текст со следующего хода.",
   "campaign.session.party.backstory.note.cleared": "Предыстория очищена.",
   "campaign.session.party.backstory.note.draft": "Черновик составлен по предысториям персонажей. Отредактируйте его и сохраните: до этого он нигде не хранится.",
-  "campaign.session.party.backstory.lastSaved": "Последний раз сохранил(а): {name}.",
-  "campaign.session.party.backstory.lastSavedDate": "{date}",
+  "campaign.session.party.backstory.lastSaved": "Последнее сохранение: {name}.",
+  "campaign.session.party.backstory.lastSavedAt": "Последнее сохранение: {name} ({date})."
+
   "campaign.session.party.backstory.footer.play": "Необязательно. Ведущий будет учитывать текст со следующего хода, а в план истории он попадёт, когда лидер группы заново создаст сюжетную арку. ",
   "campaign.session.party.backstory.footer.lobby": "Необязательно. Ведущий учитывает предысторию каждый ход, а при начале приключения на её основе строится сюжетная арка. ",
   "campaign.session.party.backstory.footer.permissions": "Изменять текст могут лидер группы, ведущий и любой игрок с персонажем за этим столом. Сохраняется последняя версия.",
