@@ -3295,4 +3295,5 @@ export const enWorkshop = {
   "workshop.testFight.open.return": "Return to it",
   "workshop.testFight.open.end": "End it",
   "workshop.testFight.error.end": "The test could not be ended.",
+  "workshop.testFight.character.level": "Level {level}",
 } satisfies Record<string, string>;
