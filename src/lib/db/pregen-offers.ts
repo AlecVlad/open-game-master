@@ -122,14 +122,34 @@ export function offeredPregenFor(campaignId: string, characterId: string): Offer
   return { character, claim: liveClaim(campaignId, character.id) };
 }
 
-// Why this player cannot take the pregen, or null when they can.
-export function claimRefusal(offer: OfferedPregen, userId: string): string | null {
+export type PregenRefusalDetail = {
+  code:
+    | "PREGEN_ALREADY_PLAYED_BY_YOU"
+    | "PREGEN_ALREADY_TAKEN"
+    | "PREGEN_COPY_ALREADY_PLAYED_BY_YOU"
+    | "PREGEN_COPY_PLAYED_BY_ANOTHER";
+  params: { name: string };
+  message: string;
+};
+
+// Why this player cannot take the pregen, or null when they can. The name is
+// data, not part of a phrase to be reverse-translated by the client.
+export function claimRefusalDetail(offer: OfferedPregen, userId: string): PregenRefusalDetail | null {
   if (!offer.claim) {
     return null;
   }
-  return offer.claim.userId === userId
-    ? `You already play ${offer.character.name} at this table.`
-    : `${offer.character.name} is already taken at this table.`;
+  const alreadyMine = offer.claim.userId === userId;
+  return {
+    code: alreadyMine ? "PREGEN_ALREADY_PLAYED_BY_YOU" : "PREGEN_ALREADY_TAKEN",
+    params: { name: offer.character.name },
+    message: alreadyMine
+      ? `You already play ${offer.character.name} at this table.`
+      : `${offer.character.name} is already taken at this table.`,
+  };
+}
+
+export function claimRefusal(offer: OfferedPregen, userId: string): string | null {
+  return claimRefusalDetail(offer, userId)?.message ?? null;
 }
 
 // Why a library character may not sit at this table because the pregen it
