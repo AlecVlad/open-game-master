@@ -9,6 +9,7 @@ import { SectionHead } from "@/components/ui/SectionHead";
 import { Select } from "@/components/ui/Select";
 import { NumberField, SelectField, TextArea, TextField, ToggleChips } from "@/app/workshop/homebrew/fields";
 import { ChipList } from "@/app/workshop/plugin/fields";
+import { languageLabel, languageOptions, toolLabel, toolOptions } from "@/app/workshop/homebrew/catalogLabels";
 import { MechGroup, list, num, sub } from "@/app/workshop/homebrew/MechGroup";
 import { LANGUAGES, TOOL_PROFICIENCIES, VISION_SUGGESTIONS } from "@/lib/workshop/pickers";
 import { SKILL_IDS } from "@/lib/homebrew/item-magic-schema";
@@ -124,7 +125,7 @@ function Languages({ data, set }: Props) {
   return (
     <div className="space-y-1.5 text-sm">
       <SectionHead title={t("workshop.homebrew.species.main.languages")} glyph="system-lore" className="mb-1" />
-      <ChipList items={known} onChange={(languages) => set({ languages })} options={LANGUAGES} prompt={t("workshop.homebrew.species.main.addLanguage")} max={12} />
+      <ChipList items={known} onChange={(languages) => set({ languages })} options={languageOptions(t)} labelFor={(value) => languageLabel(value, t)} prompt={t("workshop.homebrew.species.main.addLanguage")} max={12} />
       <div className="flex flex-wrap items-center gap-2 text-[11px] text-stone-400">
         <span>{t("workshop.homebrew.species.main.plus")}</span>
         <NumberStepper size="sm" label={t("workshop.homebrew.species.main.languagesChoice")} value={num(data.bonusLanguages)} min={0} max={4} onChange={(bonusLanguages) => set({ bonusLanguages: bonusLanguages || undefined })} />
@@ -132,7 +133,7 @@ function Languages({ data, set }: Props) {
       </div>
       <div className="space-y-1">
         <span className="text-[11px] text-stone-400">{t("workshop.homebrew.species.main.languageShortList")}</span>
-        <ChipList items={from} onChange={(next) => putChoice({ from: next })} options={LANGUAGES} prompt={t("workshop.homebrew.species.main.offerLanguage")} max={12} />
+        <ChipList items={from} onChange={(next) => putChoice({ from: next })} options={languageOptions(t)} labelFor={(value) => languageLabel(value, t)} prompt={t("workshop.homebrew.species.main.offerLanguage")} max={12} />
         {from.length ? (
           <span className="live-in flex items-center gap-2 text-[11px] text-stone-400">
             {t("workshop.homebrew.species.main.playerPicksFromList")}
@@ -163,7 +164,7 @@ function Training({ data, set }: Props) {
   const summary = [
     skills.length ? skills.map((id) => skillLabels[id] ?? id).join(", ") : "",
     num(skillChoice.count) ? t("workshop.homebrew.species.main.training.skillCount", { count: num(skillChoice.count) }) : "",
-    tools.length ? tools.join(", ") : "",
+    tools.length ? tools.map((tool) => toolLabel(tool, t)).join(", ") : "",
     armor.length ? armor.map((kind) => t(`workshop.homebrew.species.main.armor.${kind}`)).join(", ") : "",
     weapons.length ? t("workshop.homebrew.species.main.training.weaponCount", { count: weapons.length }) : "",
     cantrip.list ? t("workshop.homebrew.species.main.training.cantrip", { name: t(`workshop.homebrew.spell.class.${String(cantrip.list)}`) }) : "",
@@ -189,16 +190,16 @@ function Training({ data, set }: Props) {
       {num(skillChoice.count) ? (
         <div className="live-in col-span-2 space-y-1 sm:col-span-4">
           <span className="text-[11px] text-stone-400">{t("workshop.homebrew.species.main.training.skillsFrom")}</span>
-          <ToggleChips options={SKILL_IDS} labels={SKILL_LABELS} selected={skillFrom} onChange={(from) => putSkillChoice({ from })} />
+          <ToggleChips options={SKILL_IDS} labels={skillLabels} selected={skillFrom} onChange={(from) => putSkillChoice({ from })} />
         </div>
       ) : null}
       <div className="col-span-2 space-y-1 sm:col-span-4">
         <span className="text-[11px] text-stone-400">{t("workshop.homebrew.species.main.training.tools")}</span>
-        <ChipList items={tools} onChange={(next) => set({ tools: next.length ? next : undefined })} options={TOOLS} prompt={t("workshop.homebrew.species.main.training.addTool")} max={6} />
+        <ChipList items={tools} onChange={(next) => set({ tools: next.length ? next : undefined })} options={toolOptions(TOOLS, t)} labelFor={(value) => toolLabel(value, t)} prompt={t("workshop.homebrew.species.main.training.addTool")} max={6} />
       </div>
       <div className="col-span-2 space-y-1 sm:col-span-4">
         <span className="text-[11px] text-stone-400">{t("workshop.homebrew.species.main.training.offerTool")}</span>
-        <ChipList items={toolFrom} onChange={(from) => putToolChoice({ from })} options={TOOLS} prompt={t("workshop.homebrew.species.main.training.offerTool")} max={12} />
+        <ChipList items={toolFrom} onChange={(from) => putToolChoice({ from })} options={toolOptions(TOOLS, t)} labelFor={(value) => toolLabel(value, t)} prompt={t("workshop.homebrew.species.main.training.offerTool")} max={12} />
       </div>
       <div className="col-span-2 space-y-1 sm:col-span-4">
         <span className="text-[11px] text-stone-400">{t("workshop.homebrew.species.main.training.armor")}</span>
