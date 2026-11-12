@@ -137,7 +137,11 @@ export function PublishSection({
       }
       if (install) {
         setNotice(
-          `${data.installed?.name ?? "The world"} is installed on this server${data.replaced ? ", replacing the copy that was there" : ""}. It is in the campaign creator now.`,
+          t("workshop.plugin.publish.installed", {
+            name: data.installed?.name ?? t("workshop.plugin.art.world"),
+          }) +
+            (data.replaced ? t("workshop.plugin.publish.replacedSuffix") : "") +
+            t("workshop.plugin.publish.installedNext"),
         );
       } else {
         download(`${data.pack.id}.json`, data.pack);
@@ -156,8 +160,13 @@ export function PublishSection({
   async function replaceDraft(next: WorldPackDraft, from: string): Promise<boolean> {
     if (
       draft.name.trim() &&
-      !(await appConfirm(t("workshop.plugin.publish.replaceConfirm", { name: draft.name, source: from }), { title: t("workshop.plugin.publish.replaceTitle"), actionLabel: t("workshop.plugin.publish.replaceAction"),
-      }))
+      !(await appConfirm(
+        t("workshop.plugin.publish.replaceConfirm", { name: draft.name, source: from }),
+        {
+          title: t("workshop.plugin.publish.replaceTitle"),
+          actionLabel: t("workshop.plugin.publish.replaceAction"),
+        },
+      ))
     ) {
       return false;
     }
@@ -181,7 +190,7 @@ export function PublishSection({
     }
     const parsed = draftFromPack(raw);
     if ("error" in parsed) {
-      setError(parsed.error);
+      setError(t("workshop.plugin.publish.invalidPack"));
       return;
     }
     void replaceDraft(parsed, file.name);
@@ -200,10 +209,10 @@ export function PublishSection({
       }
       const parsed = draftFromPack(data.pack);
       if ("error" in parsed) {
-        setError(parsed.error);
+        setError(t("workshop.plugin.publish.invalidPack"));
         return;
       }
-      if (await replaceDraft({ ...parsed, id: "" }, `the installed world "${data.pack.name}"`)) {
+      if (await replaceDraft({ ...parsed, id: "" }, data.pack.name)) {
         setNotice(t("workshop.plugin.publish.startedInstalled", { name: data.pack.name }));
       }
     } catch {
@@ -216,6 +225,19 @@ export function PublishSection({
 
   const id = String(finishDraft(draft).id);
   const ready = check.problems.length === 0;
+  const renderCheckMessage = (entry: { key: string; params?: Record<string, string | number> }) => {
+    const params = { ...entry.params };
+    if (typeof params.group === "string") {
+      params.group = t(`workshop.plugin.check.group.${params.group}` as never);
+    }
+    if (entry.key === "workshop.plugin.check.classNoCasting" && typeof params.name === "string") {
+      params.name = t(`charSheet.class.${params.name}` as never);
+    }
+    if (entry.key === "workshop.plugin.check.artKeyCollision" && typeof params.kind === "string") {
+      params.kind = t(`workshop.plugin.art.kind.${params.kind}` as never);
+    }
+    return t(entry.key as never, params);
+  };
 
   return (
     <div className="space-y-4">
@@ -230,12 +252,20 @@ export function PublishSection({
         </p>
         {check.problems.length || serverProblems.length ? (
           <ul className="stagger mb-3 space-y-1">
-            {[...check.problems, ...serverProblems].map((problem) => (
-              <li key={problem} className="flex gap-2 text-xs text-red-300">
-                <span aria-hidden="true">·</span>
-                {problem}
-              </li>
-            ))}
+            <>
+              {check.problemMessages.map((entry, index) => (
+                <li key={`${entry.key}-${index}`} className="flex gap-2 text-xs text-red-300">
+                  <span aria-hidden="true">·</span>
+                  {renderCheckMessage(entry)}
+                </li>
+              ))}
+              {serverProblems.map((problem, index) => (
+                <li key={`server-${index}-${problem}`} className="flex gap-2 text-xs text-red-300">
+                  <span aria-hidden="true">·</span>
+                  {problem}
+                </li>
+              ))}
+            </>
           </ul>
         ) : null}
         {check.advice.length ? (
@@ -244,10 +274,10 @@ export function PublishSection({
               {tp("workshop.plugin.publish.advice", check.advice.length)}
             </summary>
             <ul className="stagger mt-2 space-y-1">
-              {check.advice.map((line) => (
-                <li key={line} className="flex gap-2">
+              {check.adviceMessages.map((entry, index) => (
+                <li key={`${entry.key}-${index}`} className="flex gap-2">
                   <span aria-hidden="true">·</span>
-                  {line}
+                  {renderCheckMessage(entry)}
                 </li>
               ))}
             </ul>
