@@ -65,13 +65,26 @@ import { QuickBuildQuiz, type QuizVoice } from "./QuickBuildQuiz";
 import { QuickBuildReadback } from "./QuickBuildReadback";
 import { useQuickFill, type FillRequest } from "./useQuickFill";
 import { useTableRules } from "./useTableRules";
-import { hitDieChip } from "./lineage";
 import { useShowNumbers } from "./numbersPref";
 import { withPoolSupply } from "./spellSupply";
 import { useI18n } from "@/lib/i18n/provider";
 import type { MessageKey } from "@/lib/i18n/messages";
 
 export type { BuilderResult } from "./submit";
+
+function localizedHitDieChip(hitDie: number, numbers: boolean, t: ReturnType<typeof useI18n>["t"]): string {
+  const key = (hitDie >= 12
+    ? "builder.multi.hitDie.veryHigh"
+    : hitDie >= 10
+      ? "builder.multi.hitDie.high"
+      : hitDie >= 8
+        ? "builder.multi.hitDie.medium"
+        : hitDie >= 6
+          ? "builder.multi.hitDie.low"
+          : "builder.multi.hitDie.veryLow") as MessageKey;
+  return `${t(key)}${numbers ? `, d${hitDie}` : ""}`;
+}
+
 
 // The step each pick is made on, by the block that collects it, so a notice
 // about a dropped pick can take the player to where it is made again.
@@ -976,7 +989,7 @@ function CharacterBuilderForm({
                   .filter(Boolean)
                   .join(" "),
                 t("builder.aside.level", { n: derived.effectiveLevel }),
-                ...(klass ? [hitDieChip(klass.hitDie, numbers)] : []),
+                ...(klass ? [localizedHitDieChip(klass.hitDie, numbers, t)] : []),
               ].map((part, index) => (
                 <Fragment key={part}>
                   {index ? " · " : ""}
