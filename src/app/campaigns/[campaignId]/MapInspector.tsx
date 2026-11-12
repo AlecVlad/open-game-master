@@ -1,7 +1,9 @@
 "use client";
 
 import { useMemo, useSyncExternalStore, type ReactNode } from "react";
-import { BRUSH_EFFECTS, BRUSH_LABELS, type Brush as BrushName } from "@/lib/battlemap/paint";
+import { useI18n } from "@/lib/i18n/provider";
+import type { Brush as BrushName } from "@/lib/battlemap/paint";
+import { MAP_BRUSH_EFFECT_KEYS, MAP_BRUSH_LABEL_KEYS } from "@/app/campaigns/[campaignId]/mapI18n";
 import { listObjects, objectAt, refKey, sameRef, type MapObjects, type ObjectRef } from "@/lib/battlemap/objects";
 import { TERRAIN, TILE_FEET, tileAt, type XY } from "@/lib/battlemap/types";
 import { PanelHead } from "@/app/campaigns/[campaignId]/mapUi";
@@ -72,6 +74,7 @@ export function MapInspector({
   // The selection's actions (edit, move, duplicate, DM only, delete).
   selectionBar: ReactNode;
 }) {
+  const { t } = useI18n();
   const hover = useHover(store);
   const rows = useMemo(() => listObjects(objects), [objects]);
   const first = refs[0] ?? null;
@@ -82,11 +85,11 @@ export function MapInspector({
     body = (
       // Keyed by the thing, so the facts rise again when the selection moves on.
       <div key={refKey(first)} className="map-inspect-in space-y-2">
-        <p className="truncate text-[12px] text-amber-100">{refs.length > 1 ? `${refs.length} things selected` : selectionTitle}</p>
+        <p className="truncate text-[12px] text-amber-100">{refs.length > 1 ? t("workshop.maps.inspector.selectedCount", { count: refs.length }) : selectionTitle}</p>
         {refs.length === 1 && selected ? (
           <dl className="space-y-1">
-            <Fact name="Where">{selected.detail}</Fact>
-            <Fact name="Seen by">{selected.dmOnly ? "Only you" : "Everyone who has been there"}</Fact>
+            <Fact name={t("workshop.maps.inspector.where")}>{selected.detail}</Fact>
+            <Fact name={t("workshop.maps.inspector.seenBy")}>{t(selected.dmOnly ? "workshop.maps.inspector.onlyYou" : "workshop.maps.inspector.everyone")}</Fact>
           </dl>
         ) : null}
         {selectionBar}
@@ -98,25 +101,25 @@ export function MapInspector({
     const thing = under ? rows.find((row) => sameRef(row.ref, under)) : undefined;
     body = (
       <dl className="space-y-1">
-        <Fact name="Tile">
+        <Fact name={t("workshop.maps.inspector.tile")}>
           {hover.x}, {hover.y}
         </Fact>
-        <Fact name="Ground">{brush ? BRUSH_LABELS[brush] : "Unknown"}</Fact>
-        <Fact name="On it">{thing ? thing.name : "Nothing placed"}</Fact>
-        {brush ? <p className="pt-1 font-mono text-[9px] leading-snug text-stone-500">{BRUSH_EFFECTS[brush]}</p> : null}
+        <Fact name={t("workshop.maps.inspector.ground")}>{brush ? t(MAP_BRUSH_LABEL_KEYS[brush] as never) : t("workshop.maps.inspector.unknown")}</Fact>
+        <Fact name={t("workshop.maps.inspector.onIt")}>{thing ? thing.name : t("workshop.maps.inspector.nothingPlaced")}</Fact>
+        {brush ? <p className="pt-1 font-mono text-[9px] leading-snug text-stone-500">{t(MAP_BRUSH_EFFECT_KEYS[brush] as never)}</p> : null}
       </dl>
     );
   } else {
     body = (
       <p className="font-serif text-[12px] italic leading-snug text-stone-500">
-        Move over the canvas to read a tile, or take up Select and tap a placed thing to work on it.
+        {t("workshop.maps.inspector.moveHint")}
       </p>
     );
   }
 
   return (
     <section className="space-y-1.5">
-      <PanelHead>Inspector</PanelHead>
+      <PanelHead>{t("workshop.maps.inspector.heading")}</PanelHead>
       {body}
     </section>
   );
@@ -149,10 +152,10 @@ export function MapStatusLine({
   );
   return (
     <div className="flex shrink-0 items-center gap-4 overflow-x-auto border-t border-stone-800 bg-stone-950/60 px-3 py-1.5 [scrollbar-width:none]">
-      {cell("Tile", hover ? `${hover.x}, ${hover.y}` : "·")}
-      {cell("Under", brush ? BRUSH_LABELS[brush] : "·")}
-      {cell("Size", `${width} × ${height} · ${width * TILE_FEET} × ${height * TILE_FEET} ft`)}
-      {cell("Holding", <span className="text-amber-200">{holding}</span>)}
+      {cell(t("workshop.maps.inspector.tile"), hover ? `${hover.x}, ${hover.y}` : "·")}
+      {cell(t("workshop.maps.status.under"), brush ? t(MAP_BRUSH_LABEL_KEYS[brush] as never) : "·")}
+      {cell(t("workshop.maps.status.size"), `${width} × ${height} · ${width * TILE_FEET} × ${height * TILE_FEET} ft`)}
+      {cell(t("workshop.maps.status.holding"), <span className="text-amber-200">{holding}</span>)}
       {extra}
     </div>
   );
