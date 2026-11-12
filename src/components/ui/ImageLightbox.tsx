@@ -4,6 +4,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { Download, X } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/cn";
+import { useT } from "@/lib/i18n/provider";
 import { variantUrl } from "@/lib/image-format";
 import { slugOf } from "@/lib/language/text-logic";
 
@@ -35,6 +36,7 @@ export function ImageLightbox({
   // picture (.ken-burns) stay inside its corners.
   frameClassName?: string;
 }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const label = caption || alt;
 
@@ -43,7 +45,7 @@ export function ImageLightbox({
       <Dialog.Trigger asChild>
         <button
           type="button"
-          aria-label={`Enlarge image: ${label}`}
+          aria-label={t("imageLightbox.enlarge", { label })}
           className={cn("block cursor-zoom-in transition-opacity hover:opacity-90", frameClassName)}
         >
           {/* The row shows the 1024 px copy where the server has one; the
@@ -69,7 +71,7 @@ export function ImageLightbox({
             <a
               href={src}
               download={downloadName(src, label)}
-              aria-label="Download image"
+              aria-label={t("imageLightbox.download")}
               className={cn(
                 "rounded-md border border-stone-700 bg-stone-950/80 p-2",
                 "text-stone-400 hover:text-stone-100",
@@ -78,7 +80,7 @@ export function ImageLightbox({
               <Download className="size-4" />
             </a>
             <Dialog.Close
-              aria-label="Close image"
+              aria-label={t("imageLightbox.close")}
               className={cn(
                 "rounded-md border border-stone-700 bg-stone-950/80 p-2",
                 "text-stone-400 hover:text-stone-100",
