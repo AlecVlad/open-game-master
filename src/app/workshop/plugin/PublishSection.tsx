@@ -71,6 +71,7 @@ export function PublishSection({
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
   const [serverProblems, setServerProblems] = useState<string[]>([]);
+  const [serverProblemDetails, setServerProblemDetails] = useState<Array<{ key: string; params?: Record<string, string | number> }>>([]);
   const [notice, setNotice] = useState("");
   const [installed, setInstalled] = useState<WorldPackSummary[]>([]);
   const [startFrom, setStartFrom] = useState("");
@@ -114,6 +115,7 @@ export function PublishSection({
     setError("");
     setNotice("");
     setServerProblems([]);
+    setServerProblemDetails([]);
     try {
       // The export builds from the server's copy (WA-04). A save that did
       // not land leaves an older copy there, so nothing is built from it;
@@ -131,8 +133,18 @@ export function PublishSection({
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError(data.error ?? t("workshop.plugin.publish.buildFailed"));
+        const errorKeys: Record<string, string> = {
+          ADMIN_REQUIRED: "workshop.plugin.publish.error.adminRequired",
+          DRAFT_STALE: "workshop.plugin.publish.error.staleDraft",
+          DRAFT_INCOMPLETE: "workshop.plugin.publish.error.incompleteDraft",
+          PACK_SCHEMA_INVALID: "workshop.plugin.publish.error.schemaInvalid",
+          CONTENT_INTEGRITY: "workshop.plugin.publish.error.contentIntegrity",
+          INSTALL_FAILED: "workshop.plugin.publish.error.installFailed",
+        };
+        const errorKey = typeof data.errorCode === "string" ? errorKeys[data.errorCode] : undefined;
+        setError(errorKey ? t(errorKey as never) : data.error ?? t("workshop.plugin.publish.buildFailed"));
         setServerProblems(data.problems ?? []);
+        setServerProblemDetails(data.problemDetails ?? []);
         return;
       }
       if (install) {
@@ -259,12 +271,19 @@ export function PublishSection({
                   {renderCheckMessage(entry)}
                 </li>
               ))}
-              {serverProblems.map((problem, index) => (
-                <li key={`server-${index}-${problem}`} className="flex gap-2 text-xs text-red-300">
-                  <span aria-hidden="true">·</span>
-                  {problem}
-                </li>
-              ))}
+              {serverProblemDetails.length
+                ? serverProblemDetails.map((entry, index) => (
+                    <li key={`server-${entry.key}-${index}`} className="flex gap-2 text-xs text-red-300">
+                      <span aria-hidden="true">·</span>
+                      {renderCheckMessage(entry)}
+                    </li>
+                  ))
+                : serverProblems.map((problem, index) => (
+                    <li key={`server-${index}-${problem}`} className="flex gap-2 text-xs text-red-300">
+                      <span aria-hidden="true">·</span>
+                      {problem}
+                    </li>
+                  ))}
             </>
           </ul>
         ) : null}
