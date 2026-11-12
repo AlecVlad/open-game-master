@@ -144,6 +144,61 @@ for (const key of campaignRulesMessages) {
   assert.ok(key in DICTIONARIES.ru, `Russian campaign-rules message missing: ${key}`);
 }
 
+const npcGraphMessages = [
+  "campaign.dmNpcForge.graph.empty",
+  "campaign.dmNpcForge.graph.aria",
+  "campaign.dmNpcForge.graph.openNode",
+  "campaign.dmNpcForge.graph.unwrittenNode",
+  "campaign.dmNpcForge.graph.edge.close",
+  "campaign.dmNpcForge.graph.edge.friendly",
+  "campaign.dmNpcForge.graph.edge.hates",
+  "campaign.dmNpcForge.graph.edge.wary",
+  "campaign.dmNpcForge.graph.edge.knows",
+];
+for (const key of npcGraphMessages) {
+  assert.ok(key in DICTIONARIES.en, `English NPC graph message missing: ${key}`);
+  assert.ok(key in DICTIONARIES.ru, `Russian NPC graph message missing: ${key}`);
+}
+
+const renarrateMessages = [
+  "campaign.session.renarrate.title",
+  "campaign.session.renarrate.description",
+  "campaign.session.renarrate.capped",
+  "campaign.session.renarrate.variation",
+  "campaign.session.renarrate.temperatureLabel",
+  "campaign.session.renarrate.guidance",
+  "campaign.session.renarrate.placeholder",
+  "campaign.session.renarrate.preset.darker",
+  "campaign.session.renarrate.preset.dialogue",
+  "campaign.session.renarrate.preset.shorter",
+  "campaign.session.renarrate.preset.sensory",
+  "campaign.session.renarrate.cancel",
+  "campaign.session.renarrate.writing",
+  "campaign.session.renarrate.submit",
+  "campaign.session.renarrate.error.generic",
+  "campaign.session.renarrate.error.network",
+  "campaign.session.renarrate.error.campaignNotFound",
+  "campaign.session.renarrate.error.messageNotFound",
+  "campaign.session.renarrate.error.notDmNarration",
+  "campaign.session.renarrate.error.noTurn",
+  "campaign.session.renarrate.error.turnNotFound",
+  "campaign.session.renarrate.error.noConversation",
+  "campaign.session.renarrate.error.variantsCapped",
+  "campaign.session.renarrate.error.modelUnavailable",
+  "campaign.session.renarrate.error.emptyNarration",
+  "campaign.session.renarrate.error.storeFailed",
+  "campaign.session.renarrate.error.variantNotFound",
+  "campaign.session.renarrate.error.selectFailed",
+  "campaign.session.renarrate.error.invalidSelect",
+  "campaign.session.renarrate.error.invalidReroll",
+  "campaign.session.renarrate.error.notLatest",
+  "campaign.session.renarrate.error.dmBusy",
+  "campaign.session.renarrate.error.sessionHeld",
+];
+for (const key of renarrateMessages) {
+  assert.ok(key in DICTIONARIES.en, `English narration-reroll message missing: ${key}`);
+  assert.ok(key in DICTIONARIES.ru, `Russian narration-reroll message missing: ${key}`);
+}
 const sharedComponentMessages = [
   "common.actionsFor",
   "dialog.close",
