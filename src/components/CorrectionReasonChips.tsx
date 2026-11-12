@@ -2,7 +2,7 @@
 
 import { X } from "lucide-react";
 import { useEffect, useRef, useState, type FocusEvent } from "react";
-import { CORRECTION_REASON_LABELS, CORRECTION_REASONS, type CorrectionReason } from "@/lib/correction-reasons";
+import { CORRECTION_REASONS, type CorrectionReason } from "@/lib/correction-reasons";
 import { CORRECTION_OFFER_EVENT, type CorrectionOffer } from "@/lib/correction-offer";
 import { useT } from "@/lib/i18n/provider";
 import type { MessageKey } from "@/lib/i18n/messages/index";
