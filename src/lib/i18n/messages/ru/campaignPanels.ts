@@ -5355,7 +5355,7 @@ export const ruCampaignPanels: Partial<Record<keyof typeof enCampaignPanels, str
   "campaign.gameSettings.summary.console.afterRoll.many": "через {count} бросков",
   "campaign.mapPanel.empty.withGeneration": "Пока нет ни одной отмеченной области. Карты появляются по мере исследования местности группой.",
   "campaign.mapPanel.empty.uploadOnly": "Пока нет ни одной отмеченной области. Области будут появляться по мере исследования; ведущий может загрузить карту для каждой.",
-  "campaign.mapPanel.populate.done": "Теперь здесь жителей: {npcs}, магазинов: {shops}. Зацепка: {hook}",
+  "campaign.mapPanel.populate.done": "Добавлено: жителей — {npcs}, магазинов — {shops}. Зацепка: {hook}",
   "campaign.mapPanel.populate.error": "Не удалось заполнить это место.",
   "campaign.mapPanel.error.upload": "Не удалось загрузить это изображение.",
   "campaign.mapPanel.error.set": "Не удалось установить карту.",
@@ -5391,6 +5391,6 @@ export const ruCampaignPanels: Partial<Record<keyof typeof enCampaignPanels, str
   "campaign.mapPanel.list.unmappedAria": ", карта не создана",
   "campaign.mapPanel.list.hereParen": "(здесь)",
   "campaign.mapPanel.list.unmapped": "· карта не создана",
-  "campaign.mapPanel.list.insideCount": "{count} внутри",
+  "campaign.mapPanel.list.insideCount": "Внутри: {count}",
   "campaign.mapPanel.dialog.close": "Закрыть",
 };
