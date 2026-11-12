@@ -22,7 +22,6 @@ import { textKey } from "@/lib/language/text-logic";
 type Props = { data: Mech; set: (patch: Mech) => void };
 
 const CREATURE_WORDS = CREATURE_TYPES.map((type) => type as string);
-const SKILL_LABELS = Object.fromEntries(SKILL_IDS.map((id) => [id, id.replace(/_/g, " ")])) as Record<(typeof SKILL_IDS)[number], string>;
 
 const optional = (value: number | ""): number | undefined => (value === "" || value === 0 ? undefined : value);
 const clean = (value: Mech): Mech | undefined => {
@@ -46,7 +45,7 @@ function DiceRows({ title, rows, onChange }: { title: string; rows: Mech[]; onCh
           </button>
           <div className="basis-full">
             <span className="text-[11px] text-stone-500">{t("workshop.homebrew.itemMagic.dice.onlyAgainst")}</span>
-            <ToggleChips options={CREATURE_WORDS} selected={list(row.vs)} onChange={(vs) => onChange(rows.map((entry, at) => (at === index ? { ...entry, vs: vs.length ? vs : undefined } : entry)))} />
+            <ToggleChips options={CREATURE_WORDS} labels={Object.fromEntries(CREATURE_WORDS.map((type) => [type, t(`workshop.monsterEditor.defence.creatureType.${type}`)]))} selected={list(row.vs)} onChange={(vs) => onChange(rows.map((entry, at) => (at === index ? { ...entry, vs: vs.length ? vs : undefined } : entry)))} />
           </div>
         </div>
       ))}
@@ -66,7 +65,7 @@ export function WeaponRidersBlock({ data, set }: Props) {
   const extra = Array.isArray(riders.extra) ? (riders.extra as Mech[]) : [];
   const crit = Array.isArray(riders.critExtra) ? (riders.critExtra as Mech[]) : [];
   const bonusVs = sub(riders.bonusVs);
-  const summary = [num(riders.bonus) ? `+${num(riders.bonus)}` : "", ...extra.map((row) => `+${String(row.dice)} ${String(row.type)}`)].filter(Boolean).join(", ");
+  const summary = [num(riders.bonus) ? `+${num(riders.bonus)}` : "", ...extra.map((row) => `+${String(row.dice)} ${t(`workshop.homebrew.item.damage.${String(row.type)}`)}`)].filter(Boolean).join(", ");
   return (
     <MechGroup title={t("workshop.homebrew.itemMagic.magic.weaponRiders.title")} summary={summary || t("workshop.homebrew.itemMagic.magic.nothing")} open={Object.keys(riders).length > 0}>
       <NumberField label={t("workshop.homebrew.itemMagic.magic.weaponRiders.bonus")} value={num(riders.bonus)} min={0} max={3} onChange={(bonus) => put({ bonus: optional(bonus) })} />
@@ -78,7 +77,7 @@ export function WeaponRidersBlock({ data, set }: Props) {
       <NumberField label={t("workshop.homebrew.itemMagic.magic.bonusAgainst")} value={num(bonusVs.bonus)} min={0} max={3} onChange={(bonus) => put({ bonusVs: bonus ? { types: list(bonusVs.types), bonus } : undefined })} />
       {riders.bonusVs ? (
         <div className="col-span-2 sm:col-span-3">
-          <ToggleChips options={CREATURE_WORDS} selected={list(bonusVs.types)} onChange={(types) => put({ bonusVs: { ...bonusVs, types } })} />
+          <ToggleChips options={CREATURE_WORDS} labels={Object.fromEntries(CREATURE_WORDS.map((type) => [type, t(`workshop.monsterEditor.defence.creatureType.${type}`)]))} selected={list(bonusVs.types)} onChange={(types) => put({ bonusVs: { ...bonusVs, types } })} />
         </div>
       ) : null}
     </MechGroup>
@@ -168,18 +167,18 @@ export function ChecksBlock({ data, set }: Props) {
   const put = (patch: Mech) => set({ checks: clean({ ...checks, ...patch }) });
   const bonused = Object.keys(skillBonus);
   return (
-    <MechGroup title={t("workshop.homebrew.itemMagic.checks.title")} summary={[num(checks.bonus) ? `+${num(checks.bonus)} ${t("workshop.homebrew.itemMagic.checks.every")}` : "", ...bonused.map((skill) => `+${skillBonus[skill]} ${skill.replace(/_/g, " ")}`), list(checks.advantage).length ? `${t("workshop.homebrew.itemMagic.checks.advantage")}: ${list(checks.advantage).join(", ").replace(/_/g, " ")}` : ""].filter(Boolean).join(", ") || t("workshop.homebrew.itemMagic.checks.nothing")} open={Object.keys(checks).length > 0}>
+    <MechGroup title={t("workshop.homebrew.itemMagic.checks.title")} summary={[num(checks.bonus) ? `+${num(checks.bonus)} ${t("workshop.homebrew.itemMagic.checks.every")}` : "", ...bonused.map((skill) => `+${skillBonus[skill]} ${t(`workshop.homebrew.skill.${skill}`)}`), list(checks.advantage).length ? `${t("workshop.homebrew.itemMagic.checks.advantage")}: ${list(checks.advantage).map((skill) => t(`workshop.homebrew.skill.${skill}`)).join(", ")}` : ""].filter(Boolean).join(", ") || t("workshop.homebrew.itemMagic.checks.nothing")} open={Object.keys(checks).length > 0}>
       <NumberField label={t("workshop.homebrew.itemMagic.checks.every")} value={num(checks.bonus)} min={-5} max={5} onChange={(bonus) => put({ bonus: optional(bonus) })} />
       <div className="col-span-2 sm:col-span-4">
         <span className="text-[11px] text-stone-400">{t("workshop.homebrew.itemMagic.checks.skillBonus")}</span>
-        <ToggleChips options={SKILL_IDS} labels={SKILL_LABELS} selected={bonused} onChange={(next) => put({ skillBonus: clean(Object.fromEntries(next.map((skill) => [skill, skillBonus[skill] ?? 2]))) })} />
+        <ToggleChips options={SKILL_IDS} labels={Object.fromEntries(SKILL_IDS.map((id) => [id, t(`workshop.homebrew.skill.${id}`)]))} selected={bonused} onChange={(next) => put({ skillBonus: clean(Object.fromEntries(next.map((skill) => [skill, skillBonus[skill] ?? 2]))) })} />
       </div>
       {bonused.map((skill) => (
-        <NumberField key={skill} label={skill.replace(/_/g, " ")} value={skillBonus[skill]} min={-10} max={10} onChange={(value) => put({ skillBonus: clean({ ...skillBonus, [skill]: value === "" ? undefined : value }) })} />
+        <NumberField key={skill} label={t(`workshop.homebrew.skill.${skill}`)} value={skillBonus[skill]} min={-10} max={10} onChange={(value) => put({ skillBonus: clean({ ...skillBonus, [skill]: value === "" ? undefined : value }) })} />
       ))}
       <div className="col-span-2 sm:col-span-4">
         <span className="text-[11px] text-stone-400">{t("workshop.homebrew.itemMagic.checks.advantage")}</span>
-        <ToggleChips options={SKILL_IDS} labels={SKILL_LABELS} selected={list(checks.advantage)} onChange={(next) => put({ advantage: next.length ? next : undefined })} />
+        <ToggleChips options={SKILL_IDS} labels={Object.fromEntries(SKILL_IDS.map((id) => [id, t(`workshop.homebrew.skill.${id}`)]))} selected={list(checks.advantage)} onChange={(next) => put({ advantage: next.length ? next : undefined })} />
       </div>
     </MechGroup>
   );
@@ -203,7 +202,7 @@ export function AttunementBlock({ data, set }: Props) {
     <MechGroup title={t("workshop.homebrew.itemMagic.attunement.title")} summary={[String(rule.text ?? ""), data.cursed ? t("workshop.homebrew.itemMagic.attunement.cursed") : "", data.carried ? t("workshop.homebrew.itemMagic.attunement.worksPack") : ""].filter(Boolean).join(", ") || t("workshop.homebrew.itemMagic.attunement.anyone")} open={Boolean(data.attunedBy || data.cursed || data.carried)}>
       <div className="col-span-2 sm:col-span-4">
         <span className="text-[11px] text-stone-400">{t("workshop.homebrew.itemMagic.attunement.onlyClasses")}</span>
-        <ToggleChips options={CLASS_WORDS} selected={classes} onChange={(next) => put({ classes: next.length ? next : undefined })} />
+        <ToggleChips options={CLASS_WORDS} labels={Object.fromEntries(CLASS_WORDS.map((id) => [id, t(`workshop.homebrew.class.ui.name.${id}`)]))} selected={classes} onChange={(next) => put({ classes: next.length ? next : undefined })} />
       </div>
       <div className="flex items-end pb-1">
         <CheckField label={t("workshop.homebrew.itemMagic.attunement.spellcaster")} checked={rule.spellcaster === true} onChange={(on) => put({ spellcaster: on || undefined })} />
