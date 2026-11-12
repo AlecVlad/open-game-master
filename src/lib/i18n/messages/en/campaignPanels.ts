@@ -5029,6 +5029,12 @@ export const enCampaignPanels = {
   "campaign.session.encounterPrep.takeBack": "Take back",
   "campaign.session.encounterPrep.cue": "Cue",
   "campaign.session.encounterPrep.deploy": "Deploy",
+  "campaign.session.inlineMessageEditor.label": "Narration",
+  "campaign.session.inlineMessageEditor.save": "Save",
+  "campaign.session.inlineMessageEditor.cancel": "Cancel",
+  "campaign.session.inlineMessageEditor.keyboardHint": "Enter saves, Shift+Enter for a new line, Escape cancels. Keep the dice markers.",
+  "campaign.session.labelSheet.loading": "Opening the entry…",
+  "campaign.session.labelSheet.missing": "That entry is not one you can read, or it has been removed.",
 
 
 
