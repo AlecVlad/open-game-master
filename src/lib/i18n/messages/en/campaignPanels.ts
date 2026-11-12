@@ -5351,6 +5351,8 @@ export const enCampaignPanels = {
   "campaign.mapPanel.empty.uploadOnly": "No areas charted yet. Areas appear as the party explores, and the GM can upload a map for each.",
   "campaign.mapPanel.populate.done": "Added here: people — {npcs}; shops — {shops}. Hook: {hook}",
   "campaign.mapPanel.populate.error": "Could not populate that place.",
+  "campaign.mapPanel.populate.alreadyPopulated": "{place} already has inhabitants, shops and rumours. Use the existing settlement instead of generating it again.",
+  "campaign.mapPanel.populate.placeNotFound": "That place no longer exists in this campaign.",
   "campaign.mapPanel.error.upload": "That image would not upload.",
   "campaign.mapPanel.error.set": "Could not set the map.",
   "campaign.mapPanel.error.redraw": "Could not queue the redraw.",
