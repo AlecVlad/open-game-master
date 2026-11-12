@@ -103,11 +103,11 @@ export function AttackEditor({
                 ),
               )
             }
-            placeholder="Bite"
+            placeholder={t("workshop.monsterEditor.attack.bite")}
             className={cn(input, "w-28")}
           />
           <span className="flex items-center gap-1 text-[10px] text-stone-500">
-            to hit
+            {t("workshop.monsterEditor.attack.toHit")}
             <NumberStepper
               min={-5}
               max={20}
@@ -142,7 +142,7 @@ export function AttackEditor({
                 ),
               )
             }
-            placeholder="slashing"
+            placeholder={t("workshop.monsterEditor.attack.damageType")}
             className={cn(input, "w-24")}
           />
           <button
@@ -151,7 +151,7 @@ export function AttackEditor({
             onClick={() => toggle(index)}
             className="inline-flex items-center gap-1 rounded-md border border-stone-700 px-1.5 py-0.5 text-[10px] text-stone-400 hover:text-amber-100"
           >
-            {attackExtras(attack)}
+            {attackExtras(attack, t)}
             <ChevronDown className={cn("size-3 transition-transform duration-200", opened.has(index) && "rotate-180")} />
           </button>
           <button
@@ -161,7 +161,7 @@ export function AttackEditor({
               setOpened(new Set());
             }}
             className="text-stone-600 hover:text-red-300"
-            aria-label={`Remove ${attack.name || "attack"}`}
+            aria-label={t("workshop.monsterEditor.attack.remove", { name: attack.name || t("workshop.monsterEditor.attack.attack") })}
           >
             <Trash2 className="size-3.5" />
           </button>
@@ -184,12 +184,11 @@ export function AttackEditor({
           }
           className="inline-flex w-fit items-center gap-1 rounded-md border border-stone-700 px-2 py-0.5 text-[11px] text-stone-400 hover:text-amber-100"
         >
-          <Plus className="size-3" /> Attack
+          <Plus className="size-3" /> {t("workshop.monsterEditor.attack.attack")}
         </button>
       ) : null}
       <p className="text-[10px] text-stone-600">
-        The engine swings the Multiattack routine when the block has one, otherwise its best attack
-        as many times as Swings says. Damage has to be something the dice roller can read.
+        {t("workshop.monsterEditor.attack.engineRoutine")}
       </p>
     </div>
   );
@@ -197,15 +196,15 @@ export function AttackEditor({
 
 // The word on an attack's details button: what it carries beyond its dice,
 // or "Details" when it carries nothing yet.
-function attackExtras(attack: MonsterDraft["stats"]["attacks"][number]): string {
+function attackExtras(attack: MonsterDraft["stats"]["attacks"][number], t: (key: never, params?: Record<string, string | number>) => string): string {
   const bits = [
-    attack.bonusAction ? "bonus action" : "",
-    attack.range ? `${attack.range.normal}/${attack.range.long} ft` : attack.reach === 0 || (attack.reach && attack.reach > 5) ? `reach ${attack.reach}` : "",
+    attack.bonusAction ? t("workshop.monsterEditor.attack.bonusAction" as never) : "",
+    attack.range ? `${attack.range.normal}/${attack.range.long} ${t("workshop.monsterEditor.attack.feet" as never)}` : attack.reach === 0 || (attack.reach && attack.reach > 5) ? `${t("workshop.monsterEditor.attack.reach" as never)} ${attack.reach}` : "",
     attack.riders?.length ? `+${attack.riders.map((rider) => rider.type).join(", ")}` : "",
-    attack.onHit?.condition ?? (attack.onHit?.damage ? "on hit" : ""),
-    attack.alternatives?.some((entry) => entry.when === "bloodied") ? "weaker when bloodied" : "",
+    attack.onHit?.condition ?? (attack.onHit?.damage ? t("workshop.monsterEditor.attack.onHit" as never) : ""),
+    attack.alternatives?.some((entry) => entry.when === "bloodied") ? t("workshop.monsterEditor.attack.bloodied" as never) : "",
   ].filter(Boolean);
-  return bits.length ? bits.join(" · ") : "Details";
+  return bits.length ? bits.join(" · ") : t("workshop.monsterEditor.attack.details" as never);
 }
 
 export function SaveEditor({
@@ -224,7 +223,7 @@ export function SaveEditor({
     <div className="stagger-up grid grid-cols-[repeat(auto-fill,minmax(6rem,1fr))] gap-1">
       {SAVE_ABILITIES.map((ability) => (
         <div key={ability} className="flex flex-col gap-0.5">
-          <span className="text-[10px] uppercase text-stone-500">{ability}</span>
+          <span className="text-[10px] uppercase text-stone-500">{t(`workshop.monsterEditor.stats.ability.${ability}` as never)}</span>
           <NumberStepper
             min={-5}
             max={20}
@@ -238,7 +237,7 @@ export function SaveEditor({
                 },
               })
             }
-            label={`${ability.toUpperCase()} save`}
+            label={t("workshop.monsterEditor.stats.saveLabel", { ability: t(`workshop.monsterEditor.stats.ability.${ability}` as never) })}
             size="sm"
             className="w-fit"
           />
@@ -262,11 +261,11 @@ export function SizeAndDefences({
     <div className="flex flex-col gap-2.5">
       <div className="flex flex-wrap items-end gap-3">
         <label className="flex flex-col gap-0.5">
-          <span className="text-[10px] uppercase tracking-wide text-stone-500">Size</span>
+          <span className="text-[10px] uppercase tracking-wide text-stone-500">{t("workshop.monsterEditor.defence.size")}</span>
           <Select
             value={draft.stats.size ?? "Medium"}
             onChange={(size) => set({ size })}
-            options={SIZES.map((size) => ({ value: size as string, label: size }))}
+            options={SIZES.map((size) => ({ value: size as string, label: t(`workshop.monsterEditor.defence.size.${String(size).toLowerCase()}` as never) }))}
             label={t("workshop.monsterEditor.defence.size")}
             size="sm"
             className="w-32"
@@ -276,11 +275,11 @@ export function SizeAndDefences({
             thumbnail: every list the monster appears in draws the plate for
             its type until somebody paints it a portrait. */}
         <label className="flex flex-col gap-0.5">
-          <span className="text-[10px] uppercase tracking-wide text-stone-500">Type</span>
+          <span className="text-[10px] uppercase tracking-wide text-stone-500">{t("workshop.monsterEditor.defence.type")}</span>
           <Select
             value={creatureTypeOf(draft.stats) as string}
             onChange={(type) => set({ type })}
-            options={CREATURE_TYPES.map((type) => ({ value: type as string, label: type.charAt(0).toUpperCase() + type.slice(1) }))}
+            options={CREATURE_TYPES.map((type) => ({ value: type as string, label: t(`workshop.monsterEditor.defence.creatureType.${type}` as never) }))}
             label={t("workshop.monsterEditor.defence.type")}
             size="sm"
             className="w-32"
@@ -298,12 +297,12 @@ export function SizeAndDefences({
           copy keeps them editable, and no other book prints them. */}
       {(
         [
-          ["resist", "Resistant to", DAMAGE_TYPES],
-          ["immune", "Immune to", DAMAGE_TYPES],
-          ["vulnerable", "Vulnerable to", DAMAGE_TYPES],
-          ["conditionImmune", "Condition immunities", CONDITIONS],
-          ...(draft.stats.conditionResist ? [["conditionResist", "Resistant to conditions (advantage on the save)", CONDITIONS] as const] : []),
-          ...(draft.stats.conditionVulnerable ? [["conditionVulnerable", "Vulnerable to conditions (disadvantage on the save)", CONDITIONS] as const] : []),
+          ["resist", t("workshop.monsterEditor.defence.resist"), DAMAGE_TYPES],
+          ["immune", t("workshop.monsterEditor.defence.immune"), DAMAGE_TYPES],
+          ["vulnerable", t("workshop.monsterEditor.defence.vulnerable"), DAMAGE_TYPES],
+          ["conditionImmune", t("workshop.monsterEditor.defence.conditionImmune"), CONDITIONS],
+          ...(draft.stats.conditionResist ? [["conditionResist", t("workshop.monsterEditor.defence.conditionResist"), CONDITIONS] as const] : []),
+          ...(draft.stats.conditionVulnerable ? [["conditionVulnerable", t("workshop.monsterEditor.defence.conditionVulnerable"), CONDITIONS] as const] : []),
         ] as const
       ).map(([field, label, known]) => (
         <TermPicker
@@ -350,10 +349,11 @@ export function RatingLine({ readout }: { readout: MonsterReadout }) {
   return (
     <p className={cn("text-[11px]", readout.agrees ? "text-stone-500" : "text-amber-300/80")}>
       {readout.agrees
-        ? `The numbers agree: CR ${crLabel(readout.statedCr)}.`
-        : `Written as CR ${crLabel(readout.statedCr)}; the numbers say CR ${crLabel(
-            readout.derived.cr,
-          )}.`}
+        ? t("workshop.monsterEditor.rating.agrees", { cr: crLabel(readout.statedCr) })
+        : t("workshop.monsterEditor.rating.statedVsDerived", {
+            stated: crLabel(readout.statedCr),
+            derived: crLabel(readout.derived.cr),
+          })}
     </p>
   );
 }
