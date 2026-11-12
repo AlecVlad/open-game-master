@@ -153,11 +153,17 @@ export function GameSettingsPanel({
   // What "the server's rule" for rolled stats is, so neither the lead's
   // choice nor a player's summary leaves it unnamed.
   const serverRerollBelow = useServerRerollBelow();
+  const serverRerollLabel = serverRerollBelow === null
+    ? t("campaign.gameSettings.summary.stats.serverUnknown")
+    : serverRerollBelow <= 0
+      ? t("campaign.gameSettings.summary.stats.keep")
+      : serverRerollBelow >= 108
+        ? t("campaign.gameSettings.summary.stats.free")
+        : t("campaign.gameSettings.summary.stats.threshold", { limit: serverRerollBelow });
   // A server that cannot transcribe holds the Transcription switch off; the
   // table's stored choice is kept, so transcription added later brings it
   // back.
   const transcribes = transcribesVoice(capabilities);
-  const serverRerollLabel = describeTableReroll(null, serverRerollBelow).toLowerCase();
 
   // Installed world packs, so the lead can switch worlds after creation. An
   // empty list simply hides the row.
