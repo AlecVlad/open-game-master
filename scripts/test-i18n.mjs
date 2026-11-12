@@ -602,6 +602,20 @@ for (const key of sharedComponentMessages) {
   assert.ok(key in DICTIONARIES.en, `English shared-component message missing: ${key}`);
   assert.ok(key in DICTIONARIES.ru, `Russian shared-component message missing: ${key}`);
 }
+// Rulebook search result count: the reader uses locale-aware plural forms.
+for (const suffix of ["one", "other"]) {
+  assert.ok(`rulebook.search.results.${suffix}` in DICTIONARIES.en, `English rulebook search plural missing: ${suffix}`);
+}
+for (const suffix of ["one", "few", "many", "other"]) {
+  assert.ok(`rulebook.search.results.${suffix}` in DICTIONARIES.ru, `Russian rulebook search plural missing: ${suffix}`);
+}
+for (const count of [1, 2, 5]) {
+  for (const lang of ["en", "ru"] as const) {
+    const rendered = translatePlural(DICTIONARIES, lang, "rulebook.search.results", count);
+    assert.ok(!rendered.includes("{count}"), `${lang} rulebook search count was not filled: ${count}`);
+    assert.notEqual(rendered, "rulebook.search.results", `${lang} rulebook search plural fell back to its key: ${count}`);
+  }
+}
 
 
 // Party backstory: every fixed label, state and known API refusal has both language forms.
