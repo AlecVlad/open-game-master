@@ -14,13 +14,14 @@ export async function GET(request: Request) {
     return admin;
   }
   const scope = { headers: request.headers, everyTable: true };
-  const checkFirst = reportCheckFirst(await adminReportSetup(), {
+  const setup = await adminReportSetup();
+  const checkFirst = reportCheckFirst(setup, {
     viewer: ADMIN_REPORT_VIEWER,
     reporterUserId: admin.id,
     secrets: reportSecrets(undefined, scope),
     addresses: reportAddresses(undefined, scope),
   });
-  return Response.json({ parts: offeredParts(ADMIN_REPORT_VIEWER), checkFirst }, { headers: { "cache-control": "no-store" } });
+  return Response.json({ parts: offeredParts(ADMIN_REPORT_VIEWER), checkFirst, checkFirstItems: setup.checkFirstItems ?? [] }, { headers: { "cache-control": "no-store" } });
 }
 
 export async function POST(request: Request) {
