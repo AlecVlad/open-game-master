@@ -5259,7 +5259,7 @@ export const enCampaignPanels = {
   "campaign.gameSettings.summary.console.afterRoll.many": "after {count} rolls",
   "campaign.mapPanel.empty.withGeneration": "No areas charted yet. Maps appear as the party explores.",
   "campaign.mapPanel.empty.uploadOnly": "No areas charted yet. Areas appear as the party explores, and the GM can upload a map for each.",
-  "campaign.mapPanel.populate.done": "{npcs} people and {shops} shops now live here. Hook: {hook}",
+  "campaign.mapPanel.populate.done": "Added here: people — {npcs}; shops — {shops}. Hook: {hook}",
   "campaign.mapPanel.populate.error": "Could not populate that place.",
   "campaign.mapPanel.error.upload": "That image would not upload.",
   "campaign.mapPanel.error.set": "Could not set the map.",
