@@ -10,6 +10,7 @@ import { NumberStepper } from "@/components/ui/NumberStepper";
 import { SectionHead } from "@/components/ui/SectionHead";
 import { SelectField, TextArea, TextField, ToggleChips } from "@/app/workshop/homebrew/fields";
 import { ChipList } from "@/app/workshop/plugin/fields";
+import { languageLabel, languageOptions } from "@/app/workshop/homebrew/catalogLabels";
 import { list } from "@/app/workshop/homebrew/MechGroup";
 import { ChoiceOptionList } from "@/app/workshop/homebrew/ChoiceOptionList";
 import { withField } from "@/app/workshop/homebrew/SpeciesChoiceFields";
@@ -151,7 +152,7 @@ function OptionFields({ option, put }: { option: Data; put: (next: Data) => void
       </div>
       <div className="col-span-2 space-y-1">
         <span className="text-[11px] text-stone-400">{t("workshop.homebrew.subclassChoice.languages")}</span>
-        <ChipList items={list(option.languages)} onChange={(next) => field("languages", next)} options={LANGUAGES} prompt={t("workshop.homebrew.subclassChoice.addLanguage")} max={L.languages} />
+        <ChipList items={list(option.languages)} onChange={(next) => field("languages", next)} options={languageOptions(t)} labelFor={(value) => languageLabel(value, t)} prompt={t("workshop.homebrew.subclassChoice.addLanguage")} max={L.languages} />
       </div>
       <OptionSpells option={option} put={(spells) => field("spells", spells)} />
     </>
