@@ -3371,4 +3371,6 @@ export const ruWorkshop: Partial<Record<keyof typeof enWorkshop, string>> = {
   "workshop.testFight.open.end": "Завершить бой",
   "workshop.testFight.error.end": "Не удалось завершить тестовый бой.",
   "workshop.testFight.character.level": "{level}-го уровня",
+  "workshop.testFight.readiness.noAi": "На этом сервере не настроен ИИ-ведущий, поэтому бой проводите вы: в ход противников управляйте их карточками, а в ход каждого героя — его карточкой.",
+  "workshop.testFight.refused.adminOnly": "На этом сервере запускать кампании, мастерские и тестовые бои может только администратор.",
 };
