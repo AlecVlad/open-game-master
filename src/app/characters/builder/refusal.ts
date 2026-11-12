@@ -34,5 +34,5 @@ export function refusalText(
     }
     return message;
   });
-  return translated.length > 1 ? translated.join("\\n") : translated[0];
+  return translated.length > 1 ? translated.join("\n") : translated[0];
 }
