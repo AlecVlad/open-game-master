@@ -168,7 +168,7 @@ export function WorldFields({ draft, onDraft }: SectionProps) {
           onChange={(alignments) => set({ alignments })}
           options={alignments}
           prompt={t("workshop.plugin.identity.addAlignment")}
-          labelFor={(code) => catalogLabel(ALIGNMENT_OPTIONS, code)}
+          labelFor={(code) => t(`workshop.plugin.alignment.${code}` as never)}
           max={9}
         />
       </div>
