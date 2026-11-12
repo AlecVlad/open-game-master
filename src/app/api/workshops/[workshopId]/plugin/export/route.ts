@@ -47,7 +47,7 @@ export async function POST(
   const revision = parsed.success ? parsed.data.revision : undefined;
   if (install && !context.user.isAdmin) {
     return Response.json(
-      { error: "Only an admin can install a world on this server. Download the file and hand it to one." },
+      { errorCode: "ADMIN_REQUIRED", error: "Only an admin can install a world on this server. Download the file and hand it to one." },
       { status: 403 },
     );
   }
@@ -55,21 +55,36 @@ export async function POST(
   const { draft, updatedAt } = getPackDraft(workshopId, context.workshop.gameSettings.genre);
   if (revision !== undefined && revision !== updatedAt) {
     return Response.json(
-      { error: "The draft was changed somewhere else after this page saved it. Reload it, check it, and export again." },
+      { errorCode: "DRAFT_STALE", error: "The draft was changed somewhere else after this page saved it. Reload it, check it, and export again." },
       { status: 409 },
     );
   }
   const check = checkDraft(draft);
   if (check.problems.length) {
-    return Response.json({ error: "The pack is not finished.", problems: check.problems }, { status: 400 });
+    return Response.json({
+      errorCode: "DRAFT_INCOMPLETE",
+      error: "The pack is not finished.",
+      problems: check.problems,
+      problemDetails: check.problemMessages,
+    }, { status: 400 });
   }
   const outcome = exportDraft(draft);
   if ("error" in outcome) {
-    return Response.json({ error: "The pack is not finished.", problems: [outcome.error] }, { status: 400 });
+    return Response.json({
+      errorCode: "PACK_SCHEMA_INVALID",
+      error: "The pack is not finished.",
+      problems: [outcome.error],
+      problemDetails: [{ key: "workshop.plugin.integrity.schemaInvalid" }],
+    }, { status: 400 });
   }
   const integrity = checkPackIntegrity(outcome.pack);
   if (integrity.problems.length) {
-    return Response.json({ error: "The pack names things the content pack does not have.", problems: integrity.problems }, { status: 400 });
+    return Response.json({
+      errorCode: "CONTENT_INTEGRITY",
+      error: "The pack names things the content pack does not have.",
+      problems: integrity.problems,
+      problemDetails: integrity.details,
+    }, { status: 400 });
   }
 
   // artKeys is the loader's word; the file a person downloads carries the
@@ -80,7 +95,7 @@ export async function POST(
   }
   const result = await installWorldPack(pack);
   if (!result.ok) {
-    return Response.json({ error: result.error }, { status: result.status });
+    return Response.json({ errorCode: "INSTALL_FAILED", error: result.error }, { status: result.status });
   }
   return Response.json({
     installed: summarizePack(result.pack, "installed"),
