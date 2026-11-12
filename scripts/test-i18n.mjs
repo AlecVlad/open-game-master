@@ -155,6 +155,19 @@ for (const key of dmSquarePickMessages) {
   assert.ok(key in DICTIONARIES.ru, `Russian battlemap square-pick message missing: ${key}`);
 }
 
+const narrationAndMapLabelMessages = [
+  "campaign.session.inlineMessageEditor.label",
+  "campaign.session.inlineMessageEditor.save",
+  "campaign.session.inlineMessageEditor.cancel",
+  "campaign.session.inlineMessageEditor.keyboardHint",
+  "campaign.session.labelSheet.loading",
+  "campaign.session.labelSheet.missing",
+];
+for (const key of narrationAndMapLabelMessages) {
+  assert.ok(key in DICTIONARIES.en, `English narration/map-label message missing: ${key}`);
+  assert.ok(key in DICTIONARIES.ru, `Russian narration/map-label message missing: ${key}`);
+}
+
 const encounterDeployMessages = ["campaign.session.encounterPrep.deploy"];
 for (const key of encounterDeployMessages) {
   assert.ok(key in DICTIONARIES.en, `English encounter deploy message missing: ${key}`);
