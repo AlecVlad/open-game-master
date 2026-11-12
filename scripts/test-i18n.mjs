@@ -144,6 +144,15 @@ for (const key of campaignRulesMessages) {
   assert.ok(key in DICTIONARIES.ru, `Russian campaign-rules message missing: ${key}`);
 }
 
+const eventLogRevertMessages = [
+  "campaign.session.eventLog.revertTurn",
+  "campaign.session.eventLog.revertTurnCount",
+];
+for (const key of eventLogRevertMessages) {
+  assert.ok(key in DICTIONARIES.en, `English event-log revert message missing: ${key}`);
+  assert.ok(key in DICTIONARIES.ru, `Russian event-log revert message missing: ${key}`);
+}
+
 const npcGraphMessages = [
   "campaign.dmNpcForge.graph.empty",
   "campaign.dmNpcForge.graph.aria",
