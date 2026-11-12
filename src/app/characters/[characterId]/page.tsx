@@ -20,11 +20,12 @@ import { SheetSections, StorySoFar, type CharacterEvent } from "./SheetSections"
 import { currentQuery, navigateTo, workshopReturnPath } from "@/lib/navigation";
 import { UseInCampaignDialog } from "./UseInCampaignDialog";
 import { slugOf } from "@/lib/language/text-logic";
-import { registerWorkshopClasses, workshopClassName } from "@/lib/classes/workshop-registry";
+import { registerWorkshopClasses } from "@/lib/classes/workshop-registry";
 import { registerBrowserSpecies } from "@/lib/srd/race-id";
 import { classWordsAfterLevel } from "@/lib/characters/class-words";
 import type { WorkshopClass } from "@/lib/homebrew/class-data";
 import { useI18n } from "@/lib/i18n/provider";
+import { characterBackgroundName, characterClassName, characterRaceName, characterSubclassName } from "@/lib/i18n/character-names";
 
 // Where this character is playing; see src/lib/db/characters.ts.
 type CharacterAssignment = {
@@ -58,9 +59,6 @@ type LibraryCharacter = {
 // never resolves the job.
 const PORTRAIT_POLL_LIMIT = 240;
 
-function titleCase(value: string) {
-  return value.replace(/[-_]/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
-}
 
 export default function CharacterDetailPage({
   params,
@@ -399,10 +397,10 @@ export default function CharacterDetailPage({
                 <GameIcon icon={{ kind: "glyph", key: "rest-level-up" }} size="size-5" />
                 {t("charDetail.level", { level: character.level })}
               </span>
-              {character.raceLabel ?? titleCase(character.race)}{" "}
-              {classWordsAfterLevel({ ...character, classes: character.sheet?.classes }, (id) => workshopClassName(id) ?? titleCase(id))}
-              {character.subclass ? ` (${character.subclass})` : ""}
-              {character.background ? ` · ${character.backgroundLabel ?? titleCase(character.background)}` : ""}
+              {characterRaceName(character.race, character.raceLabel, t)}{" "}
+              {classWordsAfterLevel({ ...character, classes: character.sheet?.classes }, (id) => characterClassName(id, t))}
+              {character.subclass ? ` (${characterSubclassName(character.class, character.subclass, t)})` : ""}
+              {character.background ? ` · ${characterBackgroundName(character.background, character.backgroundLabel, t)}` : ""}
             </p>
             {!sheet.portrait && character.portraitStatus === "failed" ? (
               <p className="reveal mt-1 text-xs text-stone-500">{t("charDetail.failed")}</p>
