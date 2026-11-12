@@ -5357,4 +5357,12 @@ export const enCampaignPanels = {
   "campaign.session.characterJoin.submit.join": "Join the party",
   "campaign.session.characterJoin.error.save": "Could not save the character.",
   "campaign.session.characterJoin.error.server": "Could not reach the server.",
+  "campaign.pregenPicker.brakk.tagline": "Brakk, human barbarian",
+  "campaign.pregenPicker.brakk.blurb": "Hits first and asks later. Swing the greataxe, shrug off blows, and keep the others alive by standing in front of them.",
+  "campaign.pregenPicker.kara.tagline": "Kara, human fighter",
+  "campaign.pregenPicker.kara.blurb": "Shield, sword and chain mail. The steadiest hand at the table: hard to hit, harder to move, and always has a plan for the door.",
+  "campaign.pregenPicker.vex.tagline": "Vex, human rogue",
+  "campaign.pregenPicker.vex.blurb": "Locks, shadows and a rapier. Scout ahead, find the trap before it finds you, and strike where it hurts.",
+  "campaign.pregenPicker.sera.tagline": "Sera, human cleric of life",
+  "campaign.pregenPicker.sera.blurb": "Mace, shield and a healer's hands. Keeps the party standing with Cure Wounds and Bless, and can hold a line herself.",
 };
