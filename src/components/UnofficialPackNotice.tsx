@@ -1,3 +1,5 @@
+"use client";
+
 import { cn } from "@/lib/cn";
 import { useI18n } from "@/lib/i18n/provider";
 
