@@ -5,6 +5,7 @@ import { X } from "lucide-react";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/cn";
 import { returnFocus } from "./return-focus";
+import { useT } from "@/lib/i18n/provider";
 
 // Shared Radix dialog shell: blurred night overlay, animated glass panel,
 // gold display-font title. Content scrolls internally when tall, under a
@@ -28,6 +29,7 @@ export function Dialog({
   width?: string;
   children: ReactNode;
 }) {
+  const t = useT();
   return (
     <RadixDialog.Root open={open} onOpenChange={onOpenChange}>
       <RadixDialog.Portal>
@@ -45,7 +47,7 @@ export function Dialog({
               <span className="gold-title">{title}</span>
             </RadixDialog.Title>
             <RadixDialog.Close
-              aria-label="Close"
+              aria-label={t("dialog.close")}
               className="pk-tap -m-1 flex shrink-0 items-center justify-center rounded-md p-2 text-stone-400 transition-colors hover:bg-stone-800 hover:text-stone-200"
             >
               <X className="size-4" />
