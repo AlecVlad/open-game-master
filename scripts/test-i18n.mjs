@@ -92,6 +92,43 @@ for (const key of tableViewMessages) {
   assert.ok(key in DICTIONARIES.ru, `Russian table-view message missing: ${key}`);
 }
 
+const sharedComponentMessages = [
+  "about.title", "about.error.load", "about.loading", "about.version", "about.serverName",
+  "about.row.build", "about.row.commit", "about.row.built", "about.row.updateChannel", "about.row.checkedAt",
+  "about.update.off.deviceWorld", "about.update.off.server", "about.update.unknown",
+  "about.update.kind.stable", "about.update.kind.beta", "about.update.kind.release",
+  "about.update.available", "about.update.whatsNew", "about.update.ownerUpdates", "about.update.ahead", "about.update.current",
+  "about.build.unknown", "about.build.release", "about.build.changes", "about.build.basedOn", "about.build.development", "about.build.localChanges",
+  "about.copy.copied", "about.copy.bugReport", "about.copy.details", "about.checkAgain", "about.server.connected",
+  "about.releaseNotes", "about.reportProblem", "about.tellHost",
+  "report.title", "report.error.options", "report.error.make", "report.error.save", "report.saved", "report.where.device",
+  "report.openForm", "report.done", "report.description", "report.checkFirst.title", "report.checkFirst.hint",
+  "report.file.contents", "report.loading", "report.cancel", "report.save",
+  "report.part.setup.label", "report.part.setup.hint", "report.part.pageErrors.label", "report.part.pageErrors.hint",
+  "report.part.turnTimings.label", "report.part.turnTimings.hint", "report.part.serverLog.label", "report.part.serverLog.hint",
+  "report.part.transcript.label", "report.part.transcript.hint", "report.part.turnRecords.label", "report.part.turnRecords.hint",
+  "commandPalette.title", "commandPalette.placeholder", "commandPalette.chip", "commandPalette.open",
+  "commandPalette.shortcut", "commandPalette.close", "commandPalette.empty", "commandPalette.move", "commandPalette.run", "commandPalette.count",
+  "deviceSettings.systemDefault", "deviceSettings.microphone.fallback", "deviceSettings.output.fallback",
+  "deviceSettings.microphone.open", "deviceSettings.microphone.ptt", "deviceSettings.microphone.title", "deviceSettings.microphone.description",
+  "deviceSettings.microphone.recordingDevice", "deviceSettings.microphone.allowAccess", "deviceSettings.microphone.recordingLevel",
+  "deviceSettings.microphone.stopTest", "deviceSettings.microphone.test", "deviceSettings.microphone.mode",
+  "deviceSettings.microphone.modePtt", "deviceSettings.microphone.dictationKey",
+  "deviceSettings.playback.title", "deviceSettings.playback.description", "deviceSettings.playback.device", "deviceSettings.playback.test",
+  "deviceSettings.playback.systemSettings", "deviceSettings.playback.voiceChat", "deviceSettings.playback.narration",
+  "deviceSettings.playback.narrationReadAloud", "deviceSettings.playback.ambience", "deviceSettings.playback.room", "deviceSettings.playback.music",
+  "deviceSettings.dice.title", "deviceSettings.dice.roll3d", "deviceSettings.dice.shake", "deviceSettings.dice.shakeHint", "deviceSettings.dice.physical",
+  "deviceSettings.effects.title", "deviceSettings.effects.full", "deviceSettings.effects.lowAuto", "deviceSettings.effects.auto",
+  "deviceSettings.effects.manual", "deviceSettings.effects.choose", "deviceSettings.effects.paintedMaps",
+  "deviceSettings.effects.paintedMapsHint", "deviceSettings.effects.chime",
+  "deletionBanner.message", "deletionBanner.error", "deletionBanner.keep",
+];
+for (const key of sharedComponentMessages) {
+  assert.ok(key in DICTIONARIES.en, `English shared-component message missing: ${key}`);
+  assert.ok(key in DICTIONARIES.ru, `Russian shared-component message missing: ${key}`);
+}
+
+
 // Party backstory: every fixed label, state and known API refusal has both language forms.
 const partyBackstoryMessages = [
   "campaign.session.party.backstory.title",
