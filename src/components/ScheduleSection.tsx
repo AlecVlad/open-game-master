@@ -10,13 +10,15 @@ import { DateTimePicker } from "@/components/ui/DateTimePicker";
 import { GameIcon } from "@/components/ui/GameIcon";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import type { RsvpResponse, ScheduledSession } from "@/lib/db/scheduling";
+import { useI18n } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages/index";
 
 // The out-of-game calendar: when the humans meet next. Lives in the lobby
 // beside the party list. The lead plans and cancels; everyone RSVPs. The
 // schedule_updated stream nudge bumps `version` and this refetches.
 
-function whenLabel(startsAt: string): string {
-  return new Date(startsAt).toLocaleString(undefined, {
+function whenLabel(startsAt: string, locale: string): string {
+  return new Date(startsAt).toLocaleString(locale, {
     weekday: "short",
     month: "short",
     day: "numeric",
@@ -53,11 +55,11 @@ function daypartOf(startsAt: string): string {
 
 // One press sets the hour on the chosen day (tomorrow when none is chosen
 // yet); the field beside them still takes any date and time by hand.
-const QUICK_TIMES = [
-  { glyph: "morning", label: "Morning", hour: 10 },
-  { glyph: "day", label: "Afternoon", hour: 14 },
-  { glyph: "dusk", label: "Evening", hour: 19 },
-  { glyph: "night", label: "Late", hour: 21 },
+const QUICK_TIMES: Array<{ glyph: string; labelKey: MessageKey; hour: number }> = [
+  { glyph: "morning", labelKey: "schedule.quick.morning", hour: 10 },
+  { glyph: "day", labelKey: "schedule.quick.afternoon", hour: 14 },
+  { glyph: "dusk", labelKey: "schedule.quick.evening", hour: 19 },
+  { glyph: "night", labelKey: "schedule.quick.late", hour: 21 },
 ];
 
 function withHour(current: string, hour: number): string {
@@ -70,10 +72,11 @@ function withHour(current: string, hour: number): string {
 }
 
 function QuickTimes({ value, onPick }: { value: string; onPick: (next: string) => void }) {
+  const { t } = useI18n();
   const hour = value ? new Date(value).getHours() : -1;
   const onTheHour = value ? new Date(value).getMinutes() === 0 : false;
   return (
-    <div className="flex flex-wrap gap-1.5" role="group" aria-label="Quick times">
+    <div className="flex flex-wrap gap-1.5" role="group" aria-label={t("schedule.quickTimes")}>
       {QUICK_TIMES.map((choice) => {
         const active = onTheHour && hour === choice.hour;
         return (
@@ -90,7 +93,7 @@ function QuickTimes({ value, onPick }: { value: string; onPick: (next: string) =
             )}
           >
             <GameIcon icon={{ kind: "glyph", key: `daypart-${choice.glyph}` }} size="size-6" />
-            {choice.label}
+            {t(choice.labelKey)}
           </button>
         );
       })}
@@ -102,10 +105,10 @@ function FieldLabel({ children }: { children: React.ReactNode }) {
   return <span className="eyebrow mb-1 block text-[9px] text-stone-400">{children}</span>;
 }
 
-const RSVP_CHOICES: Array<{ value: RsvpResponse; label: string; icon: typeof Check }> = [
-  { value: "yes", label: "Going", icon: Check },
-  { value: "maybe", label: "Maybe", icon: CircleHelp },
-  { value: "no", label: "Out", icon: X },
+const RSVP_CHOICES: Array<{ value: RsvpResponse; labelKey: MessageKey; icon: typeof Check }> = [
+  { value: "yes", labelKey: "schedule.rsvp.going", icon: Check },
+  { value: "maybe", labelKey: "schedule.rsvp.maybe", icon: CircleHelp },
+  { value: "no", labelKey: "schedule.rsvp.out", icon: X },
 ];
 
 export function ScheduleSection({
@@ -129,6 +132,8 @@ export function ScheduleSection({
   className?: string;
   style?: CSSProperties;
 }) {
+  const { t, tp, lang } = useI18n();
+  const locale = lang === "ru" ? "ru-RU" : "en-US";
   const [sessions, setSessions] = useState<ScheduledSession[]>([]);
   const [planning, setPlanning] = useState(false);
   const [title, setTitle] = useState("");
@@ -166,7 +171,7 @@ export function ScheduleSection({
   async function plan(event: React.FormEvent) {
     event.preventDefault();
     if (!when) {
-      setError("Pick a date and time.");
+      setError(t("schedule.error.pickDate"));
       return;
     }
     setBusy(true);
@@ -184,7 +189,11 @@ export function ScheduleSection({
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError(data.error || "Could not plan the session.");
+        setError(data.errorCode === "TIME_IN_PAST"
+          ? t("schedule.error.past")
+          : data.errorCode === "INVALID_INPUT"
+            ? t("schedule.error.invalid")
+            : t("schedule.error.plan"));
         return;
       }
       setPlanning(false);
@@ -194,7 +203,7 @@ export function ScheduleSection({
       setNote("");
       await load();
     } catch {
-      setError("Could not reach the server.");
+      setError(t("schedule.error.network"));
     } finally {
       setBusy(false);
     }
@@ -203,7 +212,7 @@ export function ScheduleSection({
   async function move(event: React.FormEvent) {
     event.preventDefault();
     if (!movingId || !moveWhen) {
-      setMoveError("Pick a new date and time.");
+      setMoveError(t("schedule.error.pickNewDate"));
       return;
     }
     setMoveBusy(true);
@@ -216,14 +225,18 @@ export function ScheduleSection({
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setMoveError(data.error || "Could not move the session.");
+        setMoveError(data.errorCode === "SESSION_NOT_FOUND"
+          ? t("schedule.error.missing")
+          : data.errorCode === "INVALID_INPUT"
+            ? t("schedule.error.invalid")
+            : t("schedule.error.move"));
         return;
       }
       setMovingId(null);
       setMoveWhen("");
       await load();
     } catch {
-      setMoveError("Could not reach the server.");
+      setMoveError(t("schedule.error.network"));
     } finally {
       setMoveBusy(false);
     }
@@ -239,7 +252,7 @@ export function ScheduleSection({
   }
 
   async function cancel(sessionId: string) {
-    if (!await appConfirm("Call this session off? Everyone gets told.")) {
+    if (!await appConfirm(t("schedule.cancel.confirm"))) {
       return;
     }
     await fetch(`/api/campaigns/${campaignId}/schedule/${sessionId}`, {
@@ -260,7 +273,7 @@ export function ScheduleSection({
     >
       <div className="lobby-head mb-3">
         <GameIcon icon={{ kind: "glyph", key: "tab-session" }} size="size-7" />
-        <h2 className="lobby-head-title">Next session</h2>
+        <h2 className="lobby-head-title">{t("schedule.title")}</h2>
         <span className="lobby-head-rule motion-rule" aria-hidden="true" />
         {isLead ? (
           <button
@@ -272,7 +285,7 @@ export function ScheduleSection({
             <Plus
               className={cn("size-4 transition-transform duration-300 ease-[var(--ease-spring)]", planning && "rotate-45")}
             />{" "}
-            Plan a session
+            {t("schedule.plan")}
           </button>
         ) : null}
       </div>
@@ -283,48 +296,48 @@ export function ScheduleSection({
           className="motion-tab mb-4 space-y-3 rounded-xl border border-stone-700/60 bg-stone-950/40 p-3"
         >
           <label className="block">
-            <FieldLabel>When</FieldLabel>
+            <FieldLabel>{t("schedule.when")}</FieldLabel>
             {/* No native "required" here: plan() already refuses an empty time. */}
-            <DateTimePicker value={when} onChange={setWhen} label="When" placeholder="Pick a date and time" className="w-full" />
+            <DateTimePicker value={when} onChange={setWhen} label={t("schedule.when")} placeholder={t("schedule.pickDate")} className="w-full" />
           </label>
           <QuickTimes value={when} onPick={setWhen} />
           <div>
-            <FieldLabel>How long</FieldLabel>
+            <FieldLabel>{t("schedule.duration")}</FieldLabel>
             <SegmentedControl
               size="sm"
-              label="How long the session runs"
+              label={t("schedule.duration.selector")}
               className="w-full"
               options={DURATION_CHOICES.map((minutes) => ({
                 value: String(minutes),
-                label: `${minutes / 60} hour${minutes === 60 ? "" : "s"}`,
+                label: tp("schedule.duration.hours", minutes / 60),
               }))}
               value={String(duration)}
               onChange={(next) => setDuration(Number(next))}
             />
           </div>
           <label className="block">
-            <FieldLabel>Title</FieldLabel>
+            <FieldLabel>{t("schedule.title.label")}</FieldLabel>
             <input
               value={title}
               onChange={(event) => setTitle(event.target.value)}
-              placeholder="Title (optional)"
+              placeholder={t("schedule.title.placeholder")}
               maxLength={120}
               className={ui.input}
             />
           </label>
           <label className="block">
-            <FieldLabel>Note</FieldLabel>
+            <FieldLabel>{t("schedule.note.label")}</FieldLabel>
             <input
               value={note}
               onChange={(event) => setNote(event.target.value)}
-              placeholder="Note, e.g. we pick up at the bridge (optional)"
+              placeholder={t("schedule.note.placeholder")}
               maxLength={500}
               className={ui.input}
             />
           </label>
           <div className="flex flex-wrap items-center gap-2">
             <button type="submit" disabled={busy} className={cn(ui.btnPrimary, "h-9")}>
-              Schedule
+              {t("schedule.create")}
             </button>
             {error ? <p className="motion-shake text-sm text-red-400">{error}</p> : null}
           </div>
@@ -335,8 +348,8 @@ export function ScheduleSection({
         <EmptyState
           art="board"
           size="sm"
-          title="Nothing planned yet."
-          hint="Plan a session and everyone at the table is asked whether they can make it."
+          title={t("schedule.empty.title")}
+          hint={t("schedule.empty.hint")}
         />
       ) : (
         <ul className="stagger space-y-2.5">
@@ -347,7 +360,7 @@ export function ScheduleSection({
               session.rsvps.filter((entry) => entry.response === response);
             const names = (response: RsvpResponse) =>
               going(response)
-                .map((entry) => usernames[entry.userId] ?? "someone")
+                .map((entry) => usernames[entry.userId] ?? t("schedule.someone"))
                 .join(", ");
             return (
               <li
@@ -361,11 +374,11 @@ export function ScheduleSection({
                 <div className="flex items-start gap-3">
                   <div className="lobby-date" aria-hidden="true">
                     <span className="lobby-date-month">
-                      {starts.toLocaleString(undefined, { month: "short" })}
+                      {starts.toLocaleString(locale, { month: "short" })}
                     </span>
                     <span className="lobby-date-day">{starts.getDate()}</span>
                     <span className="lobby-date-dow">
-                      {starts.toLocaleString(undefined, { weekday: "short" })}
+                      {starts.toLocaleString(locale, { weekday: "short" })}
                     </span>
                   </div>
                   <div className="min-w-0 flex-1">
@@ -374,11 +387,11 @@ export function ScheduleSection({
                         icon={{ kind: "glyph", key: `daypart-${daypartOf(session.startsAt)}` }}
                         size="size-6"
                       />
-                      <span>{whenLabel(session.startsAt)}</span>
-                      {session.cancelledAt ? <span className="text-red-400">cancelled</span> : null}
+                      <span>{whenLabel(session.startsAt, locale)}</span>
+                      {session.cancelledAt ? <span className="text-red-400">{t("schedule.cancelled")}</span> : null}
                     </p>
                     <p className="mt-0.5 font-serif text-sm text-stone-300">
-                      {session.title || `${Math.round(session.durationMin / 60)}h session`}
+                      {session.title || tp("schedule.duration.session", Math.max(1, Math.round(session.durationMin / 60)))}
                     </p>
                     {session.note ? (
                       <p className="reveal mt-0.5 text-xs text-stone-500">{session.note}</p>
@@ -402,7 +415,7 @@ export function ScheduleSection({
                                 />
                               ))}
                             </span>
-                            {choice.label} {entries.length}
+                            {t(choice.labelKey)} {entries.length}
                           </span>
                         ) : null;
                       })}
@@ -422,13 +435,13 @@ export function ScheduleSection({
                           mine === choice.value &&
                             "border-amber-400/60 bg-amber-400/15 text-amber-100 shadow-glow-gold",
                         )}
-                        title={choice.label}
+                        title={t(choice.labelKey)}
                       >
                         <choice.icon
                           key={mine === choice.value ? "on" : "off"}
                           className={cn("size-4", mine === choice.value && "lobby-pop")}
                         />
-                        <span>{choice.label}</span>
+                        <span>{t(choice.labelKey)}</span>
                       </button>
                     ))}
                     {isLead ? (
@@ -443,14 +456,14 @@ export function ScheduleSection({
                           aria-expanded={movingId === session.id}
                           className="rounded-md px-2 py-1.5 text-xs text-stone-500 transition-colors hover:text-amber-300"
                         >
-                          Move
+                          {t("schedule.move")}
                         </button>
                         <button
                           type="button"
                           onClick={() => void cancel(session.id)}
                           className="rounded-md px-2 py-1.5 text-xs text-stone-500 transition-colors hover:text-red-400"
                         >
-                          Call off
+                          {t("schedule.callOff")}
                         </button>
                       </span>
                     ) : null}
@@ -459,9 +472,9 @@ export function ScheduleSection({
                 {movingId === session.id && !session.cancelledAt ? (
                   <form onSubmit={move} className="motion-tab mt-2.5 space-y-2">
                     <div className="flex flex-wrap items-center gap-2">
-                      <DateTimePicker value={moveWhen} onChange={setMoveWhen} label="New date and time" placeholder="Pick a date and time" className="w-auto min-w-0 flex-1" />
+                      <DateTimePicker value={moveWhen} onChange={setMoveWhen} label={t("schedule.newDate")} placeholder={t("schedule.pickDate")} className="w-auto min-w-0 flex-1" />
                       <button type="submit" disabled={moveBusy} className={ui.btnSmall}>
-                        Move it
+                        {t("schedule.moveIt")}
                       </button>
                     </div>
                     <QuickTimes value={moveWhen} onPick={setMoveWhen} />
