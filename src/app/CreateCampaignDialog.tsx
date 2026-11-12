@@ -5,6 +5,7 @@ import { returnFocus } from "@/components/ui/return-focus";
 import { Loader2, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useI18n } from "@/lib/i18n/provider";
+import { campaignApiErrorText } from "@/lib/i18n/campaignApiError";
 import type { MessageKey } from "@/lib/i18n/messages/index";
 import { GoldTitle } from "@/components/ui/GoldTitle";
 import { Wizard, type WizardStep } from "@/components/ui/Wizard";
@@ -345,7 +346,7 @@ export function CreateCampaignDialog({
         });
         const data = await response.json().catch(() => ({}));
         if (!response.ok) {
-          setError(data.error || t("createCampaign.dialog.error.create"));
+          setError(campaignApiErrorText(data, t("createCampaign.dialog.error.create"), t));
           return;
         }
         campaignId = String(data.campaign.id);
