@@ -246,7 +246,7 @@ export function MonsterEditor({
           className={ui.btnPrimary}
         >
           {busy ? <Loader2 className="size-3.5 animate-spin" /> : null}
-          Save the block
+          {t("workshop.monsterEditor.editor.saveBlock")}
         </button>
         <span className="text-[11px] text-stone-500">
           {t("workshop.monsterEditor.editor.saving")}
@@ -288,7 +288,7 @@ export function MonsterEditor({
 
   return (
     <div className="flex flex-col gap-3 border-t border-stone-800 p-3">
-      <SectionHead title="The block" glyph="system-bestiary" className="mb-0" />
+      <SectionHead title={t("workshop.monsterEditor.editor.block")} glyph="system-bestiary" className="mb-0" />
       {coreStats}
       <AbilityScores draft={draft} onChange={onDraft} />
       <MonsterKitPanel draft={draft} onChange={onDraft} />
