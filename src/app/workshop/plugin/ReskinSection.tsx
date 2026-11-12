@@ -32,6 +32,22 @@ import { textKey } from "@/lib/language/text-logic";
 type IdKind = "races" | "classes" | "backgrounds";
 type NameKind = "spells" | "items" | "features";
 
+const BACKGROUND_NAME_KEYS: Record<string, string> = {
+  acolyte: "workshop.plugin.background.acolyte",
+  charlatan: "workshop.plugin.background.charlatan",
+  criminal: "workshop.plugin.background.criminal",
+  entertainer: "workshop.plugin.background.entertainer",
+  folk_hero: "workshop.plugin.background.folk_hero",
+  guild_artisan: "workshop.plugin.background.guild_artisan",
+  hermit: "workshop.plugin.background.hermit",
+  noble: "workshop.plugin.background.noble",
+  outlander: "workshop.plugin.background.outlander",
+  sage: "workshop.plugin.background.sage",
+  sailor: "workshop.plugin.background.sailor",
+  soldier: "workshop.plugin.background.soldier",
+  urchin: "workshop.plugin.background.urchin",
+};
+
 const ID_COPY: Record<IdKind, { title: string; prompt: string; blurb: string; catalog: CatalogOption[] }> = {
   races: {
     title: "workshop.plugin.reskin.species",
@@ -62,7 +78,9 @@ export function IdReskinList({ draft, onDraft, kind }: SectionProps & { kind: Id
       ? t(`campaign.npcEditor.raceOption.${id}` as never)
       : kind === "classes"
         ? t(`charSheet.class.${id}` as never)
-        : catalogLabel(copy.catalog, id);
+        : kind === "backgrounds" && BACKGROUND_NAME_KEYS[id]
+          ? t(BACKGROUND_NAME_KEYS[id] as never)
+          : catalogLabel(copy.catalog, id);
   const used = new Set(list.map((entry) => entry.id));
   const remaining = copy.catalog
     .filter((option) => !used.has(option.value))
