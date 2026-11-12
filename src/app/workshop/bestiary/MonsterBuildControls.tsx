@@ -11,10 +11,21 @@ import { Field } from "@/app/workshop/kit";
 import { MONSTER_NAME_MAX } from "@/lib/bestiary/monster-draft";
 import { crLabel } from "@/lib/bestiary/derive-cr";
 import { CR_CHOICES, type Found } from "@/app/workshop/bestiary/types";
-import { needsLabel } from "@/lib/content/levelup-logic";
+import type { Need } from "@/lib/content/needs-logic";
 import { BEST_EFFORT_CHIP } from "@/lib/content/reading-logic";
 
 const CR_OPTIONS = CR_CHOICES.map((cr) => ({ value: String(cr), label: crLabel(cr) }));
+
+const NEED_KEYS: Record<Need, string> = {
+  strife: "workshop.monsterEditor.build.need.strife",
+  fatigue: "workshop.monsterEditor.build.need.fatigue",
+  rattled: "workshop.monsterEditor.build.need.rattled",
+  "expertise dice": "workshop.monsterEditor.build.need.expertiseDice",
+  exertion: "workshop.monsterEditor.build.need.exertion",
+  maneuvers: "workshop.monsterEditor.build.need.maneuvers",
+  bloodied: "workshop.monsterEditor.build.need.bloodied",
+  "ley lines": "workshop.monsterEditor.build.need.leyLines",
+};
 
 // The top of the bestiary: name a monster and start it at a challenge
 // rating, or search the content pack for something to start from. Split out
@@ -140,7 +151,7 @@ export function MonsterBuildControls({
               {entry.name} <span className="text-stone-600">ПО {crLabel(entry.cr)}</span>
               {/* Built on rules this game does not play: copy it to change
                   that part (issue #570). */}
-              {entry.needs?.length ? <span className="text-orange-300/90">{needsLabel(entry.needs)}</span> : null}
+              {entry.needs?.length ? <span className="text-orange-300/90">{t("workshop.monsterEditor.build.unsupportedRules", { needs: entry.needs.map((need) => t(NEED_KEYS[need] as never)).join(", ") })}</span> : null}
               {entry.bestEffort ? <span className="text-sky-300/80">{t("workshop.monsterEditor.build.bestEffort")}</span> : null}
             </button>
           ))}
