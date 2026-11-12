@@ -5,8 +5,8 @@ Single restore point for Russian localization. After a chat interruption, read o
 ## State
 - Repository: `AlecVlad/open-game-master`
 - Branch: `i18n-ru-agent2` — verify current HEAD on resume; do not trust a stored SHA.
-- Active work: **Block 2 — Workshop: audit and localization of remaining editors and content workflows**.
-- Block 1 — game session — remains formally open; do not create its DONE flag, merge branches, or open a PR.
+- Active work: **Block 2 — Workshop: final small remainder** (user assessment: nearly complete).
+- Block 1 — game session — is closed by user confirmation; `BLOCK-01-SESSION-DONE` exists. Technical stage 1.1 remains separate and is performed on the local machine only after an explicit user command.
 - `STATUS.md` is an older detailed log and may lag this checkpoint. This checkpoint is authoritative for the current state.
 - `PLAN.md` contains block boundaries and completion criteria; consult only when scope is unclear.
 
@@ -123,10 +123,10 @@ Single restore point for Russian localization. After a chat interruption, read o
 - Added 58 EN/RU base messages in `workshop.ts`; Russian plural forms were added for corner-count instructions. Static verification: keys, placeholders and duplicate checks passed.
 
 ## Next work
-- The WorldForge pass is complete across all 29 files in `src/app/workshop/world/`; do not repeat its completed Atlas, timeline, secrets, wiki or supporting-tool work without a targeted reason.
-- Continue Block 2 with a source-first audit of the remaining Workshop systems named in `PLAN.md`: Plugin Wizard, Monster Editor, Map Editor, Encounter Form and Lore Editor. Some pieces may already have translations; verify integration and uncovered UI before changing anything.
-- Finish the remaining creation/edit/save/import/export/publish paths, including validation, known system errors, empty/loading states and accessibility labels.
-- The Reference module is not confirmed complete: `mainPage`, `comparison`, `desk`, `badges`, `calculators` and its EN/RU message wiring still need a fresh source audit.
+- Block 1 is closed for localization by user confirmation. Stage 1.1 is separate and is not started without an explicit command.
+- Block 2 is nearly complete; do a compact audit of the specific remaining gaps rather than treating whole editors as untouched. Preserve all completed WorldForge work (all 29 files in `src/app/workshop/world/`).
+- Block 3 — Characters and Campaigns — is approximately 50% complete by the user's estimate. Continue from existing localized campaign settings, lobby, invite and character-builder work; avoid re-translating completed components.
+- The Reference module still needs a fresh source audit: `mainPage`, `comparison`, `desk`, `badges`, `calculators` and EN/RU message wiring are not yet confirmed.
 - Do not sync upstream, merge branches or open a PR during translation.
 
 ## Low-token work protocol
@@ -237,7 +237,7 @@ Single restore point for Russian localization. After a chat interruption, read o
 - `EquipmentSection.tsx` already maps catalog shelf categories through existing translated `builder.gear.shelf.*` keys; no code change was needed there.
 
 ## Resume
-The WorldForge component pass is complete across all 29 files in `src/app/workshop/world/`: core views, Atlas, timeline, secrets, wiki, Ask, outline generation, paint queue, relationship graph/editor, type manager, bound records, play fields and shared pickers. Continue with the broader app-level localization audit outside this folder and fix any remaining visible English UI. Verify branch HEAD before editing. Follow the local-validation rule in Low-token work protocol. Block 1 remains formally open; do not merge, open a PR or create its DONE flag.
+The WorldForge component pass is complete across all 29 files in `src/app/workshop/world/`: core views, Atlas, timeline, secrets, wiki, Ask, outline generation, paint queue, relationship graph/editor, type manager, bound records, play fields and shared pickers. Block 1 is closed by user confirmation; its technical stage 1.1 remains separate and command-gated. Block 2 is nearly complete; Block 3 is approximately halfway complete. Continue from the verified remainder and existing progress. Verify branch HEAD before editing. Follow the local-validation rule in Low-token work protocol. Do not merge or open a PR.
 
 
 ## Workshop — hazard editor — 12 November 2026
