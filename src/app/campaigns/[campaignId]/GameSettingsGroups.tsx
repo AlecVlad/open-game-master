@@ -607,31 +607,34 @@ export function BondsGroup({ settings, patch, lastingCompanions = false }: Base 
 // table holds it (15 to 900 seconds allowed). A stored length that is not
 // one of the choices is offered as itself.
 const WAIT_CHOICES = [30, 60, 120, 180, 300, 600, 900];
-function waitLabel(seconds: number) {
-  return `Waits for everyone, up to ${seconds % 60 ? `${seconds}s` : `${seconds / 60} min`}`;
-}
-const PACING_INFO =
-  "Answers the first post: the AI GM narrates as soon as anyone acts, so the quickest player sets the pace.\n\nWaits for everyone: after each narration the AI GM waits until every player who has the table open (or plays through a connected agent) has acted or pressed Pass, then answers them all in one turn. The clock starts with the first answer and restarts with every post or pass, so only a quiet table runs it out. The lead can say Go on now at any time. A spotlight, a fight's turn order and table talk never wait.";
-function pacingOptions(seconds: number) {
-  const lengths = WAIT_CHOICES.includes(seconds) ? WAIT_CHOICES : [...WAIT_CHOICES, seconds].sort((a, b) => a - b);
-  // "0": no wait, the first post wakes the DM.
-  return [{ value: "0", label: "Answers the first post" }, ...lengths.map((length) => ({ value: String(length), label: waitLabel(length) }))];
-}
 
 // `solo`: a table of one, where nobody else could be waited for.
 export function PlayersGroup({ settings, patch, solo = false }: Base & { solo?: boolean }) {
+  const { t } = useI18n();
+  const lengths = WAIT_CHOICES.includes(settings.waitForTableSeconds) ? WAIT_CHOICES : [...WAIT_CHOICES, settings.waitForTableSeconds].sort((a, b) => a - b);
+  const pacingOptions = [
+    { value: "0", label: t("campaign.gameSettings.players.firstPost") },
+    ...lengths.map((seconds) => ({
+      value: String(seconds),
+      label: t("campaign.gameSettings.players.waitForTable", {
+        duration: seconds % 60
+          ? t("campaign.gameSettings.players.seconds", { count: seconds })
+          : t("campaign.gameSettings.players.minutes", { count: seconds / 60 }),
+      }),
+    })),
+  ];
   return (
     <>
       <div className="flex flex-wrap items-center gap-2">
-        <span className="pk-rowlabel">Joining</span>
-        <Tooltip content="Allow new players to join with the invite code after the adventure starts">
+        <span className="pk-rowlabel">{t("campaign.gameSettings.players.joining")}</span>
+        <Tooltip content={t("campaign.gameSettings.players.joiningHint")}>
           <SettingToggle on={settings.midGameJoinOpen} onToggle={() => patch({ midGameJoinOpen: !settings.midGameJoinOpen })}>
-            Mid-game joining {settings.midGameJoinOpen ? "open" : "closed"}
+            {t(settings.midGameJoinOpen ? "campaign.gameSettings.players.joiningOpen" : "campaign.gameSettings.players.joiningClosed")}
           </SettingToggle>
         </Tooltip>
-        <Tooltip content="After each GM narration, players cannot act until you allow responses. OOC stays open.">
+        <Tooltip content={t("campaign.gameSettings.players.heldHint")}>
           <SettingToggle on={settings.holdSubmissions} onToggle={() => patch({ holdSubmissions: !settings.holdSubmissions })}>
-            Held responses {settings.holdSubmissions ? "on" : "off"}
+            {t(settings.holdSubmissions ? "campaign.gameSettings.players.heldOn" : "campaign.gameSettings.players.heldOff")}
           </SettingToggle>
         </Tooltip>
       </div>
@@ -639,42 +642,38 @@ export function PlayersGroup({ settings, patch, solo = false }: Base & { solo?: 
           wait for. */}
       {!solo && settings.dmMode !== "human" ? (
         <div className="flex flex-wrap items-center gap-2">
-          <span className="pk-rowlabel">Pacing</span>
+          <span className="pk-rowlabel">{t("campaign.gameSettings.players.pacing")}</span>
           <Select
             size="sm"
-            label="When the AI GM answers"
+            label={t("campaign.gameSettings.players.pacingLabel")}
             value={settings.waitForTable ? String(settings.waitForTableSeconds) : "0"}
             onChange={(value) => patch(Number(value) ? { waitForTable: true, waitForTableSeconds: Number(value) } : { waitForTable: false })}
-            options={pacingOptions(settings.waitForTableSeconds)}
+            options={pacingOptions}
             className={selectClass}
           />
-          <InfoButton label="What does waiting for everyone do?" text={PACING_INFO} />
+          <InfoButton label={t("campaign.gameSettings.players.pacingInfoLabel")} text={t("campaign.gameSettings.players.pacingInfo")} />
         </div>
       ) : null}
       <div className="flex flex-wrap items-center gap-2">
-        <span className="pk-rowlabel">Items</span>
-        <Tooltip content="When on, GM-granted loot, item removals, and gold changes become offers the owning player accepts or declines before they land on the sheet. Damage, healing and conditions have their own switch.">
+        <span className="pk-rowlabel">{t("campaign.gameSettings.players.items")}</span>
+        <Tooltip content={t("campaign.gameSettings.players.itemsHint")}>
           <SettingToggle on={settings.inventoryApprovals} onToggle={() => patch({ inventoryApprovals: !settings.inventoryApprovals })}>
-            Item offers {settings.inventoryApprovals ? "on" : "off"}
+            {t(settings.inventoryApprovals ? "campaign.gameSettings.players.itemsOn" : "campaign.gameSettings.players.itemsOff")}
           </SettingToggle>
         </Tooltip>
         <span className="text-stone-500">
-          {settings.inventoryApprovals
-            ? "Players confirm GM item and gold changes before they apply."
-            : "GM item and gold changes apply immediately (lead can undo)."}
+          {t(settings.inventoryApprovals ? "campaign.gameSettings.players.itemsHintOn" : "campaign.gameSettings.players.itemsHintOff")}
         </span>
       </div>
       <div className="pk-row">
-        <span className="pk-rowlabel">Vitals</span>
-        <Tooltip content="When on, damage, healing and conditions the AI GM or a connected agent aims at a player character wait for that player (or the lead) to confirm before they land, so a wrong target, a doubled hit or a misread rule never sticks unseen. The engine's own dice, an enemy's attack or a fall, apply as always. A slower table; off by default.">
+        <span className="pk-rowlabel">{t("campaign.gameSettings.players.vitals")}</span>
+        <Tooltip content={t("campaign.gameSettings.players.vitalsHint")}>
           <SettingToggle on={settings.vitalsApprovals} onToggle={() => patch({ vitalsApprovals: !settings.vitalsApprovals })}>
-            Vitals changes {settings.vitalsApprovals ? "need confirming" : "auto-apply"}
+            {t(settings.vitalsApprovals ? "campaign.gameSettings.players.vitalsOn" : "campaign.gameSettings.players.vitalsOff")}
           </SettingToggle>
         </Tooltip>
         <span className="text-stone-500">
-          {settings.vitalsApprovals
-            ? "Players confirm GM damage, healing and conditions before they apply."
-            : "GM damage, healing and conditions apply immediately (lead can undo)."}
+          {t(settings.vitalsApprovals ? "campaign.gameSettings.players.vitalsHintOn" : "campaign.gameSettings.players.vitalsHintOff")}
         </span>
       </div>
     </>
@@ -684,28 +683,29 @@ export function PlayersGroup({ settings, patch, solo = false }: Base & { solo?: 
 // Only the DM seat is ever nudged, so this group does not exist for a table
 // the AI narrates: there, the story is typed by definition.
 export function ConsoleGroup({ settings, patch }: Base) {
+  const { t } = useI18n();
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <span className="pk-rowlabel">Remind</span>
-      <Tooltip content="How much play may pass with nothing written down before the console nudges you to record what happened. Your own typed narration counts, so a GM who writes their scenes is never nudged.">
+      <span className="pk-rowlabel">{t("campaign.gameSettings.console.remind")}</span>
+      <Tooltip content={t("campaign.gameSettings.console.hint")}>
         <span className="inline-flex min-w-0 max-w-full">
           <Select
             size="sm"
-            label="Remind after this many actions"
+            label={t("campaign.gameSettings.console.actionsLabel")}
             value={String(settings.beatReminder.messages)}
             onChange={(value) => patch({ beatReminder: { ...settings.beatReminder, messages: Number(value) } })}
-            options={[0, 5, 10, 20, 40].map((count) => ({ value: String(count), label: count === 0 ? "never by actions" : `after ${count} actions` }))}
+            options={[0, 5, 10, 20, 40].map((count) => ({ value: String(count), label: count === 0 ? t("campaign.gameSettings.console.neverActions") : t("campaign.gameSettings.console.afterActions", { count }) }))}
             className={selectClass}
           />
         </span>
       </Tooltip>
-      <span className="inline-flex min-w-0 max-w-full" title="The combat tempo: twelve rolls is roughly two rounds of a four-person fight.">
+      <span className="inline-flex min-w-0 max-w-full" title={t("campaign.gameSettings.console.rollTempoHint")}>
         <Select
           size="sm"
-          label="Remind after this many rolls"
+          label={t("campaign.gameSettings.console.rollsLabel")}
           value={String(settings.beatReminder.rolls)}
           onChange={(value) => patch({ beatReminder: { ...settings.beatReminder, rolls: Number(value) } })}
-          options={[0, 6, 12, 24, 48].map((count) => ({ value: String(count), label: count === 0 ? "never by rolls" : `after ${count} rolls` }))}
+          options={[0, 6, 12, 24, 48].map((count) => ({ value: String(count), label: count === 0 ? t("campaign.gameSettings.console.neverRolls") : t("campaign.gameSettings.console.afterRolls", { count }) }))}
           className={selectClass}
         />
       </span>
@@ -714,17 +714,18 @@ export function ConsoleGroup({ settings, patch }: Base) {
 }
 
 export function BoardGroup({ settings, patch }: Base) {
+  const { t } = useI18n();
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <span className="pk-rowlabel">Board</span>
-      <Tooltip content="Players may draw on the live board: a plan of attack, a circle round a door. The GM always may.">
+      <span className="pk-rowlabel">{t("campaign.gameSettings.board.group")}</span>
+      <Tooltip content={t("campaign.gameSettings.board.drawingHint")}>
         <SettingToggle on={settings.boardDrawing} onToggle={() => patch({ boardDrawing: !settings.boardDrawing })}>
-          {settings.boardDrawing ? "Players may draw" : "Only the GM draws"}
+          {t(settings.boardDrawing ? "campaign.gameSettings.board.playersDraw" : "campaign.gameSettings.board.gmDraws")}
         </SettingToggle>
       </Tooltip>
-      <Tooltip content="Show what enemies look likely to do next">
+      <Tooltip content={t("campaign.gameSettings.board.enemyIntentHint")}>
         <SettingToggle on={settings.enemyIntent} onToggle={() => patch({ enemyIntent: !settings.enemyIntent })}>
-          Enemy intent {settings.enemyIntent ? "on" : "off"}
+          {t(settings.enemyIntent ? "campaign.gameSettings.board.enemyIntentOn" : "campaign.gameSettings.board.enemyIntentOff")}
         </SettingToggle>
       </Tooltip>
     </div>
@@ -736,33 +737,34 @@ export function BoardGroup({ settings, patch }: Base) {
 // is one table's house rule, and the next table will want a different one.
 // They are all inputs to one function (src/lib/voice/audibility.ts).
 export function VoiceChatGroup({ settings, patch, transcribes }: Base & { transcribes: boolean }) {
+  const { t } = useI18n();
   const rules = settings.voice.rules;
   const setRule = (change: Partial<GameSettings["voice"]["rules"]>) => patch({ voice: { ...settings.voice, rules: { ...rules, ...change } } });
   return (
     <>
       <p className="text-stone-500">
-        People talking to each other, in the lobby and during play. Separate from narration, which reads the story aloud.
+        {t("campaign.gameSettings.voiceChat.description")}
       </p>
       <div className="flex flex-wrap items-center gap-2">
-        <span className="pk-rowlabel">Voice</span>
-        <Tooltip content="Live voice chat for this table, in the lobby and during play. The server also has its own switch, and needs a media port open; if voice is off server-wide this has no effect.">
+        <span className="pk-rowlabel">{t("campaign.gameSettings.voiceChat.voice")}</span>
+        <Tooltip content={t("campaign.gameSettings.voiceChat.voiceHint")}>
           <SettingToggle on={settings.voice.enabled} onToggle={() => patch({ voice: { ...settings.voice, enabled: !settings.voice.enabled } })}>
-            Voice chat {settings.voice.enabled ? "on" : "off"}
+            {t(settings.voice.enabled ? "campaign.gameSettings.voiceChat.voiceOn" : "campaign.gameSettings.voiceChat.voiceOff")}
           </SettingToggle>
         </Tooltip>
         {settings.voice.enabled ? (
           <>
-            <Tooltip content="How hard the floor is enforced on microphones. Soft shows whose turn it is without muting anyone. Strict pauses a player's microphone on the server, so the mute is real rather than a greyed-out button. Off ignores the floor entirely. The GM is never muted by any of these.">
+            <Tooltip content={t("campaign.gameSettings.voiceChat.turnHint")}>
               <span className="inline-flex min-w-0 max-w-full">
                 <Select<"off" | "soft" | "strict">
                   size="sm"
-                  label="Turn enforcement on microphones"
+                  label={t("campaign.gameSettings.voiceChat.turnLabel")}
                   value={settings.voice.turnEnforcement}
                   onChange={(turnEnforcement) => patch({ voice: { ...settings.voice, turnEnforcement } })}
                   options={[
-                    { value: "off", label: "Turns: ignored" },
-                    { value: "soft", label: "Turns: shown" },
-                    { value: "strict", label: "Turns: enforced" },
+                    { value: "off", label: t("campaign.gameSettings.voiceChat.turns.ignored") },
+                    { value: "soft", label: t("campaign.gameSettings.voiceChat.turns.shown") },
+                    { value: "strict", label: t("campaign.gameSettings.voiceChat.turns.enforced") },
                   ]}
                   className={selectClass}
                 />
@@ -771,8 +773,8 @@ export function VoiceChatGroup({ settings, patch, transcribes }: Base & { transc
             <Tooltip
               content={
                 transcribes
-                  ? "Transcription: each speaker's microphone is written down with their name, for the beat drafter and the chapter summary. Never read by the GM prompt. The lobby says out loud that the table is being transcribed while this is on."
-                  : "This server has no transcription service, so nothing said on the call can be written down. An admin sets up a Whisper service (STT_URL, or Admin > Speech) to switch it on."
+                  ? t("campaign.gameSettings.voiceChat.transcriptionHintOn")
+                  : t("campaign.gameSettings.voiceChat.transcriptionHintOff")
               }
             >
               <SettingToggle
@@ -780,41 +782,41 @@ export function VoiceChatGroup({ settings, patch, transcribes }: Base & { transc
                 disabled={!transcribes}
                 onToggle={() => patch({ voice: { ...settings.voice, transcribe: !settings.voice.transcribe } })}
               >
-                Transcription {!transcribes ? "off on this server" : settings.voice.transcribe ? "on" : "off"}
+                {t(!transcribes ? "campaign.gameSettings.voiceChat.transcriptionServerOff" : settings.voice.transcribe ? "campaign.gameSettings.voiceChat.transcriptionOn" : "campaign.gameSettings.voiceChat.transcriptionOff")}
               </SettingToggle>
             </Tooltip>
-            <Tooltip content="Distance decides who hears whom, using the battle map. Outside combat, or with no map, everyone hears everyone as usual. The GM always hears everyone and is always heard.">
+            <Tooltip content={t("campaign.gameSettings.voiceChat.proximityHint")}>
               <SettingToggle on={rules.proximity} onToggle={() => setRule({ proximity: !rules.proximity })}>
-                Proximity {rules.proximity ? "on" : "off"}
+                {t(rules.proximity ? "campaign.gameSettings.voiceChat.proximityOn" : "campaign.gameSettings.voiceChat.proximityOff")}
               </SettingToggle>
             </Tooltip>
             {rules.proximity ? (
               <>
-                <span className="inline-flex min-w-0 max-w-full" title="How far a normal speaking voice carries">
+                <span className="inline-flex min-w-0 max-w-full" title={t("campaign.gameSettings.voiceChat.hearingRange")}>
                   <Select
                     size="sm"
-                    label="How far a normal speaking voice carries"
+                    label={t("campaign.gameSettings.voiceChat.hearingRange")}
                     value={String(rules.hearingRangeFeet)}
                     onChange={(value) => setRule({ hearingRangeFeet: Number(value) })}
                     options={[15, 30, 60, 120].map((feet) => ({ value: String(feet), label: formatFeet(feet, settings.measurementSystem, settings.tableLanguage) }))}
                     className={selectClass}
                   />
                 </span>
-                <Tooltip content={formatMeasurementText("Lets each player pick whisper (5 ft), normal, or shout (120 ft). The range is the speaker's, because shouting is something you do rather than something done to you.", settings.measurementSystem, settings.tableLanguage)}>
+                <Tooltip content={t("campaign.gameSettings.voiceChat.sayRangeHint")}>
                   <SettingToggle on={rules.sayRange} onToggle={() => setRule({ sayRange: !rules.sayRange })}>
-                    Whisper/shout {rules.sayRange ? "on" : "off"}
+                    {t(rules.sayRange ? "campaign.gameSettings.voiceChat.sayRangeOn" : "campaign.gameSettings.voiceChat.sayRangeOff")}
                   </SettingToggle>
                 </Tooltip>
-                <Tooltip content="A wall between two characters muffles the voice rather than silencing it. Hearing through a door is a real thing, and audio that vanished at a doorway would read as a bug. Fog of war never gates audio: not seeing someone has nothing to do with hearing them.">
+                <Tooltip content={t("campaign.gameSettings.voiceChat.wallsHint")}>
                   <SettingToggle on={rules.wallsAttenuate} onToggle={() => setRule({ wallsAttenuate: !rules.wallsAttenuate })}>
-                    Walls muffle {rules.wallsAttenuate ? "on" : "off"}
+                    {t(rules.wallsAttenuate ? "campaign.gameSettings.voiceChat.wallsOn" : "campaign.gameSettings.voiceChat.wallsOff")}
                   </SettingToggle>
                 </Tooltip>
               </>
             ) : null}
-            <Tooltip content="A character at 0 hit points stops hearing the table. They still hear the GM, and they are still heard.">
+            <Tooltip content={t("campaign.gameSettings.voiceChat.downedHint")}>
               <SettingToggle on={rules.downedGoDeaf} onToggle={() => setRule({ downedGoDeaf: !rules.downedGoDeaf })}>
-                Downed go deaf {rules.downedGoDeaf ? "on" : "off"}
+                {t(rules.downedGoDeaf ? "campaign.gameSettings.voiceChat.downedOn" : "campaign.gameSettings.voiceChat.downedOff")}
               </SettingToggle>
             </Tooltip>
           </>
