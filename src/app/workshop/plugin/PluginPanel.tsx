@@ -139,7 +139,7 @@ export function PluginPanel({
             setWizardOpen(true);
           }
         }),
-    [workshopId, adopt],
+    [workshopId, adopt, t],
   );
 
   // Writes the draft on screen once the writes before it are done; true
@@ -188,7 +188,7 @@ export function PluginPanel({
         }
         return true;
       }),
-    [workshopId],
+    [workshopId, t],
   );
 
   useEffect(() => {
@@ -276,11 +276,11 @@ export function PluginPanel({
       // What stayed behind is listed whole on the Publish tab; the notice
       // only counts it, so a pull never reads as having taken everything.
       const left = (data.omissions ?? []).reduce((sum, omission) => sum + omission.assets.length, 0);
-      const behind = left ? ` ${left} ${left === 1 ? "entry stays" : "entries stay"} in the workshop; Check & publish lists them.` : "";
+      const behind = left ? ` ${tp("workshop.plugin.panel.pullLeft", left)}` : "";
       setPullNotice(
         data.added
-          ? `Pulled ${data.added} ${data.added === 1 ? "entry" : "entries"} into the setting lists.${behind}`
-          : `Nothing new to pull.${behind || " Write some factions, lore, places or hook cards first."}`,
+          ? `${tp("workshop.plugin.panel.pullAdded", data.added)}${behind}`
+          : `${t("workshop.plugin.panel.pullNothing")}${behind || t("workshop.plugin.panel.pullNothingHint")}`,
       );
     } finally {
       setPulling(false);
@@ -349,14 +349,14 @@ export function PluginPanel({
           </span>
         )}
         <div className="min-w-0 flex-1">
-          <p className="truncate font-display tracking-wide text-amber-50">{draft.name.trim() || "An unnamed world"}</p>
+          <p className="truncate font-display tracking-wide text-amber-50">{draft.name.trim() || t("workshop.plugin.panel.unnamed")}</p>
           <p className="text-[11px] text-stone-500">
-            {count ? `${count} ${count === 1 ? "entry" : "entries"}` : "Nothing named yet"}
-            {Object.keys(draft.art).length ? `, ${Object.keys(draft.art).length} pictures` : ""}
+            {count ? tp("workshop.plugin.panel.entries", count) : t("workshop.plugin.panel.nothingNamed")}
+            {Object.keys(draft.art).length ? `, ${tp("workshop.plugin.panel.pictures", Object.keys(draft.art).length)}` : ""}
             <span className="ml-2 inline-flex items-center gap-1 text-stone-600" aria-live="polite">
               {saveState === "saving" ? <Loader2 className="size-3 animate-spin" /> : null}
               {saveState === "saved" ? <Check className="size-3 text-emerald-500" /> : null}
-              {saveState === "saving" ? "saving" : saveState === "saved" ? "saved" : saveState === "dirty" ? "unsaved" : saveState === "error" ? "not saved" : ""}
+              {saveState === "saving" ? t("workshop.plugin.panel.saving") : saveState === "saved" ? t("workshop.plugin.panel.saved") : saveState === "dirty" ? t("workshop.plugin.panel.unsaved") : saveState === "error" ? t("workshop.plugin.panel.notSaved") : ""}
             </span>
           </p>
         </div>
@@ -373,18 +373,18 @@ export function PluginPanel({
         </div>
         {pullNotice ? <p className="live-in basis-full text-xs text-amber-200/90">{pullNotice}</p> : null}
         {saveState === "error" && saveError ? (
-          <LoadFailed error={`${saveError} Your changes are kept here.`} onRetry={() => void flushSave()} className="basis-full" />
+          <LoadFailed error={t("workshop.plugin.panel.savedChangesKept", { error: saveError })} onRetry={() => void flushSave()} className="basis-full" />
         ) : null}
         {error && !(error === PULL_WAITS && saveState === "saved") ? <PanelError className="basis-full">{error}</PanelError> : null}
       </section>
 
       <div data-tour="plugin-sections" className="w-fit max-w-full">
         <SegmentedControl
-          options={PLUGIN_SECTIONS.map((entry) => ({ value: entry.id, label: entry.label }))}
+          options={PLUGIN_SECTIONS.map((entry) => ({ value: entry.id, label: t(`workshop.plugin.tab.${entry.id}` as never) }))}
           value={section}
           onChange={setSection}
           size="sm"
-          label="Part of the pack"
+          label={t("workshop.plugin.tabs.aria")}
         />
       </div>
 
@@ -411,7 +411,7 @@ export function PluginPanel({
       <Sheet
         open={wizardOpen}
         onOpenChange={setWizardOpen}
-        title="Guided setup"
+        title={t("workshop.plugin.panel.guidedSetup")}
         hideTitle
         className="top-0 h-dvh max-h-none rounded-none pt-[max(0.5rem,env(safe-area-inset-top))] lg:top-1/2 lg:h-[min(92vh,44rem)] lg:w-[min(96vw,48rem)] lg:rounded-xl"
       >
