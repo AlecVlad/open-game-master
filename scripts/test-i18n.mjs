@@ -233,6 +233,40 @@ for (const key of messageActionMessages) {
   assert.ok(key in DICTIONARIES.ru, `Russian message-action message missing: ${key}`);
 }
 
+const battleMapPanelMessages = [
+  "campaign.session.battle.health.unharmed",
+  "campaign.session.battle.health.hurt",
+  "campaign.session.battle.health.bloodied",
+  "campaign.session.battle.health.badlyHurt",
+  "campaign.session.battle.health.critical",
+  "campaign.session.battle.health.down",
+  "campaign.session.battle.edge.noLineOfSight",
+  "campaign.session.battle.edge.cover",
+  "campaign.session.battle.edge.flanked",
+  "campaign.session.battle.edge.rangedDisadvantage",
+  "campaign.session.battle.areaCaught",
+  "campaign.session.battle.measured",
+  "campaign.session.battle.error.initiativeMustBeInRange",
+  "campaign.session.battle.undoMoveAction",
+  "campaign.session.battle.roundLabel",
+  "campaign.session.battle.currentTurnName",
+  "campaign.session.battle.yourOrdersFor",
+  "campaign.session.battle.ariaYourOrdersFor",
+  "campaign.session.battle.ariaYourTurn",
+  "campaign.session.battle.ariaTurnFor",
+  "campaign.session.battle.enemyTurnsDue",
+  "campaign.session.battle.acted",
+  "campaign.session.battle.extraTurn.extraNow",
+  "campaign.session.battle.extraTurn.thiefReflex",
+  "campaign.session.battle.extraTurn.extraTurn",
+  "campaign.session.battle.extraTurn.shortSecond",
+  "campaign.session.battle.extraTurn.shortExtra",
+];
+for (const key of battleMapPanelMessages) {
+  assert.ok(key in DICTIONARIES.en, `English battle-map message missing: ${key}`);
+  assert.ok(key in DICTIONARIES.ru, `Russian battle-map message missing: ${key}`);
+}
+
 const messageAndMomentsMessages = [
   "common.gameMaster",
   "campaign.session.messageItem.speakerThroughGm",
