@@ -483,6 +483,7 @@ export const ruCommon: Partial<Record<keyof typeof enCommon, string>> = {
   "infoDialog.noDamageNote": "Само по себе оно не наносит урон; его назначение описано в особых свойствах.",
   "infoDialog.whatIs": "Что такое {label}?",
   "infoDialog.chipHint": "Нажмите на значок рядом, чтобы открыть полную запись.",
+  "dialog.close": "Закрыть",
   "infoDialog.contentBestEffort": "Предварительное прочтение: приложение извлекло правила этой записи из её текста, но результат ещё никто не проверил. Если механика в игре расходится с прочитанным, приоритет имеют исходный текст и решение ведущего. Для своего стола запись можно исправить в Workshop.",
   "infoDialog.contentNeeds.one": "Правило «{needs}» из Level Up Advanced 5e не используется в этой игре.",
   "infoDialog.contentNeeds.many": "Правила «{needs}» из Level Up Advanced 5e не используются в этой игре.",
