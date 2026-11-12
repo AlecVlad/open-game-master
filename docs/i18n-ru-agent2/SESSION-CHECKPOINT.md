@@ -5,7 +5,7 @@ Single restore point for Russian localization. After a chat interruption, read o
 ## State
 - Repository: `AlecVlad/open-game-master`
 - Branch: `i18n-ru-agent2` — verify current HEAD on resume; do not trust a stored SHA.
-- Active work: **Block 2 — Workshop: final small remainder** (user assessment: nearly complete).
+- Active work: **Block 2 — Workshop: localize the remaining editor clusters**.
 - Block 1 — game session — is closed by user confirmation; `BLOCK-01-SESSION-DONE` exists. Technical stage 1.1 remains separate and is performed on the local machine only after an explicit user command.
 - `STATUS.md` is an older detailed log and may lag this checkpoint. This checkpoint is authoritative for the current state.
 - `PLAN.md` contains block boundaries and completion criteria; consult only when scope is unclear.
@@ -124,8 +124,9 @@ Single restore point for Russian localization. After a chat interruption, read o
 
 ## Next work
 - Block 1 is closed for localization by user confirmation. Stage 1.1 is separate and is not started without an explicit command.
-- Block 2 is nearly complete; do a compact audit of the specific remaining gaps rather than treating whole editors as untouched. Preserve all completed WorldForge work (all 29 files in `src/app/workshop/world/`).
-- Block 3 — Characters and Campaigns — is approximately 50% complete by the user's estimate. Continue from existing localized campaign settings, lobby, invite and character-builder work; avoid re-translating completed components.
+- A fresh source audit found substantial untranslated UI in Plugin/World Pack, Monster Editor and Map Editor. `TestFightSheet.tsx` and `OpenTestFight.tsx` also need a localized pass. These are real Block 2 tasks, not just a final checklist; do not create the DONE flag yet.
+- `EncounterForm.tsx` and `EncounterExtras.tsx` already use `useI18n`; `LoreEditorForm.tsx` is already wired. Preserve these and the completed WorldForge pass (all 29 files in `src/app/workshop/world/`).
+- Block 3 — Characters and Campaigns — has started, but the earlier ~50% figure was inferred from the conversation and has not been independently audited. Continue from existing localized campaign settings, lobby, invite and character-builder work; avoid re-translating completed components.
 - The Reference module still needs a fresh source audit: `mainPage`, `comparison`, `desk`, `badges`, `calculators` and EN/RU message wiring are not yet confirmed.
 - Do not sync upstream, merge branches or open a PR during translation.
 
@@ -258,3 +259,10 @@ The WorldForge component pass is complete across all 29 files in `src/app/worksh
 - Current source checks: none.
 - Remaining checks not confirmed: mainPage, comparison, desk, badges, calculators, englishMessages, russianMessages.
 - Latest pass localized the calculator presentation layer; formulas and underlying calculator data were not changed.
+
+
+## Block 2 source audit — 12 November 2026
+- Confirmed remaining English UI without i18n wiring in Plugin/World Pack (`PluginWizard`, `PluginPanel`, identity, setting, monster, publish, reskin sections and shared fields), Monster Editor (`MonsterEditor`, `MonsterBuildControls`, `StatBlockFields`, `AttackDetails`, `SpellcastingFields`), and Map Editor (`MapEditor`, `MapDetails`, `MapForge`, `AddonMapGenerator`).
+- `EncounterForm` / `EncounterExtras` already use `useI18n`; `EncounterEvents` / `EncounterGround` are localized. `TestFightSheet` and `OpenTestFight` still have fixed English UI.
+- `LoreEditorForm` already uses `useI18n`. WorldForge, workshop shell, list views, tours and import/export components already completed should not be retranslated.
+- Block 2 remains open until these user-facing strings and create/edit/save/publish paths are localized and audited.
