@@ -1,6 +1,6 @@
 import { isErrorResponse, requireAdmin } from "@/lib/admin-api";
 import { buildReportBundle, chosenParts, offeredParts } from "@/lib/report-bundle";
-import { ADMIN_REPORT_VIEWER, adminReportSetup, adminReportSources, reportAddresses, reportCheckFirst, reportSecrets } from "@/lib/report-bundle-server";
+import { ADMIN_REPORT_VIEWER, adminReportSetup, adminReportSources, reportAddresses, reportCheckFirstData, reportSecrets } from "@/lib/report-bundle-server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -15,13 +15,13 @@ export async function GET(request: Request) {
   }
   const scope = { headers: request.headers, everyTable: true };
   const setup = await adminReportSetup();
-  const checkFirst = reportCheckFirst(setup, {
+  const checks = reportCheckFirstData(setup, {
     viewer: ADMIN_REPORT_VIEWER,
     reporterUserId: admin.id,
     secrets: reportSecrets(undefined, scope),
     addresses: reportAddresses(undefined, scope),
   });
-  return Response.json({ parts: offeredParts(ADMIN_REPORT_VIEWER), checkFirst, checkFirstItems: setup.checkFirstItems ?? [] }, { headers: { "cache-control": "no-store" } });
+  return Response.json({ parts: offeredParts(ADMIN_REPORT_VIEWER), ...checks }, { headers: { "cache-control": "no-store" } });
 }
 
 export async function POST(request: Request) {
