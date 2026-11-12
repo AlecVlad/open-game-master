@@ -1,7 +1,7 @@
 "use client";
 
 import { STAGES, isStageEnabled } from "@/lib/dm/stages";
-import { DELEGATIONS, DELEGATION_HINTS, DELEGATION_LABELS } from "@/lib/dm/delegation";
+import { DELEGATIONS } from "@/lib/dm/delegation";
 import { Select } from "@/components/ui/Select";
 import { useI18n } from "@/lib/i18n/provider";
 import { formatFeet, formatMeasurementText } from "@/lib/measurement-system";
@@ -21,9 +21,6 @@ import type { GameSettings } from "@/lib/schemas/game-settings";
 import { REROLL_LOW_DEFAULT, rerollBelowFor, rerollChoiceOf, type RerollChoice } from "@/lib/srd/ability-rerolls";
 import {
   CAMPAIGN_LENGTHS,
-  COMPANION_LABELS,
-  CONSCIENCE_HINTS,
-  CONSCIENCE_LABELS,
   CONSCIENCE_SETTINGS,
   HP_METHODS,
   STARTING_WEALTH,
@@ -397,6 +394,7 @@ export const LIVING_WORLD_INFO = [
 ].join("\n\n");
 
 export function AiGroup({ settings, patch }: Base) {
+  const { t } = useI18n();
   const aiNarrates = settings.dmMode !== "human";
   return (
     <>
@@ -405,14 +403,14 @@ export function AiGroup({ settings, patch }: Base) {
         // delegate and a table running itself has chosen not to, so showing
         // three switched-off switches in either would be noise.
         <div className="flex flex-wrap items-center gap-2">
-          <span className="pk-rowlabel">AI helps</span>
+          <span className="pk-rowlabel">{t("campaign.gameSettings.ai.helps")}</span>
           {DELEGATIONS.map((which) => (
-            <Tooltip key={which} content={DELEGATION_HINTS[which]}>
+            <Tooltip key={which} content={t(`campaign.gameSettings.ai.delegationHint.${which}`)}>
               <SettingToggle
                 on={settings.dmAssist[which]}
                 onToggle={() => patch({ dmAssist: { ...settings.dmAssist, [which]: !settings.dmAssist[which] } })}
               >
-                {DELEGATION_LABELS[which]}
+                {t(`campaign.gameSettings.ai.delegation.${which}`)}
               </SettingToggle>
             </Tooltip>
           ))}
@@ -420,27 +418,25 @@ export function AiGroup({ settings, patch }: Base) {
       ) : null}
       {aiNarrates ? (
         <div className="flex flex-wrap items-center gap-2">
-          <span className="pk-rowlabel">Setup</span>
+          <span className="pk-rowlabel">{t("campaign.gameSettings.ai.setup")}</span>
           <SettingToggle on={settings.aiStorySetup} onToggle={() => patch({ aiStorySetup: !settings.aiStorySetup })}>
-            AI story setup {settings.aiStorySetup ? "on" : "off"}
+            {t(settings.aiStorySetup ? "campaign.gameSettings.ai.setupOn" : "campaign.gameSettings.ai.setupOff")}
           </SettingToggle>
           <span className="text-stone-500">
-            {settings.aiStorySetup ? "The GM invents the plot before the first scene." : "The story starts from your premise and prep alone."}
+            {t(settings.aiStorySetup ? "campaign.gameSettings.ai.setupHintOn" : "campaign.gameSettings.ai.setupHintOff")}
           </span>
         </div>
       ) : null}
       {aiNarrates ? (
         <div className="flex flex-wrap items-center gap-2">
-          <span className="pk-rowlabel">Prose</span>
-          <Tooltip content="After each turn the server compares the GM's narration against what the dice and tools actually resolved: a hit written on a miss, a death the hit points deny, a damage number no die rolled. A contradiction is sent back to the GM once for a rewrite. It also does what the GM left undone: a spell a player asked for that the story cast is cast for real, and a kindness or flirt a player declared is recorded on their bonds.">
+          <span className="pk-rowlabel">{t("campaign.gameSettings.ai.prose")}</span>
+          <Tooltip content={t("campaign.gameSettings.ai.outcomeCheckHint")}>
             <SettingToggle on={settings.narrationGuard} onToggle={() => patch({ narrationGuard: !settings.narrationGuard })}>
-              Outcome check {settings.narrationGuard ? "on" : "off"}
+              {t(settings.narrationGuard ? "campaign.gameSettings.ai.outcomeCheckOn" : "campaign.gameSettings.ai.outcomeCheckOff")}
             </SettingToggle>
           </Tooltip>
           <span className="text-stone-500">
-            {settings.narrationGuard
-              ? "Narration that contradicts the dice goes back for one rewrite."
-              : "The GM's narration is persisted exactly as written."}
+            {t(settings.narrationGuard ? "campaign.gameSettings.ai.outcomeCheckHintOn" : "campaign.gameSettings.ai.outcomeCheckHintOff")}
           </span>
         </div>
       ) : null}
@@ -448,16 +444,14 @@ export function AiGroup({ settings, patch }: Base) {
       {aiNarrates ? (
         <div className="reveal flex flex-wrap items-center gap-2">
           <span className="pk-rowlabel">{t("campaign.gameSettings.world.group")}</span>
-          <Tooltip content="The world moves on its own: off-screen storylines advance on background dice, surprises and encounters build up over quiet stretches, and NPC schemes progress between chapters and during rests and travel. The story arc itself is unaffected either way.">
+          <Tooltip content={t("campaign.gameSettings.ai.livingWorldHint")}>
             <SettingToggle on={settings.worldSimulation} onToggle={() => patch({ worldSimulation: !settings.worldSimulation })}>
-              Living world {settings.worldSimulation ? "on" : "off"}
+              {t(settings.worldSimulation ? "campaign.gameSettings.ai.livingWorldOn" : "campaign.gameSettings.ai.livingWorldOff")}
             </SettingToggle>
           </Tooltip>
-          <InfoButton label="What does Living World do?" text={LIVING_WORLD_INFO} />
+          <InfoButton label={t("campaign.gameSettings.ai.livingWorldInfoLabel")} text={t("campaign.gameSettings.ai.livingWorldInfo")} />
           <span className="text-stone-500">
-            {settings.worldSimulation
-              ? "Rumors, surprises, and off-screen schemes advance between turns."
-              : "Nothing happens unless the party or the story arc makes it happen."}
+            {t(settings.worldSimulation ? "campaign.gameSettings.ai.livingWorldHintOn" : "campaign.gameSettings.ai.livingWorldHintOff")}
           </span>
         </div>
       ) : null}
@@ -468,15 +462,15 @@ export function AiGroup({ settings, patch }: Base) {
           (issue 209). */}
       {alliesShown(settings) ? (
         <div data-settings-row="allies" className="reveal flex flex-wrap items-center gap-2">
-          <span className="pk-rowlabel">Allies</span>
-          <Tooltip content="AI companions the GM plays: 'party members' travel with the party until dismissed; 'guests' are temporary allies for one scene or battle (a town soldier helping defend) and leave automatically when the fight ends. Auto picks full for solo play, guests only for multiplayer.">
+          <span className="pk-rowlabel">{t("campaign.gameSettings.ai.allies")}</span>
+          <Tooltip content={t("campaign.gameSettings.ai.alliesHint")}>
             <span className="inline-flex min-w-0 max-w-full">
               <Select<GameSettings["companions"]>
                 size="sm"
-                label="AI companions"
+                label={t("campaign.gameSettings.ai.companions")}
                 value={settings.companions}
                 onChange={(companions) => patch({ companions })}
-                options={(Object.keys(COMPANION_LABELS) as Array<GameSettings["companions"]>).map((mode) => ({ value: mode, label: COMPANION_LABELS[mode] }))}
+                options={(["auto", "full", "guests", "off"] as Array<GameSettings["companions"]>).map((mode) => ({ value: mode, label: t(`campaign.gameSettings.option.companions.${mode}`) }))}
                 className={selectClass}
               />
             </span>
@@ -484,24 +478,24 @@ export function AiGroup({ settings, patch }: Base) {
           {settings.companions !== "off" ? (
             <>
               {settings.companions !== "guests" ? (
-                <span className="inline-flex min-w-0 max-w-full" title="Most lasting party companions allowed at once">
+                <span className="inline-flex min-w-0 max-w-full" title={t("campaign.gameSettings.ai.maxCompanions")}>
                   <Select
                     size="sm"
-                    label="Most lasting party companions allowed at once"
+                    label={t("campaign.gameSettings.ai.maxCompanions")}
                     value={String(settings.maxCompanions)}
                     onChange={(value) => patch({ maxCompanions: Number(value) })}
-                    options={[1, 2, 3, 4].map((count) => ({ value: String(count), label: `max ${count} party` }))}
+                    options={[1, 2, 3, 4].map((count) => ({ value: String(count), label: t("campaign.gameSettings.ai.maxCompanionsOption", { count }) }))}
                     className={selectClass}
                   />
                 </span>
               ) : null}
-              <span className="inline-flex min-w-0 max-w-full" title="Most temporary guest allies allowed at once">
+              <span className="inline-flex min-w-0 max-w-full" title={t("campaign.gameSettings.ai.maxGuests")}>
                 <Select
                   size="sm"
-                  label="Most temporary guest allies allowed at once"
+                  label={t("campaign.gameSettings.ai.maxGuests")}
                   value={String(settings.maxGuests)}
                   onChange={(value) => patch({ maxGuests: Number(value) })}
-                  options={[1, 2, 3, 4].map((count) => ({ value: String(count), label: `max ${count} guest${count === 1 ? "" : "s"}` }))}
+                  options={[1, 2, 3, 4].map((count) => ({ value: String(count), label: t("campaign.gameSettings.ai.maxGuestsOption", { count }) }))}
                   className={selectClass}
                 />
               </span>
@@ -516,22 +510,28 @@ export function AiGroup({ settings, patch }: Base) {
 // The narrator's pipeline. Optional tuning: every table starts with all of
 // it on, and the line under the switches says so.
 export function MemoryGroup({ settings, patch }: Base) {
+  const { t } = useI18n();
+  const stageCopy = {
+    compaction: { label: t("campaign.gameSettings.memory.compaction.label"), description: t("campaign.gameSettings.memory.compaction.description"), cost: t("campaign.gameSettings.memory.compaction.cost") },
+    recall: { label: t("campaign.gameSettings.memory.recall.label"), description: t("campaign.gameSettings.memory.recall.description"), cost: t("campaign.gameSettings.memory.recall.cost") },
+    retrieval: { label: t("campaign.gameSettings.memory.retrieval.label"), description: t("campaign.gameSettings.memory.retrieval.description"), cost: t("campaign.gameSettings.memory.retrieval.cost") },
+    chapterSummary: { label: t("campaign.gameSettings.memory.chapterSummary.label"), description: t("campaign.gameSettings.memory.chapterSummary.description"), cost: t("campaign.gameSettings.memory.chapterSummary.cost") },
+  };
   return (
     <>
       <p className="text-stone-500">
-        How the AI narrator remembers a long campaign. Every table starts with all of these on; switch one off only to
-        save model time on a slow server.
+        {t("campaign.gameSettings.memory.description")}
       </p>
       <div className="flex min-w-0 flex-wrap gap-1.5">
         {STAGES.map((stage) => {
           const on = isStageEnabled(settings.stages, stage.id);
           return (
-            <Tooltip key={stage.id} content={`${stage.description} ${stage.cost}`}>
+            <Tooltip key={stage.id} content={`${stageCopy[stage.id].description} ${stageCopy[stage.id].cost}`}>
               <SettingToggle on={on} onToggle={() => patch({ stages: { ...settings.stages, [stage.id]: !on } })}>
-                {stage.label} {on ? "on" : "off"}
+                {stageCopy[stage.id].label} {on ? t("campaign.gameSettings.state.on") : t("campaign.gameSettings.state.off")}
                 {/* Only a model-call stage buys back GPU time; saying so
                     stops an operator disabling recall expecting a speedup. */}
-                <span className="ml-1 text-[11px] text-stone-500">{stage.callsModel ? "model" : "engine"}</span>
+                <span className="ml-1 text-[11px] text-stone-500">{stage.callsModel ? t("campaign.gameSettings.memory.model") : t("campaign.gameSettings.memory.engine")}</span>
               </SettingToggle>
             </Tooltip>
           );
@@ -550,50 +550,51 @@ export const CONSCIENCE_INFO = [
 ].join("\n\n");
 
 export function BondsGroup({ settings, patch, lastingCompanions = false }: Base & { lastingCompanions?: boolean }) {
+  const { t } = useI18n();
   return (
     <>
     <div className="flex flex-wrap items-center gap-2">
-      <span className="pk-rowlabel">Bonds</span>
-      <Tooltip content="How each NPC and AI companion feels about each character, tracked by the server on one meter from hostile through neutral to devoted. Deeds move it, and the same deed lands differently on different people: mercy wins over a kind healer and irritates a hard-bitten mercenary. Standing shows in the Bonds tab and colors how the GM plays them.">
+      <span className="pk-rowlabel">{t("campaign.gameSettings.bonds.group")}</span>
+      <Tooltip content={t("campaign.gameSettings.bonds.hint")}>
         <SettingToggle on={settings.relationships !== "off"} onToggle={() => patch({ relationships: settings.relationships === "off" ? "on" : "off" })}>
-          Bonds {settings.relationships !== "off" ? "on" : "off"}
+          {t(settings.relationships !== "off" ? "campaign.gameSettings.bonds.on" : "campaign.gameSettings.bonds.off")}
         </SettingToggle>
       </Tooltip>
       {settings.relationships !== "off" ? (
-        <Tooltip content="The romance ladder on top of the bond meter: interested, courting, together, betrothed, married. Nobody can be romanced who does not already like the character, nobody is courted who did not ask to be, partners keep to each other unless everyone involved is open to more than one partner, and intimate scenes always fade to black. Each step needs a little story time after the last, the other side starts scenes of their own, and every step is told to the table.">
+        <Tooltip content={t("campaign.gameSettings.bonds.romanceHint")}>
           <SettingToggle on={settings.romance !== "off"} onToggle={() => patch({ romance: settings.romance === "off" ? "on" : "off" })}>
-            Romance {settings.romance !== "off" ? "on" : "off"}
+            {t(settings.romance !== "off" ? "campaign.gameSettings.bonds.romanceOn" : "campaign.gameSettings.bonds.romanceOff")}
           </SettingToggle>
         </Tooltip>
       ) : null}
       <span className="text-stone-500">
-        {settings.relationships === "off"
-          ? "The GM tracks no personal standing; NPCs react to the party as a whole."
+        {t(settings.relationships === "off"
+          ? "campaign.gameSettings.bonds.summary.off"
           : settings.romance !== "off"
-            ? "Standing is tracked per character, and romance can grow from it."
-            : "Standing is tracked per character; romance is off."}
+            ? "campaign.gameSettings.bonds.summary.romance"
+            : "campaign.gameSettings.bonds.summary.on")}
       </span>
     </div>
     {/* Only where it can matter: bonds on and a lasting companion possible
         at this table (AGENTS.md settings rule 4). */}
     {conscienceShown(settings, lastingCompanions) ? (
       <div data-settings-row="conscience" className="reveal flex flex-wrap items-center gap-2">
-        <span className="pk-rowlabel">Conscience</span>
-        <Tooltip content="How far a lasting AI companion goes when the party's deeds break what it holds to.">
+        <span className="pk-rowlabel">{t("campaign.gameSettings.bonds.conscience")}</span>
+        <Tooltip content={t("campaign.gameSettings.bonds.conscienceHint")}>
           <span className="inline-flex min-w-0 max-w-full">
             <Select<ConscienceSetting>
               size="sm"
-              label="Companion conscience"
+              label={t("campaign.gameSettings.bonds.conscience")}
               value={settings.companionConscience ?? "leave"}
               onChange={(companionConscience) => patch({ companionConscience })}
-              options={CONSCIENCE_SETTINGS.map((setting) => ({ value: setting, label: CONSCIENCE_LABELS[setting] }))}
+              options={CONSCIENCE_SETTINGS.map((setting) => ({ value: setting, label: t(`campaign.gameSettings.option.conscience.${setting}`) }))}
               className={selectClass}
             />
           </span>
         </Tooltip>
-        <InfoButton label="What does Companion conscience do?" text={CONSCIENCE_INFO} />
+        <InfoButton label={t("campaign.gameSettings.bonds.conscienceInfoLabel")} text={t("campaign.gameSettings.bonds.conscienceInfo")} />
         <span key={settings.companionConscience ?? "leave"} className="live-in text-stone-500">
-          {CONSCIENCE_HINTS[settings.companionConscience ?? "leave"]}
+          {t(`campaign.gameSettings.bonds.conscienceOptionHint.${settings.companionConscience ?? "leave"}`)}
         </span>
       </div>
     ) : null}
