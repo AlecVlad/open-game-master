@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { GameIcon } from "@/components/ui/GameIcon";
 import { Sheet } from "@/components/ui/Sheet";
 import { PanelError } from "@/app/campaigns/[campaignId]/PanelKit";
-import { classWordsAfterLevel, speciesName } from "@/lib/characters/class-words";
+import { classDisplayName, classWordsAfterLevel, speciesName } from "@/lib/characters/class-words";
 import { cn } from "@/lib/cn";
 import { readLoad, readWrite } from "@/lib/load-state";
 import { navigateTo } from "@/lib/navigation";
@@ -53,10 +53,26 @@ type Character = {
 
 type Who = "stand-ins" | "characters";
 
+const CLASS_LABEL_KEYS: Record<string, string> = {
+  barbarian: "charSheet.class.barbarian",
+  bard: "charSheet.class.bard",
+  cleric: "charSheet.class.cleric",
+  druid: "charSheet.class.druid",
+  fighter: "charSheet.class.fighter",
+  monk: "charSheet.class.monk",
+  paladin: "charSheet.class.paladin",
+  ranger: "charSheet.class.ranger",
+  rogue: "charSheet.class.rogue",
+  sorcerer: "charSheet.class.sorcerer",
+  warlock: "charSheet.class.warlock",
+  wizard: "charSheet.class.wizard",
+  artificer: "charSheet.class.artificer",
+};
+
 // "Level 4 Variant Human Fighter", in the words the library's cards use: the
 // ids themselves ("variant_human", "srd-2024-goliath") read as code here.
-function describe(character: Character, levelLabel: (level: number) => string): string {
-  return `${levelLabel(character.level)} ${[speciesName(character), classWordsAfterLevel(character)].filter(Boolean).join(" ")}`;
+function describe(character: Character, levelLabel: (level: number) => string, classLabel: (id: string) => string): string {
+  return `${levelLabel(character.level)} ${[speciesName(character), classWordsAfterLevel(character, classLabel)].filter(Boolean).join(" ")}`;
 }
 
 function listed(names: string[], conjunction: string): string {
@@ -220,7 +236,7 @@ export function TestFightSheet({
                 <span className="rounded-full border border-stone-600 px-1.5 text-[10px] uppercase tracking-[0.12em] text-amber-200">{t("workshop.testFight.ally")}</span>
               ) : null}
             </span>
-            <span className="block text-xs text-stone-400">{describe(character, (level) => t("workshop.testFight.character.level", { level }))}</span>
+            <span className="block text-xs text-stone-400">{describe(character, (level) => t("workshop.testFight.character.level", { level }), (id) => CLASS_LABEL_KEYS[id.toLowerCase()] ? t(CLASS_LABEL_KEYS[id.toLowerCase()] as never) : classDisplayName(id))}</span>
           </span>
         </label>
       </li>
@@ -271,7 +287,7 @@ export function TestFightSheet({
             () => setWho("stand-ins"),
             t("workshop.testFight.party.standIns"),
             standIns
-              ? t("workshop.testFight.party.standInsHint", { size: standIns.size, heroes: tp("workshop.testFight.hero", standIns.size), level: standIns.level, classes: listed(standIns.classes, t("workshop.testFight.joinAnd")) })
+              ? t("workshop.testFight.party.standInsHint", { size: standIns.size, heroes: tp("workshop.testFight.hero", standIns.size), level: standIns.level, classes: listed(standIns.classes.map((name) => CLASS_LABEL_KEYS[name.toLowerCase()] ? t(CLASS_LABEL_KEYS[name.toLowerCase()] as never) : name), t("workshop.testFight.joinAnd")) })
               : t("workshop.testFight.party.standInsDefault"),
           )}
           {radio(
