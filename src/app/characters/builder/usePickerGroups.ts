@@ -142,6 +142,7 @@ const isCoreDocument = (documentSlug?: string) => !documentSlug || CORE_DOCUMENT
 // 5e Core Rules one; everything stays selectable either way.
 function groupBySourceSetting<T extends { id: string; genres?: Genre[]; documentSlug?: string; source?: string }>(
   options: T[],
+  otherBooksLabel: string,
 ): {
   standard: T[];
   books: Array<{ label: string; options: T[] }>;
@@ -157,7 +158,7 @@ function groupBySourceSetting<T extends { id: string; genres?: Genre[]; document
       continue;
     }
     if (!isCoreDocument(option.documentSlug)) {
-      const book = option.source ?? option.documentSlug ?? "Other books";
+      const book = option.source ?? option.documentSlug ?? otherBooksLabel;
       byBook.set(book, [...(byBook.get(book) ?? []), option]);
       continue;
     }
@@ -377,7 +378,7 @@ export function usePickerGroups({
     // With no recommended tier, the other books' and the other settings'
     // entries separate out under their source instead of blending in
     // unlabeled (a Marshal is Level Up's, not the Core Rules').
-    const bySource = groupBySourceSetting(classTier.other);
+    const bySource = groupBySourceSetting(classTier.other, t("builder.group.otherBooks"));
     if (bySource.packs.length || bySource.books.length) {
       return [
         { label: t("builder.class.group.standard"), options: bySource.standard.map((entry) => toOption(entry, false)) },
@@ -495,7 +496,7 @@ export function usePickerGroups({
         { label: t("builder.background.group.all"), options: backgroundTier.other.map((entry) => toOption(entry, true)) },
       ];
     }
-    const bySource = groupBySourceSetting(backgroundTier.other);
+    const bySource = groupBySourceSetting(backgroundTier.other, t("builder.group.otherBooks"));
     if (bySource.packs.length || bySource.books.length) {
       return [
         {
