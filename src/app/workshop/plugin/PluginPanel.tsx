@@ -2,6 +2,7 @@
 
 import { Check, Download, Loader2, Puzzle, Sparkles, Wand2 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { Sheet } from "@/components/ui/Sheet";
 import { cn } from "@/lib/cn";
@@ -52,9 +53,6 @@ const KEEPALIVE_BYTES = 60_000;
 // A save that hears nothing for this long is given up, so the writes queued
 // behind it (a reopened panel's read, Pull, Try again) are not held forever.
 const SAVE_TIMEOUT_MS = 60_000;
-// Said when Pull stops for a save that did not land; gone once one does.
-const PULL_WAITS = "Pull waits for the draft to save, and it did not. Nothing was pulled; your changes are kept here. Try again.";
-
 type SaveState = "idle" | "dirty" | "saving" | "saved" | "error";
 
 type StoredReply = { draft?: unknown; updatedAt?: string | null };
@@ -76,6 +74,8 @@ export function PluginPanel({
   workshopId: string;
   onChanged?: (count: number) => void;
 }) {
+  const { t, tp } = useI18n();
+  const PULL_WAITS = t("workshop.plugin.panel.pullWaits");
   const [draft, setDraft] = useState<WorldPackDraft | null>(null);
   const [section, setSection] = useState<SectionId>("identity");
   const [saveState, setSaveState] = useState<SaveState>("idle");
@@ -120,7 +120,7 @@ export function PluginPanel({
     () =>
       // After any write still on its way from an earlier visit to this tool.
       (chains.get(workshopId) ?? Promise.resolve())
-        .then(() => readLoad<StoredReply>(fetch(`/api/workshops/${workshopId}/plugin`), "The draft"))
+        .then(() => readLoad<StoredReply>(fetch(`/api/workshops/${workshopId}/plugin`), t("workshop.plugin.panel.draft")))
         .then((outcome) => {
           if (!mounted.current) return;
           if (outcome.error !== null) {
@@ -129,7 +129,7 @@ export function PluginPanel({
           }
           const parsed = worldPackDraftSchema.safeParse(outcome.payload.draft);
           if (!parsed.success) {
-            setError("The draft could not be read.");
+            setError(t("workshop.plugin.panel.draftReadFailed"));
             return;
           }
           setError("");
@@ -296,10 +296,10 @@ export function PluginPanel({
     }
     setError("");
     const sent = await inTurn(workshopId, () =>
-      readWrite<StoredReply>(fetch(`/api/workshops/${workshopId}/plugin`, { method: "DELETE" }), "The draft could not be thrown away."),
+      readWrite<StoredReply>(fetch(`/api/workshops/${workshopId}/plugin`, { method: "DELETE" }), t("workshop.plugin.panel.draftDeleteFailed")),
     );
     if (sent.error !== null) {
-      setError(`${sent.error} The draft on screen is kept.`);
+      setError(t("workshop.plugin.panel.draftKept", { error: sent.error }));
       // The edit whose autosave was cancelled above still goes.
       if (JSON.stringify(latest.current) !== savedJson.current) void save();
       return;
