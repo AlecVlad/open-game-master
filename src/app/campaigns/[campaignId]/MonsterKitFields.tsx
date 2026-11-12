@@ -71,6 +71,15 @@ export function TermPicker({
   glossary?: readonly GlossaryEntry[];
 }) {
   const { t } = useI18n();
+  const termLabel = (term: string) => {
+    if (DAMAGE_TYPES.includes(term as (typeof DAMAGE_TYPES)[number])) {
+      return t(`workshop.monsterEditor.defence.damageType.${term}` as never);
+    }
+    if (CONDITIONS.includes(term as (typeof CONDITIONS)[number])) {
+      return t(`workshop.monsterEditor.defence.condition.${term}` as never);
+    }
+    return term;
+  };
   const extras = parseTerms(value).filter(
     (term) => !known.some((entry) => textKey(entry) === textKey(term)),
   );
@@ -96,7 +105,7 @@ export function TermPicker({
                   : "border-stone-700 text-stone-500 hover:text-stone-200",
               )}
             >
-              {term}
+              {termLabel(term)}
             </button>
           );
         })}
