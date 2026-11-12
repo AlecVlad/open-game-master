@@ -362,13 +362,13 @@ export function PluginPanel({
         </div>
         <div className="flex flex-wrap gap-2">
           <button type="button" onClick={() => setWizardOpen(true)} data-tour="plugin-guided" className={cn(ui.btnSmall, "text-xs")}>
-            <Wand2 className="size-3.5" /> Guided setup
+            <Wand2 className="size-3.5" /> {t("workshop.plugin.panel.guidedSetup")}
           </button>
           <button type="button" onClick={() => void pull()} disabled={pulling} data-tour="plugin-pull" className={cn(ui.btnSmall, "text-xs")}>
-            {pulling ? <Loader2 className="size-3.5 animate-spin" /> : <Sparkles className="size-3.5" />} Pull from this workshop
+            {pulling ? <Loader2 className="size-3.5 animate-spin" /> : <Sparkles className="size-3.5" />} {t("workshop.plugin.panel.pull")}
           </button>
           <button type="button" onClick={() => setSection("publish")} data-tour="plugin-publish" className={cn(ui.btnSmall, "text-xs")}>
-            <Download className="size-3.5" /> Check &amp; publish
+            <Download className="size-3.5" /> {t("workshop.plugin.panel.publish")}
           </button>
         </div>
         {pullNotice ? <p className="live-in basis-full text-xs text-amber-200/90">{pullNotice}</p> : null}
