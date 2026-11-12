@@ -226,9 +226,9 @@ export function backgroundInfoText(entry: {
   desc?: string;
   feature?: string;
   featureDesc?: string;
-}): string | undefined {
+}, t: Translate): string | undefined {
   const feature = entry.feature
-    ? `**Feature: ${entry.feature}.**${entry.featureDesc ? ` ${entry.featureDesc}` : ""}`
+    ? `**${t("builder.background.featureLabel")}: ${entry.feature}.**${entry.featureDesc ? ` ${entry.featureDesc}` : ""}`
     : "";
   const parts = [entry.packBlurb || entry.blurb, feature, entry.desc].filter(Boolean);
   return parts.length ? parts.join("\n\n") : undefined;
@@ -358,7 +358,7 @@ export function usePickerGroups({
       meta: entry.packName
         ? `d${entry.hitDie} · ${characterOptionName("class", entry.id, canonicalName(rawClasses, entry.id), t)}`
         : entry.spellAbility
-          ? `d${entry.hitDie} · caster`
+          ? `d${entry.hitDie} · ${t("builder.call.caster")}`
           : `d${entry.hitDie}`,
       ...(showSource && entry.source && !isCoreDocument(entry.documentSlug) ? { source: entry.source } : {}),
       infoText: classInfoText(entry),
@@ -482,7 +482,7 @@ export function usePickerGroups({
       name: characterOptionName("background", entry.id, entry.name, t),
       meta: entry.skills.map((skillId) => skillLabel(skillId, t)).join(", "),
       ...(showSource && entry.source && !isCoreDocument(entry.documentSlug) ? { source: entry.source } : {}),
-      infoText: backgroundInfoText(entry),
+      infoText: backgroundInfoText(entry, t),
       reference: { kind: "backgrounds", slug: entry.id, name: entry.name },
     });
     if (backgroundTier.recommended.length) {
