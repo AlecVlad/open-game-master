@@ -99,7 +99,7 @@ export const ruCommon: Partial<Record<keyof typeof enCommon, string>> = {
   "about.update.available": "{kind} {version} уже доступна{released}. На сервере установлена версия {running}.",
   "about.update.whatsNew": "Что нового в версии {version}",
   "about.update.ownerUpdates": "Обновить сервер может только тот, кто им управляет.",
-  "about.update.ahead": "Эта сборка новее последней версии: {version}.",
+  "about.update.ahead": "Эта сборка новее последней версии ({kind}): {version}.",
   "about.update.current": "Установлена последняя версия: {version} ({kind}).",
   "about.build.unknown": "При сборке не сохранилась информация о коммите, на основе которого она создана.",
   "about.build.release": "Точная сборка выпуска {tag}.",
