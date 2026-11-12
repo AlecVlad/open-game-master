@@ -2892,7 +2892,8 @@ export const enCampaignPanels = {
   "campaign.session.party.backstory.note.cleared": "Cleared.",
   "campaign.session.party.backstory.note.draft": "A draft from your characters' backstories. Edit it, then save; nothing is kept until you do.",
   "campaign.session.party.backstory.lastSaved": "Last saved by {name}.",
-  "campaign.session.party.backstory.lastSavedDate": "on {date}",
+  "campaign.session.party.backstory.lastSavedAt": "Last saved by {name} on {date}.",
+
   "campaign.session.party.backstory.footer.play": "Optional. The GM reads it from the next turn; the story plan takes it in when the lead regenerates the arc. ",
   "campaign.session.party.backstory.footer.lobby": "Optional. The GM reads it every turn and the story plan is built around it when the adventure begins. ",
   "campaign.session.party.backstory.footer.permissions": "The lead, the GM and anyone with a character here can edit it; the latest save wins.",
