@@ -292,12 +292,21 @@ test("buying takes the coin and the goods together and writes the ledger", () =>
   assert.equal(getSheetById(marla.id).equipment.find((item) => item.name === "Pozione di guarigione")?.srdName, "Potion of Healing");
   // A word of a shop's or a line's name is neither.
   assert.equal(handleBuyItem(campaign, JSON.stringify({ characterId: marla.id, shop: "sundries", item: "Plate Armor" })).retry, true);
-  assert.match(String(handleBuyItem(campaign, JSON.stringify({ characterId: marla.id, shop: shop.id, item: "rope" })).error), /does not stock "rope"/);
+  const missingStock = handleBuyItem(campaign, JSON.stringify({ characterId: marla.id, shop: shop.id, item: "rope" }));
+  assert.match(String(missingStock.error), /does not stock "rope"/);
+  assert.equal(missingStock.errorCode, "item_not_stocked");
+  assert.equal(missingStock.errorParams.item, "rope");
 });
 
 test("the purse and the shelf refuse what they cannot cover", () => {
-  assert.match(String(handleBuyItem(campaign, JSON.stringify({ characterId: marla.id, shop: shop.id, item: "Plate Armor" })).error), /cannot afford/);
-  assert.match(String(handleBuyItem(campaign, JSON.stringify({ characterId: marla.id, shop: shop.id, item: "Rope, Hempen (50 feet)", qty: 5 })).error), /only 1/);
+  const cannotAfford = handleBuyItem(campaign, JSON.stringify({ characterId: marla.id, shop: shop.id, item: "Plate Armor" }));
+  assert.match(String(cannotAfford.error), /cannot afford/);
+  assert.equal(cannotAfford.errorCode, "insufficient_funds");
+  assert.equal(cannotAfford.errorParams.character, "Marla");
+  const shortStock = handleBuyItem(campaign, JSON.stringify({ characterId: marla.id, shop: shop.id, item: "Rope, Hempen (50 feet)", qty: 5 }));
+  assert.match(String(shortStock.error), /only 1/);
+  assert.equal(shortStock.errorCode, "stock_quantity");
+  assert.equal(shortStock.errorParams.quantity, 1);
   assert.match(String(handleBuyItem(campaign, JSON.stringify({ characterId: marla.id, shop: shop.id, item: "dragon" })).error), /does not stock/);
 });
 
@@ -314,9 +323,11 @@ test("selling pays half list for a known item and restocks the shelf", () => {
   const unknown = handleSellItem(campaign, JSON.stringify({ characterId: marla.id, shop: shop.id, item: "Unicorn tear" }));
   assert.equal(unknown.retry, true, JSON.stringify(unknown));
   assert.match(String(unknown.error), /carries nothing called "Unicorn tear".*They carry: /);
+  assert.equal(unknown.errorCode, "unknown_item");
   const lacking = handleSellItem(campaign, JSON.stringify({ characterId: marla.id, shop: shop.id, item: "Longsword" }));
   assert.equal(lacking.refused, "rules", JSON.stringify(lacking));
   assert.match(String(lacking.error), /does not carry "Longsword"/);
+  assert.equal(lacking.errorCode, "item_not_carried");
 });
 
 test("a keeper buys back a potion or a scroll at half its value, and no other magic item (SRD 5.1, Selling Treasure)", () => {
@@ -346,6 +357,7 @@ test("a keeper buys back a potion or a scroll at half its value, and no other ma
       const refused = handleSellItem(campaign, JSON.stringify({ characterId: wren.id, shop: where.id, item, priceCp: 100 }));
       assert.equal(refused.refused, "rules", JSON.stringify(refused));
       assert.match(String(refused.error), /only one of the wealthiest nobles/);
+      assert.equal(refused.errorCode, "magic_item_not_accepted");
     }
   }
   assert.equal(getSheetById(wren.id).equipment.length, 2, "a refused sale took something");
@@ -360,8 +372,15 @@ test("a haggle leaves the shop's own markup alone, is one try per character, and
   const after = getShop(shop.id);
   assert.equal(after.markup, before, "the shop's own price did not move");
   assert.deepEqual(after.haggles, [{ ids: [marla.id, pike.id], steps: result.steps, skill: "persuasion" }]);
-  assert.match(String(handleHaggle(campaign, JSON.stringify({ characterId: marla.id, shop: shop.id })).error), /already tried/);
+  const alreadyTried = handleHaggle(campaign, JSON.stringify({ characterId: marla.id, shop: shop.id }));
+  assert.match(String(alreadyTried.error), /already tried/);
+  assert.equal(alreadyTried.errorCode, "haggle_already_used");
   assert.match(String(handleHaggle(campaign, JSON.stringify({ characterId: pike.id, shop: shop.id })).error), /already tried/, "a companion at the counter used their try");
+  const deceptionShop = insertShop(campaign.id, { name: "The Fox and Firkin", kind: "general", size: "village", markup: 1, stock: [] });
+  const firstDeception = handleHaggle(campaign, JSON.stringify({ characterId: pike.id, shop: deceptionShop.id, skill: "deception" }));
+  assert.equal(firstDeception.ok, true, JSON.stringify(firstDeception));
+  const repeatedDeception = handleHaggle(campaign, JSON.stringify({ characterId: marla.id, shop: deceptionShop.id, skill: "deception" }));
+  assert.equal(repeatedDeception.errorCode, "deception_already_used");
   assert.equal(handleHaggle(campaign, JSON.stringify({ characterId: marla.id, shop: shop.id, presentCharacterIds: ["Nobody"] })).retry, true);
   assert.equal(handleHaggle(campaign, JSON.stringify({ characterId: marla.id, shop: shop.id, skill: "bribery" })).retry, true);
 });
