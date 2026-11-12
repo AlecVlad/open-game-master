@@ -3,24 +3,24 @@ import { LANGUAGES } from "@/lib/workshop/pickers";
 type Translate = (key: string) => string;
 
 const LANGUAGE_KEYS: Record<string, string> = {
-  Common: "workshop.homebrew.language.common",
-  Dwarvish: "workshop.homebrew.language.dwarvish",
-  Elvish: "workshop.homebrew.language.elvish",
-  Giant: "workshop.homebrew.language.giant",
-  Gnomish: "workshop.homebrew.language.gnomish",
-  Goblin: "workshop.homebrew.language.goblin",
-  Halfling: "workshop.homebrew.language.halfling",
-  Orc: "workshop.homebrew.language.orc",
-  Abyssal: "workshop.homebrew.language.abyssal",
-  Celestial: "workshop.homebrew.language.celestial",
-  Draconic: "workshop.homebrew.language.draconic",
-  "Deep Speech": "workshop.homebrew.language.deepSpeech",
-  Infernal: "workshop.homebrew.language.infernal",
-  Primordial: "workshop.homebrew.language.primordial",
-  Sylvan: "workshop.homebrew.language.sylvan",
-  Undercommon: "workshop.homebrew.language.undercommon",
-  "Thieves' cant": "workshop.homebrew.language.thievesCant",
-  Druidic: "workshop.homebrew.language.druidic",
+  common: "workshop.homebrew.language.common",
+  dwarvish: "workshop.homebrew.language.dwarvish",
+  elvish: "workshop.homebrew.language.elvish",
+  giant: "workshop.homebrew.language.giant",
+  gnomish: "workshop.homebrew.language.gnomish",
+  goblin: "workshop.homebrew.language.goblin",
+  halfling: "workshop.homebrew.language.halfling",
+  orc: "workshop.homebrew.language.orc",
+  abyssal: "workshop.homebrew.language.abyssal",
+  celestial: "workshop.homebrew.language.celestial",
+  draconic: "workshop.homebrew.language.draconic",
+  "deep speech": "workshop.homebrew.language.deepSpeech",
+  infernal: "workshop.homebrew.language.infernal",
+  primordial: "workshop.homebrew.language.primordial",
+  sylvan: "workshop.homebrew.language.sylvan",
+  undercommon: "workshop.homebrew.language.undercommon",
+  "thieves' cant": "workshop.homebrew.language.thievesCant",
+  druidic: "workshop.homebrew.language.druidic",
   "telepathy 60 ft": "workshop.homebrew.language.telepathy60ft",
 };
 
@@ -56,7 +56,7 @@ const TOOL_KEYS: Record<string, string> = {
 };
 
 export function languageLabel(value: string, t: Translate): string {
-  const key = LANGUAGE_KEYS[value.trim()];
+  const key = LANGUAGE_KEYS[value.trim().toLowerCase()];
   return key ? t(key) : value;
 }
 
