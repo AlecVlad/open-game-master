@@ -3335,7 +3335,6 @@ export const ruWorkshop: Partial<Record<keyof typeof enWorkshop, string>> = {
   "workshop.testFight.party.standInsHint": "{size} {heroes} {level}-го уровня — отряд, под который рассчитана эта мастерская: {classes}. При запуске теста он будет создан по правилам.",
   "workshop.testFight.party.standInsDefault": "Отряд, под который рассчитана эта мастерская. При запуске теста он будет создан по правилам.",
   "workshop.testFight.hero.one": "герой",
-  "workshop.testFight.hero.one": "герой",
   "workshop.testFight.hero.few": "героя",
   "workshop.testFight.hero.many": "героев",
   "workshop.testFight.joinAnd": "и",
