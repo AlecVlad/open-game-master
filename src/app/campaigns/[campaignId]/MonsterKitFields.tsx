@@ -106,7 +106,7 @@ export function TermPicker({
             type="button"
             aria-pressed
             onClick={() => onChange(toggleTerm(value, term))}
-            title="Your own; click to remove"
+            title={t("workshop.monsterEditor.kit.removeOwn")}
             className={cn(chip, "border-amber-500/50 bg-stone-800 text-amber-100")}
           >
             {term}
@@ -116,7 +116,7 @@ export function TermPicker({
       <input
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        placeholder="or type your own, comma separated"
+        placeholder={t("workshop.monsterEditor.kit.ownTerms")}
         className={cn(input, "w-full")}
       />
     </div>
@@ -139,24 +139,24 @@ export function SpeedPicker({
     onChange(formatSpeed({ ...speeds, [mode]: feet }));
   return (
     <div className="flex flex-col gap-1">
-      <span className="text-[10px] uppercase tracking-wide text-stone-500">Speed</span>
+      <span className="text-[10px] uppercase tracking-wide text-stone-500">{t("workshop.monsterEditor.kit.speed")}</span>
       <div className="flex flex-wrap gap-2">
         {(["walk", ...MOVEMENT_MODES] as const).map((mode) => (
           <div key={mode} className="flex flex-col gap-0.5">
-            <span className="text-[10px] capitalize text-stone-600">{mode}</span>
+            <span className="text-[10px] capitalize text-stone-600">{t(`workshop.monsterEditor.kit.${mode}` as never)}</span>
             <NumberStepper
               min={0}
               max={999}
               step={5}
               value={speeds[mode] ?? 0}
               onChange={(feet) => set(mode, feet)}
-              label={`${mode} speed in feet`}
+              label={t("workshop.monsterEditor.kit.speedMode", { mode: t(`workshop.monsterEditor.kit.${mode}` as never) })}
               size="sm"
             />
           </div>
         ))}
       </div>
-      <span className="text-[10px] text-stone-600">Reads as &quot;{value || "0"}&quot;. Zero hides a mode.</span>
+      <span className="text-[10px] text-stone-600">{t("workshop.monsterEditor.kit.readsAs", { value: value || "0" })}</span>
     </div>
   );
 }
@@ -216,19 +216,18 @@ export function MonsterKitPanel({
   return (
     <div className="flex flex-col gap-3 rounded-lg border border-stone-800 bg-stone-950/50 p-3">
       <h4 className="flex items-center gap-1.5 text-xs text-amber-100">
-        <Wand2 className="size-3.5" /> Build it out of the catalogue
+        <Wand2 className="size-3.5" /> {t("workshop.monsterEditor.kit.title")}
       </h4>
       <p className="text-[10px] text-stone-600">
-        Everything these add is an ordinary line on the block below: rename it, retune the
-        numbers, or delete it. Mix as many classes as you like.
+        {t("workshop.monsterEditor.kit.description")}
       </p>
 
       <div className="flex flex-wrap items-end gap-2">
         <Select
-          label="Ancestry"
+          label={t("workshop.monsterEditor.kit.ancestry")}
           value={ancestryId}
           onChange={setAncestryId}
-          options={[{ value: "", label: "Pick one" }, ...ANCESTRY_OPTIONS.map((ancestry) => ({ value: ancestry.id as string, label: ancestry.name }))]}
+          options={[{ value: "", label: t("workshop.monsterEditor.kit.pickOne") }, ...ANCESTRY_OPTIONS.map((ancestry) => ({ value: ancestry.id as string, label: ancestry.name }))]}
         />
         <button
           type="button"
@@ -236,13 +235,13 @@ export function MonsterKitPanel({
           onClick={() => onChange(applyAncestry(draft, ancestryId))}
           className="rounded-md border border-stone-700 px-2 py-1 text-[11px] text-stone-300 hover:text-amber-100 disabled:opacity-40"
         >
-          Take its size, speed and traits
+          {t("workshop.monsterEditor.kit.takeAncestry")}
         </button>
       </div>
 
       <div className="flex flex-wrap items-end gap-2">
         <Select
-          label="Class"
+          label={t("workshop.monsterEditor.kit.class")}
           value={classId}
           onChange={(next) => {
             setClassId(next);
@@ -251,18 +250,18 @@ export function MonsterKitPanel({
           options={[{ value: "", label: "Pick one" }, ...CLASS_KIT_OPTIONS.map((klass) => ({ value: klass.id as string, label: klass.name }))]}
         />
         <Select
-          label="Subclass"
+          label={t("workshop.monsterEditor.kit.subclass")}
           value={subclass}
           onChange={setSubclass}
-          options={[{ value: "", label: subclasses.length ? "None" : "None available" }, ...subclasses.map((name) => ({ value: name, label: name }))]}
+          options={[{ value: "", label: subclasses.length ? t("workshop.monsterEditor.kit.none") : t("workshop.monsterEditor.kit.noneAvailable") }, ...subclasses.map((name) => ({ value: name, label: name }))]}
         />
         <div className="flex flex-col gap-0.5">
-          <span className="text-[10px] uppercase tracking-wide text-stone-500">Level</span>
-          <NumberStepper min={1} max={20} value={level} onChange={setLevel} label="Level" size="sm" />
+          <span className="text-[10px] uppercase tracking-wide text-stone-500">{t("workshop.monsterEditor.kit.level")}</span>
+          <NumberStepper min={1} max={20} value={level} onChange={setLevel} label={t("workshop.monsterEditor.kit.level")} size="sm" />
         </div>
         <div className="flex flex-col gap-0.5">
-          <span className="text-[10px] uppercase tracking-wide text-stone-500">CON</span>
-          <NumberStepper min={1} max={30} value={con} onChange={setCon} label="CON" size="sm" />
+          <span className="text-[10px] uppercase tracking-wide text-stone-500">{t("workshop.monsterEditor.kit.con")}</span>
+          <NumberStepper min={1} max={30} value={con} onChange={setCon} label={t("workshop.monsterEditor.kit.con")} size="sm" />
         </div>
         <button
           type="button"
@@ -270,7 +269,7 @@ export function MonsterKitPanel({
           onClick={() => onChange(applyClassChassis(draft, chassis))}
           className="rounded-md border border-stone-700 px-2 py-1 text-[11px] text-stone-300 hover:text-amber-100 disabled:opacity-40"
         >
-          Take its hit points, saves and swings
+          {t("workshop.monsterEditor.kit.takeClass")}
         </button>
       </div>
       {classId ? (
@@ -280,7 +279,7 @@ export function MonsterKitPanel({
       {features.length ? (
         <div className="reveal flex flex-col gap-1">
           <span className="text-[10px] uppercase tracking-wide text-stone-500">
-            Its abilities at that level {traitsFull ? "(trait list full)" : "(click to add)"}
+            {t("workshop.monsterEditor.kit.featuresAtLevel")} {traitsFull ? t("workshop.monsterEditor.kit.traitsFull") : t("workshop.monsterEditor.kit.clickToAdd")}
           </span>
           <div className="stagger-pop flex flex-wrap gap-1">
             {features.map((feature) => {
@@ -292,7 +291,7 @@ export function MonsterKitPanel({
                   key={`${feature.name}-${feature.level}`}
                   type="button"
                   disabled={on || traitsFull}
-                  title={feature.text || `Gained at level ${feature.level}`}
+                  title={feature.text || t("workshop.monsterEditor.kit.gainedAtLevel", { level: feature.level })}
                   onClick={() => onChange(addTrait(draft, feature.line))}
                   className={cn(
                     chip,
@@ -313,10 +312,10 @@ export function MonsterKitPanel({
 
       <div className="flex flex-wrap items-end gap-2">
         <Select
-          label="Half-dragon template"
+          label={t("workshop.monsterEditor.kit.halfDragon")}
           value={dragon}
           onChange={(value) => setDragon(value as DragonColor | "")}
-          options={[{ value: "", label: "Dragon half" }, ...DRAGON_COLORS.map((color) => ({ value: color as string, label: color }))]}
+          options={[{ value: "", label: t("workshop.monsterEditor.kit.dragonHalf") }, ...DRAGON_COLORS.map((color) => ({ value: color as string, label: t(`workshop.monsterEditor.kit.dragonColor.${color}` as never) }))]}
         />
         <button
           type="button"
@@ -333,47 +332,47 @@ export function MonsterKitPanel({
           }}
           className="rounded-md border border-stone-700 px-2 py-1 text-[11px] text-stone-300 hover:text-amber-100 disabled:opacity-40"
         >
-          Make it a half-dragon
+          {t("workshop.monsterEditor.kit.makeHalfDragon")}
         </button>
         {templateNote ? <span className="live-in basis-full text-[10px] text-stone-500">{templateNote}</span> : null}
       </div>
 
       <div className="flex flex-wrap items-end gap-2">
         <Select
-          label="Armour"
+          label={t("workshop.monsterEditor.kit.armour")}
           value={armorName}
           onChange={setArmorName}
           options={[
-            { value: "", label: "Unarmoured" },
+            { value: "", label: t("workshop.monsterEditor.kit.unarmoured") },
             ...armorOptionsFor(classId)
               .filter((armor) => armor.category !== "shield")
               .map((armor) => ({ value: armor.name, label: `${armor.name} (${armor.baseAc})` })),
           ]}
         />
         <label className="flex items-center gap-1.5 pb-1 text-[11px] text-stone-400">
-          <Switch on={shield} onChange={setShield} label="Shield" />
-          Shield
+          <Switch on={shield} onChange={setShield} label={t("workshop.monsterEditor.kit.shield")} />
+          {t("workshop.monsterEditor.kit.shield")}
         </label>
         <button
           type="button"
           onClick={() => onChange(applyArmor(draft, armorName, shield))}
           className="rounded-md border border-stone-700 px-2 py-1 text-[11px] text-stone-300 hover:text-amber-100"
         >
-          Set the armour class
+          {t("workshop.monsterEditor.kit.setAc")}
         </button>
       </div>
 
       <div className="flex flex-wrap items-end gap-2">
         <Select
-          label="Weapon"
+          label={t("workshop.monsterEditor.kit.weapon")}
           value={weaponName}
           onChange={setWeaponName}
           className="w-44"
           options={[{ value: "", label: "Pick one" }, ...weaponOptionsFor(classId).map((weapon) => ({ value: weapon.name, label: `${weapon.name} (${weapon.damage})` }))]}
         />
         <div className="flex flex-col gap-0.5">
-          <span className="text-[10px] uppercase tracking-wide text-stone-500">Ability mod</span>
-          <NumberStepper min={0} max={10} value={weaponMod} onChange={setWeaponMod} label="Ability mod" size="sm" />
+          <span className="text-[10px] uppercase tracking-wide text-stone-500">{t("workshop.monsterEditor.kit.abilityMod")}</span>
+          <NumberStepper min={0} max={10} value={weaponMod} onChange={setWeaponMod} label={t("workshop.monsterEditor.kit.abilityMod")} size="sm" />
         </div>
         <button
           type="button"
@@ -394,10 +393,10 @@ export function MonsterKitPanel({
           }}
           className="rounded-md border border-stone-700 px-2 py-1 text-[11px] text-stone-300 hover:text-amber-100 disabled:opacity-40"
         >
-          {attacksFull ? "Attack list full" : "Add it as an attack"}
+          {attacksFull ? "{t("workshop.monsterEditor.kit.attackFull")}" : "{t("workshop.monsterEditor.kit.addAttack")}"}
         </button>
         <span className="pb-1 text-[10px] text-stone-600">
-          To hit +{proficiencyBonus(level) + Math.max(0, weaponMod)} at level {level}.
+          {t("workshop.monsterEditor.kit.toHit", { bonus: proficiencyBonus(level) + Math.max(0, weaponMod), level })}
         </span>
       </div>
     </div>
