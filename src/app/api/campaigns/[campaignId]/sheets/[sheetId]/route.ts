@@ -29,7 +29,7 @@ export async function PATCH(
 
   const sheet = getSheetById(sheetId);
   if (!sheet || sheet.campaignId !== campaignId) {
-    return Response.json({ error: "Character not found." }, { status: 404 });
+    return Response.json({ error: "Character not found.", errorCode: "CHARACTER_NOT_FOUND" }, { status: 404 });
   }
 
   const raw = await request.json().catch(() => ({}));
@@ -90,7 +90,7 @@ export async function PATCH(
     return { updated, entry, correctionId };
   })();
   if (!saved) {
-    return Response.json({ error: "Character not found." }, { status: 404 });
+    return Response.json({ error: "Character not found.", errorCode: "CHARACTER_NOT_FOUND" }, { status: 404 });
   }
   const { updated, entry, correctionId } = saved;
   publishPersisted(campaignId, "sheet_audit", { entry, characterName: sheet.name });
