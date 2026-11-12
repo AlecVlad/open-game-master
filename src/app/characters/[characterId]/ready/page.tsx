@@ -11,10 +11,11 @@ import { useLowEffects } from "@/lib/effects-mode";
 import { freshPlaySheet, revealLine, threeThingsToTry } from "@/lib/characters/hero-tips";
 import type { CreateSheetInput } from "@/lib/schemas/sheet";
 import { classLevelWords, isSplit } from "@/lib/characters/class-words";
-import { workshopClassName } from "@/lib/classes/workshop-registry";
+
 import { CharacterPortrait, ui } from "@/lib/ui";
 import { UseInCampaignDialog } from "../UseInCampaignDialog";
 import { useI18n } from "@/lib/i18n/provider";
+import { characterClassName, characterRaceName, characterSubclassName } from "@/lib/i18n/character-names";
 
 // The hero page (backlog F23 and F26): where a new character lands after
 // its first save. A text page, not a toast: its own heading, which takes
@@ -42,11 +43,6 @@ type ReadyCharacter = {
 // The sheet page's limit: polling stops even if the job never resolves.
 const PORTRAIT_POLL_LIMIT = 240;
 
-// An id as words ("half-elf" as "half elf"); the line's capitalize class
-// shows it title-cased.
-function spaced(value: string) {
-  return value.split(/[-_]/).join(" ");
-}
 
 export default function HeroReadyPage({ params }: { params: Promise<{ characterId: string }> }) {
   const { characterId } = use(params);
@@ -152,14 +148,14 @@ export default function HeroReadyPage({ params }: { params: Promise<{ characterI
   }
 
   const portraitUrl = character.sheet.portrait?.url;
-  const ancestry = character.raceLabel ?? spaced(character.race);
+  const ancestry = characterRaceName(character.race, character.raceLabel, t);
   // A split names each class's levels (backlog F9); one class reads the
   // server's name for it, a workshop class's included.
   const split = { ...character, classes: character.sheet.classes };
   const classWords = isSplit(split)
-    ? classLevelWords(split, (id) => workshopClassName(id) ?? spaced(id))
-    : (character.className ?? spaced(character.class));
-  const calling = `${classWords}${character.subclass ? ` (${spaced(character.subclass)})` : ""}`;
+    ? classLevelWords(split, (id) => characterClassName(id, t))
+    : characterClassName(character.class, t, character.className);
+  const calling = `${classWords}${character.subclass ? ` (${characterSubclassName(character.class, character.subclass, t)})` : ""}`;
   const motion = lowEffects ? "" : "reveal";
 
   return (
