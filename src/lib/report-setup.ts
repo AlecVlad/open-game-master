@@ -44,6 +44,11 @@ export type ReportAgentProgram = {
   state: string;
 };
 
+export type ReportCheckFirstItem = {
+  code: string;
+  params?: Record<string, string | number>;
+};
+
 export type ReportSetup = {
   version: string;
   build: string;
