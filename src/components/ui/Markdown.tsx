@@ -3,6 +3,8 @@
 import { Dices } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { cn } from "@/lib/cn";
+import { useT } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages/index";
 import { splitLoreLinks, type LoreLinkTarget, type LoreStyle } from "@/lib/dm/world-lore-logic";
 
 // The small markdown a world bible needs, rendered to React and never to
@@ -94,7 +96,7 @@ const INLINE = /(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`)/g;
 // (docs/vtt-parity-implementation-plan.md 5.6).
 const DICE = /^\s*(\d{0,2}d\d{1,3}(?:\s*[+-]\s*\d{1,3})?)\s*$/i;
 
-function RollChip({ expression, onRoll }: { expression: string; onRoll?: (expression: string) => Promise<number | null> }) {
+function RollChip({ expression, onRoll, t }: { expression: string; onRoll?: (expression: string) => Promise<number | null>; t: ReturnType<typeof useT> }) {
   const [result, setResult] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
   return (
@@ -112,7 +114,7 @@ function RollChip({ expression, onRoll }: { expression: string; onRoll?: (expres
           setBusy(false);
         }
       }}
-      title={onRoll ? `Roll ${expression}` : expression}
+      title={onRoll ? t("markdown.roll", { expression }) : expression}
       className="inline-flex items-center gap-1 rounded-md border border-amber-700/60 bg-amber-950/40 px-1.5 py-0 align-baseline font-mono text-[0.85em] text-amber-100 hover:bg-amber-900/40 disabled:opacity-70"
     >
       <Dices className="size-3" />
@@ -122,7 +124,14 @@ function RollChip({ expression, onRoll }: { expression: string; onRoll?: (expres
   );
 }
 
-type InlineOptions = { onRoll?: (expression: string) => Promise<number | null> };
+const LORE_TARGET_MESSAGE: Record<LoreLinkTarget["kind"], MessageKey> = {
+  lore: "markdown.targetType.lore",
+  npc: "markdown.targetType.npc",
+  place: "markdown.targetType.place",
+  map: "markdown.targetType.map",
+};
+
+type InlineOptions = { onRoll?: (expression: string) => Promise<number | null>; t: ReturnType<typeof useT> };
 
 function inline(
   text: string,
@@ -133,7 +142,7 @@ function inline(
   const nodes: ReactNode[] = [];
   splitLoreLinks(text, targets).forEach((segment, index) => {
     if (segment.kind === "link" && DICE.test(segment.name)) {
-      nodes.push(<RollChip key={`roll-${index}`} expression={segment.name.replace(/\s+/g, "")} onRoll={options.onRoll} />);
+      nodes.push(<RollChip key={`roll-${index}`} expression={segment.name.replace(/\s+/g, "")} onRoll={options.onRoll} t={options.t} />);
       return;
     }
     if (segment.kind === "link") {
@@ -151,7 +160,7 @@ function inline(
           <span
             key={`link-${index}`}
             className={cn("rounded-sm", segment.target ? "text-amber-200" : "text-stone-400 line-through decoration-stone-600")}
-            title={segment.target ? `A ${segment.target.kind}` : "Nothing by this name yet"}
+            title={segment.target ? options.t(LORE_TARGET_MESSAGE[segment.target.kind]) : options.t("markdown.unresolvedLink")}
           >
             {segment.name}
           </span>
@@ -207,9 +216,10 @@ export function Markdown({
   // Rolls a [[1d6]] chip; without it the chip is only a label.
   onRoll?: (expression: string) => Promise<number | null>;
 }) {
+  const t = useT();
   const rendered = blocks(source);
   const look = STYLE_CLASS[style];
-  const options: InlineOptions = { onRoll };
+  const options: InlineOptions = { onRoll, t };
   const renderBlocks = (list: Block[], keyPrefix = ""): ReactNode[] =>
     list.map((block, index) => {
       const key = `${keyPrefix}${index}`;
@@ -219,7 +229,7 @@ export function Markdown({
         }
         return (
           <div key={key} className="rounded-md border border-dashed border-violet-700/70 bg-violet-950/30 px-2 py-1.5">
-            <p className="mb-1 text-[10px] uppercase tracking-wide text-violet-300">Only the GM reads this</p>
+            <p className="mb-1 text-[10px] uppercase tracking-wide text-violet-300">{t("markdown.onlyGmReads")}</p>
             <div className="space-y-1.5">{renderBlocks(block.blocks, `${key}-`)}</div>
           </div>
         );
