@@ -217,6 +217,7 @@ for (const key of placePartOfMessages) {
 
 const sharedComponentMessages = [
   "common.actionsFor",
+  "hotkeyOverlay.title", "hotkeyOverlay.footer",
   "dialog.close",
   "about.title", "about.error.load", "about.loading", "about.version", "about.serverName",
   "about.row.build", "about.row.commit", "about.row.built", "about.row.updateChannel", "about.row.checkedAt",
