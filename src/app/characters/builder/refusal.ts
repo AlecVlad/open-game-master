@@ -1,5 +1,7 @@
 import type { MessageKey } from "@/lib/i18n/messages";
 
+type MessageParams = Record<string, string | number>;
+
 const REFUSAL_MESSAGE_KEYS = {
   MULTICLASS_DISABLED: "builder.refusal.multiclass.disabled",
   DUPLICATE_CLASS: "builder.refusal.multiclass.duplicate",
@@ -17,20 +19,29 @@ const REFUSAL_MESSAGE_KEYS = {
   PICKS_COULD_NOT_BE_READ: "campaign.joinConfirm.error.picksUnreadable",
   NO_CHARACTER_TO_SWITCH: "campaign.joinConfirm.error.noCharacterToSwitch",
   CHARACTER_UPDATE_FAILED: "campaign.joinConfirm.error.updateFailed",
+  COMPANION_NOT_PLAYER_CHARACTER: "campaign.joinConfirm.error.companionRole",
+  HERO_FELL_AT_TABLE: "campaign.joinConfirm.error.heroFell",
+  PREGEN_ALREADY_PLAYED_BY_YOU: "campaign.joinConfirm.error.pregenAlreadyMine",
+  PREGEN_ALREADY_TAKEN: "campaign.joinConfirm.error.pregenAlreadyTaken",
+  PREGEN_COPY_ALREADY_PLAYED_BY_YOU: "campaign.joinConfirm.error.pregenCopyAlreadyMine",
+  PREGEN_COPY_PLAYED_BY_ANOTHER: "campaign.joinConfirm.error.pregenCopyPlayedByAnother",
+  OFFERED_PREGEN_JOIN_ONLY: "campaign.joinConfirm.error.offeredPregenJoinOnly",
 } satisfies Record<string, MessageKey>;
 
-// API refusals keep their original prose for older clients and unknown
+// Refusals retain their original prose for older clients and unknown
 // diagnostics. New clients translate only messages carrying a known code.
 export function refusalText(
   data: unknown,
   fallback: string,
-  t: (key: MessageKey) => string,
+  t: (key: MessageKey, params?: MessageParams) => string,
 ): string {
   const body = (data ?? {}) as {
     error?: unknown;
     problems?: unknown;
     problemCodes?: unknown;
+    problemParams?: unknown;
     errorCode?: unknown;
+    errorParams?: unknown;
   };
   const problems = Array.isArray(body.problems)
     ? body.problems.filter((entry): entry is string => typeof entry === "string" && entry.trim() !== "")
@@ -41,10 +52,19 @@ export function refusalText(
   if (!messages.length) return fallback;
 
   const codes = Array.isArray(body.problemCodes) ? body.problemCodes : [body.errorCode];
+  const params = Array.isArray(body.problemParams) ? body.problemParams : [body.errorParams];
   const translated = messages.map((message, index) => {
     const code = codes[index];
+    const rawParams = params[index];
+    const messageParams = rawParams && typeof rawParams === "object" && !Array.isArray(rawParams)
+      ? Object.fromEntries(
+          Object.entries(rawParams).filter((entry): entry is [string, string | number] =>
+            typeof entry[1] === "string" || typeof entry[1] === "number",
+          ),
+        )
+      : undefined;
     if (typeof code === "string" && code in REFUSAL_MESSAGE_KEYS) {
-      return t(REFUSAL_MESSAGE_KEYS[code as keyof typeof REFUSAL_MESSAGE_KEYS]);
+      return t(REFUSAL_MESSAGE_KEYS[code as keyof typeof REFUSAL_MESSAGE_KEYS], messageParams);
     }
     return message;
   });
