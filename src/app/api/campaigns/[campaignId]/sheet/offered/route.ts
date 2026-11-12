@@ -7,7 +7,7 @@ import { announceMidGameJoin } from "@/lib/characters/mid-game-join";
 import { HERO_DOOR_SHUT, heroDoorFor } from "@/lib/characters/hero-door";
 import { seatAddedSheet } from "@/lib/character-seat";
 import { createCharacter, setPregenOrigin } from "@/lib/db/characters";
-import { claimPregen, claimRefusal, offeredPregenFor } from "@/lib/db/pregen-offers";
+import { claimPregen, claimRefusalDetail, offeredPregenFor } from "@/lib/db/pregen-offers";
 import { createSheet } from "@/lib/db/sheets";
 import { publishPersisted } from "@/lib/events";
 import { queueLibraryPortrait } from "@/lib/portrait";
@@ -63,9 +63,9 @@ export async function POST(
   if (!offer || offer.character.userId === context.user.id) {
     return Response.json({ error: "No such hero.", errorCode: "HERO_NOT_FOUND" }, { status: 404 });
   }
-  const taken = claimRefusal(offer, context.user.id);
+  const taken = claimRefusalDetail(offer, context.user.id);
   if (taken) {
-    return Response.json({ error: taken }, { status: 409 });
+    return Response.json({ error: taken.message, errorCode: taken.code, errorParams: taken.params }, { status: 409 });
   }
   const level = door.level;
   const admitted = admitLibraryForSeat(offer.character, door.campaign, context.user.id, level, parsed.data.picks);
