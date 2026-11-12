@@ -245,7 +245,7 @@ export default function FeatChoicesFields({
               label={t("builder.feat.choice.language.label", { feat, index: index + 1 })}
               placeholder={t("builder.feat.choice.language.placeholder")}
               options={[
-                { value: "", label: "Choose a language..." },
+                { value: "", label: t("builder.feat.choice.language.placeholder") },
                 ...STANDARD_LANGUAGES.filter(
                   (language) =>
                     !heldLanguages.has(textKey(language)) &&
@@ -308,7 +308,7 @@ export default function FeatChoicesFields({
               label={t("builder.feat.choice.weapon.label", { feat, index: index + 1 })}
               placeholder={t("builder.feat.choice.weapon.placeholder")}
               options={[
-                { value: "", label: "Choose a weapon..." },
+                { value: "", label: t("builder.feat.choice.weapon.placeholder") },
                 ...weaponsOffered.filter(
                   (weapon) =>
                     !heldWeapons.has(textKey(weapon.name)) &&
@@ -327,7 +327,7 @@ export default function FeatChoicesFields({
           label={t("builder.feat.choice.damage.label", { feat })}
           placeholder={t("builder.feat.choice.damage.placeholder")}
           options={[
-            { value: "", label: "Choose a damage type..." },
+            { value: "", label: t("builder.feat.choice.damage.placeholder") },
             ...spec.damageTypes.map((type) => ({ value: type, label: capital(type) })),
           ]}
         />
@@ -340,7 +340,7 @@ export default function FeatChoicesFields({
           label={t("builder.feat.choice.list.label", { feat })}
           placeholder={t("builder.feat.choice.list.placeholder")}
           options={[
-            { value: "", label: "Choose a spell list..." },
+            { value: "", label: t("builder.feat.choice.list.placeholder") },
             ...taught.lists.map((list) => ({ value: list, label: capital(list) })),
           ]}
         />
@@ -353,7 +353,7 @@ export default function FeatChoicesFields({
           label={t("builder.feat.choice.ability.label", { feat })}
           placeholder={t("builder.feat.choice.ability.placeholder")}
           options={[
-            { value: "", label: "Choose the ability..." },
+            { value: "", label: t("builder.feat.choice.ability.placeholder") },
             { value: "int", label: t("builder.feat.choice.ability.int") },
             { value: "wis", label: t("builder.feat.choice.ability.wis") },
             { value: "cha", label: t("builder.feat.choice.ability.cha") },
@@ -378,7 +378,7 @@ export default function FeatChoicesFields({
               label={t("builder.feat.choice.armor.label", { feat, index: index + 1 })}
               placeholder={t("builder.feat.choice.armor.placeholder")}
               options={[
-                { value: "", label: "Choose armor training..." },
+                { value: "", label: t("builder.feat.choice.armor.placeholder") },
                 ...spec.armorFrom.filter(
                   (piece) => !heldArmor.has(textKey(piece)) && (mine.armor[index] === piece || !mine.armor.includes(piece)),
                 ).map((piece) => ({ value: piece, label: capital(piece === "shields" ? "shields" : `${piece} armor`) })),
@@ -398,7 +398,7 @@ export default function FeatChoicesFields({
               label={t("builder.feat.choice.tool.label", { feat, index: index + 1 })}
               placeholder={t("builder.feat.choice.tool.placeholder")}
               options={[
-                { value: "", label: "Choose a tool..." },
+                { value: "", label: t("builder.feat.choice.tool.placeholder") },
                 ...toolsOffered.filter(
                   (tool) => !heldTools.has(textKey(tool)) && (mine.tools[index] === tool || !mine.tools.includes(tool)),
                 ).map((tool) => ({ value: tool, label: capital(tool) })),
