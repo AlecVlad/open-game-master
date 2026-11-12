@@ -66,7 +66,10 @@ function picksOf(raw: unknown): { picks: SeatPicks | null } | { error: Response 
   const parsed = seatPicksSchema.safeParse(sent);
   return parsed.success
     ? { picks: parsed.data }
-    : { error: Response.json({ error: parsed.error.issues[0]?.message || "Those picks could not be read." }, { status: 400 }) };
+    : { error: Response.json({
+        error: parsed.error.issues[0]?.message || "Those picks could not be read.",
+        errorCode: "PICKS_COULD_NOT_BE_READ",
+      }, { status: 400 }) };
 }
 
 // The library door with the picks made: the hero is adapted and admitted
@@ -88,7 +91,7 @@ const editSchema = z.object({
 function lobbyGuard(context: MemberContext): Response | null {
   if (context.campaign.status !== "lobby") {
     return Response.json(
-      { error: "Characters can only be changed in the lobby." },
+      { error: "Characters can only be changed in the lobby.", errorCode: "CAMPAIGN_NOT_LOBBY" },
       { status: 409 },
     );
   }
@@ -200,7 +203,7 @@ export async function POST(
       return Response.json({ error: `${reusedSheet.name} fell at this table. Bring in someone else.` }, { status: 409 });
     }
     if (!reused && !door.open) {
-      return Response.json({ error: HERO_DOOR_SHUT }, { status: 409 });
+      return Response.json({ error: HERO_DOOR_SHUT, errorCode: "HERO_ALREADY_HAS_CHARACTER" }, { status: 409 });
     }
     // One player per pregen per table (src/lib/db/pregen-offers.ts): a copy of
     // a DM's offered pregen does not sit where another sheet plays it.
@@ -230,7 +233,7 @@ export async function POST(
 
   // Path 2: create new; also saved to the user's library, then copied in.
   if (!door.open) {
-    return Response.json({ error: HERO_DOOR_SHUT }, { status: 409 });
+    return Response.json({ error: HERO_DOOR_SHUT, errorCode: "HERO_ALREADY_HAS_CHARACTER" }, { status: 409 });
   }
   const parsed = createSheetSchema.safeParse(raw);
   if (!parsed.success) {
@@ -301,7 +304,7 @@ export async function PUT(
   const existing = getSheetForUser(campaignId, context.user.id);
   if (!existing) {
     return Response.json(
-      { error: "You have no character in this campaign yet; create one first." },
+      { error: "You have no character in this campaign yet; create one first.", errorCode: "NO_CHARACTER_TO_SWITCH" },
       { status: 404 },
     );
   }
@@ -318,7 +321,7 @@ export async function PUT(
     }
     const character = getCharacterForUser(context.user.id, fromLibrary.data.libraryCharacterId);
     if (!character) {
-      return Response.json({ error: "Character not found in your library." }, { status: 404 });
+      return Response.json({ error: "Character not found in your library.", errorCode: "CHARACTER_NOT_FOUND" }, { status: 404 });
     }
     // Held before the old sheet goes: a refused companion must not cost the
     // player the character they have (issue 192).
@@ -375,7 +378,7 @@ export async function PUT(
   if (edit.success) {
     const character = getCharacterForUser(context.user.id, edit.data.editLibraryCharacterId);
     if (!character) {
-      return Response.json({ error: "Character not found in your library." }, { status: 404 });
+      return Response.json({ error: "Character not found in your library.", errorCode: "CHARACTER_NOT_FOUND" }, { status: 404 });
     }
     // Held before the old sheet goes: a refused companion must not cost the
     // player the character they have (issue 192).
@@ -438,7 +441,7 @@ export async function PUT(
       edit.data.sheet,
     );
     if (!updated) {
-      return Response.json({ error: "Could not update the character." }, { status: 400 });
+      return Response.json({ error: "Could not update the character.", errorCode: "CHARACTER_UPDATE_FAILED" }, { status: 400 });
     }
     deleteSheetById(campaignId, context.user.id, replaced.id);
     // The seat's classes stand at a table that turned multiclassing off
