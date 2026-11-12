@@ -3321,4 +3321,5 @@ export const ruWorkshop: Partial<Record<keyof typeof enWorkshop, string>> = {
   "workshop.maps.selection.dialog.changeLabel": "Изменить подпись",
   "workshop.maps.selection.apply": "Применить",
   "workshop.maps.canvas.battleMap": "Боевая карта",
+  "workshop.maps.selection.cancel": "Отмена",
 };
