@@ -14,6 +14,7 @@ import type { Data } from "@/app/workshop/homebrew/draft";
 import { textKey } from "@/lib/language/text-logic";
 import { ALL_SKILLS } from "@/lib/content/mechanics";
 import { TOOL_PROFICIENCIES } from "@/lib/workshop/pickers";
+import { toolLabel } from "@/app/workshop/homebrew/catalogLabels";
 import { engineRunsFeature, FEATURE_CLASSES, type CatalogFeature } from "@/lib/workshop/feature-catalog";
 import { classFeatureCatalog } from "@/lib/workshop/class-feature-catalog";
 import {
@@ -326,7 +327,7 @@ export function ClassFields({ data, set }: { data: Data; set: (patch: Data) => v
         <div className="flex flex-wrap items-center gap-1.5 text-xs">
           {tools.map((tool) => (
             <span key={tool} className="live-in inline-flex items-center rounded-md border border-stone-700 pl-2 text-stone-200">
-              {tool}
+              {toolLabel(tool, t)}
               <button type="button" aria-label={t("workshop.homebrew.class.ui.removeTool", { name: tool })} onClick={() => set({ tools: tools.filter((entry) => entry !== tool) })} className={cn(ui.iconAction, rowIcon, "hover:text-red-300")}>
                 <X className="size-3.5" />
               </button>
@@ -336,7 +337,7 @@ export function ClassFields({ data, set }: { data: Data; set: (patch: Data) => v
             <AddFromList
               prompt={t("workshop.homebrew.class.addTool")}
               className="min-h-10 sm:min-h-0"
-              options={TOOL_PROFICIENCIES.filter((tool) => !tools.some((entry) => textKey(entry) === textKey(tool))).map((tool) => ({ value: tool.toLowerCase(), label: tool }))}
+              options={TOOL_PROFICIENCIES.filter((tool) => !tools.some((entry) => textKey(entry) === textKey(tool))).map((tool) => ({ value: tool.toLowerCase(), label: toolLabel(tool, t) }))}
               onPick={(tool) => set({ tools: [...tools, tool] })}
             />
           ) : (
