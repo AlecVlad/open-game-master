@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { ChevronRight, Search, X } from "lucide-react";
 import { cn } from "@/lib/cn";
 import type { ObjectEntry } from "@/lib/battlemap/render/painted";
@@ -28,6 +29,7 @@ export function StampPicker({
   // Undefined clears the stamp and returns the prop to the plain marker.
   onPick: (object: ObjectEntry | undefined) => void;
 }) {
+  const { t } = useI18n();
   const [query, setQuery] = useState("");
   const [opened, setOpened] = useState<Record<string, boolean>>({});
   const groups = useMemo(() => groupStamps(objects, ownSets, query), [objects, ownSets, query]);
@@ -37,10 +39,10 @@ export function StampPicker({
   return (
     <div className="space-y-1.5">
       <div className="flex items-center justify-between font-display text-[9px] uppercase tracking-[0.18em] text-stone-500">
-        Drawn as
+        {t("workshop.maps.stamp.drawnAs")}
         {picked ? (
           <button type="button" onClick={() => onPick(undefined)} className="flex items-center gap-1 text-stone-400 hover:text-amber-200">
-            <X className="size-3" /> <span className="font-sans text-[10px] normal-case tracking-normal">plain marker</span>
+            <X className="size-3" /> <span className="font-sans text-[10px] normal-case tracking-normal">{t("workshop.maps.stamp.plainMarker")}</span>
           </button>
         ) : null}
       </div>
@@ -56,8 +58,8 @@ export function StampPicker({
         <input
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          placeholder="Find an object: barrel, altar, tavern"
-          aria-label="Find an object"
+          placeholder={t("workshop.maps.stamp.findObject")}
+          aria-label={t("workshop.maps.stamp.findObjectAria")}
           className={cn(mapInput, "pl-7")}
         />
       </label>
@@ -74,7 +76,7 @@ export function StampPicker({
               >
                 <ChevronRight className={cn("chevron-turn size-3", open && "rotate-90")} />
                 <span className="text-[10px] uppercase tracking-wide">{group.label}</span>
-                {group.own ? <span className="text-[10px] uppercase tracking-wide text-amber-400/80">this map</span> : null}
+                {group.own ? <span className="text-[10px] uppercase tracking-wide text-amber-400/80">{t("workshop.maps.stamp.thisMap")}</span> : null}
                 <span className="ml-auto font-mono text-[10px] text-stone-600">{group.objects.length}</span>
               </button>
               {open ? (
@@ -101,7 +103,7 @@ export function StampPicker({
             </section>
           );
         })}
-        {!groups.length ? <FinePrint>Nothing in the object set matches that.</FinePrint> : null}
+        {!groups.length ? <FinePrint>{t("workshop.maps.stamp.nothingMatches")}</FinePrint> : null}
       </div>
     </div>
   );
