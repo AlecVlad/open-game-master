@@ -446,4 +446,13 @@ export const ruCommon: Partial<Record<keyof typeof enCommon, string>> = {
   "confirmDialog.ok": "Понятно",
   "promptDialog.save": "Сохранить",
   "promptDialog.cancel": "Отмена",
+  "dateTimePicker.placeholder": "Выберите дату",
+  "dateTimePicker.earlierMonth": "Предыдущий месяц",
+  "dateTimePicker.laterMonth": "Следующий месяц",
+  "dateTimePicker.hour": "Часы",
+  "dateTimePicker.minute": "Минуты",
+  "select.placeholder": "Выберите",
+  "infoDialog.armor": "Доспехи",
+  "infoDialog.weapon": "Оружие",
+  "infoDialog.description": "Описание",
 };
