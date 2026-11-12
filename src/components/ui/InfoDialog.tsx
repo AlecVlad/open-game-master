@@ -484,6 +484,7 @@ export function InfoChipList({
   }>;
   emptyText?: string;
 }) {
+  const t = useT();
   if (!items.length) {
     return emptyText ? <p className="text-xs text-stone-500">{emptyText}</p> : null;
   }
@@ -500,7 +501,7 @@ export function InfoChipList({
                   <span className="min-w-0">
                     <span className="block font-display text-[13px] tracking-wide text-amber-100">{item.name}</span>
                     {item.meta ? <span className="block text-[10px] uppercase tracking-wider text-stone-500">{item.meta}</span> : null}
-                    <span className="mt-0.5 block text-stone-300">{line ?? "Select the mark beside it for the full entry."}</span>
+                    <span className="mt-0.5 block text-stone-300">{line ?? t("infoDialog.chipHint")}</span>
                   </span>
                 </span>
               }
