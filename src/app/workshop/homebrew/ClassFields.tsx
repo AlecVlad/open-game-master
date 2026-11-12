@@ -145,7 +145,7 @@ function Features({ data, set }: { data: Data; set: (patch: Data) => void }) {
   const full = new Set([...counts].filter(([, count]) => count >= FEATURE_LIMITS.perLevel).map(([level]) => level));
   return (
     <div className="space-y-1.5 text-sm">
-      <SectionHead title={t("workshop.homebrew.class.features")} glyph="rest-level-up" className="mb-1" />
+      <SectionHead title={t("workshop.homebrew.class.ui.featuresByLevel")} glyph="rest-level-up" className="mb-1" />
       {flat.map((row, index) => {
         const tag = row.feature.n.trim() ? engineTag(row.feature.n.trim()) : null;
         return (
