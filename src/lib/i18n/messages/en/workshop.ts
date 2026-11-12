@@ -3402,4 +3402,5 @@ export const enWorkshop = {
   "workshop.homebrew.hazard.boolean.no": "no",
   "workshop.homebrew.hazard.boolean.yes": "yes",
   "workshop.homebrew.item.ui.damageTypes": "Damage types",
+  "workshop.homebrew.species.main.size.smallHeavyHint": "A Small creature attacks with a heavy weapon at disadvantage.",
 } satisfies Record<string, string>;
