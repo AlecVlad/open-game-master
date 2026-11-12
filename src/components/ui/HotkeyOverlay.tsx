@@ -1,6 +1,7 @@
 "use client";
 
 import { Dialog } from "@/components/ui/Dialog";
+import { useT } from "@/lib/i18n/provider";
 
 // Every key an editor answers to, on one sheet (docs/vtt-parity-
 // implementation-plan.md section 10.7). Opened with `?` or the toolbar
@@ -11,9 +12,9 @@ export type HotkeyRow = { keys: string[]; does: string };
 export function HotkeyOverlay({
   open,
   onOpenChange,
-  title = "Keys",
+  title,
   groups,
-  footer = "Every key has a button on screen; on a phone the buttons are the way in.",
+  footer,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -21,8 +22,9 @@ export function HotkeyOverlay({
   groups: Array<{ title: string; rows: HotkeyRow[] }>;
   footer?: string;
 }) {
+  const t = useT();
   return (
-    <Dialog open={open} onOpenChange={onOpenChange} title={title} width="w-[min(92vw,30rem)]">
+    <Dialog open={open} onOpenChange={onOpenChange} title={title ?? t("hotkeyOverlay.title")} width="w-[min(92vw,30rem)]">
       <div className="stagger space-y-4">
         {groups.map((group) => (
           <section key={group.title}>
@@ -47,7 +49,7 @@ export function HotkeyOverlay({
           </section>
         ))}
         <p className="text-[11px] text-stone-500">
-          {footer}
+          {footer ?? t("hotkeyOverlay.footer")}
         </p>
       </div>
     </Dialog>
