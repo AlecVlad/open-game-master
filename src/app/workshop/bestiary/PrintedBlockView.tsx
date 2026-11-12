@@ -45,6 +45,7 @@ function AbilityRow({ ability }: { ability: PrintedAbility }) {
 }
 
 export function PrintedBlockView({ draft }: { draft: MonsterDraft }) {
+  const { t } = useI18n();
   const printed = draft.stats.printed;
   const [open, setOpen] = useState(false);
   const [reading, setReading] = useState(false);
