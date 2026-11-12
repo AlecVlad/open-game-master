@@ -170,6 +170,9 @@ async function libraryHero(table, sheet = LEGAL_FIGHTER, level = 1) {
 await test("a library hero previewed at a level 4 table: the changes, a pass, the owed choices, and nothing stored", async () => {
   const table = await openCreation({ campaign: { startingLevel: 4 } });
   const character = await libraryHero(table);
+  const badPicks = await table.call(table.sheetRoute, "POST", { libraryCharacterId: character.id, picks: { skills: "not-an-array" } }, { campaignId: table.campaignId });
+  assert.equal(badPicks.status, 400);
+  assert.equal(badPicks.json.errorCode, "PICKS_COULD_NOT_BE_READ");
   const { status, json } = await previewAs(table, { libraryCharacterId: character.id });
   assert.equal(status, 200, JSON.stringify(json));
   const { preview } = json;
@@ -229,6 +232,9 @@ await test("the door rules show before the seat is offered: a second hero, a swi
   assert.equal(late.json.preview.ok, false);
   assert.match(late.json.preview.problems[0], /only be changed in the lobby/);
   assert.equal(late.json.preview.problemCodes[0], "CAMPAIGN_NOT_LOBBY");
+  const lockedSwitch = await table.call(table.sheetRoute, "PUT", {}, { campaignId: table.campaignId });
+  assert.equal(lockedSwitch.status, 409);
+  assert.equal(lockedSwitch.json.errorCode, "CAMPAIGN_NOT_LOBBY");
   table.world.close();
 });
 
