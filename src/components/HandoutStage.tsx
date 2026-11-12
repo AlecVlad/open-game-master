@@ -7,6 +7,7 @@ import { Markdown } from "@/components/ui/Markdown";
 import { Scroll } from "@/components/ui/Scroll";
 import type { HandoutShown } from "@/lib/scene/state";
 import type { LoreEntryView } from "@/app/workshop/lore/types";
+import { useT } from "@/lib/i18n/provider";
 
 // The handout on the table (docs/vtt-parity-implementation-plan.md 5.2):
 // what the DM put in front of everyone, over a scrim, as parchment, a
@@ -33,6 +34,7 @@ export function HandoutStage({
   // The DM's take-down; players fold locally.
   onDismiss: (id: string) => Promise<void>;
 }) {
+  const t = useT();
   const [folded, setFolded] = useState<string | null>(null);
   const [entry, setEntry] = useState<LoreEntryView | null>(null);
   // The binder entry this stage last finished asking for, found or not: the
@@ -99,7 +101,7 @@ export function HandoutStage({
 
   const paper = (
     <>
-      {style === "parchment" ? <span className="found-stamp">Found</span> : null}
+      {style === "parchment" ? <span className="found-stamp">{t("handout.found")}</span> : null}
       <h2 className={cn("font-display", style === "notice" ? "text-center text-2xl uppercase tracking-[0.2em]" : "text-xl")}>
         {handout.title}
       </h2>
@@ -112,10 +114,10 @@ export function HandoutStage({
         <p className={cn("mt-4 text-[11px] italic opacity-80", style === "notice" ? "text-center" : "")}>{handout.caption}</p>
       ) : null}
       <div className="mt-4 flex items-center justify-between">
-        <span className="wax-seal">From the GM</span>
+        <span className="wax-seal">{t("handout.source")}</span>
         {entry?.attachmentPath ? (
           <a href={entry.attachmentPath} target="_blank" rel="noreferrer" className="text-[11px] underline">
-            Open the pages
+            {t("handout.openPages")}
           </a>
         ) : null}
       </div>
@@ -148,7 +150,7 @@ export function HandoutStage({
           <a
             href={image}
             download
-            aria-label="Download"
+            aria-label={t("handout.download")}
             className="rounded-md border border-stone-700 bg-stone-950/80 p-2 text-stone-400 hover:text-stone-100"
           >
             <Download className="size-4" />
@@ -160,13 +162,13 @@ export function HandoutStage({
             onClick={() => void onDismiss(handout.id)}
             className="rounded-md border border-amber-700 bg-amber-950/60 px-2 py-1.5 text-xs text-amber-100"
           >
-            Take it down
+            {t("handout.takeDown")}
           </button>
         ) : null}
         <button
           type="button"
           onClick={() => setFolded(handout.id)}
-          aria-label="Fold away"
+          aria-label={t("handout.foldAway")}
           className="rounded-md border border-stone-700 bg-stone-950/80 p-2 text-stone-400 hover:text-stone-100"
         >
           <X className="size-4" />
