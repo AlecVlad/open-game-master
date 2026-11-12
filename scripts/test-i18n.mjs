@@ -144,6 +144,15 @@ for (const key of campaignRulesMessages) {
   assert.ok(key in DICTIONARIES.ru, `Russian campaign-rules message missing: ${key}`);
 }
 
+const mapPopulateMessages = [
+  "campaign.mapPanel.populate.alreadyPopulated",
+  "campaign.mapPanel.populate.placeNotFound",
+];
+for (const key of mapPopulateMessages) {
+  assert.ok(key in DICTIONARIES.en, `English map-population message missing: ${key}`);
+  assert.ok(key in DICTIONARIES.ru, `Russian map-population message missing: ${key}`);
+}
+
 const dmSquarePickMessages = [
   "campaign.dmSquarePick.absent",
   "campaign.dmSquarePick.armed",
