@@ -5250,7 +5250,11 @@ export const enCampaignPanels = {
   "campaign.gameSettings.summary.bonds.conscience": "{summary} · companion conscience: {mode}",
   "campaign.gameSettings.summary.players.waitsForTable": "GM waits for the table",
   "campaign.gameSettings.summary.console.never": "Never reminded",
-  "campaign.gameSettings.summary.console.actions": "after {count} actions",
-  "campaign.gameSettings.summary.console.rolls": "after {count} rolls",
   "campaign.gameSettings.summary.console.both": "{actions} or {rolls}",
+  "campaign.gameSettings.summary.console.afterAction.one": "after {count} action",
+  "campaign.gameSettings.summary.console.afterAction.few": "after {count} actions",
+  "campaign.gameSettings.summary.console.afterAction.many": "after {count} actions",
+  "campaign.gameSettings.summary.console.afterRoll.one": "after {count} roll",
+  "campaign.gameSettings.summary.console.afterRoll.few": "after {count} rolls",
+  "campaign.gameSettings.summary.console.afterRoll.many": "after {count} rolls",
 } satisfies Record<string, string>;
