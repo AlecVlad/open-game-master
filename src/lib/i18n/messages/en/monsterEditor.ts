@@ -452,4 +452,8 @@ export const enMonsterEditor = {
   "workshop.monsterEditor.rating.attackAdjust.many": "{bonus} against expected {expected} is {adjustment} ratings, one per 2 points.",
   "workshop.monsterEditor.rating.routine.few": "{swings} swings of {name} at {average} average{extra}.",
   "workshop.monsterEditor.rating.routine.many": "{swings} swings of {name} at {average} average{extra}."
+  "workshop.monsterEditor.routine.step": "Step",
+  "workshop.monsterEditor.routine.single": "Routine",
+  "workshop.monsterEditor.routine.alternative": "Alternative routine",
+  "workshop.monsterEditor.routine.explanation": "“One with its bite and two with its claws”: the enemy turn follows this routine exactly. Without a routine, it uses its best attack as many times as Swings says.",
 } satisfies Record<string, string>;
