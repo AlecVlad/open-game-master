@@ -80,25 +80,25 @@ export function WorldGroup({
     <>
       {packs.length ? (
         <div className="reveal flex flex-wrap items-center gap-2">
-          <span className="pk-rowlabel">World</span>
+          <span className="pk-rowlabel">{t("campaign.gameSettings.world.group")}</span>
           <Select
             size="sm"
-            label="World pack"
+            label={t("campaign.gameSettings.world.pack.label")}
             value={settings.worldPack}
-            placeholder="No pack (plain setting)"
+            placeholder={t("campaign.gameSettings.world.pack.none")}
             onChange={(value) => {
               const next = packs.find((entry) => entry.id === value);
               // Genre moves with the pack, so a campaign never ends up in a
               // world whose base genre contradicts it.
               patch(next ? { worldPack: next.id, genre: next.baseGenre } : { worldPack: "" });
             }}
-            options={[{ value: "", label: "No pack (plain setting)" }, ...packs.map((entry) => ({ value: entry.id, label: entry.name, hint: entry.inspiredBy }))]}
+            options={[{ value: "", label: t("campaign.gameSettings.world.pack.none") }, ...packs.map((entry) => ({ value: entry.id, label: entry.name, hint: entry.inspiredBy }))]}
             className={selectClass}
           />
           <span className="text-stone-500">
             {selectedPack
               ? selectedPack.inspiredBy
-              : "Pick a pre-built universe to rename races, classes, spells and monsters to fit it."}
+              : t("campaign.gameSettings.world.pack.hint")}
           </span>
         </div>
       ) : null}
@@ -115,10 +115,10 @@ export function WorldGroup({
       ) : null}
       {selectedPack ? <WorldPackGallery packId={selectedPack.id} /> : null}
       <div className="flex flex-wrap items-center gap-2">
-        <span className="pk-rowlabel">Setting</span>
+        <span className="pk-rowlabel">{t("campaign.gameSettings.world.setting")}</span>
         <Select<Genre>
           size="sm"
-          label="Setting"
+          label={t("campaign.gameSettings.world.setting")}
           value={settings.genre}
           onChange={(genre) =>
             // Changing the genre by hand drops the pack, for the same reason
@@ -126,10 +126,10 @@ export function WorldGroup({
             // overrides, so the two must never disagree.
             patch({ genre, ...(settings.worldPack ? { worldPack: "" } : {}) })
           }
-          options={GENRE_PRESETS.map((entry) => ({ value: entry.id as Genre, label: entry.name }))}
+          options={GENRE_PRESETS.map((entry) => ({ value: entry.id as Genre, label: t(`campaign.gameSettings.genre.${entry.id}`) }))}
           className={selectClass}
         />
-        <span className="text-stone-500">{preset.blurb}</span>
+        <span className="text-stone-500">{t(`campaign.gameSettings.genre.blurb.${settings.genre}`)}</span>
       </div>
       {settings.genre === "custom" ? (
         <div className="reveal flex items-start gap-2">
@@ -139,23 +139,23 @@ export function WorldGroup({
             rows={2}
             maxLength={500}
             onBlur={(event) => patch({ customGenreText: event.target.value })}
-            placeholder="Describe the world and tone..."
-            aria-label="Describe the world and tone"
+            placeholder={t("campaign.gameSettings.world.customPlaceholder")}
+            aria-label={t("campaign.gameSettings.world.customAria")}
             className={cn(panelField, "w-auto flex-1")}
           />
         </div>
       ) : null}
       <div className="flex flex-wrap items-center gap-2">
-        <span className="pk-rowlabel">Language</span>
+        <span className="pk-rowlabel">{t("campaign.gameSettings.world.language")}</span>
         <Select<TableLanguage>
           size="sm"
-          label="Table language"
+          label={t("campaign.gameSettings.world.tableLanguage")}
           value={settings.tableLanguage}
           onChange={(tableLanguage) => patch({ tableLanguage })}
           options={TABLE_LANGUAGES.map((value) => ({ value, label: TABLE_LANGUAGE_LABELS[value] }))}
           className={selectClass}
         />
-        <span className="text-stone-500">{TABLE_LANGUAGE_HELP}</span>
+        <span className="text-stone-500">{t("campaign.gameSettings.world.languageHelp")}</span>
       </div>
       <div className="flex flex-wrap items-center gap-2">
         <span className="pk-rowlabel">{t("measurement.system.label")}</span>
@@ -174,15 +174,15 @@ export function WorldGroup({
       </div>
       {aiNarrates ? (
         <div className="reveal flex flex-wrap items-center gap-2">
-          <span className="pk-rowlabel">Length</span>
-          <Tooltip content="How far the GM plans the story ahead (acts, bosses, side quests). Changing it mid-campaign applies when the next saga is planned; any length continues with a sequel saga if you play past the finale.">
+          <span className="pk-rowlabel">{t("campaign.gameSettings.world.length")}</span>
+          <Tooltip content={t("campaign.gameSettings.world.lengthHint")}>
             <span className="inline-flex min-w-0 max-w-full">
               <Select<CampaignLengthSetting>
                 size="sm"
-                label="Campaign length"
+                label={t("campaign.gameSettings.world.length")}
                 value={settings.campaignLength}
                 onChange={(campaignLength) => patch({ campaignLength })}
-                options={CAMPAIGN_LENGTHS.map((value) => ({ value, label: CAMPAIGN_LENGTH_LABELS[value] }))}
+                options={CAMPAIGN_LENGTHS.map((value) => ({ value, label: t(`campaign.gameSettings.world.lengthOption.${value}`) }))}
                 className={selectClass}
               />
             </span>
@@ -194,20 +194,21 @@ export function WorldGroup({
 }
 
 export function CharacterGroup({ settings, patch, serverRerollLabel }: Base & { serverRerollLabel: string }) {
+  const { t } = useI18n();
   return (
     <>
       <div className="flex flex-wrap items-center gap-2">
-        <span className="pk-rowlabel">Dice</span>
-        <Tooltip content="Real dice lets each player opt in to rolling at their table: the game parks until they type the result, read it from a paired Pixels Bluetooth die, or let the server roll per die (Dice sources, in the Party tab).">
+        <span className="pk-rowlabel">{t("campaign.gameSettings.character.dice")}</span>
+        <Tooltip content={t("campaign.gameSettings.character.diceHint")}>
           <span className="inline-flex min-w-0 max-w-full">
             <Select<DicePolicy>
               size="sm"
-              label="Dice policy"
+              label={t("campaign.gameSettings.character.dice")}
               value={settings.dicePolicy}
               onChange={(dicePolicy) => patch({ dicePolicy })}
               options={[
-                { value: "digital_only", label: "Digital only", icon: { kind: "glyph", key: "tab-dice" } },
-                { value: "real_allowed", label: "Real dice allowed", icon: { kind: "glyph", key: "die-d20" } },
+                { value: "digital_only", label: t("campaign.gameSettings.character.dice.digital"), icon: { kind: "glyph", key: "tab-dice" } },
+                { value: "real_allowed", label: t("campaign.gameSettings.character.dice.real"), icon: { kind: "glyph", key: "die-d20" } },
               ]}
               className={selectClass}
             />
@@ -215,36 +216,36 @@ export function CharacterGroup({ settings, patch, serverRerollLabel }: Base & { 
         </Tooltip>
       </div>
       <div className="flex flex-wrap items-center gap-2">
-        <span className="pk-rowlabel">Heroes</span>
-        <Tooltip content="How hit points grow after 1st level (1st is always the hit die's highest face plus Constitution). Rolled dice are thrown by the server.">
+        <span className="pk-rowlabel">{t("campaign.gameSettings.character.heroes")}</span>
+        <Tooltip content={t("campaign.gameSettings.character.hpHint")}>
           <span className="inline-flex min-w-0 max-w-full">
             <Select
               size="sm"
-              label="Hit points per level"
+              label={t("campaign.gameSettings.character.hp")}
               value={settings.hpMethod ?? "average"}
               onChange={(value) => patch({ hpMethod: value as GameSettings["hpMethod"] })}
-              options={HP_METHODS.map((method) => ({ value: method, label: HP_METHOD_SHORT[method] }))}
+              options={HP_METHODS.map((method) => ({ value: method, label: t(`campaign.gameSettings.character.hpOption.${method}`) }))}
               className={selectClass}
             />
           </span>
         </Tooltip>
-        <Tooltip content="What a new character starts with: the class and background kit plus the background's coin, or gold the server rolls by class to buy gear with.">
+        <Tooltip content={t("campaign.gameSettings.character.wealthHint")}>
           <span className="inline-flex min-w-0 max-w-full">
             <Select
               size="sm"
-              label="Starting wealth"
+              label={t("campaign.gameSettings.character.wealth")}
               value={settings.startingWealth ?? "equipment"}
               onChange={(value) => patch({ startingWealth: value as GameSettings["startingWealth"] })}
-              options={STARTING_WEALTH.map((method) => ({ value: method, label: WEALTH_SHORT[method] }))}
+              options={STARTING_WEALTH.map((method) => ({ value: method, label: t(`campaign.gameSettings.character.wealthOption.${method}`) }))}
               className={selectClass}
             />
           </span>
         </Tooltip>
-        <Tooltip content="For 4d6 ability scores rolled at this table: whether a player may throw the six again, and when. The server rolls the dice either way. Following the server's rule, a player's six here are the ones they rolled in their library; with a rule of its own the table keeps a separate six for each player. A character made here still joins its player's library like any other, and characters brought from the library keep the scores they were made with.">
+        <Tooltip content={t("campaign.gameSettings.character.statsHint")}>
           <span className="inline-flex min-w-0 max-w-full">
             <Select
               size="sm"
-              label="Rolled stats"
+              label={t("campaign.gameSettings.character.stats")}
               value={settings.abilityRerollBelow == null ? "server" : rerollChoiceOf(settings.abilityRerollBelow)}
               onChange={(value) =>
                 patch({
@@ -255,10 +256,10 @@ export function CharacterGroup({ settings, patch, serverRerollLabel }: Base & { 
                 })
               }
               options={[
-                { value: "server", label: `Stats: ${serverRerollLabel}` },
-                { value: "keep", label: "Stats: the first roll stands" },
-                { value: "low", label: `Stats: reroll under ${rerollBelowFor("low", settings.abilityRerollBelow ?? REROLL_LOW_DEFAULT)}` },
-                { value: "free", label: "Stats: reroll freely" },
+                { value: "server", label: t("campaign.gameSettings.character.stats.serverOption", { rule: serverRerollLabel }) },
+                { value: "keep", label: t("campaign.gameSettings.character.stats.keepOption") },
+                { value: "low", label: t("campaign.gameSettings.character.stats.lowOption", { limit: rerollBelowFor("low", settings.abilityRerollBelow ?? REROLL_LOW_DEFAULT) }) },
+                { value: "free", label: t("campaign.gameSettings.character.stats.freeOption") },
               ]}
               className={selectClass}
             />
@@ -266,10 +267,10 @@ export function CharacterGroup({ settings, patch, serverRerollLabel }: Base & { 
         </Tooltip>
       </div>
       <div className="flex flex-wrap items-center gap-2">
-        <span className="pk-rowlabel">Classes</span>
-        <Tooltip content="Let characters take levels in a second or third class at level-up (5e multiclassing, prerequisites enforced)">
+        <span className="pk-rowlabel">{t("campaign.gameSettings.character.classes")}</span>
+        <Tooltip content={t("campaign.gameSettings.character.multiclassHint")}>
           <SettingToggle on={settings.multiclassingEnabled} onToggle={() => patch({ multiclassingEnabled: !settings.multiclassingEnabled })}>
-            Multiclassing {settings.multiclassingEnabled ? "on" : "off"}
+            {t(settings.multiclassingEnabled ? "campaign.gameSettings.character.multiclass.on" : "campaign.gameSettings.character.multiclass.off")}
           </SettingToggle>
         </Tooltip>
       </div>
@@ -443,7 +444,7 @@ export function AiGroup({ settings, patch }: Base) {
       {aiNarrates ? <NarrationStyleRows settings={settings} patch={patch} /> : null}
       {aiNarrates ? (
         <div className="reveal flex flex-wrap items-center gap-2">
-          <span className="pk-rowlabel">World</span>
+          <span className="pk-rowlabel">{t("campaign.gameSettings.world.group")}</span>
           <Tooltip content="The world moves on its own: off-screen storylines advance on background dice, surprises and encounters build up over quiet stretches, and NPC schemes progress between chapters and during rests and travel. The story arc itself is unaffected either way.">
             <SettingToggle on={settings.worldSimulation} onToggle={() => patch({ worldSimulation: !settings.worldSimulation })}>
               Living world {settings.worldSimulation ? "on" : "off"}
