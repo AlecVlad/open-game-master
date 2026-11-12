@@ -3369,4 +3369,5 @@ export const ruWorkshop: Partial<Record<keyof typeof enWorkshop, string>> = {
   "workshop.testFight.open.return": "Вернуться к бою",
   "workshop.testFight.open.end": "Завершить бой",
   "workshop.testFight.error.end": "Не удалось завершить тестовый бой.",
+  "workshop.testFight.character.level": "{level}-го уровня",
 };
