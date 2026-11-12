@@ -287,7 +287,7 @@ export async function PATCH(
   }
 
   if (!nextStatus) {
-    return Response.json({ error: "Invalid update." }, { status: 400 });
+    return Response.json({ error: "Invalid update.", errorCode: "INVALID_CAMPAIGN_UPDATE" }, { status: 400 });
   }
   // The owner, or the person in the DM seat: a DM who was handed a table they
   // do not own still has to be able to open it (the lobby's Begin button asks
