@@ -5338,4 +5338,5 @@ export const enCampaignPanels = {
   "campaign.session.battle.prompt.condition": "Condition on {name}",
   "campaign.session.battle.placeholder.condition": "prone",
   "campaign.session.battle.closeBoard": "Close the board",
+  "campaign.session.battle.dmTool.move": "Move pieces",
 };
