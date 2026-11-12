@@ -12,7 +12,6 @@ import { Chip, FinePrint, PanelHead, RangeRow, mapButton, mapInput, skinSwatches
 import { useCatalogue, useMapThumb, type Catalogue } from "@/app/campaigns/[campaignId]/useMapPaint";
 import { ForgePreview, type ForgeMap } from "@/app/workshop/maps/ForgePreview";
 import {
-  AMBIENT_LABELS,
   FORGE_START,
   RESTORE_MS,
   clampSize,
@@ -26,8 +25,9 @@ import {
   type ForgeRoll,
   type ForgeSettings,
 } from "@/app/workshop/maps/forge";
-import { THEME_LABELS, type LibraryState, type PreparedMap } from "@/app/workshop/maps/types";
+import type { LibraryState, PreparedMap } from "@/app/workshop/maps/types";
 import { cueById, sceneOptions } from "@/lib/ambience/catalog";
+import { useI18n } from "@/lib/i18n/provider";
 
 // The Map Forge (docs/visual-overhaul-plan.md 4.1): one component for both
 // places a map is rolled. In the library it names a map, rolls it, shows it
@@ -68,6 +68,7 @@ function HistoryTile({
   active: boolean;
   onRestore: () => void;
 }) {
+  const { t } = useI18n();
   const thumb = useMapThumb({
     width: entry.map.width,
     height: entry.map.height,
@@ -82,7 +83,7 @@ function HistoryTile({
       type="button"
       onClick={onRestore}
       aria-pressed={active}
-      title={`Seed ${entry.roll.seed}: ${entry.map.width} by ${entry.map.height}, ${THEME_LABELS[entry.map.theme]}`}
+      title={t("workshop.maps.forge.historyTileTitle", { seed: entry.roll.seed, width: entry.map.width, height: entry.map.height, theme: t(`workshop.maps.theme.${entry.map.theme}` as never) })}
       className={cn(
         "map-seed-roll w-[76px] shrink-0 overflow-hidden rounded-md border text-left motion-press",
         active ? "border-amber-400/80" : "border-stone-700 hover:border-stone-500",
@@ -137,6 +138,7 @@ export function MapForge({
   // Studio: the live board's size, offered as the starting size.
   size?: { width: number; height: number };
 }) {
+  const { t } = useI18n();
   const library = surface === "library";
   const [name, setName] = useState("");
   const [settings, setSettings] = useState<ForgeSettings>({ ...FORGE_START, ...(size ?? {}) });
@@ -158,7 +160,7 @@ export function MapForge({
   const named = name.trim().length > 0;
   const canRoll = !busy && !rolling && (!library || named);
   const { theme, ambient } = forgeOutcome(settings);
-  const sentences = explainForge(settings, (value) => THEME_LABELS[value], (scene) => cueById(scene)?.label ?? scene);
+  const sentences = explainForge(settings, (value) => t(`workshop.maps.theme.${value}` as never), (scene) => cueById(scene)?.label ?? scene, (key, params) => t(key as never, params), (value) => t(`workshop.maps.light.${value}` as never));
   const skinGroups = useMemo(() => skinChoices(genre), [genre]);
 
   async function show(roll: ForgeRoll, stretch: number) {
@@ -213,32 +215,32 @@ export function MapForge({
           {showHeading ? (
             <p className="flex items-center gap-1.5 font-display text-[10px] uppercase tracking-[0.2em] text-amber-400/90">
               <Library className="size-3.5" />
-              {library ? "The map drawer" : "Roll the board"}
+              {library ? t("workshop.maps.forge.heading.library") : t("workshop.maps.forge.heading.studio")}
             </p>
           ) : null}
           {library ? (
             <label className="block space-y-1">
-              <span className="font-display text-[9px] uppercase tracking-[0.18em] text-stone-500">Name it</span>
+              <span className="font-display text-[9px] uppercase tracking-[0.18em] text-stone-500">{t("workshop.maps.forge.nameLabel")}</span>
               <input
                 value={name}
                 maxLength={80}
                 onChange={(event) => setName(event.target.value)}
-                placeholder="Name it: the flooded crypt"
+                placeholder={t("workshop.maps.forge.namePlaceholder")}
                 className={cn(mapInput, "py-2 text-sm")}
               />
             </label>
           ) : null}
           <div className="block space-y-1">
             <span className="flex items-baseline justify-between">
-              <span className="font-display text-[9px] uppercase tracking-[0.18em] text-stone-500">Kind of place</span>
-              <span className="font-mono text-[9px] text-stone-600">steers the generator</span>
+              <span className="font-display text-[9px] uppercase tracking-[0.18em] text-stone-500">{t("workshop.maps.forge.sceneKind")}</span>
+              <span className="font-mono text-[9px] text-stone-600">{t("workshop.maps.forge.sceneSteers")}</span>
             </span>
             <Select<string>
               value={settings.scene}
               onChange={(scene) => setSettings({ ...settings, scene })}
-              label="Kind of place"
+              label={t("workshop.maps.forge.sceneKind")}
               className="w-full"
-              options={[{ value: "", label: "Not set: open ground" }, ...sceneOptions()]}
+              options={[{ value: "", label: t("workshop.maps.forge.sceneNotSet") }, ...sceneOptions()]}
             />
           </div>
 
@@ -249,27 +251,27 @@ export function MapForge({
               settings.scene ? "border-amber-500/35 bg-amber-400/[0.06]" : "border-stone-700/60 bg-stone-950/40",
             )}
           >
-            <p className="font-display text-[9px] uppercase tracking-[0.18em] text-amber-400/80">What it decided</p>
+            <p className="font-display text-[9px] uppercase tracking-[0.18em] text-amber-400/80">{t("workshop.maps.forge.outcomeHeading")}</p>
             <div className="flex flex-wrap gap-1.5">
-              <FactChip name="Theme" claim={theme}>
-                {THEME_LABELS[theme]}
+              <FactChip name={t("workshop.maps.forge.theme")} claim={theme}>
+                {t(`workshop.maps.theme.${theme}` as never)}
               </FactChip>
-              <FactChip name="Light" claim={ambient}>
-                {AMBIENT_LABELS[ambient].toLowerCase()}
+              <FactChip name={t("workshop.maps.forge.light")} claim={ambient}>
+                {t(`workshop.maps.light.${ambient}` as never).toLowerCase()}
               </FactChip>
             </div>
             <p className="text-[11px] leading-snug text-stone-300">{sentences.join(" ")}</p>
           </div>
 
           <div className="space-y-1.5">
-            <p className="font-display text-[9px] uppercase tracking-[0.18em] text-stone-500">Or say outright</p>
+            <p className="font-display text-[9px] uppercase tracking-[0.18em] text-stone-500">{t("workshop.maps.forge.sayOutright")}</p>
             <div data-pill-group="" className="grid grid-cols-3 gap-1.5">
               {MAP_THEMES.map((option) => (
                 <button data-on={settings.theme === option ? "" : undefined}
                   key={option}
                   type="button"
                   aria-pressed={settings.theme === option}
-                  title={settings.theme === option ? "Press again to go back to the kind of place" : `Always ${THEME_LABELS[option].toLowerCase()}, whatever the kind of place`}
+                  title={settings.theme === option ? t("workshop.maps.forge.theme.overrideAgain") : t("workshop.maps.forge.theme.overrideAlways", { theme: t(`workshop.maps.theme.${option}` as never).toLowerCase() })}
                   onClick={() => setSettings({ ...settings, theme: settings.theme === option ? "" : option })}
                   className={cn(
                     "flex flex-col items-center gap-1 rounded-lg border px-1 py-2 motion-press",
@@ -279,17 +281,17 @@ export function MapForge({
                   )}
                 >
                   <ThemeSwatch theme={option} genre={genre} catalogue={catalogue} />
-                  <span className="text-[11px]">{THEME_LABELS[option]}</span>
+                  <span className="text-[11px]">{t(`workshop.maps.theme.${option}` as never)}</span>
                 </button>
               ))}
             </div>
             <div className="grid grid-cols-4 gap-1">
-              <Chip active={settings.ambient === ""} onClick={() => setSettings({ ...settings, ambient: "" })} title="Light from the kind of place">
-                Auto
+              <Chip active={settings.ambient === ""} onClick={() => setSettings({ ...settings, ambient: "" })} title={t("workshop.maps.forge.light.autoTitle")}>
+                {t("workshop.maps.forge.light.auto")}
               </Chip>
               {(["bright", "dim", "dark"] as AmbientLight[]).map((option) => (
                 <Chip key={option} active={settings.ambient === option} onClick={() => setSettings({ ...settings, ambient: option })}>
-                  {AMBIENT_LABELS[option]}
+                  {t(`workshop.maps.light.${option}` as never)}
                 </Chip>
               ))}
             </div>
@@ -297,7 +299,7 @@ export function MapForge({
 
           <div className="space-y-1">
             <p className="flex items-baseline justify-between font-display text-[9px] uppercase tracking-[0.18em] text-stone-500">
-              Size
+              {t("workshop.maps.forge.size")}
               <span className="font-mono normal-case tracking-normal text-stone-400">
                 {sizeNow.width * TILE_FEET} × {sizeNow.height * TILE_FEET} ft
               </span>
@@ -306,8 +308,8 @@ export function MapForge({
               <div className="min-w-0 flex-1 space-y-1">
                 {(
                   [
-                    ["width", "Across", MAP_SIZE.minWidth, MAP_SIZE.maxWidth],
-                    ["height", "Down", MAP_SIZE.minHeight, MAP_SIZE.maxHeight],
+                    ["width", t("workshop.maps.forge.across"), MAP_SIZE.minWidth, MAP_SIZE.maxWidth],
+                    ["height", t("workshop.maps.forge.down"), MAP_SIZE.minHeight, MAP_SIZE.maxHeight],
                   ] as const
                 ).map(([side, label, min, max]) => (
                   <div key={side} className="flex items-center gap-1.5">
@@ -316,7 +318,7 @@ export function MapForge({
                     </div>
                     {/* A phone slider cannot land on 17; the number can be typed. */}
                     <span className="shrink-0" onBlur={() => setSettings((current) => ({ ...current, ...clampSize(current.width, current.height) }))}>
-                      <NumberStepper min={min} max={max} value={settings[side]} label={`${label}, in squares`} onChange={(value) => setSide(side, value)} size="sm" />
+                      <NumberStepper min={min} max={max} value={settings[side]} label={t("workshop.maps.forge.inSquares", { direction: label })} onChange={(value) => setSide(side, value)} size="sm" />
                     </span>
                   </div>
                 ))}
@@ -332,15 +334,15 @@ export function MapForge({
 
           {library ? (
             <label className="block space-y-1">
-              <span className="font-display text-[9px] uppercase tracking-[0.18em] text-stone-500">Painted as</span>
+              <span className="font-display text-[9px] uppercase tracking-[0.18em] text-stone-500">{t("workshop.maps.forge.paintedAs")}</span>
               <Select<string>
                 value={skin.id}
-                label="Skin"
+                label={t("workshop.maps.forge.skin")}
                 size="sm"
                 onChange={(id) => setSkin({ id, bind: {} })}
                 className="w-full"
                 options={[
-                  { value: "", label: `Default: ${skinById(defaultSkinFor(genre, theme))?.name ?? "Stone dungeon"}` },
+                  { value: "", label: t("workshop.maps.forge.skinDefault", { skin: skinById(defaultSkinFor(genre, theme))?.name ?? t("workshop.maps.forge.skinFallback") }) },
                   ...skinGroups.flatMap((group) => group.skins.map((option) => ({ value: option.id as string, label: option.name, group: group.group }))),
                 ]}
               />
@@ -360,7 +362,7 @@ export function MapForge({
                 style={shown ? ({ "--map-spins": dieSpins(shown.map.width, shown.map.height, shown.stretch) } as CSSProperties) : undefined}
               />
               <span className="whitespace-nowrap font-display text-[13px] font-semibold uppercase tracking-[0.14em]">
-                {shown ? "Roll another" : library ? "Roll one" : "Roll a map"}
+                {shown ? t("workshop.maps.forge.rollAnother") : library ? t("workshop.maps.forge.rollOne") : t("workshop.maps.forge.rollMap")}
               </span>
             </button>
             {library
@@ -369,11 +371,11 @@ export function MapForge({
                     key={blank}
                     type="button"
                     disabled={busy || !named}
-                    title={blank === "rock" ? "Solid rock to carve rooms out of" : "Open ground to put things on"}
+                    title={blank === "rock" ? t("workshop.maps.forge.blankRockTitle") : t("workshop.maps.forge.blankGroundTitle")}
                     onClick={() => void create({ do: "create", ...sizeNow, blank })}
                     className={cn(mapButton, "h-11")}
                   >
-                    {blank === "rock" ? "Blank rock" : "Blank ground"}
+                    {blank === "rock" ? t("workshop.maps.forge.blankRock") : t("workshop.maps.forge.blankGround")}
                   </button>
                 ))
               : null}
@@ -396,21 +398,21 @@ export function MapForge({
               <button
                 type="button"
                 disabled={busy}
-                title="A Universal VTT export from Dungeondraft and its neighbours, or a One Page Dungeon JSON"
+                title={t("workshop.maps.forge.importTitle")}
                 onClick={() => fileRef.current?.click()}
                 className={mapButton}
               >
-                <FileUp className="size-3" /> Import .dd2vtt
+                <FileUp className="size-3" /> {t("workshop.maps.forge.import")}
               </button>
               {board ? (
                 <button
                   type="button"
                   disabled={busy || !named}
-                  title="Save the map that is on the table right now"
+                  title={t("workshop.maps.forge.captureTitle")}
                   onClick={() => void create({ do: "capture" })}
                   className={mapButton}
                 >
-                  <Save className="size-3" /> Keep the board
+                  <Save className="size-3" /> {t("workshop.maps.forge.keepBoard")}
                 </button>
               ) : null}
             </div>
@@ -418,9 +420,9 @@ export function MapForge({
           <FinePrint>
             {library
               ? named
-                ? "Nothing here touches the table until you put it there."
-                : "Name it first. Nothing here touches the table until you put it there."
-              : "The kind of place picks the terrain and the light. What you say outright overrules it."}
+                ? t("workshop.maps.forge.libraryReady")
+                : t("workshop.maps.forge.libraryNameFirst")
+               : t("workshop.maps.forge.studioNote")}
           </FinePrint>
         </div>
 
@@ -428,10 +430,10 @@ export function MapForge({
         <div ref={previewRef} className="panel min-w-0 scroll-mt-4 space-y-3 rounded-xl p-4">
           <div className="flex items-baseline justify-between gap-3">
             <h3 className="min-w-0 truncate font-display text-[15px] uppercase tracking-[0.08em] text-amber-100">
-              {library ? name.trim() || "An unnamed place" : "The preview"}
+              {library ? name.trim() || t("workshop.maps.forge.unnamedPlace") : t("workshop.maps.forge.preview")}
             </h3>
             <span className="shrink-0 font-mono text-[10px] text-stone-400">
-              {shown ? `${shown.map.width} × ${shown.map.height} · ${THEME_LABELS[shown.map.theme]}` : `${sizeNow.width} × ${sizeNow.height}`}
+              {shown ? `${shown.map.width} × ${shown.map.height} · ${t(`workshop.maps.theme.${shown.map.theme}` as never)}` : `${sizeNow.width} × ${sizeNow.height}`}
             </span>
           </div>
           {shown ? (
@@ -455,15 +457,15 @@ export function MapForge({
           )}
           {shown ? (
             <div className="flex flex-wrap gap-1.5">
-              <FactChip name="Seed" claim={shown.roll.seed}>
+              <FactChip name={t("workshop.maps.forge.seed")} claim={shown.roll.seed}>
                 {shown.roll.seed}
               </FactChip>
-              <FactChip name="Theme">{THEME_LABELS[shown.map.theme]}</FactChip>
-              <FactChip name="Light">{AMBIENT_LABELS[shown.map.ambient].toLowerCase()}</FactChip>
-              <FactChip name="Torches">{shown.map.lights.length}</FactChip>
+              <FactChip name={t("workshop.maps.forge.theme")}>{t(`workshop.maps.theme.${shown.map.theme}` as never)}</FactChip>
+              <FactChip name={t("workshop.maps.forge.light")}>{t(`workshop.maps.light.${shown.map.ambient}` as never).toLowerCase()}</FactChip>
+              <FactChip name={t("workshop.maps.forge.torches")}>{shown.map.lights.length}</FactChip>
               {shown.map.pcSpawns ? (
-                <FactChip name="Spawns">
-                  {shown.map.pcSpawns.length} party · {shown.map.enemySpawns?.length ?? 0} foes
+                <FactChip name={t("workshop.maps.forge.spawns")}>
+                  {t("workshop.maps.forge.partyAndFoes", { party: shown.map.pcSpawns.length, foes: shown.map.enemySpawns?.length ?? 0 })}
                 </FactChip>
               ) : null}
             </div>
@@ -476,15 +478,15 @@ export function MapForge({
                 onClick={() => void create({ ...createBodyFor(shown.roll), ...(skin.id ? { skin } : {}) })}
                 className="flex h-10 items-center gap-2 rounded-lg border border-amber-500/50 bg-amber-400/10 px-4 text-amber-100 hover:bg-amber-400/15 disabled:opacity-50 motion-press"
               >
-                <Save className="size-3.5" /> <span className="font-display text-[12px] uppercase tracking-[0.14em]">Keep it</span>
+                <Save className="size-3.5" /> <span className="font-display text-[12px] uppercase tracking-[0.14em]">{t("workshop.maps.forge.keepIt")}</span>
               </button>
-              <FinePrint>Saves this very map, from its seed, into the drawer and opens it.</FinePrint>
+              <FinePrint>{t("workshop.maps.forge.saveExplanation")}</FinePrint>
             </div>
           ) : null}
           {actions ? actions(shown?.roll ?? null, () => setShown(null)) : null}
 
           <div className="space-y-1.5">
-            <PanelHead aside={history.length ? `${history.length} kept · tap to bring back` : "seeds are cheap"}>This session&apos;s rolls</PanelHead>
+            <PanelHead aside={history.length ? t("workshop.maps.forge.historyCount", { count: history.length }) : t("workshop.maps.forge.historyEmptyLabel")}>{t("workshop.maps.forge.historyHeading")}</PanelHead>
             {history.length ? (
               <div className="flex gap-1.5 overflow-x-auto pb-1">
                 {history.map((entry) => (
@@ -500,8 +502,7 @@ export function MapForge({
               </div>
             ) : (
               <p className="font-serif text-[12px] italic leading-snug text-stone-500">
-                Roll a few and they stack up here. Tap one to bring it back: the seed is all it takes, so nothing you liked
-                is ever a re-roll away from being lost.
+                {t("workshop.maps.forge.historyEmpty")}
               </p>
             )}
           </div>
