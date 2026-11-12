@@ -68,7 +68,7 @@ export function LevelUpMoment({ sheet, level, onDone }: { sheet: CharacterSheet;
         </p>
       </div>
       <button ref={dismiss} type="button" className="moment-dismiss" onClick={onDone}>
-        Dismiss
+        {t("campaign.session.moments.dismiss")}
       </button>
     </div>
   );
