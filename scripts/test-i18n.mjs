@@ -84,7 +84,7 @@ const partyBackstoryMessages = [
   "campaign.session.party.backstory.note.cleared",
   "campaign.session.party.backstory.note.draft",
   "campaign.session.party.backstory.lastSaved",
-  "campaign.session.party.backstory.lastSavedDate",
+  "campaign.session.party.backstory.lastSavedAt",
   "campaign.session.party.backstory.footer.play",
   "campaign.session.party.backstory.footer.lobby",
   "campaign.session.party.backstory.footer.permissions",
