@@ -49,13 +49,13 @@ export async function POST(
   const parsed = createSchema.safeParse(await request.json().catch(() => ({})));
   if (!parsed.success) {
     return Response.json(
-      { error: parsed.error.issues[0]?.message || "Invalid input." },
+      { error: parsed.error.issues[0]?.message || "Invalid input.", errorCode: "INVALID_INPUT" },
       { status: 400 },
     );
   }
   const startsAt = new Date(parsed.data.startsAt).toISOString();
   if (Date.parse(startsAt) < Date.now() - 60 * 60 * 1000) {
-    return Response.json({ error: "That time is in the past." }, { status: 400 });
+    return Response.json({ error: "That time is in the past.", errorCode: "TIME_IN_PAST" }, { status: 400 });
   }
   const session = createScheduledSession(campaignId, context.user.id, {
     ...parsed.data,
