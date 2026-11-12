@@ -9,6 +9,7 @@ import { NumberStepper } from "@/components/ui/NumberStepper";
 import { SectionHead } from "@/components/ui/SectionHead";
 import { NumberField, TextArea, TextField, ToggleChips } from "@/app/workshop/homebrew/fields";
 import { ChipList } from "@/app/workshop/plugin/fields";
+import { languageLabel, languageOptions, toolLabel, toolOptions } from "@/app/workshop/homebrew/catalogLabels";
 import { LANGUAGES, TOOL_PROFICIENCIES } from "@/lib/workshop/pickers";
 import { SKILL_IDS } from "@/lib/homebrew/item-magic-schema";
 import { backgroundMechanics } from "@/lib/content/mechanics";
@@ -24,7 +25,6 @@ import type { Data } from "@/app/workshop/homebrew/draft";
 
 type Props = { data: Data; set: (patch: Data) => void };
 
-const SKILL_LABELS = Object.fromEntries(SKILL_IDS.map((id) => [id, id.replace(/_/g, " ")])) as Record<(typeof SKILL_IDS)[number], string>;
 const TOOLS = [
   "One type of gaming set",
   "One type of artisan's tools",
@@ -91,6 +91,7 @@ function KitList({ items, onChange }: { items: string[]; onChange: (next: string
 
 export function BackgroundFields({ data, set }: Props) {
   const t = useT();
+  const skillLabels = Object.fromEntries(SKILL_IDS.map((id) => [id, t(`workshop.homebrew.skill.${id}`)]));
   const grants = grantsOfDraft(data);
   const put = (patch: Partial<BackgroundGrants>) => set({ grants: { ...grants, ...patch } });
   const choice = grants.skillChoice;
@@ -98,7 +99,7 @@ export function BackgroundFields({ data, set }: Props) {
     <div className="space-y-3">
       <div className="space-y-1.5 text-sm">
         <SectionHead title={t("workshop.homebrew.background.skills")} glyph="rest-proficiency" className="mb-1" />
-        <ToggleChips options={SKILL_IDS} labels={SKILL_LABELS} selected={grants.skills} max={BACKGROUND_LIMITS.skills} onChange={(skills) => put({ skills })} />
+        <ToggleChips options={SKILL_IDS} labels={skillLabels} selected={grants.skills} max={BACKGROUND_LIMITS.skills} onChange={(skills) => put({ skills })} />
         <div className="flex flex-wrap items-center gap-2 text-[11px] text-stone-400">
           <span>{t("workshop.homebrew.background.playerPicks")}</span>
           <NumberStepper
@@ -113,22 +114,22 @@ export function BackgroundFields({ data, set }: Props) {
         </div>
         {choice?.count ? (
           <div className="live-in">
-            <ToggleChips options={SKILL_IDS} labels={SKILL_LABELS} selected={choice.from} onChange={(from) => put({ skillChoice: { count: choice.count, from } })} />
+            <ToggleChips options={SKILL_IDS} labels={skillLabels} selected={choice.from} onChange={(from) => put({ skillChoice: { count: choice.count, from } })} />
           </div>
         ) : null}
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="space-y-1.5 text-sm">
           <SectionHead title={t("workshop.homebrew.background.tools")} glyph="tab-loot" className="mb-1" />
-          <ChipList items={grants.tools} onChange={(tools) => put({ tools })} options={TOOLS} prompt={t("workshop.homebrew.background.tools.add")} max={8} />
+          <ChipList items={grants.tools} onChange={(tools) => put({ tools })} options={toolOptions(TOOLS, t)} labelFor={(value) => toolLabel(value, t)} prompt={t("workshop.homebrew.background.tools.add")} max={8} />
         </div>
         <div className="space-y-1.5 text-sm">
           <SectionHead title={t("workshop.homebrew.background.languages")} glyph="system-lore" className="mb-1" />
-          <ChipList items={grants.knownLanguages} onChange={(knownLanguages) => put({ knownLanguages })} options={LANGUAGES} prompt={t("workshop.homebrew.background.languages.add")} max={6} />
+          <ChipList items={grants.knownLanguages} onChange={(knownLanguages) => put({ knownLanguages })} options={languageOptions(t)} labelFor={(value) => languageLabel(value, t)} prompt={t("workshop.homebrew.background.languages.add")} max={6} />
           <span className="flex items-center gap-2 text-[11px] text-stone-400">
             {t("workshop.homebrew.background.languages.plus")}
             <NumberStepper size="sm" label={t("workshop.homebrew.background.languages.playerChoice")} value={grants.languages} min={0} max={8} onChange={(languages) => put({ languages })} />
-            of the player&apos;s choice
+            {t("workshop.homebrew.background.languages.ofPlayersChoice")}
           </span>
         </div>
       </div>
