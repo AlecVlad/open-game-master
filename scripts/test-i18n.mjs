@@ -64,6 +64,23 @@ for (const lang of LANGS) {
   }
 }
 
+// The admin/account/social block is audited as complete: unlike optional
+// content areas, these core screens must not silently fall back to English.
+const fullyLocalizedAreas = [
+  "admin.",
+  "friends.",
+  "notifications.",
+  "invite.",
+  "auth.",
+  "door.",
+  "password.",
+  "settings.",
+];
+for (const prefix of fullyLocalizedAreas) {
+  const missing = Object.keys(DICTIONARIES.en).filter((key) => key.startsWith(prefix) && !(key in DICTIONARIES.ru));
+  assert.deepEqual(missing, [], `Russian messages are missing for ${prefix}: ${missing.join(", ")}`);
+}
+
 const tableViewMessages = [
   "campaign.tableView.error.memberOnly",
   "campaign.tableView.backToCampaigns",
