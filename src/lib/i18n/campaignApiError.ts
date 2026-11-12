@@ -18,6 +18,19 @@ const CAMPAIGN_ERROR_KEYS = {
   UPLOAD_IMAGE_TYPE_NOT_SUPPORTED: "campaign.editDialog.cover.upload.error.type",
   UPLOAD_IMAGE_TOO_LARGE: "campaign.editDialog.cover.upload.error.size",
   UPLOAD_IMAGE_DIMENSIONS_TOO_LARGE: "campaign.editDialog.cover.upload.error.dimensions",
+  ONE_CHARACTER_PER_PLAYER: "campaign.lobby.error.oneCharacterOnly",
+  CHARACTER_ID_REQUIRED: "campaign.lobby.error.chooseCharacter",
+  CHARACTER_NOT_OWNED: "campaign.lobby.error.notYourCharacter",
+  COMBAT_SWITCH_LOCKED: "campaign.lobby.error.combatSwitchWait",
+  INVALID_READY_REQUEST: "campaign.lobby.error.invalidReady",
+  AI_MODE_NO_GM_SEAT: "campaign.lobby.error.noGmSeat",
+  GM_SEAT_PERMISSION_REQUIRED: "campaign.lobby.error.assignSeatPermission",
+  SEAT_INPUT_REQUIRED: "campaign.lobby.error.invalidSeatRequest",
+  PLAYER_NOT_IN_CAMPAIGN: "campaign.lobby.error.playerNotAtTable",
+  CO_GM_MUST_BE_DIFFERENT: "campaign.lobby.error.coGmDifferent",
+  HUMAN_MODE_REQUIRES_GM: "campaign.lobby.error.humanGameNeedsGm",
+  SEAT_UPDATE_FAILED: "campaign.lobby.error.seatMoveFailed",
+  NO_CHARACTER_TO_REMOVE: "campaign.lobby.error.noCharacterToRemove",
 } satisfies Record<string, MessageKey>;
 
 // The server keeps its English message for old clients and logs. The UI uses
