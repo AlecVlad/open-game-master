@@ -82,9 +82,11 @@ export function badgesFor(category: string, row: BadgeRow): Badge[] {
   }
   const needs = needsLabel(row.needs ?? []);
   if (needs) {
+    const needKeys: Record<string, string> = { strife: "reference.need.strife", fatigue: "reference.need.fatigue", rattled: "reference.need.rattled", "expertise dice": "reference.need.expertiseDice", exertion: "reference.need.exertion", maneuvers: "reference.need.maneuvers", bloodied: "reference.need.bloodied", "ley lines": "reference.need.leyLines" };
+    const translatedNeeds = (row.needs ?? []).map((need) => t ? t(needKeys[need] ?? need) : need).join(", ");
     // Orange where it is not offered for play, neutral where the GM plays
     // the part this game lacks (src/lib/content/levelup-logic.ts).
-    badges.push({ key: "needs", text: needs, tone: offeredInPlay(row.needs ?? []) ? "neutral" : "orange" });
+    badges.push({ key: "needs", text: t ? t("reference.badge.needs", { needs: translatedNeeds }) : needs, tone: offeredInPlay(row.needs ?? []) ? "neutral" : "orange" });
   }
   if (row.bestEffort) {
     badges.push({ key: "best-effort", text: BEST_EFFORT_CHIP, tone: "blue" });
