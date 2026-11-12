@@ -244,7 +244,7 @@ export function RoutineEditor({ draft, onChange }: Props) {
         </button>
       ) : null}
       <span className="text-[11px] text-stone-500">
-        &quot;One with its bite and two with its claws&quot;: the enemy turn swings exactly this. Without a routine it swings its best attack as many times as Swings says.
+        {t("workshop.monsterEditor.routine.explanation")}
       </span>
     </div>
   );
