@@ -3337,6 +3337,7 @@ export const ruWorkshop: Partial<Record<keyof typeof enWorkshop, string>> = {
   "workshop.testFight.hero.one": "герой",
   "workshop.testFight.hero.few": "героя",
   "workshop.testFight.hero.many": "героев",
+  "workshop.testFight.hero.other": "героев",
   "workshop.testFight.joinAnd": "и",
   "workshop.testFight.party.characters": "Выбрать персонажей",
   "workshop.testFight.party.charactersHint": "Предварительно созданные персонажи этой мастерской или любые персонажи из вашей библиотеки, каждый своего уровня. В бою используются копии: изменения не затронут библиотеку.",
