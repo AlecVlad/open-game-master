@@ -7,6 +7,7 @@ export const ruCharactersPage: Partial<Record<keyof typeof enCharactersPage, str
   "characters.err.net": "Не удалось связаться с сервером.",
   "characters.err.portrait": "Портрет не сохранён. Проверьте соединение и попробуйте ещё раз.",
   "characters.err.clone": "Копия не создана. Проверьте соединение и попробуйте ещё раз.",
+  "characters.err.notFound": "Не удалось найти этого персонажа.",
   "characters.err.json": "{file} — не файл JSON.",
   "characters.err.import": "Не удалось импортировать.",
   "characters.err.import.tooLarge": "Файл персонажа превышает 12 МБ.",
