@@ -1,6 +1,7 @@
 "use client";
 
 import { Plus, Trash2 } from "lucide-react";
+import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/cn";
 import { MAX_TRAITS, TRAIT_MAX, type MonsterDraft } from "@/lib/bestiary/monster-draft";
 import {
@@ -82,6 +83,7 @@ const ALIGNMENT_GLOSSARY: GlossaryEntry[] = Object.values(ALIGNMENT_LABELS).map(
 }));
 
 export function AbilityScores({ draft, onChange }: { draft: MonsterDraft; onChange: (draft: MonsterDraft) => void }) {
+  const { t } = useI18n();
   const stats = draft.stats;
   const set: Setter = (patch) => onChange({ ...draft, stats: { ...stats, ...patch } });
   const scores = stats.abilities ?? {};
@@ -109,7 +111,7 @@ export function AbilityScores({ draft, onChange }: { draft: MonsterDraft; onChan
   return (
     <div className="space-y-1">
       <SectionHead
-        title="Ability scores"
+        title={t("workshop.monsterEditor.stats.abilities")}
         glyph="ability-str"
         className="mb-1"
         aside={
@@ -118,7 +120,7 @@ export function AbilityScores({ draft, onChange }: { draft: MonsterDraft; onChan
             onClick={derive}
             disabled={!Object.keys(scores).length}
             className={cn(ui.btnSmall, addChip)}
-            title="Set the DEX modifier and the saving throws from these scores"
+            title={t("workshop.monsterEditor.stats.dexHint")}
           >
             Saves from scores
           </button>
@@ -129,13 +131,13 @@ export function AbilityScores({ draft, onChange }: { draft: MonsterDraft; onChan
           <div key={ability} className="flex flex-col gap-1">
             <span className="flex items-center gap-1">
               <GameIcon icon={{ kind: "glyph", key: `ability-${ability}` }} size="size-5" />
-              <FieldLabel className="uppercase">{ability}</FieldLabel>
+              <FieldLabel>{t(`workshop.monsterEditor.stats.ability.${ability}` as never)}</FieldLabel>
               {typeof scores[ability] === "number" ? (
                 <span className="text-[11px] text-stone-400">{signed(abilityMod(scores[ability] as number))}</span>
               ) : null}
             </span>
             <OptionalStepper
-              label={`${ability.toUpperCase()} score`}
+              label={t("workshop.monsterEditor.stats.abilityScore", { ability: t(`workshop.monsterEditor.stats.ability.${ability}` as never) })}
               min={1}
               max={50}
               fallback={10}
@@ -150,11 +152,34 @@ export function AbilityScores({ draft, onChange }: { draft: MonsterDraft; onChan
 }
 
 export function SkillsAndSenses({ draft, onChange }: { draft: MonsterDraft; onChange: (draft: MonsterDraft) => void }) {
+  const { t } = useI18n();
   const stats = draft.stats;
   const set: Setter = (patch) => onChange({ ...draft, stats: { ...stats, ...patch } });
   const skills = stats.skills ?? {};
   const senses = stats.senses ?? {};
   const passiveDefault = 10 + (skills.perception ?? stats.saveMods?.wis ?? 0);
+  const skillKeys: Record<string, string> = {
+    acrobatics: "acrobatics",
+    "animal handling": "animalHandling",
+    arcana: "arcana",
+    athletics: "athletics",
+    deception: "deception",
+    history: "history",
+    insight: "insight",
+    intimidation: "intimidation",
+    investigation: "investigation",
+    medicine: "medicine",
+    nature: "nature",
+    perception: "perception",
+    performance: "performance",
+    persuasion: "persuasion",
+    religion: "religion",
+    "sleight of hand": "sleightOfHand",
+    stealth: "stealth",
+    survival: "survival",
+  };
+  const skillLabel = (name: string) => t(`workshop.monsterEditor.skills.${skillKeys[name] ?? name}` as never);
+  const senseLabel = (name: string) => t(`workshop.monsterEditor.stats.sense.${name}` as never);
   const setSense = (name: keyof NonNullable<EnemyStats["senses"]>, value: number | "") => {
     const next = { ...senses };
     if (value === "" || value === 0) {
@@ -167,10 +192,10 @@ export function SkillsAndSenses({ draft, onChange }: { draft: MonsterDraft; onCh
   return (
     <div className="space-y-2">
       <div className="space-y-1">
-        <SectionHead title="Skills and senses" glyph="skill-perception" className="mb-1" />
+        <SectionHead title={t("workshop.monsterEditor.stats.skillsSenses")} glyph="skill-perception" className="mb-1" />
         <span className="flex items-center gap-1">
-          <FieldLabel>Skills (tap to add, type the bonus)</FieldLabel>
-          <OptionGlossary title="Skills" entries={SKILL_GLOSSARY} />
+          <FieldLabel>{t("workshop.monsterEditor.stats.skillBonusPrompt")}</FieldLabel>
+          <OptionGlossary title={t("workshop.monsterEditor.stats.skillsSenses")} entries={SKILL_GLOSSARY.map((entry) => ({ ...entry, name: skillLabel(entry.name.toLowerCase()) }))} />
         </span>
         <div className={cn("stagger-pop", chipRow)}>
           {SKILL_NAMES.map((name) => {
@@ -193,12 +218,12 @@ export function SkillsAndSenses({ draft, onChange }: { draft: MonsterDraft; onCh
                   className={cn(ui.btnSmall, chip, on && chipOn)}
                 >
                   <GameIcon icon={{ kind: "glyph", key: `skill-${name.toLowerCase().replace(/\s+/g, "-")}` }} size="size-4" />
-                  {name}
+                  {skillLabel(name)}
                 </button>
                 {on ? (
                   <NumberStepper
                     size="sm"
-                    label={`${name} bonus`}
+                    label={t("workshop.monsterEditor.stats.skillBonus", { skill: skillLabel(name) })}
                     min={-5}
                     max={20}
                     value={bonus}
@@ -215,14 +240,14 @@ export function SkillsAndSenses({ draft, onChange }: { draft: MonsterDraft; onCh
           <div key={name} className="flex flex-col gap-1">
             <span className="flex items-center gap-1">
               {SENSE_GLYPHS[name] ? <GameIcon icon={{ kind: "glyph", key: SENSE_GLYPHS[name] }} size="size-5" /> : null}
-              <FieldLabel className="capitalize">{name}</FieldLabel>
+              <FieldLabel>{senseLabel(name)}</FieldLabel>
             </span>
             <OptionalStepper
-              label={`${name} in feet`}
+              label={t("workshop.monsterEditor.stats.senseFeet", { sense: senseLabel(name) })}
               min={0}
               max={600}
               step={5}
-              suffix="ft"
+              suffix={t("workshop.monsterEditor.attack.feet")}
               fallback={0}
               value={senses[name]}
               onChange={(next) => setSense(name, next)}
@@ -232,10 +257,10 @@ export function SkillsAndSenses({ draft, onChange }: { draft: MonsterDraft; onCh
         <div className="flex flex-col gap-1">
           <span className="flex items-center gap-1">
             <GameIcon icon={{ kind: "glyph", key: "sense-passive-perception" }} size="size-5" />
-            <FieldLabel>Passive Perception</FieldLabel>
+            <FieldLabel>{t("workshop.monsterEditor.stats.passivePerception")}</FieldLabel>
           </span>
           <OptionalStepper
-            label="Passive Perception"
+            label={t("workshop.monsterEditor.stats.passivePerception")}
             min={1}
             max={40}
             fallback={passiveDefault}
@@ -243,61 +268,73 @@ export function SkillsAndSenses({ draft, onChange }: { draft: MonsterDraft; onCh
             onChange={(next) => setSense("passivePerception", next)}
           />
           {typeof senses.passivePerception === "number" ? null : (
-            <span className="text-[11px] text-stone-500">Unset, so it reads as {passiveDefault}.</span>
+            <span className="text-[11px] text-stone-500">{t("workshop.monsterEditor.stats.passiveUnset", { value: passiveDefault })}</span>
           )}
         </div>
       </div>
       <p className="text-[11px] text-stone-500">
-        A hiding character has to beat the passive Perception; the printed number wins, then the skill, then Wisdom.
+        {t("workshop.monsterEditor.stats.hiddenCheck")}
       </p>
     </div>
   );
 }
 
 export function LanguagesAndHabitat({ draft, onChange }: { draft: MonsterDraft; onChange: (draft: MonsterDraft) => void }) {
+  const { t } = useI18n();
   const stats = draft.stats;
   const set: Setter = (patch) => onChange({ ...draft, stats: { ...stats, ...patch } });
   const environment = stats.environment ?? [];
   const spells = stats.spells ?? [];
+  const alignmentKey: Record<string, string> = {
+    "lawful good": "lg", "neutral good": "ng", "chaotic good": "cg",
+    "lawful neutral": "ln", neutral: "n", "chaotic neutral": "cn",
+    "lawful evil": "le", "neutral evil": "ne", "chaotic evil": "ce",
+    unaligned: "unaligned", "any alignment": "any",
+  };
+  const alignmentOptions = ALIGNMENTS.map((value) => ({
+    value,
+    label: value ? t(`workshop.monsterEditor.alignment.${alignmentKey[value] ?? value}` as never) : t("workshop.monsterEditor.stats.unstated"),
+  }));
+  const environmentLabel = (value: string) => t(`workshop.monsterEditor.environment.${value}` as never);
   return (
     <div className="space-y-2">
-      <SectionHead title="Tongue, creed and habitat" glyph="system-lore" className="mb-1" />
+      <SectionHead title={t("workshop.monsterEditor.stats.tongueCreedHabitat")} glyph="system-lore" className="mb-1" />
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-        <Field as="label" label="Languages">
+        <Field as="label" label={t("workshop.monsterEditor.stats.languages")}>
           <div className="flex flex-wrap items-center gap-1.5">
             <input
               value={stats.languages ?? ""}
               maxLength={200}
-              placeholder="Common, Goblin"
+              placeholder="Всеобщий, гоблинский"
               onChange={(event) => set({ languages: event.target.value || undefined })}
               className={cn(ui.input, "min-w-32 flex-1")}
             />
             <AddFromList
-              prompt="Add"
+              prompt={t("workshop.monsterEditor.stats.addLanguage")}
               options={LANGUAGES}
               onPick={(term) => set({ languages: appendTerm(stats.languages ?? "", term) })}
             />
           </div>
         </Field>
-        <Field label="Alignment" aside={<OptionGlossary title="Alignments" entries={ALIGNMENT_GLOSSARY} />}>
+        <Field label={t("workshop.monsterEditor.stats.alignment")} aside={<OptionGlossary title={t("workshop.monsterEditor.stats.alignments")} entries={ALIGNMENT_GLOSSARY} />}>
           <Select
-            label="Alignment"
+            label={t("workshop.monsterEditor.stats.alignment")}
             value={stats.alignment ?? ""}
             onChange={(next) => set({ alignment: next || undefined })}
-            options={ALIGNMENT_OPTIONS}
+            options={alignmentOptions}
           />
         </Field>
       </div>
       {/* With a Spellcasting block the list is the block's own (SpellcastingFields). */}
       {stats.spellcasting ? null : (
       <div className="flex flex-col gap-1">
-        <FieldLabel>Spells known (by name, comma separated)</FieldLabel>
+        <FieldLabel>{t("workshop.monsterEditor.stats.spellsKnown")}</FieldLabel>
         <input
           defaultValue={spells.join(", ")}
           key={spells.join("|")}
           maxLength={800}
-          aria-label="Spells known"
-          placeholder="Fire Bolt, Shield, Misty Step"
+          aria-label={t("workshop.monsterEditor.stats.spellsKnownAria")}
+          placeholder={t("workshop.monsterEditor.stats.spellPlaceholder")}
           onBlur={(event) => {
             const next = event.target.value.split(",").map((name) => name.trim()).filter(Boolean);
             if (next.join("|") !== spells.join("|")) {
@@ -308,8 +345,8 @@ export function LanguagesAndHabitat({ draft, onChange }: { draft: MonsterDraft; 
         />
         <ContentPick
           kind="spells"
-          label="Find a spell in the catalogue to add"
-          placeholder="Find a spell to add..."
+          label={t("workshop.monsterEditor.stats.findSpell")}
+          placeholder={t("workshop.monsterEditor.stats.findSpellPlaceholder")}
           onPick={(entry) => {
             if (!spells.some((known) => textKey(known) === textKey(entry.name))) {
               set({ spells: [...spells, entry.name] });
@@ -317,12 +354,12 @@ export function LanguagesAndHabitat({ draft, onChange }: { draft: MonsterDraft; 
           }}
         />
         <span className="text-[11px] text-stone-500">
-          The GM running it sees the list. Put a round of casting into extra damage so the rating counts it.
+          {t("workshop.monsterEditor.stats.spellListHint")}
         </span>
       </div>
       )}
       <div className="space-y-1">
-        <FieldLabel>Found in</FieldLabel>
+        <FieldLabel>{t("workshop.monsterEditor.stats.foundIn")}</FieldLabel>
         <div className={cn("stagger-pop", chipRow)}>
           {ENVIRONMENTS.map((place) => {
             const on = environment.includes(place);
@@ -337,7 +374,7 @@ export function LanguagesAndHabitat({ draft, onChange }: { draft: MonsterDraft; 
                 }}
                 className={cn(ui.btnSmall, chip, on && chipOn)}
               >
-                {place}
+                {environmentLabel(place)}
               </button>
             );
           })}
@@ -350,21 +387,26 @@ export function LanguagesAndHabitat({ draft, onChange }: { draft: MonsterDraft; 
 // The trait list with a section on every line. The line stored is the one
 // the DM prompt prints, prefix and all (src/lib/bestiary/block-sections.ts).
 export function SectionedTraitEditor({ draft, onChange }: { draft: MonsterDraft; onChange: (draft: MonsterDraft) => void }) {
+  const { t } = useI18n();
   const traits = draft.stats.traits;
   const setTraits = (next: string[]) => onChange({ ...draft, stats: { ...draft.stats, traits: next } });
+  const sectionOptions = TRAIT_SECTIONS.map((section) => ({
+    value: section,
+    label: t(`workshop.monsterEditor.traits.section.${section}` as never),
+  }));
   return (
     <div className="flex flex-col gap-1.5">
-      <SectionHead title="Traits and actions" glyph="tab-notes" className="mb-0" />
+      <SectionHead title={t("workshop.monsterEditor.stats.traitsActions")} glyph="tab-notes" className="mb-0" />
       {traits.map((trait, index) => {
         const { section, text } = sectionOfLine(trait);
         return (
           <div key={index} className="flex flex-wrap items-center gap-1.5 sm:flex-nowrap">
             <span className="w-40 shrink-0">
               <Select
-                label="Section"
+                label={t("workshop.monsterEditor.stats.traitSection")}
                 value={section}
                 onChange={(next) => setTraits(traits.map((row, at) => (at === index ? withSection(row, next) : row)))}
-                options={SECTION_OPTIONS}
+                options={sectionOptions}
               />
             </span>
             <input
@@ -373,14 +415,14 @@ export function SectionedTraitEditor({ draft, onChange }: { draft: MonsterDraft;
               onChange={(event) =>
                 setTraits(traits.map((row, at) => (at === index ? withSection(event.target.value, section) : row)))
               }
-              placeholder="Fire Breath (Recharge 5-6): DC 15 Dex save, 6d6 fire, half on a success"
+              placeholder={t("workshop.monsterEditor.stats.traitExample")}
               className={cn(ui.input, "min-w-40 flex-1")}
             />
             <button
               type="button"
               onClick={() => setTraits(traits.filter((_, at) => at !== index))}
               className={cn(ui.iconAction, rowIcon, "hover:text-red-300")}
-              aria-label="Remove trait"
+              aria-label={t("workshop.monsterEditor.stats.removeTrait")}
             >
               <Trash2 className="size-3.5" />
             </button>
@@ -396,12 +438,12 @@ export function SectionedTraitEditor({ draft, onChange }: { draft: MonsterDraft;
               onClick={() => setTraits([...traits, withSection("", section)])}
               className={cn(ui.btnSmall, addChip)}
             >
-              <Plus className="size-3" /> {SECTION_LABELS[section]}
+              <Plus className="size-3" /> {t(`workshop.monsterEditor.traits.section.${section}` as never)}
             </button>
           ))}
         </div>
       ) : (
-        <p className="text-[11px] text-stone-500">The block is full at {MAX_TRAITS} lines.</p>
+        <p className="text-[11px] text-stone-500">{t("workshop.monsterEditor.stats.full", { count: MAX_TRAITS })}</p>
       )}
     </div>
   );
