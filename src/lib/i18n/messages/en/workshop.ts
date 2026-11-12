@@ -3251,4 +3251,5 @@ export const enWorkshop = {
   "workshop.maps.selection.cancel": "Cancel",
   "workshop.maps.hotkeys.phoneHint": "Every key has a button on screen; on a phone the buttons are the way in.",
   "workshop.maps.library.loading": "Opening the drawer...",
+  "workshop.maps.tools.brushSizeAria": "Brush size: {size} tiles",
 } satisfies Record<string, string>;
