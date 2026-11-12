@@ -25,7 +25,7 @@ export async function POST(request: Request) {
   }
   const parsed = requestSchema.safeParse(await request.json().catch(() => ({})));
   if (!parsed.success) {
-    return Response.json({ error: "Invalid upload." }, { status: 400 });
+    return Response.json({ error: "Invalid upload.", errorCode: "INVALID_UPLOAD_REQUEST" }, { status: 400 });
   }
   const body = parsed.data;
   if (body.type === "application/pdf") {
@@ -49,17 +49,17 @@ export async function POST(request: Request) {
     return Response.json({ id: written.id, name: body.name, type: body.type, url: written.url });
   }
   if (!isUploadMimeType(body.type)) {
-    return Response.json({ error: "Only PNG, JPEG, and WebP images are supported." }, { status: 415 });
+    return Response.json({ error: "Only PNG, JPEG, and WebP images are supported.", errorCode: "UPLOAD_IMAGE_TYPE_NOT_SUPPORTED" }, { status: 415 });
   }
   const [, encoded] = body.dataUrl.split(",", 2);
   const buffer = Buffer.from(encoded || "", "base64");
   if (!buffer.length || buffer.length > MAX_UPLOAD_BYTES) {
-    return Response.json({ error: "Image is empty or larger than 8MB." }, { status: 413 });
+    return Response.json({ error: "Image is empty or larger than 8MB.", errorCode: "UPLOAD_IMAGE_TOO_LARGE" }, { status: 413 });
   }
   // Small files can still open enormous (src/lib/image-format.ts).
   if (pixelBudget(buffer) === "over") {
     return Response.json(
-      { error: "That picture is too large. Keep it under 64 megapixels (8,000 by 8,000)." },
+      { error: "That picture is too large. Keep it under 64 megapixels (8,000 by 8,000).", errorCode: "UPLOAD_IMAGE_DIMENSIONS_TOO_LARGE" },
       { status: 413 },
     );
   }
