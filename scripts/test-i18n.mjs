@@ -154,6 +154,14 @@ const sharedComponentMessages = [
   "dictationShortcut.problem.reservedFunction", "dictationShortcut.problem.closeWindow", "dictationShortcut.problem.typing",
   "dictationShortcut.problem.browserShortcut", "dictationShortcut.problem.browserMenu",
   "dictationShortcut.problem.desktopShortcut", "dictationShortcut.problem.altgrCharacter",
+  "schedule.quickTimes", "schedule.quick.morning", "schedule.quick.afternoon", "schedule.quick.evening", "schedule.quick.late",
+  "schedule.rsvp.going", "schedule.rsvp.maybe", "schedule.rsvp.out", "schedule.someone",
+  "schedule.title", "schedule.plan", "schedule.when", "schedule.pickDate", "schedule.duration", "schedule.duration.selector",
+  "schedule.title.label", "schedule.title.placeholder", "schedule.note.label", "schedule.note.placeholder", "schedule.create",
+  "schedule.empty.title", "schedule.empty.hint", "schedule.cancelled", "schedule.move", "schedule.callOff",
+  "schedule.newDate", "schedule.moveIt", "schedule.error.pickDate", "schedule.error.pickNewDate", "schedule.error.plan",
+  "schedule.error.move", "schedule.error.network", "schedule.error.past", "schedule.error.invalid", "schedule.error.missing",
+  "schedule.cancel.confirm",
 ];
 for (const key of sharedComponentMessages) {
   assert.ok(key in DICTIONARIES.en, `English shared-component message missing: ${key}`);
@@ -648,6 +656,20 @@ const overflowMany = localizeStoryboardError(
   "ru",
 );
 assert.ok(overflowMany.includes("будут потеряны 5 символов"), "multi-character overflow must use plural verb agreement");
+
+// Session schedule duration uses the same hour count but each language's own plural forms.
+for (const suffix of ["one", "other"]) {
+  assert.ok(`schedule.duration.hours.${suffix}` in DICTIONARIES.en, `English schedule duration form missing: ${suffix}`);
+  assert.ok(`schedule.duration.session.${suffix}` in DICTIONARIES.en, `English session duration form missing: ${suffix}`);
+}
+for (const suffix of ["one", "few", "many", "other"]) {
+  assert.ok(`schedule.duration.hours.${suffix}` in DICTIONARIES.ru, `Russian schedule duration form missing: ${suffix}`);
+  assert.ok(`schedule.duration.session.${suffix}` in DICTIONARIES.ru, `Russian session duration form missing: ${suffix}`);
+}
+for (const count of [1, 2, 5]) {
+  assert.ok(!translatePlural(DICTIONARIES, "ru", "schedule.duration.hours", count).includes("{count}"));
+  assert.ok(!translatePlural(DICTIONARIES, "ru", "schedule.duration.session", count).includes("{count}"));
+}
 
 // Report (not fail on) what Russian still lacks, so progress is visible.
 const missing = Object.keys(DICTIONARIES.en).filter((key) => !(key in DICTIONARIES.ru));
