@@ -244,3 +244,10 @@ Continue the Atlas audit with `AtlasRegion.tsx`, `AtlasEdit.tsx`, `AtlasParty.ts
 
 ## Resume
 The WorldForge component pass is complete across all 29 files in `src/app/workshop/world/`: core views, Atlas, timeline, secrets, wiki, Ask, outline generation, paint queue, relationship graph/editor, type manager, bound records, play fields and shared pickers. Continue with the broader app-level localization audit outside this folder and fix any remaining visible English UI. Verify branch HEAD before editing. Do not run TypeScript/build/lint/tests until Remote Desktop access is available. Block 1 remains formally open; do not merge, open a PR or create its DONE flag.
+
+
+## Workshop — hazard editor — 12 November 2026
+- `HazardFields.tsx`: localized trap, poison and disease editor headings, fields, options, summaries, hints and accessibility labels. Existing ability, damage-type, condition and skill labels reuse shared dictionary keys; internal IDs and game-mechanic values remain unchanged.
+- `ChipList`: added optional localized remove-label callback; callers that do not supply it retain the existing fallback.
+- Added 88 EN/RU message pairs, including the missing unconscious condition label. Static checks: all 97 direct translation references resolve; no duplicate dictionary keys, missing pairs or placeholder mismatches were found.
+- TypeScript, lint, tests, production build and browser visual checks remain deferred until Remote Desktop access is available.
