@@ -110,6 +110,21 @@ import { HAND_AIM_EVENT, HAND_TARGET_EVENT, HAND_BOARD_ACTION_EVENT, HAND_BOARD_
 // A ping is a moment, not a state: it fades on its own.
 const PING_MS = 2600;
 
+const DRAWING_KIND_LABEL_KEYS: Record<DrawingKind, string> = {
+  stroke: "campaign.session.battle.drawKind.stroke",
+  arrow: "campaign.session.battle.drawKind.arrow",
+  rect: "campaign.session.battle.drawKind.rect",
+  ellipse: "campaign.session.battle.drawKind.ellipse",
+};
+
+const DRAWING_TONE_LABEL_KEYS: Record<DrawingTone, string> = {
+  gold: "campaign.session.battle.drawTone.gold",
+  ember: "campaign.session.battle.drawTone.ember",
+  sky: "campaign.session.battle.drawTone.sky",
+  moss: "campaign.session.battle.drawTone.moss",
+  bone: "campaign.session.battle.drawTone.bone",
+};
+
 const NO_FX: FxEvent[] = [];
 const NOOP = () => {};
 // The turn's own buttons in the board's corner: End turn, and Undo move beside
@@ -1805,7 +1820,7 @@ export function BattleMapPanel({
                 drawKind === kind ? "border-amber-700 bg-amber-950/50 text-amber-100" : "border-stone-700 text-stone-400",
               )}
             >
-              {kind}
+              {t(DRAWING_KIND_LABEL_KEYS[kind] as never)}
             </button>
           ))}
           <span className="mx-1 h-4 w-px bg-stone-800" />
@@ -1813,7 +1828,7 @@ export function BattleMapPanel({
             <button
               key={tone}
               type="button"
-              aria-label={`${tone} ink`}
+              aria-label={t("campaign.session.battle.drawTone.aria", { tone: t(DRAWING_TONE_LABEL_KEYS[tone] as never).toLowerCase() })}
               aria-pressed={drawTone === tone}
               onClick={() => setDrawTone(tone)}
               className={cn(
@@ -1825,7 +1840,7 @@ export function BattleMapPanel({
           ))}
           <label className="ml-1 flex items-center gap-1 text-[11px] text-stone-500">
             <input type="checkbox" checked={drawTtl} onChange={(event) => setDrawTtl(event.target.checked)} />
-            fades next round
+            {t("campaign.session.battle.draw.fadesNextRound")}
           </label>
           <button
             type="button"
@@ -1858,13 +1873,13 @@ export function BattleMapPanel({
         open={Boolean(prompt && promptToken) && !nativeHudActive}
         title={
           prompt?.kind === "damage"
-            ? `Damage ${promptToken?.name ?? ""}`
+            ? t("campaign.session.battle.prompt.damage", { name: promptToken?.name ?? "" })
             : prompt?.kind === "heal"
-              ? `Heal ${promptToken?.name ?? ""}`
-              : `Condition on ${promptToken?.name ?? ""}`
+              ? t("campaign.session.battle.prompt.heal", { name: promptToken?.name ?? "" })
+              : t("campaign.session.battle.prompt.condition", { name: promptToken?.name ?? "" })
         }
         label={prompt?.kind === "condition" ? t("campaign.session.battle.condition") : t("campaign.session.battle.hitPoints")}
-        placeholder={prompt?.kind === "condition" ? "prone" : "8"}
+        placeholder={prompt?.kind === "condition" ? t("campaign.session.battle.placeholder.condition") : "8"}
         submitLabel={prompt?.kind === "damage" ? t("campaign.session.battle.dealIt") : prompt?.kind === "heal" ? t("campaign.session.battle.heal") : t("campaign.session.battle.apply")}
         onSubmit={submitPrompt}
         onOpenChange={(open) => {
@@ -1908,7 +1923,7 @@ export function BattleMapPanel({
                   />
                   {playerTools}
                 </div>
-                <Dialog.Close className="cine-tabletop-close shrink-0" aria-label="Close the board">
+                <Dialog.Close className="cine-tabletop-close shrink-0" aria-label={t("campaign.session.battle.closeBoard")}>
                   <X className="size-4" />
                 </Dialog.Close>
               </div> : null}
