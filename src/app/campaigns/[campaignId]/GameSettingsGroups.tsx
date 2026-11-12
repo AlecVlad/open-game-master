@@ -20,7 +20,6 @@ import { SafetyToneFields } from "@/components/SafetyToneFields";
 import type { GameSettings } from "@/lib/schemas/game-settings";
 import { REROLL_LOW_DEFAULT, rerollBelowFor, rerollChoiceOf, type RerollChoice } from "@/lib/srd/ability-rerolls";
 import {
-  CAMPAIGN_LENGTH_LABELS,
   CAMPAIGN_LENGTHS,
   COMPANION_LABELS,
   CONSCIENCE_HINTS,
@@ -28,7 +27,6 @@ import {
   CONSCIENCE_SETTINGS,
   HP_METHODS,
   STARTING_WEALTH,
-  TABLE_LANGUAGE_HELP,
   TABLE_LANGUAGE_LABELS,
   TABLE_LANGUAGES,
   type CampaignLengthSetting,
