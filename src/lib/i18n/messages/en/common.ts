@@ -476,6 +476,7 @@ export const enCommon = {
   "infoDialog.noDamageLabel": "No damage",
   "infoDialog.noDamageNote": "It does not hurt on its own; its special rules say what it does.",
   "infoDialog.whatIs": "What is {label}?",
+  "infoDialog.chipHint": "Select the mark beside it for the full entry.",
   "infoDialog.contentBestEffort": "Best effort: the app read this entry’s rules from its text, and nobody has checked that reading yet. If it plays differently from what the text says, the text and the GM win, and a Workshop copy can fix it for your table.",
   "infoDialog.contentNeeds.one": "Level Up Advanced 5e’s {needs} is a rule this game does not play.",
   "infoDialog.contentNeeds.many": "Level Up Advanced 5e’s {needs} are rules this game does not play.",
