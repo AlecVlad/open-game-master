@@ -19,14 +19,16 @@ await test("an empty library is pointed at a ready-made hero, opened at once", (
   assert.equal(advice.suggested, "ready");
   assert.equal(advice.openReady, true);
   assert.equal(advice.library, false);
-  assert.match(advice.libraryLine, /Nothing saved yet/);
+  assert.deepEqual(advice.libraryNames, []);
+  assert.equal(advice.libraryMoreCount, 0);
 });
 
 await test("a player with heroes is pointed at their library, by name", () => {
   const advice = heroRouteAdvice({ library: ["Ada", "Bram", "Cole"], pregens: 4 });
   assert.equal(advice.suggested, "library");
   assert.equal(advice.openReady, false);
-  assert.match(advice.libraryLine, /^Ada, Bram and 1 more, adapted to this table's level/);
+  assert.deepEqual(advice.libraryNames, ["Ada", "Bram"]);
+  assert.equal(advice.libraryMoreCount, 1);
 });
 
 await test("a server with no ready-made heroes points at the builder", () => {
@@ -47,7 +49,7 @@ await test("the lobby, a solo table and the mid-game gate all offer the three ro
   const chooser = read("src/app/campaigns/[campaignId]/HeroChooser.tsx");
   assert.match(page, /<HeroChooser/, "the join page opens on the hero chooser");
   assert.match(chooser, /flow === "join" \? <PregenPicker/, "which offers ready-made heroes beside the library");
-  assert.match(page, /In a hurry\? Take a ready-made hero/, "and above the builder");
+  assert.match(page, /t\("campaign\.session\.characterJoin\.quickStart"\)/, "and above the builder");
 });
 
 await test("a ready-made hero arriving mid-game is announced to the DM like a built one", () => {
