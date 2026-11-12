@@ -260,3 +260,9 @@ The WorldForge component pass is complete across all 29 files in `src/app/worksh
 - Known API errors are mapped to localized messages: invalid/unknown code, ended/full/started campaign, mandatory password change, too many attempts (with seconds interpolated), and join fallback. Unknown server errors remain visible rather than being guessed at.
 - Static checks: all 15 direct translation calls resolve in both dictionaries; placeholder parity is intact; no visible hard-coded English UI strings remain in the join page. No TypeScript/build/lint/tests/browser checks were run, per the existing Remote Desktop prerequisite.
 - New commits: `e94a896` (join page), `a6131ba` (English messages), `f17d65d` (Russian messages). Branch HEAD verified at `f17d65d9a598b25a964204ca6ae82c38129f0b3a`.
+
+## Reference module — post-commit verification — 12 November 2026
+- Current source checks: none.
+- Remaining checks not confirmed: mainPage, comparison, desk, badges, calculators, englishMessages, russianMessages.
+- Latest pass localized the calculator presentation layer; formulas and underlying calculator data were not changed.
+- Runtime TypeScript/build/lint/tests and browser visual review have not been run. Do not mark the reference module fully QA-passed until those checks are run in the local environment.
