@@ -1,5 +1,7 @@
 "use client";
 
+import { useI18n } from "@/lib/i18n/provider";
+
 import { useId, useState } from "react";
 import { ChevronDown, Plus, Trash2 } from "lucide-react";
 import { cn } from "@/lib/cn";
