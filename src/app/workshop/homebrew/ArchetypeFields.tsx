@@ -220,7 +220,7 @@ export function ArchetypeFields({
   // borrowed their Spellcasting, casts by its rules until turned off
   // (src/lib/srd/subclass-tables.ts castingProfileOf).
   const ownClass = workshopClasses.find((klass) => klass.id === classId);
-  const classLabel = ownClass?.name ?? capital(classId);
+  const classLabel = ownClass?.name ?? ((CLASS_IDS as readonly string[]).includes(classId) ? t(`workshop.homebrew.class.ui.name.${classId}`) : capital(classId));
   const mayCast = subclassMayCast(classId);
   const spellcastingRow = flat.find((row) => thirdCasterProfileForFeature(row.feature.n));
   const featureProfile = spellcastingRow ? thirdCasterProfileForFeature(spellcastingRow.feature.n) : null;
@@ -241,7 +241,7 @@ export function ArchetypeFields({
       <SelectField
         label={t("workshop.homebrew.archetype.ui.class")}
         value={classId}
-        options={[...CLASS_IDS.map((value) => ({ value: value as string, label: capital(value) })), ...workshopClasses.map((klass) => ({ value: klass.id, label: klass.name }))]}
+        options={[...CLASS_IDS.map((value) => ({ value: value as string, label: t(`workshop.homebrew.class.ui.name.${value}`) })), ...workshopClasses.map((klass) => ({ value: klass.id, label: klass.name }))]}
         onChange={(classSlug) => set({ classSlug })}
         className="w-56"
         hint={t("workshop.homebrew.archetype.ui.classHint", { level: ownClass?.subclassLevel ?? subclassLevelFor(classId) ?? 3 })}
@@ -263,7 +263,7 @@ export function ArchetypeFields({
           hint={
             rules
               ? t("workshop.homebrew.archetype.ui.profileHint", { ability: t(`workshop.homebrew.species.ability.${rules.ability}`), list: t(`workshop.homebrew.class.ui.name.${rules.list}`), schoolOne: t(`workshop.homebrew.spell.school.${rules.schools[0]}`), schoolTwo: t(`workshop.homebrew.spell.school.${rules.schools[1]}`) })
-              : t("workshop.homebrew.archetype.ui.profileFallback", { className: capital(classId) })
+              : t("workshop.homebrew.archetype.ui.profileFallback", { className: classLabel })
           }
         />
       ) : null}
