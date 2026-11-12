@@ -238,4 +238,17 @@ export const ruPlugin: Partial<Record<keyof typeof enPlugin, string>> = {
   "workshop.plugin.publish.startBlankConfirm": "Удалить черновик и начать заново? Все его иллюстрации тоже будут удалены.",
   "workshop.plugin.publish.startBlankTitle": "Начать с чистого черновика",
   "workshop.plugin.publish.startBlankAction": "Удалить черновик"
+  "workshop.plugin.fields.removeRow": "Удалить: {name}",
+  "workshop.plugin.fields.rowFallback": "эту строку",
+  "workshop.plugin.fields.removeLine": "Удалить эту строку",
+  "workshop.plugin.fields.add": "Добавить",
+  "workshop.plugin.alignment.LG": "Принципиально-доброе",
+  "workshop.plugin.alignment.NG": "Нейтрально-доброе",
+  "workshop.plugin.alignment.CG": "Хаотично-доброе",
+  "workshop.plugin.alignment.LN": "Принципиально-нейтральное",
+  "workshop.plugin.alignment.N": "Нейтральное",
+  "workshop.plugin.alignment.CN": "Хаотично-нейтральное",
+  "workshop.plugin.alignment.LE": "Принципиально-злое",
+  "workshop.plugin.alignment.NE": "Нейтрально-злое",
+  "workshop.plugin.alignment.CE": "Хаотично-злое",
 };
