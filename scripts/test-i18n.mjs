@@ -144,6 +144,17 @@ for (const key of campaignRulesMessages) {
   assert.ok(key in DICTIONARIES.ru, `Russian campaign-rules message missing: ${key}`);
 }
 
+const dmSquarePickMessages = [
+  "campaign.dmSquarePick.absent",
+  "campaign.dmSquarePick.armed",
+  "campaign.dmSquarePick.stop",
+  "campaign.dmSquarePick.pick",
+];
+for (const key of dmSquarePickMessages) {
+  assert.ok(key in DICTIONARIES.en, `English battlemap square-pick message missing: ${key}`);
+  assert.ok(key in DICTIONARIES.ru, `Russian battlemap square-pick message missing: ${key}`);
+}
+
 const dmBestiaryMessages = [
   "campaign.dmBestiary.loadWhat",
   "campaign.dmBestiary.sourceUnavailable",
