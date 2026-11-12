@@ -9,6 +9,11 @@ const REFUSAL_MESSAGE_KEYS = {
   NOT_OGM_CHARACTER_FILE: "characters.err.import.notOgm",
   INVALID_CHARACTER_FILE_JSON: "characters.err.import.invalidJson",
   CHARACTER_NOT_FOUND: "characters.err.notFound",
+  HERO_NOT_FOUND: "campaign.joinConfirm.error.heroNotFound",
+  GM_SEAT_NO_CHARACTER: "campaign.joinConfirm.error.gmSeat",
+  PICK_ONE_HERO: "campaign.joinConfirm.error.pickOneHero",
+  HERO_ALREADY_HAS_CHARACTER: "campaign.joinConfirm.error.alreadyHasCharacter",
+  CAMPAIGN_NOT_LOBBY: "campaign.joinConfirm.error.lobbyOnly",
 } satisfies Record<string, MessageKey>;
 
 // API refusals keep their original prose for older clients and unknown
