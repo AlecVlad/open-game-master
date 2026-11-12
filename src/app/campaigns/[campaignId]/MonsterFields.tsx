@@ -197,11 +197,20 @@ export function AttackEditor({
 // The word on an attack's details button: what it carries beyond its dice,
 // or "Details" when it carries nothing yet.
 function attackExtras(attack: MonsterDraft["stats"]["attacks"][number], t: (key: never, params?: Record<string, string | number>) => string): string {
+  const riders = attack.riders?.map((rider) =>
+    DAMAGE_TYPES.includes(rider.type as (typeof DAMAGE_TYPES)[number])
+      ? t(`workshop.monsterEditor.defence.damageType.${rider.type}` as never)
+      : rider.type,
+  );
+  const condition = attack.onHit?.condition;
+  const conditionLabel = condition && CONDITIONS.includes(condition as (typeof CONDITIONS)[number])
+    ? t(`workshop.monsterEditor.defence.condition.${condition}` as never)
+    : condition;
   const bits = [
     attack.bonusAction ? t("workshop.monsterEditor.attack.bonusAction" as never) : "",
     attack.range ? `${attack.range.normal}/${attack.range.long} ${t("workshop.monsterEditor.attack.feet" as never)}` : attack.reach === 0 || (attack.reach && attack.reach > 5) ? `${t("workshop.monsterEditor.attack.reach" as never)} ${attack.reach}` : "",
-    attack.riders?.length ? `+${attack.riders.map((rider) => rider.type).join(", ")}` : "",
-    attack.onHit?.condition ?? (attack.onHit?.damage ? t("workshop.monsterEditor.attack.onHit" as never) : ""),
+    riders?.length ? `+${riders.join(", ")}` : "",
+    conditionLabel ?? (attack.onHit?.damage ? t("workshop.monsterEditor.attack.onHit" as never) : ""),
     attack.alternatives?.some((entry) => entry.when === "bloodied") ? t("workshop.monsterEditor.attack.bloodied" as never) : "",
   ].filter(Boolean);
   return bits.length ? bits.join(" · ") : t("workshop.monsterEditor.attack.details" as never);
