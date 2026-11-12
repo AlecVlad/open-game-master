@@ -143,7 +143,7 @@ function OptionFields({ option, put }: { option: Data; put: (next: Data) => void
       </div>
       <div className="col-span-2 space-y-1 sm:col-span-4">
         <span className="text-[11px] text-stone-400">{t("workshop.homebrew.subclassChoice.resistances")}</span>
-        <ToggleChips options={DAMAGE_TYPES} selected={list(option.resistances)} max={L.resistances} onChange={(next) => field("resistances", next)} />
+        <ToggleChips options={DAMAGE_TYPES} labels={Object.fromEntries(DAMAGE_TYPES.map((type) => [type, t(`workshop.homebrew.item.damage.${type}`)]))} selected={list(option.resistances)} max={L.resistances} onChange={(next) => field("resistances", next)} />
       </div>
       <div className="col-span-2 space-y-1 sm:col-span-4">
         <span className="text-[11px] text-stone-400">{t("workshop.homebrew.subclassChoice.skills")}</span>
