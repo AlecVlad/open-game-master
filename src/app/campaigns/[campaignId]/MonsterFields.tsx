@@ -47,6 +47,7 @@ export function NumberField({
   onChange: (value: number) => void;
   hint?: string;
 }) {
+  const { t } = useI18n();
   return (
     <div className="flex flex-col gap-0.5">
       <span className="text-[10px] uppercase tracking-wide text-stone-500">{label}</span>
@@ -65,6 +66,7 @@ export function AttackEditor({
   draft: MonsterDraft;
   onChange: (draft: MonsterDraft) => void;
 }) {
+  const { t } = useI18n();
   // One list per mounted editor: a fixed id collided when two were open.
   const damageListId = useId();
   // Which rows show their reach, range, riders and on-hit effect.
@@ -211,6 +213,7 @@ export function SaveEditor({
   draft: MonsterDraft;
   onChange: (draft: MonsterDraft) => void;
 }) {
+  const { t } = useI18n();
   const saves = draft.stats.saveMods ?? { str: 0, dex: 0, con: 0, int: 0, wis: 0, cha: 0 };
   return (
     // A stepper is wider than the bare box it replaced, so the columns are as
@@ -250,6 +253,7 @@ export function SizeAndDefences({
   draft: MonsterDraft;
   onChange: (draft: MonsterDraft) => void;
 }) {
+  const { t } = useI18n();
   const set = (patch: Partial<MonsterDraft["stats"]>) =>
     onChange({ ...draft, stats: { ...draft.stats, ...patch } });
   return (
@@ -261,7 +265,7 @@ export function SizeAndDefences({
             value={draft.stats.size ?? "Medium"}
             onChange={(size) => set({ size })}
             options={SIZES.map((size) => ({ value: size as string, label: size }))}
-            label="Size"
+            label={t("workshop.monsterEditor.defence.size")}
             size="sm"
             className="w-32"
           />
@@ -275,7 +279,7 @@ export function SizeAndDefences({
             value={creatureTypeOf(draft.stats) as string}
             onChange={(type) => set({ type })}
             options={CREATURE_TYPES.map((type) => ({ value: type as string, label: type.charAt(0).toUpperCase() + type.slice(1) }))}
-            label="Type"
+            label={t("workshop.monsterEditor.defence.type")}
             size="sm"
             className="w-32"
           />
@@ -320,6 +324,7 @@ export function SizeAndDefences({
 // will not trust a difficulty rating they cannot audit, and the ratings
 // worth auditing are exactly the ones that disagree with their instinct.
 export function Working({ parts, notes }: { parts: CrPart[]; notes: string[] }) {
+  const { t } = useI18n();
   return (
     <div className="flex flex-col gap-1 rounded-lg border border-stone-800 bg-stone-950/60 p-2">
       {parts.map((part) => (
@@ -339,6 +344,7 @@ export function Working({ parts, notes }: { parts: CrPart[]; notes: string[] }) 
 }
 
 export function RatingLine({ readout }: { readout: MonsterReadout }) {
+  const { t } = useI18n();
   return (
     <p className={cn("text-[11px]", readout.agrees ? "text-stone-500" : "text-amber-300/80")}>
       {readout.agrees
