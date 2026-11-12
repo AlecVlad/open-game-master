@@ -146,6 +146,7 @@ for (const key of campaignRulesMessages) {
 
 const sharedComponentMessages = [
   "common.actionsFor",
+  "dialog.close",
   "about.title", "about.error.load", "about.loading", "about.version", "about.serverName",
   "about.row.build", "about.row.commit", "about.row.built", "about.row.updateChannel", "about.row.checkedAt",
   "about.update.off.deviceWorld", "about.update.off.server", "about.update.unknown",
