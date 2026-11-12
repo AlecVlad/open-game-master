@@ -5346,7 +5346,11 @@ export const ruCampaignPanels: Partial<Record<keyof typeof enCampaignPanels, str
   "campaign.gameSettings.summary.bonds.conscience": "{summary} · совесть спутника: {mode}",
   "campaign.gameSettings.summary.players.waitsForTable": "Ведущий ждёт всех игроков",
   "campaign.gameSettings.summary.console.never": "Напоминания отключены",
-  "campaign.gameSettings.summary.console.actions": "через {count} действий",
-  "campaign.gameSettings.summary.console.rolls": "через {count} бросков",
   "campaign.gameSettings.summary.console.both": "{actions} или {rolls}",
+  "campaign.gameSettings.summary.console.afterAction.one": "через {count} действие",
+  "campaign.gameSettings.summary.console.afterAction.few": "через {count} действия",
+  "campaign.gameSettings.summary.console.afterAction.many": "через {count} действий",
+  "campaign.gameSettings.summary.console.afterRoll.one": "через {count} бросок",
+  "campaign.gameSettings.summary.console.afterRoll.few": "через {count} броска",
+  "campaign.gameSettings.summary.console.afterRoll.many": "через {count} бросков",
 };
