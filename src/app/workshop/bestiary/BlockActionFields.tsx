@@ -25,20 +25,20 @@ import { Field, FieldLabel, OptionalStepper, addChip, chip, chipOn, chipRow, row
 type Props = { draft: MonsterDraft; onChange: (draft: MonsterDraft) => void };
 
 const RECHARGE_OPTIONS = [
-  { value: "", label: "No recharge" },
-  { value: "6", label: "Recharge 6" },
-  { value: "5", label: "Recharge 5-6" },
-  { value: "4", label: "Recharge 4-6" },
+  { value: "", label: t("workshop.monsterEditor.actions.recharge.none") },
+  { value: "6", label: t("workshop.monsterEditor.actions.recharge.six") },
+  { value: "5", label: t("workshop.monsterEditor.actions.recharge.fiveSix") },
+  { value: "4", label: t("workshop.monsterEditor.actions.recharge.fourSix") },
 ];
 const SAVE_OPTIONS = [
-  { value: "", label: "No save" },
+  { value: "", label: t("workshop.monsterEditor.actions.save.none") },
   ...SAVE_ABILITY_IDS.map((ability) => ({ value: ability as string, label: `${ability.toUpperCase()} save` })),
 ];
 const COST_OPTIONS = [
-  { value: "", label: "Not legendary" },
-  { value: "1", label: "Legendary, 1 action" },
-  { value: "2", label: "Legendary, 2 actions" },
-  { value: "3", label: "Legendary, 3 actions" },
+  { value: "", label: t("workshop.monsterEditor.actions.cost.none") },
+  { value: "1", label: t("workshop.monsterEditor.actions.cost.one") },
+  { value: "2", label: t("workshop.monsterEditor.actions.cost.two") },
+  { value: "3", label: t("workshop.monsterEditor.actions.cost.three") },
 ];
 
 function clean<T extends object>(value: T): T {
@@ -56,20 +56,20 @@ function AbilityRow({ ability, onChange, onRemove, conditionList, typeList }: {
   return (
     <div className="live-in grid gap-2 rounded-lg border border-stone-800 bg-stone-950/50 p-2.5">
       <div className="flex flex-wrap items-end gap-2">
-        <Field as="label" label="Name" className="min-w-40 flex-1">
-          <input value={ability.name} maxLength={BLOCK_LIMITS.specialName} placeholder="Fire Breath" onChange={(event) => set({ name: event.target.value })} className={ui.input} />
+        <Field as="label" label={t("workshop.monsterEditor.actions.name")} className="min-w-40 flex-1">
+          <input value={ability.name} maxLength={BLOCK_LIMITS.specialName} placeholder={t("workshop.monsterEditor.actions.namePlaceholder")} onChange={(event) => set({ name: event.target.value })} className={ui.input} />
         </Field>
-        <Field label="Recharge">
+        <Field label={t("workshop.monsterEditor.actions.rechargeLabel")}>
           <span className="block w-36">
             <Select label="Recharge" size="sm" value={ability.recharge ? String(ability.recharge) : ""} onChange={(next) => set({ recharge: next ? Number(next) : undefined })} options={RECHARGE_OPTIONS} />
           </span>
         </Field>
-        <Field label="Per day">
-          <OptionalStepper label="Uses a day" min={1} max={9} fallback={1} value={ability.perDay} onChange={(perDay) => set({ perDay: perDay === "" ? undefined : perDay })} />
+        <Field label={t("workshop.monsterEditor.actions.perDayLabel")}>
+          <OptionalStepper label={t("workshop.monsterEditor.actions.usesPerDay")} min={1} max={9} fallback={1} value={ability.perDay} onChange={(perDay) => set({ perDay: perDay === "" ? undefined : perDay })} />
         </Field>
-        <Field label="Legendary">
+        <Field label={t("workshop.monsterEditor.actions.legendary")}>
           <span className="block w-44">
-            <Select label="Legendary action cost" size="sm" value={ability.legendaryCost ? String(ability.legendaryCost) : ""} onChange={(next) => set({ legendaryCost: next ? Number(next) : undefined })} options={COST_OPTIONS} />
+            <Select label={t("workshop.monsterEditor.actions.legendaryCost")} size="sm" value={ability.legendaryCost ? String(ability.legendaryCost) : ""} onChange={(next) => set({ legendaryCost: next ? Number(next) : undefined })} options={COST_OPTIONS} />
           </span>
         </Field>
         <button type="button" aria-label={`Remove ${ability.name || "ability"}`} onClick={onRemove} className={cn(ui.iconAction, rowIcon, "hover:text-red-300")}>
@@ -77,44 +77,44 @@ function AbilityRow({ ability, onChange, onRemove, conditionList, typeList }: {
         </button>
       </div>
       <div className="flex flex-wrap items-end gap-2">
-        <Field label="Save">
+        <Field label={t("workshop.monsterEditor.actions.save")}>
           <span className="block w-32">
             <Select label="Save" size="sm" value={ability.save ?? ""} onChange={(save) => set({ save: (save || undefined) as MonsterAbility["save"], dc: save ? ability.dc ?? 13 : undefined })} options={SAVE_OPTIONS} />
           </span>
         </Field>
         {ability.save ? (
-          <Field label="DC">
-            <OptionalStepper label="Save DC" min={1} max={30} fallback={13} value={ability.dc} onChange={(dc) => set({ dc: dc === "" ? 13 : dc })} />
+          <Field label={t("workshop.monsterEditor.actions.dc")}>
+            <OptionalStepper label={t("workshop.monsterEditor.actions.saveDc")} min={1} max={30} fallback={13} value={ability.dc} onChange={(dc) => set({ dc: dc === "" ? 13 : dc })} />
           </Field>
         ) : null}
-        <Field as="label" label="Damage">
+        <Field as="label" label={t("workshop.monsterEditor.actions.damage")}>
           <input value={ability.damage ?? ""} placeholder="6d6" onChange={(event) => set({ damage: event.target.value || undefined, damageType: event.target.value ? ability.damageType ?? "fire" : undefined })} className={cn(ui.input, "w-24")} />
         </Field>
         {ability.damage ? (
           <>
-            <Field as="label" label="Type">
+            <Field as="label" label={t("workshop.monsterEditor.actions.type")}>
               <input list={typeList} value={ability.damageType ?? ""} placeholder="fire" onChange={(event) => set({ damageType: event.target.value || undefined })} className={cn(ui.input, "w-28")} />
             </Field>
-            <Field label="Half on a success">
-              <Switch label="Half damage on a successful save" on={ability.halfOnSave === true} onChange={(on) => set({ halfOnSave: on || undefined })} />
+            <Field label={t("workshop.monsterEditor.actions.halfSuccess")}>
+              <Switch label={t("workshop.monsterEditor.actions.halfDamage")} on={ability.halfOnSave === true} onChange={(on) => set({ halfOnSave: on || undefined })} />
             </Field>
           </>
         ) : null}
-        <Field as="label" label="Condition">
+        <Field as="label" label={t("workshop.monsterEditor.actions.condition")}>
           <input list={conditionList} value={ability.condition ?? ""} placeholder="frightened" onChange={(event) => set({ condition: event.target.value.toLowerCase() || undefined })} className={cn(ui.input, "w-32")} />
         </Field>
         {ability.condition ? (
           <>
-            <Field label="Rounds">
+            <Field label={t("workshop.monsterEditor.actions.rounds")}>
               <OptionalStepper label="Rounds" min={1} max={100} fallback={10} value={ability.rounds} onChange={(rounds) => set({ rounds: rounds === "" ? undefined : rounds })} />
             </Field>
-            <Field label="Save again each turn">
-              <Switch label="Repeat the save at the end of each turn" on={ability.repeatSave === true} onChange={(on) => set({ repeatSave: on || undefined })} />
+            <Field label={t("workshop.monsterEditor.actions.repeatSave")}>
+              <Switch label={t("workshop.monsterEditor.actions.repeatSaveHint")} on={ability.repeatSave === true} onChange={(on) => set({ repeatSave: on || undefined })} />
             </Field>
           </>
         ) : null}
-        <Field label="Magical">
-          <Switch label="Magic Resistance applies" on={ability.magical === true} onChange={(on) => set({ magical: on || undefined })} />
+        <Field label={t("workshop.monsterEditor.actions.magical")}>
+          <Switch label={t("workshop.monsterEditor.actions.magicResistance")} on={ability.magical === true} onChange={(on) => set({ magical: on || undefined })} />
         </Field>
       </div>
     </div>
@@ -122,13 +122,14 @@ function AbilityRow({ ability, onChange, onRemove, conditionList, typeList }: {
 }
 
 export function AbilitiesEditor({ draft, onChange }: Props) {
+  const { t } = useI18n();
   const conditionList = useId();
   const typeList = useId();
   const specials = draft.stats.specials ?? [];
   const setSpecials = (next: MonsterAbility[]) => onChange({ ...draft, stats: { ...draft.stats, specials: next.length ? next : undefined } });
   return (
     <div className="flex flex-col gap-1.5">
-      <SectionHead title="Actions the engine runs" glyph="cue-battle" className="mb-0" />
+      <SectionHead title={t("workshop.monsterEditor.actions.title")} glyph="cue-battle" className="mb-0" />
       <datalist id={conditionList}>
         {CONDITIONS.map((condition) => (
           <option key={condition} value={condition} />
@@ -162,20 +163,21 @@ export function AbilitiesEditor({ draft, onChange }: Props) {
 }
 
 export function RegenerationEditor({ draft, onChange }: Props) {
+  const { t } = useI18n();
   const regeneration = draft.stats.regeneration;
   const set = (next: MonsterDraft["stats"]["regeneration"]) => onChange({ ...draft, stats: { ...draft.stats, regeneration: next } });
   return (
     <div className="flex flex-col gap-1.5">
       <span className="flex items-center gap-2">
         <FieldLabel>Regeneration</FieldLabel>
-        <Switch label="Regenerates" on={Boolean(regeneration)} onChange={(on) => set(on ? { amount: 10, stoppedBy: ["acid", "fire"] } : undefined)} />
+        <Switch label={t("workshop.monsterEditor.regeneration.toggle")} on={Boolean(regeneration)} onChange={(on) => set(on ? { amount: 10, stoppedBy: ["acid", "fire"] } : undefined)} />
       </span>
       {regeneration ? (
         <div className="reveal flex flex-col gap-1.5">
           <span className="flex flex-wrap items-center gap-2 text-[11px] text-stone-400">
             Regains
-            <NumberStepper size="sm" label="Hit points regained each turn" min={1} max={100} value={regeneration.amount} onChange={(amount) => set({ ...regeneration, amount })} />
-            hit points at the start of its turn, unless it took
+            <NumberStepper size="sm" label={t("workshop.monsterEditor.regeneration.hitPointsEachTurn")} min={1} max={100} value={regeneration.amount} onChange={(amount) => set({ ...regeneration, amount })} />
+            {t("workshop.monsterEditor.regeneration.stopCondition")}
           </span>
           <div className={cn("stagger-pop", chipRow)}>
             {DAMAGE_TYPES.map((type) => {
@@ -198,6 +200,7 @@ export function RegenerationEditor({ draft, onChange }: Props) {
 }
 
 export function RoutineEditor({ draft, onChange }: Props) {
+  const { t } = useI18n();
   const attacks = draft.stats.attacks;
   const routines = draft.stats.routines ?? [];
   const setRoutines = (next: RoutineStep[][]) => onChange({ ...draft, stats: { ...draft.stats, routines: next.length ? next : undefined } });
@@ -210,14 +213,14 @@ export function RoutineEditor({ draft, onChange }: Props) {
       <FieldLabel>Multiattack routine</FieldLabel>
       {routines.map((steps, index) => (
         <div key={index} className="live-in flex flex-wrap items-center gap-1.5 rounded-lg border border-stone-800 p-2 text-[11px] text-stone-400">
-          {index > 0 ? <span className="text-stone-500">Or</span> : null}
+          {index > 0 ? <span className="text-stone-500">{t("workshop.monsterEditor.routine.or")}</span> : null}
           {steps.map((step, at) => (
             <span key={at} className="flex items-center gap-1">
-              <NumberStepper size="sm" label="How many" min={1} max={10} value={step.count} onChange={(count) => setRoutines(routines.map((row, r) => (r === index ? row.map((entry, s) => (s === at ? { ...entry, count } : entry)) : row)))} />
+              <NumberStepper size="sm" label={t("workshop.monsterEditor.routine.howMany")} min={1} max={10} value={step.count} onChange={(count) => setRoutines(routines.map((row, r) => (r === index ? row.map((entry, s) => (s === at ? { ...entry, count } : entry)) : row)))} />
               <span className="block w-32">
-                <Select label="Attack" size="sm" value={step.attack} onChange={(attack) => setRoutines(routines.map((row, r) => (r === index ? row.map((entry, s) => (s === at ? { ...entry, attack } : entry)) : row)))} options={options} />
+                <Select label={t("workshop.monsterEditor.routine.attack")} size="sm" value={step.attack} onChange={(attack) => setRoutines(routines.map((row, r) => (r === index ? row.map((entry, s) => (s === at ? { ...entry, attack } : entry)) : row)))} options={options} />
               </span>
-              <button type="button" aria-label="Remove this step" onClick={() => setRoutines(routines.map((row, r) => (r === index ? row.filter((_, s) => s !== at) : row)).filter((row) => row.length))} className={cn(ui.iconAction, "hover:text-red-300")}>
+              <button type="button" aria-label={t("workshop.monsterEditor.routine.removeStepLabel")} onClick={() => setRoutines(routines.map((row, r) => (r === index ? row.filter((_, s) => s !== at) : row)).filter((row) => row.length))} className={cn(ui.iconAction, "hover:text-red-300")}>
                 <Trash2 className="size-3" />
               </button>
             </span>
