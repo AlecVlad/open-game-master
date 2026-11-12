@@ -3,6 +3,7 @@
 import { Minus, Plus } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/cn";
+import { useT } from "@/lib/i18n/provider";
 import { replayAnimation } from "@/lib/motion/replay";
 
 // The kit's number field (docs/visual-overhaul-plan.md 8c.4): a real number
@@ -40,6 +41,7 @@ export function NumberStepper({
   suffix?: string;
   className?: string;
 }) {
+  const t = useT();
   const figure = useRef<HTMLInputElement | null>(null);
   const [draft, setDraft] = useState<string | null>(null);
   const held = useRef<number | null>(null);
@@ -97,7 +99,7 @@ export function NumberStepper({
     <span className={cn("kit-stepper", size === "sm" && "kit-stepper-sm", className)} data-disabled={disabled ? "" : undefined}>
       <button
         type="button"
-        aria-label={`Lower ${label}`}
+        aria-label={t("numberStepper.lower", { label })}
         disabled={disabled || (Number.isFinite(value) && value <= min)}
         onPointerDown={() => hold(-1)}
         onPointerUp={release}
@@ -133,7 +135,7 @@ export function NumberStepper({
       {suffix ? <span className="kit-stepper-suffix">{suffix}</span> : null}
       <button
         type="button"
-        aria-label={`Raise ${label}`}
+        aria-label={t("numberStepper.raise", { label })}
         disabled={disabled || (Number.isFinite(value) && value >= max)}
         onPointerDown={() => hold(1)}
         onPointerUp={release}
