@@ -488,8 +488,24 @@ export function admitLibraryCharacter(
 // that gives it a bot owner and the DM's turns; the player-character doors
 // refuse it in these words, so the character's controller never changes
 // quietly (issue 192).
+export type CompanionRoleRefusal = {
+  code: "COMPANION_NOT_PLAYER_CHARACTER";
+  params: { name: string };
+  message: string;
+};
+
+export function companionRoleRefusalDetail(character: Pick<LibraryCharacter, "name">): CompanionRoleRefusal {
+  return {
+    code: "COMPANION_NOT_PLAYER_CHARACTER",
+    params: { name: character.name },
+    message: `${character.name} is filed as an ally the GM plays, not a player character. Whoever runs the story brings them in from the party panel: Build a companion, then From your library.`,
+  };
+}
+
+// Older callers still receive the original prose; API routes that can localize
+// it send the code and parameters alongside that text.
 export function companionRoleRefusal(character: Pick<LibraryCharacter, "name">): string {
-  return `${character.name} is filed as an ally the GM plays, not a player character. Whoever runs the story brings them in from the party panel: Build a companion, then From your library.`;
+  return companionRoleRefusalDetail(character).message;
 }
 
 // The role each of these library rows is filed under, for the snapshot: a
