@@ -329,7 +329,7 @@ export function ArchetypeFields({
           ))}
         <BorrowFeature taken={taken} full={full} onPick={(entry) => write([...flat, { level: entry.level, feature: { n: entry.name, d: entry.text } }])} />
         <p className="text-[11px] text-stone-500">
-          Granted by name when a character takes this subclass. A borrowed feature keeps its name so the engine runs it; renaming it makes it words for the GM.
+          {t("workshop.homebrew.archetype.ui.features.hint")}
         </p>
       </div>
       <SpellLists data={data} set={set} castsNothing={casting === "none" && !casterClass(classId)} classLabel={classLabel} />
