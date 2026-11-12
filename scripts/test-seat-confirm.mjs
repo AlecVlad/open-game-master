@@ -14,10 +14,22 @@ const campaigns = await import("../src/lib/db/campaigns.ts");
 const { joinChanges } = await import("../src/lib/characters/join-changes.ts");
 const { chooserSections } = await import("../src/app/campaigns/[campaignId]/hero-chooser.ts");
 const { owedChoices } = await import("../src/lib/srd/owed-choices.ts");
+const { refusalCodes } = await import("../src/lib/characters/admit.ts");
 // Windows CI checks the files out with CRLF line endings.
 const read = (file) => fs.readFileSync(new URL(`../${file}`, import.meta.url), "utf8").replace(/\r\n/g, "\n");
 
 // ---- the words, pure ----
+
+await test("only fixed refusal messages receive localization codes", () => {
+  assert.deepEqual(
+    refusalCodes([
+      "This table turns multiclassing off; a character made here holds one class.",
+      "A variable diagnostic with a character or content-pack name.",
+      "This subclass is not configured to use the third-caster spellcasting progression.",
+    ]),
+    ["MULTICLASS_DISABLED", null, "THIRD_CASTER_NOT_CONFIGURED"],
+  );
+});
 
 await test("a hero going up says so and lists what the level owes", () => {
   const { changes, changeDetails, owed } = joinChanges(LEGAL_FIGHTER, 1, { ...LEGAL_FIGHTER, maxHp: 36, features: [...LEGAL_FIGHTER.features, { name: "ASI taken: 0", source: "story" }] }, 4);
@@ -241,6 +253,7 @@ await test("a hero the quiz built is previewed by the table's door, stored by no
   assert.equal(broken.status, 200, JSON.stringify(broken.json));
   assert.equal(broken.json.preview.ok, false);
   assert.ok(broken.json.preview.problems.length > 0);
+  assert.deepEqual(broken.json.preview.problemCodes, broken.json.preview.problems.map(() => null));
 
   // One hero at a time.
   const both = await previewAs(table, { sheet, pregenId: "kara" });
