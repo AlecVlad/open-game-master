@@ -3477,4 +3477,5 @@ export const ruWorkshop: Partial<Record<keyof typeof enWorkshop, string>> = {
   "workshop.homebrew.hazard.boolean.no": "нет",
   "workshop.homebrew.hazard.boolean.yes": "да",
   "workshop.homebrew.item.ui.damageTypes": "Типы урона",
+  "workshop.homebrew.species.main.size.smallHeavyHint": "Маленькие существа совершают атаки тяжёлым оружием с помехой.",
 };
