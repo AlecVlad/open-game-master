@@ -13,11 +13,13 @@ export function HotkeyOverlay({
   onOpenChange,
   title = "Keys",
   groups,
+  footer = "Every key has a button on screen; on a phone the buttons are the way in.",
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title?: string;
   groups: Array<{ title: string; rows: HotkeyRow[] }>;
+  footer?: string;
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange} title={title} width="w-[min(92vw,30rem)]">
@@ -45,7 +47,7 @@ export function HotkeyOverlay({
           </section>
         ))}
         <p className="text-[11px] text-stone-500">
-          Every key has a button on screen; on a phone the buttons are the way in.
+          {footer}
         </p>
       </div>
     </Dialog>
