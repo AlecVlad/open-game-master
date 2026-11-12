@@ -16,10 +16,10 @@ import { announceMidGameJoin } from "@/lib/characters/mid-game-join";
 import { heroFell } from "@/lib/characters/fallen-logic";
 import { HERO_DOOR_SHUT, heroDoorFor } from "@/lib/characters/hero-door";
 import { listMembers, setMemberReady } from "@/lib/db/campaigns";
-import { pregenSeatRefusal, recordPregenSeat } from "@/lib/db/pregen-offers";
+import { pregenSeatRefusalDetail, recordPregenSeat } from "@/lib/db/pregen-offers";
 import {
   admitLibraryCharacter,
-  companionRoleRefusal,
+  companionRoleRefusalDetail,
   createCharacter,
   getCharacterForUser,
   instantiateIntoCampaign,
@@ -200,7 +200,11 @@ export async function POST(
     // Picking the fallen hero again would only seat the dead sheet back in
     // the player's place; their library copy does not know it died here.
     if (reusedSheet && heroFell(reusedSheet)) {
-      return Response.json({ error: `${reusedSheet.name} fell at this table. Bring in someone else.` }, { status: 409 });
+      return Response.json({
+        error: `${reusedSheet.name} fell at this table. Bring in someone else.`,
+        errorCode: "HERO_FELL_AT_TABLE",
+        errorParams: { name: reusedSheet.name },
+      }, { status: 409 });
     }
     if (!reused && !door.open) {
       return Response.json({ error: HERO_DOOR_SHUT, errorCode: "HERO_ALREADY_HAS_CHARACTER" }, { status: 409 });
@@ -208,9 +212,9 @@ export async function POST(
     // One player per pregen per table (src/lib/db/pregen-offers.ts): a copy of
     // a DM's offered pregen does not sit where another sheet plays it.
     const library = reused ? null : getCharacterForUser(context.user.id, fromLibrary.data.libraryCharacterId);
-    const held = library ? pregenSeatRefusal(campaignId, library, context.user.id) : null;
+    const held = library ? pregenSeatRefusalDetail(campaignId, library, context.user.id) : null;
     if (held) {
-      return Response.json({ error: held }, { status: 409 });
+      return Response.json({ error: held.message, errorCode: held.code, errorParams: held.params }, { status: 409 });
     }
     const result = instantiateIntoCampaign(
       fromLibrary.data.libraryCharacterId,
@@ -326,7 +330,8 @@ export async function PUT(
     // Held before the old sheet goes: a refused companion must not cost the
     // player the character they have (issue 192).
     if (character.role === "companion") {
-      return Response.json({ error: companionRoleRefusal(character) }, { status: 400 });
+      const refusal = companionRoleRefusalDetail(character);
+      return Response.json({ error: refusal.message, errorCode: refusal.code, errorParams: refusal.params }, { status: 400 });
     }
     // Picks that are not within the rules are refused before the old sheet
     // goes too: the switch is judged first, then made.
@@ -338,9 +343,9 @@ export async function PUT(
     }
     // A pregen someone else holds here is refused before the old sheet goes
     // too (src/lib/db/pregen-offers.ts); the sheet given up holds nothing.
-    const held = pregenSeatRefusal(campaignId, character, context.user.id, existing.id);
+    const held = pregenSeatRefusalDetail(campaignId, character, context.user.id, existing.id);
     if (held) {
-      return Response.json({ error: held }, { status: 409 });
+      return Response.json({ error: held.message, errorCode: held.code, errorParams: held.params }, { status: 409 });
     }
     deleteSheetForUser(campaignId, context.user.id);
     const result = instantiateIntoCampaign(
@@ -383,7 +388,8 @@ export async function PUT(
     // Held before the old sheet goes: a refused companion must not cost the
     // player the character they have (issue 192).
     if (character.role === "companion") {
-      return Response.json({ error: companionRoleRefusal(character) }, { status: 400 });
+      const refusal = companionRoleRefusalDetail(character);
+      return Response.json({ error: refusal.message, errorCode: refusal.code, errorParams: refusal.params }, { status: 400 });
     }
     // The copy this edit replaces is the one made from the character it
     // edited. At a table where the player fields several, the seat may be on
@@ -396,9 +402,9 @@ export async function PUT(
       ) ?? existing;
     // The edited sheet takes a new id; a pregen it plays stays this player's
     // (src/lib/db/pregen-offers.ts), and one someone else holds is refused.
-    const held = pregenSeatRefusal(campaignId, character, context.user.id, replaced.id);
+    const held = pregenSeatRefusalDetail(campaignId, character, context.user.id, replaced.id);
     if (held) {
-      return Response.json({ error: held }, { status: 409 });
+      return Response.json({ error: held.message, errorCode: held.code, errorParams: held.params }, { status: 409 });
     }
     const edited = admitSheet({
       door: "library",
