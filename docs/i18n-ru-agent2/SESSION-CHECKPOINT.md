@@ -276,3 +276,9 @@ The WorldForge component pass is complete across all 29 files in `src/app/worksh
 - Standard race, class, alignment and background display labels use translated keys. The stored IDs and catalog values remain unchanged.
 - `draft-check.ts` and `draft-integrity.ts` now return stable reason keys alongside legacy English fallback strings. The export API returns structured problem details and known error codes; `PublishSection` renders these in the active language.
 - A source scan of all Plugin components found no remaining fixed English UI labels. Unknown API errors and data supplied by third parties remain unchanged.
+
+
+## Monster Editor — текущий проход — 12 ноября 2026
+- Созданы/зарегистрированы `en/ru/monsterEditor.ts`; локализованы главная форма, создание, поля характеристик, атаки, spellcasting, special actions, regeneration, multiattack, каталог-сборщик и общие поля Monster.
+- `monster-folds.ts` принимает необязательные переводчики, сохраняя старый fallback для прежних вызовов.
+- Следующий подэтап: проверить borrowed/printed block views, динамические строки `derive-cr.ts`, option labels и полный EN/RU key/placeholder audit. Затем перейти к Map Editor.
