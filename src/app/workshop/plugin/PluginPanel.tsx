@@ -169,7 +169,7 @@ export function PluginPanel({
             keepalive: !live && new TextEncoder().encode(body).length < KEEPALIVE_BYTES,
             signal: AbortSignal.timeout(SAVE_TIMEOUT_MS),
           }),
-          "The draft could not be saved.",
+          t("workshop.plugin.panel.draftSaveFailed"),
         );
         if (sent.error !== null) {
           if (mounted.current) {
@@ -257,7 +257,7 @@ export function PluginPanel({
       const sent = await inTurn(workshopId, () =>
         readWrite<StoredReply & { added?: number; omissions?: Array<{ assets: string[] }> }>(
           fetch(`/api/workshops/${workshopId}/plugin/pull`, { method: "POST" }),
-          "Nothing could be pulled.",
+          t("workshop.plugin.panel.pullFailed"),
         ),
       );
       if (sent.error !== null) {
