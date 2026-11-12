@@ -8,6 +8,26 @@ import { JoinConfirmDialog, type JoinHero } from "@/app/campaigns/[campaignId]/J
 
 type Hero = { id: string; name: string; tagline: string; blurb: string };
 
+const PREGEN_TEXT_KEYS: Record<string, { tagline: string; blurb: string }> = {
+  brakk: {
+    tagline: "campaign.pregenPicker.brakk.tagline",
+    blurb: "campaign.pregenPicker.brakk.blurb",
+  },
+  kara: {
+    tagline: "campaign.pregenPicker.kara.tagline",
+    blurb: "campaign.pregenPicker.kara.blurb",
+  },
+  vex: {
+    tagline: "campaign.pregenPicker.vex.tagline",
+    blurb: "campaign.pregenPicker.vex.blurb",
+  },
+  sera: {
+    tagline: "campaign.pregenPicker.sera.tagline",
+    blurb: "campaign.pregenPicker.sera.blurb",
+  },
+};
+
+
 // Ready-made heroes for a seat with no character yet
 // (src/lib/starter/pregens.ts). A click opens the confirm sheet
 // (JoinConfirmDialog.tsx, backlog F6), which seats the hero; the sheet lands
@@ -51,8 +71,8 @@ export function PregenPicker({
               onClick={() => setPicked({ kind: "pregen", id: hero.id, name: hero.name })}
               className="motion-press flex w-full flex-col items-start rounded-lg border border-stone-800 bg-stone-950/50 px-3 py-2 text-left hover:border-amber-500/40"
             >
-              <span className="text-sm text-stone-100">{hero.tagline}</span>
-              <span className="text-xs text-stone-500">{hero.blurb}</span>
+              <span className="text-sm text-stone-100">{PREGEN_TEXT_KEYS[hero.id] ? t(PREGEN_TEXT_KEYS[hero.id].tagline as never) : hero.tagline}</span>
+              <span className="text-xs text-stone-500">{PREGEN_TEXT_KEYS[hero.id] ? t(PREGEN_TEXT_KEYS[hero.id].blurb as never) : hero.blurb}</span>
             </button>
           </li>
         ))}
