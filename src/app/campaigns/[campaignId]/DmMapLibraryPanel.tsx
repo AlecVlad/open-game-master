@@ -477,7 +477,7 @@ export function DmMapLibraryPanel({
       />
       <AddonMapGenerator campaignId={campaignId} onCreated={(id) => void load().then(() => setSelectedId(id))} />
 
-      <Listed loaded={loaded} error={loadError} onRetry={() => void load()} loading="Opening the drawer...">
+      <Listed loaded={loaded} error={loadError} onRetry={() => void load()} loading={t("workshop.maps.library.loading")}>
       {state.maps.length ? (
         <div data-pill-group="" className="flex flex-wrap gap-1">
           {state.maps.map((map) => (
