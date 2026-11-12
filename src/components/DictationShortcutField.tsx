@@ -3,7 +3,7 @@
 import { Check, Keyboard, X } from "lucide-react";
 import { useEffect, useLayoutEffect, useState } from "react";
 import { cn } from "@/lib/cn";
-import { chordFromEvent, chordProblem, formatChord } from "@/lib/dictation-shortcut";
+import { chordFromEvent, chordProblemDetail, formatChord, type DictationShortcutProblem } from "@/lib/dictation-shortcut";
 import {
   setListeningForShortcut,
   useDictationShortcut,
@@ -11,6 +11,7 @@ import {
   writeDictationShortcut,
 } from "@/lib/use-dictation-shortcut";
 import { ui } from "@/lib/ui";
+import type { MessageKey } from "@/lib/i18n/messages/index";
 import { useT } from "@/lib/i18n/provider";
 
 // Choosing the hold-to-dictate key (issue 291): press Set, then the keys.
@@ -20,6 +21,19 @@ import { useT } from "@/lib/i18n/provider";
 // device store the table's mic reads.
 
 const BUTTON = cn(ui.btnSmall, "shrink-0 px-2.5 py-1 text-xs");
+
+const CHORD_PROBLEM_KEYS: Record<DictationShortcutProblem["code"], MessageKey> = {
+  SYSTEM_MODIFIER: "dictationShortcut.problem.system",
+  VOICE_PTT: "dictationShortcut.problem.ptt",
+  EDITING_KEY: "dictationShortcut.problem.editing",
+  RESERVED_FUNCTION: "dictationShortcut.problem.reservedFunction",
+  CLOSE_WINDOW: "dictationShortcut.problem.closeWindow",
+  TYPING_KEY: "dictationShortcut.problem.typing",
+  BROWSER_SHORTCUT: "dictationShortcut.problem.browserShortcut",
+  BROWSER_MENU: "dictationShortcut.problem.browserMenu",
+  DESKTOP_SHORTCUT: "dictationShortcut.problem.desktopShortcut",
+  ALTGR_CHARACTER: "dictationShortcut.problem.altgrCharacter",
+};
 
 function heldModifiers(event: KeyboardEvent, mac: boolean): string {
   return [event.ctrlKey ? "Ctrl" : "", event.altKey ? (mac ? "Option" : "Alt") : "", event.shiftKey ? "Shift" : ""]
@@ -63,9 +77,9 @@ export function DictationShortcutField({ className }: { className?: string }) {
       if (event.repeat) {
         return;
       }
-      const why = chordProblem(next, event.key);
+      const why = chordProblemDetail(next, event.key);
       if (why) {
-        setProblem(why);
+        setProblem(t(CHORD_PROBLEM_KEYS[why.code], why.params as Record<string, string> | undefined));
         setHeld("");
         return;
       }
@@ -88,7 +102,7 @@ export function DictationShortcutField({ className }: { className?: string }) {
       window.removeEventListener("keyup", up, true);
       window.removeEventListener("blur", stopListening);
     };
-  }, [listening, mac]);
+  }, [listening, mac, t]);
 
   useEffect(() => {
     if (!saved) {
