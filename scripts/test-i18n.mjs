@@ -139,6 +139,21 @@ for (const key of characterImportMessages) {
   assert.ok(key in DICTIONARIES.ru, `Russian character-import message missing: ${key}`);
 }
 
+// Campaign cover editing and image uploads use stable API codes for fixed errors.
+const campaignCoverMessages = [
+  "campaign.editDialog.cover.error.invalidImage",
+  "campaign.editDialog.cover.error.save",
+  "campaign.editDialog.cover.error.noImageBackend",
+  "campaign.editDialog.cover.upload.error.invalid",
+  "campaign.editDialog.cover.upload.error.type",
+  "campaign.editDialog.cover.upload.error.size",
+  "campaign.editDialog.cover.upload.error.dimensions",
+];
+for (const key of campaignCoverMessages) {
+  assert.ok(key in DICTIONARIES.en, `English campaign-cover message missing: ${key}`);
+  assert.ok(key in DICTIONARIES.ru, `Russian campaign-cover message missing: ${key}`);
+}
+
 // Character validation responses expose codes only for exact, stable server diagnostics.
 const characterRefusalMessages = [
   "builder.refusal.multiclass.disabled",
