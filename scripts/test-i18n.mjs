@@ -155,6 +155,15 @@ for (const key of dmSquarePickMessages) {
   assert.ok(key in DICTIONARIES.ru, `Russian battlemap square-pick message missing: ${key}`);
 }
 
+const messageContentMessages = [
+  "campaign.session.messageContent.illustrationFailed",
+  "campaign.session.messageContent.waitingForRender",
+];
+for (const key of messageContentMessages) {
+  assert.ok(key in DICTIONARIES.en, `English message-content message missing: ${key}`);
+  assert.ok(key in DICTIONARIES.ru, `Russian message-content message missing: ${key}`);
+}
+
 const messageAndMomentsMessages = [
   "common.gameMaster",
   "campaign.session.messageItem.speakerThroughGm",
