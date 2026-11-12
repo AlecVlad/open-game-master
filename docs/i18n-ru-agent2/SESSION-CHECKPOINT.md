@@ -124,7 +124,9 @@ Single restore point for Russian localization. After a chat interruption, read o
 
 ## Next work
 - Block 1 is closed for localization by user confirmation. Stage 1.1 is separate and is not started without an explicit command.
-- A fresh source audit found substantial untranslated UI in Plugin/World Pack, Monster Editor and Map Editor. `TestFightSheet.tsx` and `OpenTestFight.tsx` also need a localized pass. These are real Block 2 tasks, not just a final checklist; do not create the DONE flag yet.
+- Plugin / World Pack is now localized across its tabs, setup wizard, catalogue reskins, shared lists, artwork and publishing flow. The Plugin dictionary pair has 318 EN / 318 RU keys with static key/placeholder parity. Stable validation and server-integrity reason codes are rendered through i18n. Do not redo this module without a targeted defect.
+- Continue Block 2 with `MonsterEditor.tsx`, `MonsterBuildControls.tsx`, `StatBlockFields.tsx`, `AttackDetails.tsx` and `SpellcastingFields.tsx`; their fixed UI copy remains English.
+- Then localize `MapEditor.tsx`, `MapDetails.tsx`, `MapForge.tsx` and `AddonMapGenerator.tsx`, followed by remaining fixed labels in `TestFightSheet.tsx` and `OpenTestFight.tsx`.
 - `EncounterForm.tsx` and `EncounterExtras.tsx` already use `useI18n`; `LoreEditorForm.tsx` is already wired. Preserve these and the completed WorldForge pass (all 29 files in `src/app/workshop/world/`).
 - Block 3 — Characters and Campaigns — has started, but the earlier ~50% figure was inferred from the conversation and has not been independently audited. Continue from existing localized campaign settings, lobby, invite and character-builder work; avoid re-translating completed components.
 - The Reference module still needs a fresh source audit: `mainPage`, `comparison`, `desk`, `badges`, `calculators` and EN/RU message wiring are not yet confirmed.
@@ -266,3 +268,11 @@ The WorldForge component pass is complete across all 29 files in `src/app/worksh
 - `EncounterForm` / `EncounterExtras` already use `useI18n`; `EncounterEvents` / `EncounterGround` are localized. `TestFightSheet` and `OpenTestFight` still have fixed English UI.
 - `LoreEditorForm` already uses `useI18n`. WorldForge, workshop shell, list views, tours and import/export components already completed should not be retranslated.
 - Block 2 remains open until these user-facing strings and create/edit/save/publish paths are localized and audited.
+
+
+## Plugin / World Pack — 12 November 2026
+- Localized the full Plugin authoring surface: panel/autosave, guided wizard, identity, setting lists, reskins, monster names, artwork, publish/import/replace/install, and shared list controls. `UnofficialPackNotice` is also now a client component using the active locale.
+- Added and registered the EN/RU `plugin.ts` dictionary family. Final static audit: 318 keys per language, exact key parity, no duplicates or placeholder mismatches; 187 direct source references resolve and all 7 plural groups have the required EN/RU forms.
+- Standard race, class, alignment and background display labels use translated keys. The stored IDs and catalog values remain unchanged.
+- `draft-check.ts` and `draft-integrity.ts` now return stable reason keys alongside legacy English fallback strings. The export API returns structured problem details and known error codes; `PublishSection` renders these in the active language.
+- A source scan of all Plugin components found no remaining fixed English UI labels. Unknown API errors and data supplied by third parties remain unchanged.
