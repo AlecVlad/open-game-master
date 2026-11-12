@@ -16,7 +16,7 @@ import { ChoiceOptionList } from "@/app/workshop/homebrew/ChoiceOptionList";
 import { withField } from "@/app/workshop/homebrew/SpeciesChoiceFields";
 import { addChip } from "@/app/workshop/kit";
 import type { Data } from "@/app/workshop/homebrew/draft";
-import { LANGUAGES } from "@/lib/workshop/pickers";
+
 import { SKILL_IDS } from "@/lib/homebrew/item-magic-schema";
 import { DAMAGE_TYPES } from "@/lib/dm/damage-logic";
 import { textKey } from "@/lib/language/text-logic";
