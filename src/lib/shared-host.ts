@@ -57,7 +57,10 @@ export const CAMPAIGN_CREATION_REFUSED =
 export const TEST_FIGHT_REFUSED = "On this server an administrator starts campaigns, workshops and their test fights.";
 
 export function campaignCreationRefusal(): Response {
-  return Response.json({ error: CAMPAIGN_CREATION_REFUSED }, { status: 403 });
+  return Response.json(
+    { error: CAMPAIGN_CREATION_REFUSED, errorCode: "CAMPAIGN_CREATION_ADMIN_ONLY" },
+    { status: 403 },
+  );
 }
 
 // Whether a campaign led by this person may spend the paid backends.
