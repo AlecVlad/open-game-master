@@ -15,6 +15,7 @@ type PromptProps = {
   placeholder?: string;
   maxLength?: number;
   submitLabel?: string;
+  cancelLabel?: string;
   // A pin with no label is a plain marker, so some prompts accept nothing.
   allowEmpty?: boolean;
   onSubmit: (value: string) => void;
@@ -30,6 +31,7 @@ function PromptForm({
   placeholder,
   maxLength = 80,
   submitLabel = "Save",
+  cancelLabel = "Cancel",
   allowEmpty = false,
   onSubmit,
   onClose,
@@ -63,7 +65,7 @@ function PromptForm({
       </label>
       <div className="flex justify-end gap-2">
         <button type="button" onClick={onClose} className={ui.btnSecondary}>
-          Cancel
+          {cancelLabel}
         </button>
         <button type="submit" disabled={!canSubmit} className={ui.btnPrimary}>
           {submitLabel}
