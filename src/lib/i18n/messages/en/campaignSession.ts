@@ -723,6 +723,8 @@ export const enCampaignSession = {
   "campaign.omissionReport.reason.region": "A pack has no maps. The region map stays in the workshop bundle.",
   "campaign.omissionReport.reason.rules": "A pack sets no rules. A table that installs it plays by its own until it reads yours.",
   "campaign.session.messageItem.speakerThroughGm": "{name}, through the GM",
+  "campaign.session.messageContent.illustrationFailed": "Illustration failed; the story carries on.",
+  "campaign.session.messageContent.waitingForRender": "Waiting for the render queue…",
   "campaign.session.dmStatus.thinking.1": "The GM weighs the outcome…",
   "campaign.session.dmStatus.thinking.2": "The GM consults the whims of fate…",
   "campaign.session.dmStatus.thinking.3": "Somewhere, a d20 holds its breath…",
