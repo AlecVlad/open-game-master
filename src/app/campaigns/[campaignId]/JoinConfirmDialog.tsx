@@ -56,6 +56,14 @@ function joinRequest(campaignId: string, hero: JoinHero, flow: "join" | "replace
 type Preview = JoinPreview & { alreadyHere: boolean };
 type Translate = ReturnType<typeof useI18n>["t"];
 
+function previewProblemText(problem: string, index: number, preview: Preview, t: Translate): string {
+  return refusalText(
+    { error: problem, problemCodes: [preview.problemCodes?.[index] ?? null] },
+    problem,
+    t,
+  );
+}
+
 function joinChangeText(change: JoinChangeDetail, t: Translate): string {
   switch (change.kind) {
     case "ownLevel":
@@ -329,8 +337,8 @@ export function JoinConfirmDialog({
                       <TriangleAlert className="size-4 shrink-0" /> {t(picks && preview.ok ? "campaign.joinConfirm.rules.failWithPicks" : "campaign.joinConfirm.rules.failYet", { name })}
                     </p>
                     <ul className="list-disc space-y-1 pl-5">
-                      {shown.problems.map((problem) => (
-                        <li key={problem}>{problem}</li>
+                      {shown.problems.map((problem, index) => (
+                        <li key={`${index}:${problem}`}>{previewProblemText(problem, index, shown, t)}</li>
                       ))}
                     </ul>
                   </div>
