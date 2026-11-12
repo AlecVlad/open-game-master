@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/cn";
+import { useT } from "@/lib/i18n/provider";
 
 // The stepper of a paced flow: one diamond per step joined by hairline rules.
 // Completed diamonds are solid gold and can be tapped to go back; the current
@@ -35,12 +36,13 @@ export function DiamondStepper({
   named?: boolean;
   className?: string;
 }) {
+  const t = useT();
   return (
     // A list, not a progressbar: a progressbar's children are presentational,
     // and these are buttons.
     // A named stepper keeps a row for the names under it, in rem as the
     // names are, so the step heading below stays clear at any text size.
-    <ol className={cn("diamond-stepper", named && "pb-7", className)} data-named={named || undefined} aria-label="Steps">
+    <ol className={cn("diamond-stepper", named && "pb-7", className)} data-named={named || undefined} aria-label={t("diamondStepper.steps")}>
       {steps.map((step, index) => {
         const state = index < current ? "done" : index === current ? "current" : "upcoming";
         const canGoBack = state === "done" && Boolean(onSelect);
@@ -59,10 +61,10 @@ export function DiamondStepper({
                 aria-current={state === "current" ? "step" : undefined}
                 aria-label={
                   canGoBack
-                    ? `Back to step ${index + 1}: ${step.label}`
+                    ? t("diamondStepper.backToStep", { step: index + 1, label: step.label })
                     : canJump
-                      ? `Go to step ${index + 1}: ${step.label}`
-                      : `Step ${index + 1}: ${step.label}`
+                      ? t("diamondStepper.goToStep", { step: index + 1, label: step.label })
+                      : t("diamondStepper.step", { step: index + 1, label: step.label })
                 }
                 title={step.label}
               >
