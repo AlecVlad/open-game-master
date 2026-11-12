@@ -156,7 +156,7 @@ export function EditCampaignDialog({
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setCoverError(data.error || t("campaign.editDialog.cover.error.change"));
+        setCoverError(campaignApiErrorText(data, t("campaign.editDialog.cover.error.change"), t));
         return;
       }
       setCover(data.cover ?? null);
@@ -180,7 +180,7 @@ export function EditCampaignDialog({
       });
       const payload = await upload.json().catch(() => ({}));
       if (!upload.ok) {
-        setCoverError(payload.error || t("campaign.editDialog.cover.error.upload"));
+        setCoverError(campaignApiErrorText(payload, t("campaign.editDialog.cover.error.upload"), t));
         return;
       }
       await coverRequest("PATCH", { imageUrl: payload.url });
