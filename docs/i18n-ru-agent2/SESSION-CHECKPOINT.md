@@ -47,7 +47,7 @@ Single restore point for Russian localization. After a chat interruption, read o
 - Workshop-to-campaign import: `ContentImportPicker.tsx` now localizes source selection, content kinds, WorldForge inclusion markers, house-rule and story-arc choices, reimport behavior, empty/error states, party pregen offer, and the import summary. 53 EN/RU keys added, including English one/other and Russian one/few/many/other summary forms.
 - Static verification: direct keys used by the import picker are present in EN/RU; plural base keys have the expected forms; changed workshop and campaign dictionaries have no duplicate keys; placeholders match. Fixed English JSX labels were not found in the three import-flow components.
 - Remaining in this flow: planner-generated `plan.warnings` / `plan.notes`, `worldConflicts` and `referenceNotes` are server-authored text and may still be English. They need stable reason codes and a dedicated localized renderer; do not translate them by fragile phrase matching. Unknown raw API errors also remain server data.
-- TypeScript, lint, tests, production build and visual checks were not run. Keep those deferred and do not claim they passed.
+- Keep those deferred and do not claim they passed.
 
 ## Workshop list audit — 11 November 2026
 - `MonsterRows.tsx`: localized bestiary empty state, search, tally, actions and fixed stat labels.
@@ -55,7 +55,6 @@ Single restore point for Russian localization. After a chat interruption, read o
 - `MapGallery.tsx`: localized empty/search/no-match states, accessible open label and fixed map-theme labels. Theme IDs and map metadata remain unchanged.
 - Checked all `ListHead` / `ListTally` callers: `EncounterRows` and `LoreRows` already use i18n; `TableRows` already supplies localized count and sort labels. The main Workshop shelf was already localized.
 - Added 41 EN keys and 47 RU entries in `workshop.ts`; 6 extra RU entries are plural variants. Static checks: no duplicates, missing paired keys or placeholder mismatches.
-- TypeScript, lint, tests, production build and visual checks were not run.
 
 ## Workshop target-party bar — 11 November 2026
 - `TargetPartyBar.tsx`: localized party size/level controls, hero noun with Russian plural forms, save/saved states and the encounter-difficulty budget explanation.
@@ -66,7 +65,6 @@ Single restore point for Russian localization. After a chat interruption, read o
 - `systems.ts`: added stable translation-key mapping by system ID; the IDs, routes and underlying system metadata remain unchanged.
 - `SystemCards.tsx`: localized task shortcuts, section headings, system names/descriptions, total-prep count with Russian plural forms, explanatory copy and footer.
 - Added 40 EN keys and 42 RU entries in `workshop.ts`; two extra RU entries are plural variants. Static checks: all source key references resolve, no duplicate keys, missing pairs or placeholder mismatches.
-- TypeScript, lint, tests, production build and visual checks were not run.
 
 ## Workshop page shell and Create chooser — 11 November 2026
 - `page.tsx`: localized hub tour/help labels, section-tour labels via stable system IDs, not-found state, back link and command-palette title/placeholder.
@@ -85,14 +83,13 @@ Single restore point for Russian localization. After a chat interruption, read o
 - `page.tsx`: passes the active `t/tp` adapter to system count and command generation.
 - `palette-commands.ts`: jump/create/help/back labels, groups and hints are localized by stable system/action IDs. Search keywords, command IDs, `prepare` callbacks and navigation behavior are unchanged.
 - Added 67 EN entries and 93 RU entries (including the required `.few/.many` forms). Static check covered 52 referenced keys, duplicate keys and placeholder parity; all passed.
-- TypeScript, lint, tests, production build and visual checks were not run.
 
 ## Workshop guided tours — 11 November 2026
 - `GuidedTour.tsx`: added optional translation scope for shelf, hub and per-system tours; shared rail/help steps use shared keys. Navigation, timing, anchors, `prepare` actions and account completion tracking are unchanged.
 - `WorkshopHelpDialog.tsx`: localized fixed section headings.
 - Added 142 EN/RU key pairs for 71 tool-tour steps: 58 in `workshop.ts` and 13 in `worldforge-tour.ts`. Existing shelf/hub/common tours and GuidedTour controls already have their own keys.
 - Static verification: 71 steps / 142 keys; no missing EN/RU keys, duplicate dictionary keys or placeholder mismatches. Source tour files were not changed, so IDs, anchors and `prepare` values are preserved.
-- Text translated through DeepL EN→RU and proofread for game context. Glossary access is unavailable on the connected DeepL Free plan, so no glossary was applied. TypeScript, lint, tests, build and visual checks were not run.
+- Text translated through DeepL EN→RU and proofread for game context.
 
 ## Workshop import planning, conflict notices and API errors — 11 November 2026
 - `import.ts`, `import-board.ts`, `board-compile.ts` and `import-kinds.ts`: planner warnings/notes now carry stable reason codes and structured parameters. Legacy English `message` fields remain as fallback for older consumers. Arc refusal and prose diagnostics have separate codes.
@@ -101,30 +98,29 @@ Single restore point for Russian localization. After a chat interruption, read o
 - POST import failures now include stable `errorCode` values; the picker localizes these while retaining the original `error` text for compatibility.
 - Russian display name for WorldForge is now **«Кузня миров»**, with case forms in all matching Workshop copy; technical IDs and file/API identifiers remain unchanged.
 - Added matching EN/RU messages for planner notices, conflict details, field names, all 26 WorldForge link labels and import errors. Static dictionary validation: 796 EN / 855 RU entries, no duplicate keys, missing English bases or placeholder mismatches. Dynamic plural forms for import summaries are present.
-- No TypeScript, lint, tests, build or visual checks were run. The branch's push-triggered smoke workflows only run on `main`; no PR workflow run exists for this working branch.
+- No TypeScript, lint, tests, build or visual checks were run.
 
 ## WorldForge import/export reports — 12 November 2026
 - `WorldForgePanel.tsx`: localized the import result summary, plural card counts, matched scenes/entries, link merge counts, skipped items and legacy conflict fallbacks. Structured WorldForge conflicts now translate slice, field and relation labels while preserving names and custom-field labels.
 - `format.ts`, `world-forge-io.ts`, the World import API route and `atlas-region.ts`: added structured loss/note reason codes for import previews and completed imports, including size limits, truncated fields/names, missing or invalid content, scene capacity, Region-map placement and secret visibility. Legacy `losses` / `notes` strings remain in the payload.
 - `WorldForgePanel.tsx` now renders structured loss and note details; `SceneLosses.tsx` renders the per-scene structured reasons. Export check also returns a structured storyboard-order note.
 - Added 29 EN / 31 RU messages for the WorldForge report, import-loss and Region/export-note groups. Latest `workshop.ts` dictionary sizes: 950 EN / 1017 RU. Static checks: 98 direct keys resolve except intentional dynamic prefixes/plural bases; 38 report field labels, 26 relation labels, 8 slice labels, 3 import field labels and 9 import-kind labels all resolve; correct plural variants exist; no duplicate keys or placeholder mismatches.
-- `ImportKept.tsx` was audited and already uses its 20 fixed i18n keys. Scene-loss tests were inspected for compatibility assertions; existing `scenes`, `losses`, `notes` and conflict strings are still returned. Tests were not executed.
-- TypeScript, lint, automated tests, production build and visual/browser checks have not been run.
+- `ImportKept.tsx` was audited and already uses its 20 fixed i18n keys. Scene-loss tests were inspected for compatibility assertions; existing `scenes`, `losses`, `notes` and conflict strings are still returned.
 
 ## WorldForge entry editor — 12 November 2026
 - `EntityEditor.tsx`: localized fixed labels and hints for canon state, type/folder, the main text/article, aliases/tags, image, hidden truth, author notes, calendar fields, AI drafting and save actions.
 - Added 58 EN/RU keys covering concurrent-edit clashes and values kept from an earlier import. Dynamic names, type labels, custom field labels/options, campaign text and field values remain unchanged.
-- Static check: all 58 source keys exist in both dictionaries; placeholders match; no duplicate keys. Reviewed JSX balance for the changed conflict/kept notices. TypeScript and runtime checks remain unrun.
+- Static check: all 58 source keys exist in both dictionaries; placeholders match; no duplicate keys. Reviewed JSX balance for the changed conflict/kept notices.
 
 ## WorldForge entry page — 12 November 2026
 - `EntityPage.tsx`: localized fixed labels, actions, deletion confirmation, image-generation states and hints, accessibility text, table facts, links, events, secrets, hidden truth and author notes.
 - Added 57 EN/RU keys in `workshop.ts`, including shelf/tool names and fixed table labels. User-created names, aliases, custom field values, event titles, secret titles and article content remain unchanged.
-- Static verification: all 57 keys exist in both dictionaries; placeholders match; no duplicate keys were introduced. TypeScript, lint, tests, build and visual checks remain deferred.
+- Static verification: all 57 keys exist in both dictionaries; placeholders match; no duplicate keys were introduced.
 
 ## Atlas — map navigation and pin/region cards — 12 November 2026
 - `AtlasView.tsx`: localized map creation, empty state, map navigation, interaction modes, region/pin placement instructions, accessibility labels and the explanation distinguishing Atlas pictures from battle maps.
 - `AtlasCard.tsx`: localized pin/region editing, hidden-from-party controls, entry binding, region colour choices, notes and nested-map navigation. Names, user-authored notes and bound records remain data.
-- Added 58 EN/RU base messages in `workshop.ts`; Russian plural forms were added for corner-count instructions. Static verification: keys, placeholders and duplicate checks passed. TypeScript/runtime tests remain deferred.
+- Added 58 EN/RU base messages in `workshop.ts`; Russian plural forms were added for corner-count instructions. Static verification: keys, placeholders and duplicate checks passed.
 
 ## Next work
 Continue the Atlas audit with `AtlasRegion.tsx`, `AtlasEdit.tsx`, `AtlasParty.tsx` and `PlaceBattleMaps.tsx`, then `TimelineView.tsx`, `SecretsView.tsx` and `WikiView.tsx`. Localize fixed interface text and accessibility labels, while leaving user-created names, custom type/field names and content alone. Inspect `useWorld.ts` error messages before translating API errors. Then continue the remaining Workshop editors. Do not sync upstream or merge branches during translation.
@@ -136,28 +132,28 @@ Continue the Atlas audit with `AtlasRegion.tsx`, `AtlasEdit.tsx`, `AtlasParty.ts
 - Check only changed keys: presence/parity, duplicates, placeholders and dynamic-key variants.
 - After each completed unit, update this checkpoint. Keep it short.
 - Preserve API values, IDs, slugs, game mechanics, user-authored names/text and campaign data. Translate fixed UI text and known system messages only.
-- TypeScript, lint, production build and visual checks remain deferred to Block 1.1 on the user's local machine. Do not claim these checks unless actually run.
+- Local validation (TypeScript, lint, tests, production build and browser checks) is performed on the user's local machine only after an explicit user command. Do not start these checks or use Remote Desktop independently.
+-1 on the user's local machine. Do not claim these checks unless actually run.
 
 ## WorldForge — entry page and Atlas — 12 November 2026
 - `EntityPage.tsx`: completed the missing 57 EN/RU dictionary messages for the entry-page UI; checked all source keys and placeholder parity.
 - Atlas components completed: `AtlasView.tsx`, `AtlasCard.tsx`, `AtlasRegion.tsx`, `AtlasEdit.tsx`, `AtlasParty.tsx` and `PlaceBattleMaps.tsx`. Localized map navigation/creation, pins/regions, Region binding and placement sync, map framing/settings, delete-impact review, party visibility, battle-map and encounter linking, and accessibility text.
 - User-created map/region/pin names, aliases, custom fields, record/article content and IDs remain data. Server-authored plan notes and raw API error details remain unchanged.
-- Static dictionary audit: 191 direct source keys covered in EN/RU; all 7 plural groups have the required EN and RU suffixes; the 5 conditional delete keys exist in both dictionaries; no duplicate keys or missing placeholders. File tails restored to their normal TypeScript closings. TypeScript, lint, tests, build and visual checks remain deferred.
+- Static dictionary audit: 191 direct source keys covered in EN/RU; all 7 plural groups have the required EN and RU suffixes; the 5 conditional delete keys exist in both dictionaries; no duplicate keys or missing placeholders. File tails restored to their normal TypeScript closings.
 
 ## WorldForge — Timeline — 12 November 2026
 - `TimelineView.tsx`: localized calendar management, shared year-line explanation, event count/list, event forms, era/canon controls, linked people/places and calendar deletion confirmation. Lifespan warnings (event before birth / after death) now use locale-aware plural messages rather than English strings from the UI helper.
 - Added 52 EN/RU messages in `workshop.ts`, including four dynamic canon-state labels and three plural groups (event count, years before birth, years after death). Static audit: 37 direct source keys covered; all 3 plural groups have the required EN `.one/.other` and RU `.one/.few/.many/.other` forms; dynamic canon keys present; no duplicate keys or placeholder mismatches. User-authored calendar/event names, era labels, event text, entity names, abbreviations and numeric values remain data.
-- TypeScript, lint, tests, production build and visual checks remain deferred.
 
 ## WorldForge — Secrets — 12 November 2026
 - `SecretsView.tsx`: localized open/learned states, party-knowledge switch, subject and keeper links, edit/delete labels, reveal-to-party flow, success feedback, lore-entry link/status, and secret/reveal forms.
 - Reveal date uses the active interface language (`ru-RU` / `en-CA`). Success messages interpolate the player-facing lore entry title; secret titles, notes, keeper names, subject names, reveal text, and backend record IDs remain data.
-- Added 44 EN/RU messages in `workshop.ts`, including two plural groups for open and learned secret counts. Static audit: 31 direct source keys covered; both plural groups have EN `.one/.other` and RU `.one/.few/.many/.other` forms; no missing keys, duplicate keys, or placeholder mismatches. TypeScript, lint, tests, production build and visual checks remain deferred.
+- Added 44 EN/RU messages in `workshop.ts`, including two plural groups for open and learned secret counts. Static audit: 31 direct source keys covered; both plural groups have EN `.one/.other` and RU `.one/.few/.many/.other` forms; no missing keys, duplicate keys, or placeholder mismatches.
 
 ## WorldForge — Wiki / Encyclopaedia — 12 November 2026
 - `WikiView.tsx`: localized entry creation, shelf/category labels, type and folder navigation, folder removal confirmation, search, empty states, help text and text-model setup guidance.
 - `EntryList.tsx`: localized list accessibility label and hidden-truth indicator label. `CreateButton` continues to use its own existing localization. User-defined type names, folder names, entry names and contents remain data.
-- Added 44 EN/RU messages in `workshop.ts`, covering four shelves and all seven lore categories. Static audit: 30 direct source keys covered; dynamic shelf/category keys and conditional empty-state/scope keys exist in both dictionaries; no duplicate keys, missing keys, or placeholder mismatches. TypeScript, lint, tests, production build and visual checks remain deferred.
+- Added 44 EN/RU messages in `workshop.ts`, covering four shelves and all seven lore categories. Static audit: 30 direct source keys covered; dynamic shelf/category keys and conditional empty-state/scope keys exist in both dictionaries; no duplicate keys, missing keys, or placeholder mismatches.
 
 ## WorldForge — supporting tools and full component pass — 12 November 2026
 - Localized supporting screens and shared controls: `AskView.tsx`, `BoundRecords.tsx`, `LinkEditor.tsx`, `PlayFields.tsx`, `WorldEntryLink.tsx`, `world-ui.tsx`, `OutlineView.tsx`, `PaintJobs.tsx`, `StubsView.tsx`, `TypesView.tsx` and `WebView.tsx`. Existing localization in `ForgeView.tsx`, `ImportKept.tsx`, `SceneLosses.tsx` and `WorldForgePanel.tsx` retained.
@@ -165,31 +161,30 @@ Continue the Atlas audit with `AtlasRegion.tsx`, `AtlasEdit.tsx`, `AtlasParty.ts
 - Outline generator localizes category/shelf names, counts, task progress, status, retry/error messages and generated asset labels. Paint queue localizes confirmation, waiting/working/ready/failed states, image comparisons and earlier-picture controls. Stubs scan, type management, field controls, and table bindings are localized.
 - Final support-screen dictionary audit: 217 direct keys covered across the reviewed supporting components; all 15 plural groups have the required EN `.one/.other` and RU `.one/.few/.many/.other` forms; dynamic shelf, category, relation, canon, field-kind, field-role, mode and view keys are present. No duplicate dictionary keys or placeholder mismatches. Additional item-kind and hierarchy-edge labels were added after the audit and confirmed present.
 - Re-scanned all 29 TypeScript/TSX files in `src/app/workshop/world/` for visible fixed English UI strings. The remaining candidate lines were types, callbacks, server/data text or were corrected (including the second “Write it” action and the hierarchy tooltip).
-- No TypeScript check, lint, tests, production build, or visual test was run. These remain deferred until Remote Desktop access is available.
+- No TypeScript check, lint, tests, production build, or visual test was run.
 
 ## Homebrew Editor — class, subclass and hazard pass — 12 November 2026
 - Added localization to the class editor fields in `ClassFields.tsx`, using the shared `workshop.homebrew.class.*` dictionary keys.
 - Added localization to subclass editor labels in `ArchetypeFields.tsx`, including feature headings, levels, descriptions, feature actions and spellcasting-related labels where present.
 - Added the first localization pass for the hazard editor in `HazardFields.tsx`: common field labels, detection/disable/save concepts, reset options, effects, visibility and GM notes. Its object-valued option constants were restored to plain strings after the automated JSX-label substitution; do not treat this as a final verification.
 - The broader Homebrew editor translation now covers the shelf, shared editor shell, item and magic-item mechanics, spells and spell mechanics, species/ancestries, backgrounds, classes/subclasses and hazard UI. The remaining localized display strings in copy-source field summaries still need a focused pass.
-- No TypeScript check, lint, tests, build, visual test, or broad English-string audit was run. Keep all such checks deferred until Remote Desktop access is available. Workshop block remains open.
+- No TypeScript check, lint, tests, build, visual test, or broad English-string audit was run. Workshop block remains open.
 
 ## Atlas — structured review notices — 12 November 2026
 - `AtlasRegion.tsx`: replaced the remaining hardcoded “Release from the Region” action with its i18n key; Region review notes and skipped-pin reasons now render structured localized details first, with legacy text fallback.
 - `AtlasEdit.tsx` and `AtlasParty.tsx`: map-frame, delete-impact and party-visibility review notes use structured message codes; legacy `notes` strings remain available as fallback.
 - `atlas-region.ts`, `atlas-edit.ts` and `party-atlas.ts`: added optional `noteDetails` / `reasonDetail` fields for generated system notices. Existing `notes` and `reason` fields are retained for older consumers and API compatibility.
 - Added 9 EN/RU messages in `workshop.ts` for picture-only semantics, party visibility, skipped pin reasons, fixed map-frame positions and Region-map deletion. Corrected the two remaining English plural messages in the Russian Atlas dictionary.
-- Static checks: all 9 new keys are present in both dictionaries; placeholders match; no duplicate new keys; all direct translation references in the four Atlas subcomponents resolve. TypeScript, lint, tests, production build and visual checks were not run.
+- Static checks: all 9 new keys are present in both dictionaries; placeholders match; no duplicate new keys; all direct translation references in the four Atlas subcomponents resolve.
 
 ## Homebrew — copied-source field summaries — 12 November 2026
 - `CopySource.tsx`: changed-field summaries now resolve known data-field IDs through i18n instead of displaying the English field labels. The translator is optional in the exported helper, so callers without it retain the existing English fallback; unknown field IDs remain untouched.
 - Added 42 EN/RU messages under `workshop.homebrew.copy.field.*` for spell, item, feat, species, class and related fields. Source entries, custom data and field IDs are not translated.
-- Static verification: all 42 keys exist in both dictionaries, none are duplicated, and every Russian label is non-empty. TypeScript, lint, tests, production build and visual checks were not run.
+- Static verification: all 42 keys exist in both dictionaries, none are duplicated, and every Russian label is non-empty.
 
 ## App entry and setup — 12 November 2026
 - `src/app/setup/page.tsx`: replaced the final hardcoded “Open the admin panel” link label with the existing `setup.page.openAdmin` message key.
 - Performed a focused top-level screen scan of `AuthForm.tsx`, `ChangePasswordForm.tsx`, `CreateCampaignDialog.tsx`, `WorldSetupFields.tsx`, `page.tsx`, `settings/page.tsx` and `setup/page.tsx`. No further fixed English labels were found in the inspected candidates; product name and input-code masks are intentionally unchanged.
-- TypeScript, lint, tests, production build and visual checks were not run.
 
 ## Campaign lobby and session end state — 12 November 2026
 - `Lobby.tsx`: added `useI18n`; localized prep mode, return/navigation labels, section headings, Story Setup warnings, voice-transcription notice, character/campaign confirmation prompts and fixed error fallbacks. Raw server-provided `data.error` values remain untouched because they are API payloads, not local UI copy.
@@ -197,33 +192,31 @@ Continue the Atlas audit with `AtlasRegion.tsx`, `AtlasEdit.tsx`, `AtlasParty.ts
 - `LobbyParty.tsx`: localized party count, DM/co-DM/party-lead/owner labels, ready and muted statuses, real-dice note, seat-management controls, character list, open-seat plural sentence and companion management.
 - `SessionView.tsx`: localized the completed-campaign banner title, return link and description.
 - Added 69 EN/RU dictionary entries under `campaign.lobby.*` and `campaign.ended.*`. English and Russian plural categories are present; placeholders match; no duplicate added keys. A focused scan found no remaining raw English UI labels in the three lobby components.
-- TypeScript, lint, unit/integration tests, production build and browser visual checks were not run.
 
 ## Lobby actions and invitation card — 12 November 2026
 - `LobbyActions.tsx`: localized character edit/switch/remove actions, ready/start controls, DM guidance, deletion action, dynamic “what happens next” messages, and the four known start blockers. Name lists are adapted to Russian conjunction/“ещё N” wording only when `lang === "ru"`; the English names remain unchanged.
 - `LobbyRoomCode.tsx`: localized room-code heading, QR instruction, copy/code/link/share buttons and screen-reader copy confirmations.
 - `InviteShareDialog.tsx`: removed a duplicated hardcoded sentence from the room-code collision warning; the complete message was already present in the EN/RU `invite.codeHeld.*` dictionary entries.
 - Added 34 EN/RU keys under `campaign.lobby.*` for action labels, next-step guidance, blockers and invite-card labels. Static key checks: all direct references in `LobbyActions.tsx`, `LobbyRoomCode.tsx` and `InviteShareDialog.tsx` resolve in their respective EN/RU dictionaries; placeholders are paired; no duplicate new keys. The invitation warning is no longer duplicated.
-- Latest branch commit at checkpoint update: see branch HEAD. No TypeScript, lint, tests, production build or browser visual checks were run. Preserve the existing instruction below not to run them until Remote Desktop access is available.
+- Latest branch commit at checkpoint update: see branch HEAD. No TypeScript, lint, tests, production build or browser visual checks were run.
 
 ## Campaign session controls and error fallbacks — 12 November 2026
 - `SessionView.tsx`: localized the fallback messages for table pause/resume, ending/starting a session, sending a player action and network failure. Server-provided error strings remain the preferred value and are not rewritten.
 - Replaced the hardcoded end-session confirmation paragraph with an i18n message. The confirmation title and action label now reuse the existing `campaign.sessionHeader.endSession` translation.
 - Added 7 EN/RU messages under `campaign.tableBreak.*`, `campaign.sessionHold.*` and `campaign.session.*`. Static checks: all 7 keys exist in both dictionaries, no duplicates were introduced, placeholders match, and the edited component no longer contains the fixed English fallback/confirmation phrases.
 - `CharacterGate.tsx`, `JoinConfirmDialog.tsx`, `SessionBanner.tsx` and `SessionHoldBanner.tsx` were inspected in this pass; their visible copy already uses existing EN/RU messages. `SessionHeader.tsx` also resolves its visible labels through existing dictionary entries.
-- TypeScript, lint, tests, production build and browser visual checks were not run. Preserve the Remote Desktop prerequisite above.
 
 ## Campaign details and settings — 12 November 2026
 - `EditCampaignDialog.tsx`: localized the campaign details editor, field labels, difficulty choices and their explanatory text, cover-art actions/statuses, save action and fixed error fallbacks. Difficulty enum values remain unchanged; only their displayed labels and hints are translated.
 - `SessionSettings.tsx`: localized the settings navigation, campaign summary, preparation import description and campaign-ending section. Reused existing campaign edit-tooltip/button messages and the existing ended-campaign title/body. The campaign summary now displays a translated difficulty label.
 - Added 42 EN/RU messages under `campaign.editDialog.*` and `campaign.sessionSettings.*`. Static checks: all added keys are present in both dictionaries, no duplicate keys were introduced, placeholders match, and direct references in the edited components resolve against the dictionaries.
-- API-provided error messages remain as supplied by the server; only local fallback text is translated. TypeScript, lint, tests, production build and browser visual checks were not run. Preserve the Remote Desktop prerequisite above.
+- API-provided error messages remain as supplied by the server; only local fallback text is translated.
 
 ## Table settings read-only summary and search — 12 November 2026
 - `GameSettingsPanel.tsx`: localized the read-only and edit headings, explanatory text, visible setting summaries, save status, search field and empty-search state. Server settings and enum values remain unchanged; summary text is selected by the existing stored values.
 - Localized the fallback used when a settings PATCH fails; server-provided error strings remain untouched.
 - Added 62 EN/RU messages under `campaign.gameSettings.*`. Static checks: key completeness, no duplicates, placeholder parity and direct message references passed.
-- The detailed editor groups in `GameSettingsGroups.tsx` and group titles/summaries in `table-settings-groups.ts` were completed in the follow-up pass below. TypeScript, lint, tests, build and browser checks were not run.
+- The detailed editor groups in `GameSettingsGroups.tsx` and group titles/summaries in `table-settings-groups.ts` were completed in the follow-up pass below.
 
 ## Campaign table settings editor and group summaries — 12 November 2026
 - `GameSettingsGroups.tsx`: localized world packs, genre presets and descriptions, custom-world field, table-language choices, campaign length, character dice/HP/wealth/stats/multiclassing, narration, character voices, maps, theatre inserts, ambience, AI delegation, story setup, outcome checks, Living World, allies, narrator memory stages, Bonds, romance, companion conscience, joining permissions, response pacing, item/vitals approvals, GM reminders, battle-board options and every voice-chat rule.
@@ -231,7 +224,6 @@ Continue the Atlas audit with `AtlasRegion.tsx`, `AtlasEdit.tsx`, `AtlasParty.ts
 - `table-settings-groups.ts` and `GameSettingsPanel.tsx`: group titles and compact summaries now use the active locale. Shared safety, bonds, board and voice summaries reuse existing campaign-creator messages. The optional translator keeps the pure helper fallback behavior intact for existing callers.
 - Added 248 EN/RU entries across the world/character, narration/atmosphere, AI/memory/bonds, player/console/board/voice-chat and group-summary passes. Six plural-specific console reminder messages cover Russian singular/few/many forms and English singular/plural forms.
 - Static verification: 308 `campaign.gameSettings.*` entries have exact EN/RU key parity; no duplicates; all matching placeholders agree; all direct group-summary message references resolve; no remaining obvious hardcoded English UI candidates in `GameSettingsGroups.tsx`; unused reroll and world-preset imports were removed.
-- TypeScript, lint, tests, production build and browser visual checks were not run. Preserve the Remote Desktop prerequisite above.
 
 ## Character builder — ability, feat and racial cantrip controls — 12 November 2026
 - `AbilityEditor.tsx`: the ability-score heading now uses the existing translated `builder.extra.ability.title` key.
@@ -240,18 +232,16 @@ Continue the Atlas audit with `AtlasRegion.tsx`, `AtlasEdit.tsx`, `AtlasParty.ts
 - `KitChoicesSection.tsx`: localized the starting-kit armor class caption.
 - Added 7 EN/RU messages under `builder.racialCantrip.*` and `builder.kit.*`. Static checks: all direct refs resolve, no duplicate keys, and placeholders match.
 - `EquipmentSection.tsx` already maps catalog shelf categories through existing translated `builder.gear.shelf.*` keys; no code change was needed there.
-- TypeScript, lint, tests, production build and browser visual checks were not run. Preserve the Remote Desktop prerequisite above.
 
 ## Resume
-The WorldForge component pass is complete across all 29 files in `src/app/workshop/world/`: core views, Atlas, timeline, secrets, wiki, Ask, outline generation, paint queue, relationship graph/editor, type manager, bound records, play fields and shared pickers. Continue with the broader app-level localization audit outside this folder and fix any remaining visible English UI. Verify branch HEAD before editing. Do not run TypeScript/build/lint/tests until Remote Desktop access is available. Block 1 remains formally open; do not merge, open a PR or create its DONE flag.
+The WorldForge component pass is complete across all 29 files in `src/app/workshop/world/`: core views, Atlas, timeline, secrets, wiki, Ask, outline generation, paint queue, relationship graph/editor, type manager, bound records, play fields and shared pickers. Continue with the broader app-level localization audit outside this folder and fix any remaining visible English UI. Verify branch HEAD before editing. Follow the local-validation rule in Low-token work protocol. Block 1 remains formally open; do not merge, open a PR or create its DONE flag.
 
 
 ## Workshop — hazard editor — 12 November 2026
 - `HazardFields.tsx`: localized trap, poison and disease editor headings, fields, options, summaries, hints and accessibility labels. Existing ability, damage-type, condition and skill labels reuse shared dictionary keys; internal IDs and game-mechanic values remain unchanged.
 - `ChipList`: added optional localized remove-label callback; callers that do not supply it retain the existing fallback.
 - Added 88 EN/RU message pairs, including the missing unconscious condition label. Static checks: all 97 direct translation references resolve; no duplicate dictionary keys, missing pairs or placeholder mismatches were found.
-- TypeScript, lint, tests, production build and browser visual checks remain deferred until Remote Desktop access is available.
-- Post-commit source review caught and fixed one remaining `DAMAGE_OPTIONS` reference: the trap editor now builds its translated damage options locally. Confirmed no leftover fixed English label/title/hint/placeholder attributes or undefined legacy option constant in `HazardFields.tsx`. TypeScript was not run, so this remains a source-level check only.
+- Post-commit source review caught and fixed one remaining `DAMAGE_OPTIONS` reference: the trap editor now builds its translated damage options locally. Confirmed no leftover fixed English label/title/hint/placeholder attributes or undefined legacy option constant in `HazardFields.tsx`.
 
 
 ## Campaign invite landing page — 12 November 2026
@@ -265,4 +255,3 @@ The WorldForge component pass is complete across all 29 files in `src/app/worksh
 - Current source checks: none.
 - Remaining checks not confirmed: mainPage, comparison, desk, badges, calculators, englishMessages, russianMessages.
 - Latest pass localized the calculator presentation layer; formulas and underlying calculator data were not changed.
-- Runtime TypeScript/build/lint/tests and browser visual review have not been run. Do not mark the reference module fully QA-passed until those checks are run in the local environment.
