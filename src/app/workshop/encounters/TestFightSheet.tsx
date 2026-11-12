@@ -218,7 +218,7 @@ export function TestFightSheet({
                 <span className="rounded-full border border-stone-600 px-1.5 text-[10px] uppercase tracking-[0.12em] text-amber-200">{t("workshop.testFight.ally")}</span>
               ) : null}
             </span>
-            <span className="block text-xs text-stone-400">{describe(character)}</span>
+            <span className="block text-xs text-stone-400">{describe(character).replace(/^Level (\d+)/, (_match, level: string) => t("workshop.testFight.character.level", { level: Number(level) }))}</span>
           </span>
         </label>
       </li>
@@ -269,8 +269,8 @@ export function TestFightSheet({
             () => setWho("stand-ins"),
             t("workshop.testFight.party.standIns"),
             standIns
-              ? `${standIns.size} ${standIns.size === 1 ? "hero" : "heroes"} at level ${standIns.level}, the party this workshop is built for: ${listed(standIns.classes)}. Built by the rules when the test starts.`
-              : "The party this workshop is built for, built by the rules when the test starts.",
+              ? t("workshop.testFight.party.standInsHint", { size: standIns.size, heroes: tp("workshop.testFight.hero", standIns.size), level: standIns.level, classes: listed(standIns.classes).replace(" and ", t("workshop.testFight.joinAnd")) })
+              : t("workshop.testFight.party.standInsDefault"),
           )}
           {radio(
             "test-fight-party",
@@ -307,8 +307,8 @@ export function TestFightSheet({
                 ) : null}
                 <p className="text-xs text-stone-500">
                   {picked.length
-                    ? `${picked.length} picked${full ? `, the most a test party holds` : ""}.`
-                    : `Pick up to ${TARGET_PARTY_LIMITS.size.max}.`}
+                    ? t("workshop.testFight.picked", { count: picked.length, suffix: full ? `, ${t("workshop.testFight.pickedAtLimit")}` : "" })
+                    : t("workshop.testFight.pickUpTo", { count: TARGET_PARTY_LIMITS.size.max })}
                 </p>
               </>
             )}
@@ -327,8 +327,8 @@ export function TestFightSheet({
             <ul className="grid gap-1.5 sm:grid-cols-2">{allyChoices.map((character) => pickCard(character, true))}</ul>
             <p className="text-xs text-stone-500">
               {allies.length
-                ? `${allies.length} beside the party${alliesFull ? ", the most a test seats" : ""}.`
-                : `None unless you pick them, up to ${TEST_ALLY_LIMIT}.`}
+                ? t("workshop.testFight.allies.count", { count: allies.length, suffix: alliesFull ? `, ${t("workshop.testFight.allies.atLimit")}` : "" })
+                : t("workshop.testFight.allies.none", { count: TEST_ALLY_LIMIT })}
             </p>
           </fieldset>
         ) : null}
