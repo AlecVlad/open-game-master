@@ -102,7 +102,7 @@ export function ReportProblemDialog({
     return () => {
       live = false;
     };
-  }, [open, endpoint]);
+  }, [open, endpoint, t]);
 
   // Closing clears the last attempt, so the next opening starts afresh.
   function change(next: boolean) {
