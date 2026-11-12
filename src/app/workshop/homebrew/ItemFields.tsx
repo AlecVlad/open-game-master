@@ -273,21 +273,21 @@ function EffectsBlock({
     onChange(effects.map((effect, at) => (at === index ? next : effect)));
   return (
     <div className="space-y-1.5 text-sm">
-      <SectionHead title={t("workshop.homebrew.item.effects.heading")} glyph="cue-arcane" className="mb-1" />
-      <FieldLabel>{t("workshop.homebrew.item.effects.applied")}</FieldLabel>
+      <SectionHead title={t("workshop.homebrew.item.item.effects.heading")} glyph="cue-arcane" className="mb-1" />
+      <FieldLabel>{t("workshop.homebrew.item.item.effects.applied")}</FieldLabel>
       {effects.map((effect, index) => (
         <div key={index} className="flex flex-wrap items-center gap-1.5">
           <span className="w-56">
           <Select<(typeof EFFECT_KINDS)[number]>
             value={effect.kind}
-            label={t("workshop.homebrew.item.effects.kind")}
+            label={t("workshop.homebrew.item.item.effects.kind")}
             options={EFFECT_KINDS.map((kind) => ({ value: kind, label: t(`workshop.homebrew.item.effect.${kind}`) }))}
             onChange={(kind) => update(index, startingEffect(kind))}
           />
           </span>
           {"amount" in effect && typeof effect.amount === "number" && effect.kind !== "increase_ability" ? (
             <EffectStepper
-              label={t("workshop.homebrew.item.effects.amount")}
+              label={t("workshop.homebrew.item.item.effects.amount")}
               value={effect.amount}
               min={-GEAR_LIMITS.bonusMax}
               max={GEAR_LIMITS.bonusMax}
@@ -299,7 +299,7 @@ function EffectsBlock({
               <span className="w-32">
                 <Select
                   value={effect.ability}
-                  label={t("workshop.homebrew.item.effects.ability")}
+                  label={t("workshop.homebrew.item.item.effects.ability")}
                   options={(["str", "dex", "con", "int", "wis", "cha"] as const).map((ability) => ({
                     value: ability,
                     label: ability.toUpperCase(),
@@ -308,7 +308,7 @@ function EffectsBlock({
                   onChange={(ability) => update(index, { ...effect, ability })}
                 />
               </span>
-              <EffectStepper label={t("workshop.homebrew.item.effects.score")} value={effect.score} min={3} max={30} onChange={(score) => update(index, { ...effect, score })} />
+              <EffectStepper label={t("workshop.homebrew.item.item.effects.score")} value={effect.score} min={3} max={30} onChange={(score) => update(index, { ...effect, score })} />
             </>
           ) : null}
           {effect.kind === "resistance" ? (
@@ -323,7 +323,7 @@ function EffectsBlock({
           <span className="text-[11px] text-stone-500">{describeEffect(effect)}</span>
           <button
             type="button"
-            aria-label={t("workshop.homebrew.item.effects.remove")}
+            aria-label={t("workshop.homebrew.item.item.effects.remove")}
             onClick={() => onChange(effects.filter((_, at) => at !== index))}
             className={cn(ui.iconAction, rowIcon, "hover:text-red-300")}
           >
@@ -337,7 +337,7 @@ function EffectsBlock({
           onClick={() => onChange([...effects, { kind: "ac_bonus", amount: 1 }])}
           className={cn(ui.btnSmall, addChip, "text-xs")}
         >
-          <Plus className="size-3" /> {t("workshop.homebrew.item.effects.add")}
+          <Plus className="size-3" /> {t("workshop.homebrew.item.item.effects.add")}
         </button>
       ) : null}
     </div>
@@ -346,7 +346,7 @@ function EffectsBlock({
 
 export function ItemFields({ data, onChange }: { data: Data; onChange: (next: Data) => void }) {
   const t = useT();
-  const kindLabels: Record<ItemKind, string> = { weapon: t("workshop.homebrew.item.kind.weapon"), armor: t("workshop.homebrew.item.kind.armor"), gear: t("workshop.homebrew.item.kind.gear"), magic_item: t("workshop.homebrew.item.kind.magic_item") };
+  const kindLabels: Record<ItemKind, string> = { weapon: t("workshop.homebrew.item.item.kind.weapon"), armor: t("workshop.homebrew.item.item.kind.armor"), gear: t("workshop.homebrew.item.item.kind.gear"), magic_item: t("workshop.homebrew.item.item.kind.magic_item") };
   const set = (patch: Data) => onChange({ ...data, ...patch });
   const itemKind = ITEM_KINDS.includes(data.itemKind as ItemKind) ? (data.itemKind as ItemKind) : "gear";
   const weapon = (data.weapon ?? {}) as Weapon;
@@ -355,21 +355,21 @@ export function ItemFields({ data, onChange }: { data: Data; onChange: (next: Da
 
   return (
     <div className="space-y-3">
-      <SectionHead title={t("workshop.homebrew.item.heading")} glyph="tab-loot" className="mb-1" />
+      <SectionHead title={t("workshop.homebrew.item.item.heading")} glyph="tab-loot" className="mb-1" />
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         <SelectField
-          label={t("workshop.homebrew.item.kind")}
+          label={t("workshop.homebrew.item.item.kind")}
           value={itemKind}
           options={ITEM_KINDS.map((value) => ({ value, label: kindLabels[value] }))}
           onChange={(next) => set({ itemKind: next })}
         />
         <SelectField
-          label={t("workshop.homebrew.item.rarity")}
+          label={t("workshop.homebrew.item.item.rarity")}
           value={String(data.rarity ?? "")}
-          options={[{ value: "", label: t("workshop.homebrew.item.rarity.mundane") }, ...RARITIES.map((value) => ({ value, label: t(`workshop.homebrew.item.rarity.${value}`) }))]}
+          options={[{ value: "", label: t("workshop.homebrew.item.item.rarity.mundane") }, ...RARITIES.map((value) => ({ value, label: t(`workshop.homebrew.item.item.rarity.${value}`) }))]}
           onChange={(rarity) => set({ rarity })}
         />
-        <TextField label={t("workshop.homebrew.item.cost")} value={String(data.cost ?? "")} onChange={(cost) => set({ cost })} placeholder="15 gp" maxLength={40} />
+        <TextField label={t("workshop.homebrew.item.item.cost")} value={String(data.cost ?? "")} onChange={(cost) => set({ cost })} placeholder="15 gp" maxLength={40} />
         <NumberField
           label={t("workshop.homebrew.item.weight")}
           value={num(data.weight)}
@@ -383,25 +383,25 @@ export function ItemFields({ data, onChange }: { data: Data; onChange: (next: Da
             is held, and armour places itself. */}
         {(itemKind === "gear" || itemKind === "magic_item") && !data.armor && !data.weapon ? (
           <SelectField
-            label={t("workshop.homebrew.item.wornOn")}
+            label={t("workshop.homebrew.item.item.wornOn")}
             value={isWornPlace(data.wornOn) ? data.wornOn : ""}
             options={[
-              { value: "", label: t("workshop.homebrew.item.worn.none") },
-              ...WORN_PLACES.map((value) => ({ value, label: t(`workshop.homebrew.item.worn.${value}`) })),
+              { value: "", label: t("workshop.homebrew.item.item.worn.none") },
+              ...WORN_PLACES.map((value) => ({ value, label: t(`workshop.homebrew.item.item.worn.${value}`) })),
             ]}
             onChange={(wornOn) => set({ wornOn: wornOn || undefined })}
-            hint={t("workshop.homebrew.item.worn.hint")}
+            hint={t("workshop.homebrew.item.item.worn.hint")}
             glossary={{
-              title: t("workshop.homebrew.item.worn.glossary"),
-              entries: WORN_PLACES.map((value) => ({ name: t(`workshop.homebrew.item.worn.${value}`), blurb: t(`workshop.homebrew.item.worn.blurb.${value}`) })),
+              title: t("workshop.homebrew.item.item.worn.glossary"),
+              entries: WORN_PLACES.map((value) => ({ name: t(`workshop.homebrew.item.item.worn.${value}`), blurb: t(`workshop.homebrew.item.item.worn.blurb.${value}`) })),
             }}
             className="col-span-2"
           />
         ) : null}
       </div>
       <Field
-        label={t("workshop.homebrew.item.tableReadsAs")}
-        hint={t("workshop.homebrew.item.tableReadsAs.hint")}
+        label={t("workshop.homebrew.item.item.tableReadsAs")}
+        hint={t("workshop.homebrew.item.item.tableReadsAs.hint")}
       >
         <ToggleChips
           options={ITEM_TAGS}
@@ -416,10 +416,10 @@ export function ItemFields({ data, onChange }: { data: Data; onChange: (next: Da
 
       {itemKind === "magic_item" ? (
         <div className="panel reveal space-y-3 rounded-xl p-3">
-          <SectionHead title={t("workshop.homebrew.item.magic.heading")} glyph="cue-wonder" className="mb-1" />
+          <SectionHead title={t("workshop.homebrew.item.item.magic.heading")} glyph="cue-wonder" className="mb-1" />
           <div className="flex flex-wrap items-center gap-3">
             <CheckField
-              label={t("workshop.homebrew.item.magic.attunement")}
+              label={t("workshop.homebrew.item.item.magic.attunement")}
               checked={data.requiresAttunement === true}
               onChange={(requiresAttunement) => set({ requiresAttunement })}
             />
@@ -427,12 +427,12 @@ export function ItemFields({ data, onChange }: { data: Data; onChange: (next: Da
           <EffectsBlock effects={effects} onChange={(next) => set({ effects: next })} />
           <div className="flex flex-wrap gap-3">
             <CheckField
-              label={t("workshop.homebrew.item.magic.alsoWeapon")}
+              label={t("workshop.homebrew.item.item.magic.alsoWeapon")}
               checked={Boolean(data.weapon)}
               onChange={(on) => set({ weapon: on ? { category: "martial", kind: "melee", damage: "1d8 slashing" } : undefined })}
             />
             <CheckField
-              label={t("workshop.homebrew.item.magic.alsoArmor")}
+              label={t("workshop.homebrew.item.item.magic.alsoArmor")}
               checked={Boolean(data.armor)}
               onChange={(on) => set({ armor: on ? { category: "light", baseAc: 12 } : undefined })}
             />
@@ -462,7 +462,7 @@ function SentienceBlock({ data, set }: { data: Data; set: (patch: Data) => void 
   return (
     <div className="space-y-2">
       <CheckField
-        label={t("workshop.homebrew.item.sentience.enabled")}
+        label={t("workshop.homebrew.item.item.sentience.enabled")}
         checked={Boolean(mind)}
         onChange={(on) => set({ sentience: on ? { int: 10, wis: 10, cha: 10, communication: "emotion", senses: "hearing and normal vision out to 30 feet" } : undefined })}
       />
@@ -471,7 +471,7 @@ function SentienceBlock({ data, set }: { data: Data; set: (patch: Data) => void 
           {(["int", "wis", "cha"] as const).map((ability) => (
             <NumberField
               key={ability}
-              label={t(`workshop.homebrew.item.sentience.${ability === "int" ? "intelligence" : ability === "wis" ? "wisdom" : "charisma"}`)}
+              label={t(`workshop.homebrew.item.item.sentience.${ability === "int" ? "intelligence" : ability === "wis" ? "wisdom" : "charisma"}`)}
               value={typeof mind[ability] === "number" ? (mind[ability] as number) : 10}
               min={1}
               max={30}
@@ -479,19 +479,19 @@ function SentienceBlock({ data, set }: { data: Data; set: (patch: Data) => void 
             />
           ))}
           <SelectField
-            label={t("workshop.homebrew.item.sentience.communication")}
+            label={t("workshop.homebrew.item.item.sentience.communication")}
             value={String(mind.communication ?? "emotion")}
             options={[
-              { value: "emotion", label: t("workshop.homebrew.item.sentience.emotion") },
-              { value: "speech", label: t("workshop.homebrew.item.sentience.speech") },
-              { value: "telepathy", label: t("workshop.homebrew.item.sentience.telepathy") },
+              { value: "emotion", label: t("workshop.homebrew.item.item.sentience.emotion") },
+              { value: "speech", label: t("workshop.homebrew.item.item.sentience.speech") },
+              { value: "telepathy", label: t("workshop.homebrew.item.item.sentience.telepathy") },
             ]}
             onChange={(communication) => put({ communication })}
           />
-          <TextField label={t("workshop.homebrew.item.sentience.alignment")} value={String(mind.alignment ?? "")} onChange={(alignment) => put({ alignment })} maxLength={40} />
-          <TextField label={t("workshop.homebrew.item.sentience.senses")} value={String(mind.senses ?? "")} onChange={(senses) => put({ senses })} maxLength={120} className="sm:col-span-3" />
-          <TextField label={t("workshop.homebrew.item.sentience.purpose")} value={String(mind.purpose ?? "")} onChange={(purpose) => put({ purpose })} maxLength={200} className="col-span-2 sm:col-span-4" placeholder={t("workshop.homebrew.item.sentience.purpose.placeholder")} />
-          <TextField label={t("workshop.homebrew.item.sentience.personality")} value={String(mind.personality ?? "")} onChange={(personality) => put({ personality })} maxLength={400} className="col-span-2 sm:col-span-4" />
+          <TextField label={t("workshop.homebrew.item.item.sentience.alignment")} value={String(mind.alignment ?? "")} onChange={(alignment) => put({ alignment })} maxLength={40} />
+          <TextField label={t("workshop.homebrew.item.item.sentience.senses")} value={String(mind.senses ?? "")} onChange={(senses) => put({ senses })} maxLength={120} className="sm:col-span-3" />
+          <TextField label={t("workshop.homebrew.item.item.sentience.purpose")} value={String(mind.purpose ?? "")} onChange={(purpose) => put({ purpose })} maxLength={200} className="col-span-2 sm:col-span-4" placeholder={t("workshop.homebrew.item.item.sentience.purpose.placeholder")} />
+          <TextField label={t("workshop.homebrew.item.item.sentience.personality")} value={String(mind.personality ?? "")} onChange={(personality) => put({ personality })} maxLength={400} className="col-span-2 sm:col-span-4" />
         </div>
       ) : null}
     </div>
