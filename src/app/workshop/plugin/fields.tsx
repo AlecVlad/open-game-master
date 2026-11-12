@@ -234,7 +234,7 @@ export function ChipList({
             <button
               type="button"
               onClick={() => onChange(items.filter((current) => current !== item))}
-              aria-label={removeLabelFor ? removeLabelFor(labelFor ? labelFor(item) : item) : `Remove ${item}`}
+              aria-label={removeLabelFor ? removeLabelFor(labelFor ? labelFor(item) : item) : t("workshop.plugin.fields.removeRow", { name: labelFor ? labelFor(item) : item })}
               className={cn(ui.iconAction, "tap-reach rounded-full p-1 opacity-100 hover:text-red-300")}
             >
               <X className="size-3" />
