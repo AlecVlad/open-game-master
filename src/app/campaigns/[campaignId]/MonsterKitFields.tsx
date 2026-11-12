@@ -52,6 +52,41 @@ const input =
 const chip =
   "rounded-full border px-2 py-0.5 text-[10px] transition-colors duration-150";
 
+const ANCESTRY_LABEL_KEYS: Record<string, string> = {
+  hill_dwarf: "workshop.monsterEditor.kit.ancestry.hill_dwarf",
+  mountain_dwarf: "workshop.monsterEditor.kit.ancestry.mountain_dwarf",
+  high_elf: "workshop.monsterEditor.kit.ancestry.high_elf",
+  wood_elf: "workshop.monsterEditor.kit.ancestry.wood_elf",
+  drow: "workshop.monsterEditor.kit.ancestry.drow",
+  lightfoot_halfling: "workshop.monsterEditor.kit.ancestry.lightfoot_halfling",
+  stout_halfling: "workshop.monsterEditor.kit.ancestry.stout_halfling",
+  human: "workshop.monsterEditor.kit.ancestry.human",
+  variant_human: "workshop.monsterEditor.kit.ancestry.variant_human",
+  dragonborn: "workshop.monsterEditor.kit.ancestry.dragonborn",
+  rock_gnome: "workshop.monsterEditor.kit.ancestry.rock_gnome",
+  forest_gnome: "workshop.monsterEditor.kit.ancestry.forest_gnome",
+  deep_gnome: "workshop.monsterEditor.kit.ancestry.deep_gnome",
+  half_elf: "workshop.monsterEditor.kit.ancestry.half_elf",
+  half_orc: "workshop.monsterEditor.kit.ancestry.half_orc",
+  tiefling: "workshop.monsterEditor.kit.ancestry.tiefling",
+  aasimar: "workshop.monsterEditor.kit.ancestry.aasimar",
+  goliath: "workshop.monsterEditor.kit.ancestry.goliath",
+  firbolg: "workshop.monsterEditor.kit.ancestry.firbolg",
+  tabaxi: "workshop.monsterEditor.kit.ancestry.tabaxi",
+  kenku: "workshop.monsterEditor.kit.ancestry.kenku",
+  tortle: "workshop.monsterEditor.kit.ancestry.tortle",
+  fire_genasi: "workshop.monsterEditor.kit.ancestry.fire_genasi",
+  water_genasi: "workshop.monsterEditor.kit.ancestry.water_genasi",
+  air_genasi: "workshop.monsterEditor.kit.ancestry.air_genasi",
+  earth_genasi: "workshop.monsterEditor.kit.ancestry.earth_genasi",
+  changeling: "workshop.monsterEditor.kit.ancestry.changeling",
+  warforged: "workshop.monsterEditor.kit.ancestry.warforged",
+  goblin: "workshop.monsterEditor.kit.ancestry.goblin",
+  bugbear: "workshop.monsterEditor.kit.ancestry.bugbear",
+  lizardfolk: "workshop.monsterEditor.kit.ancestry.lizardfolk",
+  orc: "workshop.monsterEditor.kit.ancestry.orc",
+};
+
 const TRANSLATABLE_CLASSES = new Set([
   "barbarian", "bard", "cleric", "druid", "fighter", "monk", "paladin",
   "ranger", "rogue", "sorcerer", "warlock", "wizard", "artificer",
@@ -247,7 +282,7 @@ export function MonsterKitPanel({
           label={t("workshop.monsterEditor.kit.ancestry")}
           value={ancestryId}
           onChange={setAncestryId}
-          options={[{ value: "", label: t("workshop.monsterEditor.kit.pickOne") }, ...ANCESTRY_OPTIONS.map((ancestry) => ({ value: ancestry.id as string, label: ancestry.name }))]}
+          options={[{ value: "", label: t("workshop.monsterEditor.kit.pickOne") }, ...ANCESTRY_OPTIONS.map((ancestry) => ({ value: ancestry.id as string, label: ANCESTRY_LABEL_KEYS[ancestry.id] ? t(ANCESTRY_LABEL_KEYS[ancestry.id] as never) : ancestry.name }))]}
         />
         <button
           type="button"
