@@ -11,6 +11,7 @@ import { Dialog } from "@/components/ui/Dialog";
 import type { ItemSheet } from "@/lib/help/item-sheet";
 import { firstSentence, parseRulesBlocks } from "@/lib/help/rules-text";
 import { textKey } from "@/lib/language/text-logic";
+import { useT } from "@/lib/i18n/provider";
 
 // The "what does this do?" affordance, used everywhere a game term appears.
 //
@@ -218,6 +219,7 @@ function RuleList({ rows }: { rows: Array<{ label: string; text: string | null }
 // (src/lib/help/item-sheet.ts), so a v1 table row with no prose, a v2 gear
 // row with no stats and a genre item the pack lacks all get a full card.
 function ItemBody({ reference }: { reference: ContentRef }) {
+  const t = useT();
   const campaignId = useContentCampaign();
   const [state, setState] = useState<{ sheet: ItemSheet | null; loading: boolean }>({
     sheet: null,
@@ -352,17 +354,17 @@ function ItemBody({ reference }: { reference: ContentRef }) {
         ))}
       </div>
       {armorRows.length ? (
-        <ItemSection title="Armor">
+        <ItemSection title={t("infoDialog.armor")}>
           <RuleList rows={armorRows} />
         </ItemSection>
       ) : null}
       {weaponRows.length ? (
-        <ItemSection title="Weapon">
+        <ItemSection title={t("infoDialog.weapon")}>
           <RuleList rows={weaponRows} />
         </ItemSection>
       ) : null}
       {sheet.description ? (
-        <ItemSection title="Description">
+        <ItemSection title={t("infoDialog.description")}>
           <div className="space-y-2 border-t border-stone-800 pt-2">{renderRules(sheet.description)}</div>
         </ItemSection>
       ) : null}
