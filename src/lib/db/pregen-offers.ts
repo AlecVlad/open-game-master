@@ -158,20 +158,34 @@ export function claimRefusal(offer: OfferedPregen, userId: string): string | nul
 // else plays the pregen, nor beside another copy of the same pregen, and the
 // DM's own pregen does not sit where a player holds a copy. `replacing` is
 // the sheet a lobby switch or edit gives up first.
+export function pregenSeatRefusalDetail(
+  campaignId: string,
+  character: LibraryCharacter,
+  userId: string,
+  replacing = "",
+): PregenRefusalDetail | null {
+  const pregenId = pregenOf(character);
+  const claim = pregenId ? liveClaim(campaignId, pregenId, replacing) : null;
+  if (!claim || claim.libraryCharacterId === character.id) {
+    return null;
+  }
+  const alreadyMine = claim.userId === userId;
+  return {
+    code: alreadyMine ? "PREGEN_COPY_ALREADY_PLAYED_BY_YOU" : "PREGEN_COPY_PLAYED_BY_ANOTHER",
+    params: { name: character.name },
+    message: alreadyMine
+      ? `You already play ${character.name} at this table, from another copy of the same pregen.`
+      : `${character.name} is a pregen another player already plays at this table. The GM offers each pregen to one player.`,
+  };
+}
+
 export function pregenSeatRefusal(
   campaignId: string,
   character: LibraryCharacter,
   userId: string,
   replacing = "",
 ): string | null {
-  const pregenId = pregenOf(character);
-  const claim = pregenId ? liveClaim(campaignId, pregenId, replacing) : null;
-  if (!claim || claim.libraryCharacterId === character.id) {
-    return null;
-  }
-  return claim.userId === userId
-    ? `You already play ${character.name} at this table, from another copy of the same pregen.`
-    : `${character.name} is a pregen another player already plays at this table. The GM offers each pregen to one player.`;
+  return pregenSeatRefusalDetail(campaignId, character, userId, replacing)?.message ?? null;
 }
 
 // Records the seat a player took with the pregen. Called once the sheet is
