@@ -2,6 +2,7 @@
 
 import { Plus, X } from "lucide-react";
 import { useState } from "react";
+import { useT } from "@/lib/i18n/provider";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui";
 import { ContentPick } from "@/components/ui/ContentPick";
@@ -54,6 +55,7 @@ const SRD_SPELLS = { srd: "1" };
 // The option's spells by the class level they arrive at, picked from the
 // SRD's and the author's own (ContentPick), as the subclass's own are.
 function OptionSpells({ option, put }: { option: Data; put: (spells: Record<string, string[]> | undefined) => void }) {
+  const t = useT();
   const spells = (option.spells ?? {}) as Record<string, string[]>;
   const rows = Object.entries(spells).sort(([a], [b]) => Number(a) - Number(b));
   const [level, setLevel] = useState(1);
@@ -62,16 +64,16 @@ function OptionSpells({ option, put }: { option: Data; put: (spells: Record<stri
   const levelsFull = rows.length >= L.spellLevels && !spells[String(level)];
   return (
     <div className="col-span-2 space-y-1 sm:col-span-4" data-subclass-option-spells>
-      <span className="text-[11px] text-stone-400">Spells it always has prepared</span>
+      <span className="text-[11px] text-stone-400">{t("workshop.homebrew.subclassChoice.spells.heading")}</span>
       {rows.map(([at, names]) => (
         <div key={at} className="live-in flex flex-wrap items-center gap-1.5 text-xs">
-          <span className="w-20 shrink-0 text-stone-400">Level {at}</span>
+          <span className="w-20 shrink-0 text-stone-400">{t("workshop.homebrew.subclassChoice.spells.level", { level: at })}</span>
           {names.map((name) => (
             <span key={name} className="inline-flex items-center gap-1 rounded-md border border-stone-700 px-1.5 py-0.5 text-stone-200">
               {name}
               <button
                 type="button"
-                aria-label={`Remove ${name}`}
+                aria-label={t("workshop.homebrew.subclassChoice.ui.removeSpell", { name })}
                 onClick={() => {
                   const left = names.filter((entry) => entry !== name);
                   const next = { ...spells };
@@ -89,8 +91,8 @@ function OptionSpells({ option, put }: { option: Data; put: (spells: Record<stri
       ))}
       <div className="flex flex-wrap items-center gap-2">
         <span className="flex items-center gap-1 text-[11px] text-stone-400">
-          From class level
-          <NumberStepper size="sm" label="Class level the spell arrives at" min={1} max={20} value={level} onChange={setLevel} />
+          {t("workshop.homebrew.subclassChoice.spells.fromClassLevel")}
+          <NumberStepper size="sm" label={t("workshop.homebrew.subclassChoice.spells.classLevel")} min={1} max={20} value={level} onChange={setLevel} />
         </span>
         {atLevel.length < L.spellsPerLevel && !levelsFull ? (
           <ContentPick
@@ -99,8 +101,8 @@ function OptionSpells({ option, put }: { option: Data; put: (spells: Record<stri
             // (srd=1, issue #833), so a bare server offers them here as it
             // does for the subclass's own spells just above.
             extraParams={SRD_SPELLS}
-            label="Find a spell this option always has prepared"
-            placeholder="Add a spell..."
+            label={t("workshop.homebrew.subclassChoice.spells.find")}
+            placeholder={t("workshop.homebrew.archetype.field.addSpell")}
             className="min-w-48 flex-1"
             onPick={(entry) => {
               if (atLevel.some((name) => textKey(name) === textKey(entry.name))) return;
@@ -109,7 +111,7 @@ function OptionSpells({ option, put }: { option: Data; put: (spells: Record<stri
           />
         ) : (
           <span role="status" className="live-in text-[11px] text-stone-400">
-            {levelsFull ? `An option grants spells at ${L.spellLevels} levels at most.` : `Level ${level} holds ${L.spellsPerLevel}, the most a level keeps.`}
+            {levelsFull ? t("workshop.homebrew.subclassChoice.spells.levelsLimit", { max: L.spellLevels }) : t("workshop.homebrew.subclassChoice.spells.levelLimit", { level, max: L.spellsPerLevel })}
           </span>
         )}
       </div>
@@ -118,39 +120,40 @@ function OptionSpells({ option, put }: { option: Data; put: (spells: Record<stri
 }
 
 function OptionFields({ option, put }: { option: Data; put: (next: Data) => void }) {
+  const t = useT();
   const field = (key: string, value: unknown) => put(withField(option, key, value));
   return (
     <>
-      <TextField label="Option name" value={String(option.name ?? "")} onChange={(name) => put({ ...option, name })} maxLength={L.name} className="col-span-2" />
+      <TextField label={t("workshop.homebrew.subclassChoice.optionName")} value={String(option.name ?? "")} onChange={(name) => put({ ...option, name })} maxLength={L.name} className="col-span-2" />
       <SelectField
-        label="Its element"
+        label={t("workshop.homebrew.subclassChoice.element")}
         value={String(option.damageType ?? "")}
-        options={[{ value: "", label: "none" }, ...DAMAGE_TYPES.map((type) => ({ value: type, label: type }))]}
+        options={[{ value: "", label: t("workshop.homebrew.subclassChoice.none") }, ...DAMAGE_TYPES.map((type) => ({ value: type, label: t(`workshop.homebrew.item.damage.${type}`) }))]}
         onChange={(damageType) => field("damageType", damageType || undefined)}
         className="col-span-2"
-        hint="The damage type this option deals in. Elemental Affinity, if the subclass has it, adds to and resists this type."
+        hint={t("workshop.homebrew.subclassChoice.elementHint")}
       />
       <div className="col-span-2 sm:col-span-4">
         <TextArea
-          label="What it says"
+          label={t("workshop.homebrew.subclassChoice.description")}
           value={String(option.description ?? "")}
           onChange={(description) => field("description", description)}
           maxLength={L.description}
           rows={3}
-          hint="The player reads this; the table runs only the grants below."
+          hint={t("workshop.homebrew.subclassChoice.descriptionHint")}
         />
       </div>
       <div className="col-span-2 space-y-1 sm:col-span-4">
-        <span className="text-[11px] text-stone-400">Damage it resists</span>
+        <span className="text-[11px] text-stone-400">{t("workshop.homebrew.subclassChoice.resistances")}</span>
         <ToggleChips options={DAMAGE_TYPES} selected={list(option.resistances)} max={L.resistances} onChange={(next) => field("resistances", next)} />
       </div>
       <div className="col-span-2 space-y-1 sm:col-span-4">
-        <span className="text-[11px] text-stone-400">Skills it is proficient in</span>
-        <ToggleChips options={SKILL_IDS} labels={SKILL_LABELS} selected={list(option.skills)} max={L.skills} onChange={(next) => field("skills", next)} />
+        <span className="text-[11px] text-stone-400">{t("workshop.homebrew.subclassChoice.skills")}</span>
+        <ToggleChips options={SKILL_IDS} labels={Object.fromEntries(SKILL_IDS.map((id) => [id, t(`workshop.homebrew.skill.${id}`)]))} selected={list(option.skills)} max={L.skills} onChange={(next) => field("skills", next)} />
       </div>
       <div className="col-span-2 space-y-1">
-        <span className="text-[11px] text-stone-400">Languages it speaks</span>
-        <ChipList items={list(option.languages)} onChange={(next) => field("languages", next)} options={LANGUAGES} prompt="Add a language" max={L.languages} />
+        <span className="text-[11px] text-stone-400">{t("workshop.homebrew.subclassChoice.languages")}</span>
+        <ChipList items={list(option.languages)} onChange={(next) => field("languages", next)} options={LANGUAGES} prompt={t("workshop.homebrew.subclassChoice.addLanguage")} max={L.languages} />
       </div>
       <OptionSpells option={option} put={(spells) => field("spells", spells)} />
     </>
@@ -158,6 +161,7 @@ function OptionFields({ option, put }: { option: Data; put: (next: Data) => void
 }
 
 export function SubclassChoiceFields({ data, set }: { data: Data; set: (patch: Data) => void }) {
+  const t = useT();
   const choices = Array.isArray(data.choices) ? (data.choices as Data[]) : [];
   const putChoices = (next: Data[]) => set({ choices: next.length ? next : undefined });
   // Each choice keeps an id from when it is made: a sheet's pick holds it,
@@ -167,39 +171,38 @@ export function SubclassChoiceFields({ data, set }: { data: Data; set: (patch: D
   if (!choices.length) {
     return (
       <div className="space-y-1.5 text-sm" data-subclass-choice>
-        <SectionHead title="The player's choice" glyph="tab-characters" className="mb-1" />
+        <SectionHead title={t("workshop.homebrew.subclassChoice.heading")} glyph="tab-characters" className="mb-1" />
         <p className="text-[11px] text-stone-400">
-          For a subclass whose players each pick one of several options at a level: a bloodline, an element, a
-          patron&apos;s aspect, each with its own element, resistances, training or spells.
+          {t("workshop.homebrew.subclassChoice.intro")}
         </p>
         <button type="button" onClick={add} className={cn(ui.btnSmall, addChip)}>
-          <Plus className="size-3" /> Let the player choose (bloodline, element)
+          <Plus className="size-3" /> {t("workshop.homebrew.subclassChoice.addFirst")}
         </button>
       </div>
     );
   }
   return (
     <div className="space-y-3 text-sm" data-subclass-choice>
-      <SectionHead title="The player's choice" glyph="tab-characters" className="mb-1" />
+      <SectionHead title={t("workshop.homebrew.subclassChoice.heading")} glyph="tab-characters" className="mb-1" />
       {choices.map((choice, index) => {
         const putChoice = (patch: Data) => putChoices(choices.map((entry, at) => (at === index ? { ...entry, ...patch } : entry)));
         const options = Array.isArray(choice.options) ? (choice.options as Data[]) : [];
-        const label = String(choice.label ?? "").trim() || `Choice ${index + 1}`;
+        const label = String(choice.label ?? "").trim() || t("workshop.homebrew.subclassChoice.choiceFallback", { count: index + 1 });
         return (
           <div key={String(choice.id ?? "") || `at-${index}`} className="live-in space-y-2 rounded-lg border border-stone-800 p-2" role="group" aria-label={label}>
             <div className="flex flex-wrap items-end gap-2">
               <TextField
-                label="What the player chooses"
+                label={t("workshop.homebrew.subclassChoice.choiceLabel")}
                 value={String(choice.label ?? "")}
                 onChange={(next) => putChoice({ label: next })}
-                placeholder="Bloodline, Element"
+                placeholder={t("workshop.homebrew.subclassChoice.choicePlaceholder")}
                 maxLength={L.label}
                 className="min-w-48 grow"
-                hint="The builder asks for it under this name, and the sheet records the pick as it."
+                hint={t("workshop.homebrew.subclassChoice.choiceHint")}
               />
               <span className="flex items-center gap-1 pb-1 text-[11px] text-stone-400">
-                Chosen at class level
-                <NumberStepper label={`Class level ${label} is chosen at`} min={1} max={20} value={Number(choice.level ?? 1) || 1} onChange={(level) => putChoice({ level })} />
+                {t("workshop.homebrew.subclassChoice.chosenAtLevel")}
+                <NumberStepper label={t("workshop.homebrew.subclassChoice.chosenAtLevelLabel", { name: label })} min={1} max={20} value={Number(choice.level ?? 1) || 1} onChange={(level) => putChoice({ level })} />
               </span>
             </div>
             <ChoiceOptionList
@@ -209,17 +212,17 @@ export function SubclassChoiceFields({ data, set }: { data: Data; set: (patch: D
               summary={(option) => subclassChoiceSummary(readOption(option))}
               attr="subclass"
               limits={{ options: L.options, minOptions: L.minOptions, name: L.name }}
-              placeholder="Storm"
+              placeholder={t("workshop.homebrew.subclassChoice.optionPlaceholder")}
             />
             <button type="button" onClick={() => putChoices(choices.filter((_, at) => at !== index))} className={cn(ui.btnSmall, addChip, "hover:text-red-300")}>
-              <X className="size-3" /> Remove {label}
+              <X className="size-3" /> {t("workshop.homebrew.subclassChoice.removeChoice", { name: label })}
             </button>
           </div>
         );
       })}
       {choices.length < L.choices ? (
         <button type="button" onClick={add} className={cn(ui.btnSmall, addChip)}>
-          <Plus className="size-3" /> Add another choice
+          <Plus className="size-3" /> {t("workshop.homebrew.subclassChoice.addAnother")}
         </button>
       ) : null}
     </div>
