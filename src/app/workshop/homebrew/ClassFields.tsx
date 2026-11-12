@@ -328,7 +328,7 @@ export function ClassFields({ data, set }: { data: Data; set: (patch: Data) => v
           {tools.map((tool) => (
             <span key={tool} className="live-in inline-flex items-center rounded-md border border-stone-700 pl-2 text-stone-200">
               {toolLabel(tool, t)}
-              <button type="button" aria-label={t("workshop.homebrew.class.ui.removeTool", { name: tool })} onClick={() => set({ tools: tools.filter((entry) => entry !== tool) })} className={cn(ui.iconAction, rowIcon, "hover:text-red-300")}>
+              <button type="button" aria-label={t("workshop.homebrew.class.ui.removeTool", { name: toolLabel(tool, t) })} onClick={() => set({ tools: tools.filter((entry) => entry !== tool) })} className={cn(ui.iconAction, rowIcon, "hover:text-red-300")}>
                 <X className="size-3.5" />
               </button>
             </span>
