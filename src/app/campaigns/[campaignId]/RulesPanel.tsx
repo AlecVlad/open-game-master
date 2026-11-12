@@ -254,7 +254,6 @@ export function RulesPanel({
   const restOptions = (Object.keys(REST_LABELS) as RestVariant[]).map((restVariant) => ({
     value: restVariant,
     label: t(variantRuleMessage(`rest.${restVariant}`)),
-    icon: { kind: "glyph" as const, key: restVariant === "standard" ? "rest-short" : "rest-long" },
   }));
 
   return (
