@@ -82,7 +82,7 @@ export function IdReskinList({ draft, onDraft, kind }: SectionProps & { kind: Id
               value={entry.name}
               maxLength={60}
               placeholder={t("workshop.plugin.reskin.calledHere")}
-              aria-label={t("workshop.plugin.reskin.calledHere") + ": " + catalogLabel(copy.catalog, entry.id)}
+              aria-label={t("workshop.plugin.reskin.calledHere") + ": " + optionLabel(entry.id)}
               onChange={(event) => set(replaceAt(list, index, { ...entry, name: event.target.value }) as typeof list)}
               className={cn(input, "w-40 min-w-0")}
             />
@@ -114,7 +114,7 @@ export function IdReskinList({ draft, onDraft, kind }: SectionProps & { kind: Id
             <button
               type="button"
               onClick={() => set(removeAt(list, index) as typeof list)}
-              aria-label={t("workshop.plugin.reskin.remove", { name: catalogLabel(copy.catalog, entry.id) })}
+              aria-label={t("workshop.plugin.reskin.remove", { name: optionLabel(entry.id) })}
               className={cn(ui.iconAction, rowIcon, "hover:text-red-300")}
             >
               <X className="size-3.5" />
