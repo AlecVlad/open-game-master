@@ -69,6 +69,7 @@ function DamageParts({ title, parts, onChange }: { title: string; parts: Mech[];
 function TrapBlock({ block, put }: { block: Mech; put: (patch: Mech) => void }) {
   const t = useT();
   const abilities = ABILITIES.map((value) => ({ value, label: abilityLabel(value, t) }));
+  const damageOptions = DAMAGE.map((value) => ({ value, label: damageLabel(value, t) }));
   const conditions = CONDITIONS.map((value) => ({ value, label: conditionLabel(value, t) }));
   const spotSkills = SPOT_SKILLS.map((value) => ({ value, label: skillLabel(value, t) }));
   const spot = sub(block.spot);
@@ -101,7 +102,7 @@ function TrapBlock({ block, put }: { block: Mech; put: (patch: Mech) => void }) 
             <NumberField label={t("workshop.homebrew.hazard.saveDC")} value={num(save.dc, 13)} min={1} max={30} onChange={(dc) => put({ save: { ...save, dc: dc === "" ? 13 : dc } })} />
             <SelectField label={t("workshop.homebrew.hazard.onSuccess")} value={save.halfOnSave === false ? "none" : "half"} options={[{ value: "half", label: t("workshop.homebrew.hazard.save.halfDamage") }, { value: "none", label: t("workshop.homebrew.mech.damage.noDamage") }]} onChange={(value) => put({ save: { ...save, halfOnSave: value === "half" } })} />
             <TextField label={t("workshop.homebrew.hazard.damageDice")} value={String(damage.dice ?? "")} onChange={(dice) => put({ damage: dice ? { dice, type: String(damage.type ?? "piercing") } : undefined })} placeholder="4d10" maxLength={40} />
-            <SelectField label={t("workshop.homebrew.hazard.damageType")} value={String(damage.type ?? "piercing")} options={DAMAGE_OPTIONS} onChange={(type) => put({ damage: { dice: String(damage.dice ?? "1d6"), type } })} />
+            <SelectField label={t("workshop.homebrew.hazard.damageType")} value={String(damage.type ?? "piercing")} options={damageOptions} onChange={(type) => put({ damage: { dice: String(damage.dice ?? "1d6"), type } })} />
             <SelectField label={t("workshop.homebrew.hazard.onFailureAlso")} value={String(block.condition ?? "")} options={[{ value: "", label: t("workshop.homebrew.mech.condition.none") }, ...conditions]} onChange={(condition) => put({ condition: condition || undefined })} />
           </>
         ) : null}
