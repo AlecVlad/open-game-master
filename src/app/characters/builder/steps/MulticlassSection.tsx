@@ -1,17 +1,16 @@
 "use client";
 
 import { useId, useMemo, useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { Trash2 } from "lucide-react";
-import { GameTerm } from "@/components/ui/GameTerm";
 import { InfoButton } from "@/components/ui/InfoDialog";
 import { Select } from "@/components/ui/Select";
 import { cn } from "@/lib/cn";
 import { describeSkill } from "@/lib/help";
 import { SRD_SKILLS } from "@/lib/srd";
 import { subclassBlurb, subclassLevelFor, subclassNamesFor } from "@/lib/srd/features";
-import { MULTICLASS_CAP, describeGrant, multiclassGrantsFor } from "@/lib/srd/multiclass";
+import { MULTICLASS_CAP, multiclassGrantsFor, multiclassPrereq, meetsPrereq } from "@/lib/srd/multiclass";
 import { textKey } from "@/lib/language/text-logic";
-import { hitDieChip } from "../lineage";
 import { classSplitWords, multiclassChoices } from "../multiclassBuild";
 import OptionPicker, { type PickerGroup } from "../OptionPicker";
 import { useRovingGroup } from "../roving";
@@ -19,6 +18,109 @@ import { useArchetypeOptions, type ClassOption } from "../useBuilderOptions";
 import type { BuilderDerived, ExtraClassRow } from "../useBuilderDerived";
 import type { BuilderState } from "../useBuilderState";
 import { Field, PickPill, StepPanel, inputClass } from "./shared";
+
+const ABILITY_KEYS: Record<string, string> = {
+  str: "charSheet.ability.str",
+  dex: "charSheet.ability.dex",
+  con: "charSheet.ability.con",
+  int: "charSheet.ability.int",
+  wis: "charSheet.ability.wis",
+  cha: "charSheet.ability.cha",
+};
+
+const GRANT_KEYS: Record<string, string> = {
+  "light armor": "builder.multi.grant.lightArmor",
+  "medium armor": "builder.multi.grant.mediumArmor",
+  shields: "builder.multi.grant.shields",
+  "simple weapons": "builder.multi.grant.simpleWeapons",
+  "martial weapons": "builder.multi.grant.martialWeapons",
+  shortswords: "builder.multi.grant.shortswords",
+  "one musical instrument": "builder.multi.grant.musicalInstrument",
+  "thieves' tools": "builder.multi.grant.thievesTools",
+  "tinker's tools": "builder.multi.grant.tinkersTools",
+};
+
+const SKILL_KEYS: Record<string, string> = {
+  acrobatics: "builder.multi.skill.acrobatics",
+  animal_handling: "builder.multi.skill.animalHandling",
+  arcana: "builder.multi.skill.arcana",
+  athletics: "builder.multi.skill.athletics",
+  deception: "builder.multi.skill.deception",
+  history: "builder.multi.skill.history",
+  insight: "builder.multi.skill.insight",
+  intimidation: "builder.multi.skill.intimidation",
+  investigation: "builder.multi.skill.investigation",
+  medicine: "builder.multi.skill.medicine",
+  nature: "builder.multi.skill.nature",
+  perception: "builder.multi.skill.perception",
+  performance: "builder.multi.skill.performance",
+  persuasion: "builder.multi.skill.persuasion",
+  religion: "builder.multi.skill.religion",
+  sleight_of_hand: "builder.multi.skill.sleightOfHand",
+  stealth: "builder.multi.skill.stealth",
+  survival: "builder.multi.skill.survival",
+};
+
+type Translate = ReturnType<typeof useI18n>["t"];
+
+function prerequisiteLabel(classId: string, t: Translate): string {
+  const groups = multiclassPrereq(classId);
+  if (!groups) return t("builder.multi.noPrerequisite");
+  return groups
+    .map((group) => group.map((ability) => `${t(ABILITY_KEYS[ability] as never)} 13`).join(t("builder.multi.and")))
+    .join(t("builder.multi.or"));
+}
+
+function grantLabel(grant: ReturnType<typeof multiclassGrantsFor>, t: Translate): string {
+  const parts = [...grant.armor, ...grant.weapons, ...grant.tools].map((entry) =>
+    GRANT_KEYS[entry] ? t(GRANT_KEYS[entry] as never) : entry,
+  );
+  if (grant.skillChoice) {
+    parts.push(t(grant.skillChoice.from.length ? "builder.multi.grant.skillFromClass" : "builder.multi.grant.skillAny"));
+  }
+  return parts.length ? parts.join(t("builder.multi.comma")) : t("builder.multi.noGrants");
+}
+
+function hitDieLabel(hitDie: number, numbers: boolean, t: Translate): string {
+  const key = hitDie >= 12 ? "builder.multi.hitDie.veryHigh" : hitDie >= 10 ? "builder.multi.hitDie.high" : hitDie >= 8 ? "builder.multi.hitDie.medium" : hitDie >= 6 ? "builder.multi.hitDie.low" : "builder.multi.hitDie.veryLow";
+  return `${t(key as never)}${numbers ? `, d${hitDie}` : ""}`;
+}
+
+function choiceReasonLabel(
+  reason: string | null,
+  classId: string,
+  classList: BuilderDerived["classList"],
+  abilities: BuilderDerived["shownAbilities"],
+  nameOf: (id: string) => string,
+  t: Translate,
+): string {
+  if (!reason) return "";
+  if (reason.startsWith("A character holds at most")) {
+    return t("builder.multi.reason.classLimit", { max: MULTICLASS_CAP });
+  }
+  if (reason.includes("can only be a first class here")) {
+    return t("builder.multi.reason.firstClassOnly", { klass: nameOf(classId) });
+  }
+  if (reason.startsWith("Needs ")) {
+    return t("builder.multi.reason.needsScores", { needs: prerequisiteLabel(classId, t) });
+  }
+  if (reason.startsWith("Taking a second class means your ") && abilities) {
+    const held = classList.find((entry) => !meetsPrereq(abilities, entry.id));
+    if (held) {
+      return t("builder.multi.reason.bothClasses", {
+        klass: nameOf(held.id),
+        needs: prerequisiteLabel(held.id, t),
+      });
+    }
+  }
+  return t("builder.multi.reason.unavailable");
+}
+
+function skillLabel(skillId: string, fallback: string, t: Translate): string {
+  const key = SKILL_KEYS[skillId];
+  return key ? t(key as never) : fallback;
+}
+
 
 // The classes taken after the first (backlog F9), under the class pick and
 // the level: each one's levels, its subclass once its own level reaches the
@@ -52,6 +154,7 @@ export function MulticlassSection({
   // "Show rules and numbers" (backlog F11): the hit die joins its words.
   numbers: boolean;
 }) {
+  const { t, tp } = useI18n();
   const [adding, setAdding] = useState(false);
   const [othersOpen, setOthersOpen] = useState(false);
   const listId = useId();
@@ -88,24 +191,22 @@ export function MulticlassSection({
   return (
     <StepPanel
       anchor="multiclass"
-      title={extras.length ? `Your classes: ${classSplitWords(classList, nameOf)}` : "More than one class"}
-      help={
-        <>
-          Your levels can be split between classes (multiclassing). Your {klass.name.toLowerCase()} takes level 1 and
-          the levels the others leave it, and decides your saving throws and starting gear. Each class added
-          brings some of its training and its own features at its own level. A class needs a score of 13 in its
-          main ability, and so does the class you start in; the Abilities step checks your final scores.
-        </>
-      }
+      title={extras.length ? t("builder.multi.title.classes", { classes: classSplitWords(classList, nameOf) }) : t("builder.multi.title.moreThanOne")}
+      help={t("builder.multi.help", { klass: klass.name })}
     >
       {!allowed && extras.length && !classList.every((entry) => (state.storedClassIds ?? []).includes(entry.id)) ? (
         <p className="mb-3 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
-          This table turns multiclassing off. Remove the classes below to make the character here.
+          {t("builder.multi.disabledNotice")}
         </p>
       ) : null}
       <p className="mb-3 text-xs text-stone-400">
-        {klass.name}: {primaryLevel} {primaryLevel === 1 ? "level" : "levels"} of {effectiveLevel}
-        {extras.length ? ", and the first levels you took." : "."}
+        {t("builder.multi.primarySummary", {
+          klass: klass.name,
+          primary: primaryLevel,
+          primaryWord: tp("builder.multi.levelWord", primaryLevel),
+          total: effectiveLevel,
+          extra: extras.length ? t("builder.multi.primaryExtra") : ".",
+        })}
       </p>
       {extras.map((entry) => (
         <ExtraClassCard
@@ -127,15 +228,15 @@ export function MulticlassSection({
             data-add-class=""
             className="inline-flex min-h-11 items-center rounded-lg border border-amber-500/40 px-3 text-sm text-amber-200 transition-colors hover:bg-amber-500/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-400"
           >
-            {adding ? "Close the class list" : `Add a ${next} class`}
+            {adding ? t("builder.multi.add.close") : t("builder.multi.add.button", { ordinal: next === "second" ? t("builder.multi.ordinal.second") : t("builder.multi.ordinal.third") })}
           </button>
           <div id={listId} hidden={!adding} className="mt-2">
             <p className="mb-2 text-xs text-stone-500">
-              It takes one level from your {klass.name.toLowerCase()}; set the split once it is added.
-              {derived.shownAbilities ? "" : " Your scores are not set yet, so each class says what it needs."}
+              {t("builder.multi.add.help", { klass: klass.name })}
+              {derived.shownAbilities ? "" : ` ${t("builder.multi.add.help.scoresPending")}`}
             </p>
             <ul
-              aria-label={`Classes you could add as your ${next}`}
+              aria-label={t("builder.multi.add.aria", { ordinal: next === "second" ? t("builder.multi.ordinal.second") : t("builder.multi.ordinal.third") })}
               className="grid gap-1.5 sm:grid-cols-2"
               onKeyDown={roving.onKeyDown}
               onFocus={roving.onFocus}
@@ -164,11 +265,13 @@ export function MulticlassSection({
                   >
                     <span className="flex items-center justify-between gap-2 text-sm">
                       <span>{choice.row.name}</span>
-                      <span className="text-xs text-stone-500">{hitDieChip(classes.find((entry) => entry.id === choice.row.id)?.hitDie ?? 8, numbers)}</span>
+                      <span className="text-xs text-stone-500">{hitDieLabel(classes.find((entry) => entry.id === choice.row.id)?.hitDie ?? 8, numbers, t)}</span>
                     </span>
                     <span id={`${listId}-${choice.row.id}`} className="block text-xs">
-                      {choice.ok ? `Adds ${choice.grants}.` : choice.reason}{" "}
-                      <span className="text-stone-500">Needs {choice.needs}.</span>
+                      {choice.ok
+                        ? t("builder.multi.choice.adds", { grants: grantLabel(multiclassGrantsFor(choice.row.id), t) })
+                        : choiceReasonLabel(choice.reason, choice.row.id, classList, derived.shownAbilities, nameOf, t)}{" "}
+                      <span className="text-stone-500">{t("builder.multi.choice.needs", { needs: prerequisiteLabel(choice.row.id, t) })}</span>
                     </span>
                   </button>
                 </li>
@@ -182,14 +285,14 @@ export function MulticlassSection({
                 data-add-class-more=""
                 className="mt-2 inline-flex min-h-11 items-center rounded-md px-2 text-sm text-sky-300 transition-colors hover:bg-stone-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-400"
               >
-                {othersOpen ? "Show fewer classes" : `Show ${folded.length} more from other books and settings`}
+                {othersOpen ? t("builder.multi.showFewer") : t("builder.multi.showMore", { count: folded.length })}
               </button>
             ) : null}
           </div>
         </div>
       ) : allowed && extras.length < MULTICLASS_CAP - 1 && extras.length ? (
         <p className="mt-3 text-xs text-stone-500">
-          Your {klass.name.toLowerCase()} has one level left, so there is no level to give a {next} class.
+          {t("builder.multi.noLevel", { klass: klass.name, ordinal: next === "second" ? t("builder.multi.ordinal.second") : t("builder.multi.ordinal.third") })}
         </p>
       ) : null}
     </StepPanel>
