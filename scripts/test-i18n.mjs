@@ -331,6 +331,10 @@ assert.equal(
   translate(DICTIONARIES, "ru", "campaign.joinConfirm.error.heroFell", { name: "Pip" }),
   "«Pip» погиб за этим игровым столом. Выберите другого персонажа.",
 );
+assert.equal(
+  translate(DICTIONARIES, "ru", "dictationShortcut.problem.altgrCharacter", { key: "Ctrl+Alt+Q", typed: "@" }),
+  "На этой клавиатуре комбинация Ctrl+Alt+Q вводит символ «@». Выберите другую, чтобы она не мешала вводу текста.",
+);
 
 const characterRefusalMessages = [
   "builder.refusal.multiclass.disabled",
