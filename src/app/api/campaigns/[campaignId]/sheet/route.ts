@@ -522,7 +522,7 @@ export async function DELETE(
   }
   const removed = deleteSheetForUser(campaignId, context.user.id);
   if (!removed) {
-    return Response.json({ error: "You have no character in this campaign." }, { status: 404 });
+    return Response.json({ error: "You have no character in this campaign.", errorCode: "NO_CHARACTER_TO_REMOVE" }, { status: 404 });
   }
   setMemberReady(campaignId, context.user.id, false);
   publishPersisted(campaignId, "member_ready", { userId: context.user.id, ready: false });
@@ -580,7 +580,7 @@ export async function PATCH(
     }
   }
   if (!sheet) {
-    return Response.json({ error: "You have no character in this campaign." }, { status: 404 });
+    return Response.json({ error: "You have no character in this campaign.", errorCode: "NO_CHARACTER_TO_REMOVE" }, { status: 404 });
   }
 
   const parsed = patchSheetSchema.safeParse(body);
