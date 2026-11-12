@@ -54,6 +54,7 @@ export const enBuilderChoices = {
   "builder.background.group.all": "All backgrounds",
   "builder.background.group.livesIn": "Lives in {name}",
   "builder.background.group.standard": "Standard backgrounds (5e Core Rules)",
+  "builder.background.featureLabel": "Feature",
   "builder.subclass.group.fromHomebrew": "From Homebrew",
   "builder.subclass.group.fromPack": "From the content pack",
 } satisfies Record<string, string>;
