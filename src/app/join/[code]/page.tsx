@@ -107,7 +107,7 @@ export default function JoinPage({ params }: { params: Promise<{ code: string }>
       setError(t("invite.error.server"));
       setState("error");
     }
-  }, [roomCode]);
+  }, [roomCode, t]);
 
   useEffect(() => {
     fetch("/api/auth/me")
