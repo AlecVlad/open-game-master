@@ -58,4 +58,7 @@ export const enBuilderChoices = {
   "builder.background.featureLabel": "Feature",
   "builder.subclass.group.fromHomebrew": "From Homebrew",
   "builder.subclass.group.fromPack": "From the content pack",
+  "builder.refusal.multiclass.disabled": "This table turns multiclassing off; a character made here holds one class.",
+  "builder.refusal.multiclass.duplicate": "A character holds each class once; the class list names one twice.",
+  "builder.refusal.spellcasting.thirdCaster": "This subclass is not configured to use the third-caster spellcasting progression.",
 } satisfies Record<string, string>;
