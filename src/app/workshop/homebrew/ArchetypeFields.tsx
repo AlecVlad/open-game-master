@@ -254,7 +254,7 @@ export function ArchetypeFields({
             { value: "none", label: t("workshop.homebrew.archetype.field.noSpellcasting") },
             ...THIRD_CASTER_PROFILES.map((profile) => ({
               value: profile.id,
-              label: t("workshop.homebrew.archetype.ui.profileOption", { profile: profile.label, list: capital(profile.list), ability: t(`workshop.homebrew.species.ability.${profile.ability}`) }),
+              label: t("workshop.homebrew.archetype.ui.profileOption", { profile: profile.label, list: t(`workshop.homebrew.class.ui.name.${profile.list}`), ability: t(`workshop.homebrew.species.ability.${profile.ability}`) }),
             })),
           ]}
           onChange={(value) =>
@@ -262,7 +262,7 @@ export function ArchetypeFields({
           }
           hint={
             rules
-              ? t("workshop.homebrew.archetype.ui.profileHint", { feature: !stored && spellcastingRow ? spellcastingRow.feature.n.trim() : "", ability: t(`workshop.homebrew.species.ability.${rules.ability}`), list: capital(rules.list), schoolOne: rules.schools[0], schoolTwo: rules.schools[1] })
+              ? t("workshop.homebrew.archetype.ui.profileHint", { ability: t(`workshop.homebrew.species.ability.${rules.ability}`), list: t(`workshop.homebrew.class.ui.name.${rules.list}`), schoolOne: rules.schools[0], schoolTwo: rules.schools[1] })
               : t("workshop.homebrew.archetype.ui.profileFallback", { className: capital(classId) })
           }
         />
