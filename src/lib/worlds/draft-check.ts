@@ -206,7 +206,7 @@ export function checkDraft(draft: WorldPackDraft): DraftCheck {
 
   // ---- advice ----
   if (String(pack.dmFlavor).length < DM_FLAVOR_FLOOR) {
-    advice.push(
+    addAdvice(
       `The GM brief is ${String(pack.dmFlavor).length} characters; ${DM_FLAVOR_FLOOR} or more is what steers the narrator.`,
       "workshop.plugin.check.briefTooShort",
       { count: String(pack.dmFlavor).length, minimum: DM_FLAVOR_FLOOR },
