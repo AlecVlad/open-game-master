@@ -5028,6 +5028,7 @@ export const enCampaignPanels = {
   "campaign.session.encounterPrep.difficulty.summary": "{count} · {verdict} ({xp} XP against a {ceiling} ceiling)",
   "campaign.session.encounterPrep.takeBack": "Take back",
   "campaign.session.encounterPrep.cue": "Cue",
+  "campaign.session.encounterPrep.deploy": "Deploy",
 
 
 
