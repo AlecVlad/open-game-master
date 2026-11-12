@@ -15,6 +15,15 @@ function translatedName(key: string, fallback: string, t: CharacterNameTranslato
 }
 
 // User-authored labels take precedence; standard ids use the shared catalogue.
+export function characterOptionName(
+  kind: "race" | "class" | "background",
+  id: string,
+  sourceName: string,
+  t: CharacterNameTranslator,
+): string {
+  const fallback = kind === "class" ? workshopClassName(id) ?? sourceName : sourceName;
+  return translatedName(`charSheet.${kind}.${id}`, fallback, t);
+}
 export function characterRaceName(id: string, label: string | null | undefined, t: CharacterNameTranslator): string {
   if (label) return label;
   return translatedName(`charSheet.race.${id}`, wordsFromId(id), t);
