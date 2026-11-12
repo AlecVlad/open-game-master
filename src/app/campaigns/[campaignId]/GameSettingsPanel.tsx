@@ -25,13 +25,11 @@ import {
   BondsGroup,
   CharacterGroup,
   ConsoleGroup,
-  HP_METHOD_SHORT,
   MemoryGroup,
   NarrationGroup,
   PlayersGroup,
   SafetyGroup,
   VoiceChatGroup,
-  WEALTH_SHORT,
   WorldGroup,
 } from "@/app/campaigns/[campaignId]/GameSettingsGroups";
 import {
@@ -349,17 +347,32 @@ export function GameSettingsPanel({
     );
   }
 
+  const ownRerollRule = settings.abilityRerollBelow;
+  const effectiveRerollRule = ownRerollRule ?? serverRerollBelow;
+  const rerollDescription = effectiveRerollRule === null
+    ? t("campaign.gameSettings.summary.stats.serverUnknown")
+    : effectiveRerollRule <= 0
+      ? t("campaign.gameSettings.summary.stats.keep")
+      : effectiveRerollRule >= 108
+        ? t("campaign.gameSettings.summary.stats.free")
+        : t("campaign.gameSettings.summary.stats.threshold", { limit: effectiveRerollRule });
+  const statsRule = ownRerollRule === null
+    ? effectiveRerollRule === null
+      ? rerollDescription
+      : t("campaign.gameSettings.summary.stats.server", { rule: rerollDescription })
+    : t("campaign.gameSettings.summary.stats.label", { rule: rerollDescription });
   const context = {
     packName: selectedPack?.name ?? null,
     genreName: preset.name,
     voiceName: voiceLabel(voices, settings.ttsVoice),
     narrationOff,
-    statsRule: describeTableReroll(settings.abilityRerollBelow, serverRerollBelow).toLowerCase(),
+    statsRule,
     lastingCompanions,
   };
+  const translate: Parameters<typeof tableGroups>[1] = (key, params) => t(key, params);
   const searching = find.trim().length > 0;
-  const visible = tableGroups(settings)
-    .map((group) => ({ ...group, summary: tableGroupSummary(group.id, settings, context) }))
+  const visible = tableGroups(settings, translate)
+    .map((group) => ({ ...group, summary: tableGroupSummary(group.id, settings, context, translate) }))
     .filter((group) => groupMatches(group, group.summary, find));
   const base = { settings, patch: (update: Partial<GameSettings>) => void patch(update) };
 
