@@ -44,13 +44,14 @@ export async function GET(
   }
   const viewer = tableReportViewer(context);
   const scope = { headers: request.headers };
-  const checkFirst = reportCheckFirst(await tableReportSetup(context), {
+  const setup = await tableReportSetup(context);
+  const checkFirst = reportCheckFirst(setup, {
     viewer,
     reporterUserId: context.user.id,
     secrets: reportSecrets(context, scope),
     addresses: reportAddresses(context, scope),
   });
-  return Response.json({ parts: offeredParts(viewer), checkFirst }, { headers: { "cache-control": "no-store" } });
+  return Response.json({ parts: offeredParts(viewer), checkFirst, checkFirstItems: setup.checkFirstItems ?? [] }, { headers: { "cache-control": "no-store" } });
 }
 
 export async function POST(
