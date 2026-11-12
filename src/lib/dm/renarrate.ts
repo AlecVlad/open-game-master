@@ -44,7 +44,23 @@ import {
 
 // correctionId: the correction ledger's row for the reroll (issue #460), or
 // null when none was written (a table a person runs).
-export type RenarrateResult = { message: CampaignMessage; correctionId?: string | null } | { error: string; status: number };
+export type RenarrateErrorCode =
+  | "CAMPAIGN_NOT_FOUND"
+  | "MESSAGE_NOT_FOUND"
+  | "NOT_DM_NARRATION"
+  | "NO_DM_TURN"
+  | "TURN_NOT_FOUND"
+  | "NO_STORED_CONVERSATION"
+  | "VARIANTS_CAPPED"
+  | "MODEL_UNAVAILABLE"
+  | "EMPTY_NARRATION"
+  | "STORE_FAILED"
+  | "VARIANT_NOT_FOUND"
+  | "SELECT_FAILED";
+
+export type RenarrateResult =
+  | { message: CampaignMessage; correctionId?: string | null }
+  | { error: string; errorCode: RenarrateErrorCode; status: number };
 
 // The narration mp3 is keyed by message id, so a stale take would keep
 // playing under new prose. Regenerating overwrites the same file and
@@ -76,29 +92,29 @@ export async function runRenarrate(input: {
 }): Promise<RenarrateResult> {
   const campaign = getCampaignById(input.campaignId);
   if (!campaign) {
-    return { error: "Campaign not found.", status: 404 };
+    return { error: "Campaign not found.", errorCode: "CAMPAIGN_NOT_FOUND", status: 404 };
   }
   const message = getCampaignMessage(input.messageId);
   if (!message || message.campaignId !== input.campaignId) {
-    return { error: "Message not found.", status: 404 };
+    return { error: "Message not found.", errorCode: "MESSAGE_NOT_FOUND", status: 404 };
   }
   if (message.authorType !== "dm") {
-    return { error: "Only GM narration can be rerolled.", status: 400 };
+    return { error: "Only GM narration can be rerolled.", errorCode: "NOT_DM_NARRATION", status: 400 };
   }
   if (!message.dmTurnId) {
-    return { error: "This narration predates rerolls; there is no turn to replay.", status: 400 };
+    return { error: "This narration predates rerolls; there is no turn to replay.", errorCode: "NO_DM_TURN", status: 400 };
   }
   const turn = getDmTurn(message.dmTurnId);
   if (!turn || turn.campaignId !== input.campaignId) {
-    return { error: "The turn behind this narration is gone.", status: 400 };
+    return { error: "The turn behind this narration is gone.", errorCode: "TURN_NOT_FOUND", status: 400 };
   }
   if (!turn.conversation.length) {
-    return { error: "This narration has no stored conversation to replay.", status: 400 };
+    return { error: "This narration has no stored conversation to replay.", errorCode: "NO_STORED_CONVERSATION", status: 400 };
   }
 
   const variants = seedVariants(message.variants ?? [], message.content);
   if (variants.length >= MAX_VARIANTS) {
-    return { error: `That is all ${MAX_VARIANTS} takes; pick one.`, status: 409 };
+    return { error: `That is all ${MAX_VARIANTS} takes; pick one.`, errorCode: "VARIANTS_CAPPED", status: 409 };
   }
 
   // The parts ahead of the take as the table read them: finalize tidied them
@@ -148,7 +164,7 @@ export async function runRenarrate(input: {
   });
 
   if (failure) {
-    return { error: failure, status: 502 };
+    return { error: failure, errorCode: "MODEL_UNAVAILABLE", status: 502 };
   }
   // The narrator's asides ("I'll set the hour first.") are cut as the turn
   // loop cuts them from its final call (src/lib/dm/turn.ts): only the
@@ -163,7 +179,7 @@ export async function runRenarrate(input: {
     narration = withoutRepeatedSentences([...parts.slice(0, -1), narration]).slice(parts.length - 1).join("\n\n").trim();
   }
   if (!narration) {
-    return { error: "The GM returned nothing; try again.", status: 502 };
+    return { error: "The GM returned nothing; try again.", errorCode: "EMPTY_NARRATION", status: 502 };
   }
 
   const content = assembleVariantContent(parts, turn.rollIds, narration);
@@ -197,7 +213,7 @@ export async function runRenarrate(input: {
     };
   })();
   if (!updated) {
-    return { error: "Could not store the new take.", status: 500 };
+    return { error: "Could not store the new take.", errorCode: "STORE_FAILED", status: 500 };
   }
   refreshNarrationAudio(campaign, updated);
   return { message: updated, correctionId };
@@ -221,11 +237,11 @@ export function selectRenarrateVariant(input: {
   const variants = seedVariants(message.variants ?? [], message.content);
   const index = resolveVariantIndex(variants, input.index);
   if (index < 0) {
-    return { error: "No such take.", status: 400 };
+    return { error: "No such take.", errorCode: "VARIANT_NOT_FOUND", status: 400 };
   }
   const updated = setMessageVariants(input.messageId, variants, index, message.speech);
   if (!updated) {
-    return { error: "Could not select that take.", status: 500 };
+    return { error: "Could not select that take.", errorCode: "SELECT_FAILED", status: 500 };
   }
   refreshNarrationAudio(campaign, updated);
   return { message: updated };
