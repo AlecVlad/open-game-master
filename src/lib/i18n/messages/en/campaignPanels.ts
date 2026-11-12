@@ -4854,6 +4854,7 @@ export const enCampaignPanels = {
   "campaign.session.formation.moveFront": "Move {name} toward the front",
   "campaign.session.formation.moveRear": "Move {name} toward the rear",
   "campaign.session.formation.out": "Out",
+  "campaign.session.formation.removeFromFormation": "Leave {name} out of the formation",
   "campaign.session.formation.notPlaced": "Not placed:",
   "campaign.session.formation.addAtRear": "{name} at the rear",
   "campaign.session.formation.saveNow": "Save now",
