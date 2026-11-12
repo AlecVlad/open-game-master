@@ -283,16 +283,17 @@ export function NarrationGroup({
   narrating,
   narrationOff,
 }: Base & { campaignId: string; narrating: boolean; narrationOff: boolean }) {
+  const { t } = useI18n();
   return (
     <>
       <div className="flex flex-wrap items-center gap-2">
-        <span className="pk-rowlabel">Narration</span>
-        <SettingToggle label="Narration" on={narrating} disabled={narrationOff} onToggle={() => patch({ ttsEnabled: !settings.ttsEnabled })}>
-          {narrating ? "On" : narrationOff ? "Off on this server" : "Off"}
+        <span className="pk-rowlabel">{t("campaign.gameSettings.narration.group")}</span>
+        <SettingToggle label={t("campaign.gameSettings.narration.group")} on={narrating} disabled={narrationOff} onToggle={() => patch({ ttsEnabled: !settings.ttsEnabled })}>
+          {narrating ? t("campaign.gameSettings.state.on") : narrationOff ? t("campaign.gameSettings.state.serverOff") : t("campaign.gameSettings.state.off")}
         </SettingToggle>
         {narrating ? (
           <>
-            <VoicePicker size="sm" label="Narration voice" value={settings.ttsVoice} onChange={(ttsVoice) => patch({ ttsVoice })} language={settings.tableLanguage} />
+            <VoicePicker size="sm" label={t("campaign.gameSettings.narration.voice")} value={settings.ttsVoice} onChange={(ttsVoice) => patch({ ttsVoice })} language={settings.tableLanguage} />
             <VoicePreviewButton voice={settings.ttsVoice} />
           </>
         ) : null}
@@ -301,8 +302,7 @@ export function NarrationGroup({
       {narrating ? <CharacterVoices campaignId={campaignId} settings={settings} steersStory patch={patch} /> : null}
       {narrating || narrationOff ? <NarrationNote /> : null}
       <p className="text-stone-500">
-        Whether the story is read aloud is the whole table&apos;s setting. How loud it plays, or muting it, is each
-        person&apos;s own, from the speaker button at the table.
+        {t("campaign.gameSettings.narration.description")}
       </p>
     </>
   );
@@ -319,31 +319,32 @@ export function AtmosphereGroup({
   ambienceInstalled: boolean;
   ambienceCounts: Record<"bed" | "music" | "sting", { installed: number; total: number }> | null;
 }) {
+  const { t } = useI18n();
   return (
     <>
       <div className="flex flex-wrap items-center gap-2">
-        <span className="pk-rowlabel">Maps</span>
+        <span className="pk-rowlabel">{t("campaign.gameSettings.atmosphere.maps")}</span>
         <SettingToggle on={settings.mapsEnabled} onToggle={() => patch({ mapsEnabled: !settings.mapsEnabled })}>
-          Maps {settings.mapsEnabled ? "on" : "off"}
+          {t(settings.mapsEnabled ? "campaign.gameSettings.atmosphere.mapsOn" : "campaign.gameSettings.atmosphere.mapsOff")}
         </SettingToggle>
       </div>
       <div className="flex flex-wrap items-center gap-2">
-        <span className="pk-rowlabel">Faces</span>
-        <Tooltip content="Theatre inserts: when a passage has someone speaking, their portrait comes up over the scene art while their lines play.">
+        <span className="pk-rowlabel">{t("campaign.gameSettings.atmosphere.faces")}</span>
+        <Tooltip content={t("campaign.gameSettings.atmosphere.facesHint")}>
           <SettingToggle on={settings.presentation === "theatre"} onToggle={() => patch({ presentation: settings.presentation === "theatre" ? "plain" : "theatre" })}>
-            {settings.presentation === "theatre" ? "Theatre inserts on" : "Theatre inserts off"}
+            {t(settings.presentation === "theatre" ? "campaign.gameSettings.atmosphere.facesOn" : "campaign.gameSettings.atmosphere.facesOff")}
           </SettingToggle>
         </Tooltip>
       </div>
       <div className="flex flex-wrap items-center gap-2">
-        <span className="pk-rowlabel">Ambience</span>
-        <SettingToggle label="Ambience" on={settings.ambienceEnabled} onToggle={() => patch({ ambienceEnabled: !settings.ambienceEnabled })}>
-          {settings.ambienceEnabled ? "On" : "Off"}
+        <span className="pk-rowlabel">{t("campaign.gameSettings.atmosphere.ambience")}</span>
+        <SettingToggle label={t("campaign.gameSettings.atmosphere.ambience")} on={settings.ambienceEnabled} onToggle={() => patch({ ambienceEnabled: !settings.ambienceEnabled })}>
+          {settings.ambienceEnabled ? t("campaign.gameSettings.state.on") : t("campaign.gameSettings.state.off")}
         </SettingToggle>
         {settings.ambienceEnabled ? (
-          <Tooltip content="Pick a bed from each new place and switch to combat music when a fight starts. Off leaves every change to the GM.">
+          <Tooltip content={t("campaign.gameSettings.atmosphere.ambienceHint")}>
             <SettingToggle on={settings.ambienceAuto} onToggle={() => patch({ ambienceAuto: !settings.ambienceAuto })}>
-              {settings.ambienceAuto ? "Follows the scene" : "GM sets it"}
+              {settings.ambienceAuto ? t("campaign.gameSettings.atmosphere.followsScene") : t("campaign.gameSettings.atmosphere.gmSets")}
             </SettingToggle>
           </Tooltip>
         ) : null}
@@ -352,14 +353,18 @@ export function AtmosphereGroup({
           // toggle above is currently a promise of silence. Say so where
           // it is being switched on rather than letting the table wonder.
           <span className="text-stone-500">
-            This server has no sound library on disk, so this plays silence. The library ships with the game; the
-            server admin can restore it from the admin panel (Sound library).
+            {t("campaign.gameSettings.atmosphere.noAudioLibrary")}
           </span>
         ) : steersAudio && settings.ambienceEnabled && ambienceCounts ? (
           <span className="text-stone-500">
-            Audio for {ambienceCounts.bed.installed} of {ambienceCounts.bed.total} rooms, {ambienceCounts.music.installed}{" "}
-            of {ambienceCounts.music.total} moods and {ambienceCounts.sting.installed} of {ambienceCounts.sting.total}{" "}
-            sounds. The speaker in the table header opens the sound panel.
+            {t("campaign.gameSettings.atmosphere.audioCounts", {
+              roomsInstalled: ambienceCounts.bed.installed,
+              roomsTotal: ambienceCounts.bed.total,
+              moodsInstalled: ambienceCounts.music.installed,
+              moodsTotal: ambienceCounts.music.total,
+              soundsInstalled: ambienceCounts.sting.installed,
+              soundsTotal: ambienceCounts.sting.total,
+            })}
           </span>
         ) : null}
       </div>
