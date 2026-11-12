@@ -42,19 +42,19 @@ export async function POST(request: Request) {
   }
   const declared = Number(request.headers.get("content-length") ?? 0);
   if (declared > MAX_BUNDLE_BYTES) {
-    return Response.json({ error: "Character file is larger than 12MB." }, { status: 413 });
+    return Response.json({ error: "Character file is larger than 12MB.", errorCode: "BUNDLE_TOO_LARGE" }, { status: 413 });
   }
   const text = await request.text();
   let raw: unknown;
   try {
     raw = JSON.parse(text);
   } catch {
-    return Response.json({ error: "Character file is not valid JSON." }, { status: 400 });
+    return Response.json({ error: "Character file is not valid JSON.", errorCode: "INVALID_CHARACTER_FILE_JSON" }, { status: 400 });
   }
   const parsed = parseCharacterBundle(raw, Buffer.byteLength(text));
   if (!parsed.ok) {
     return Response.json(
-      { error: parsed.error },
+      { error: parsed.error, ...(parsed.errorCode ? { errorCode: parsed.errorCode } : {}) },
       { status: parsed.error.includes("larger than") ? 413 : 400 },
     );
   }
