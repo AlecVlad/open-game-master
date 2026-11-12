@@ -95,7 +95,7 @@ export function OriginFields({ draft, onDraft }: SectionProps) {
         onChange={(franchise) => set({ franchise })}
         maxLength={60}
         placeholder={t("workshop.plugin.identity.franchise.placeholder")}
-        hint="The group the picker files it under. One pack per era: 'Final Fantasy' with an edition of 'VII'."
+        hint={t("workshop.plugin.identity.franchise.hint")}
       />
       <TextField
         label={t("workshop.plugin.identity.edition")}
@@ -126,7 +126,7 @@ export function WorldFields({ draft, onDraft }: SectionProps) {
     <div className="grid gap-3 sm:grid-cols-2">
       <div className="block">
         <span className="mb-1 block font-display text-[11px] tracking-[0.1em] text-amber-300/85">
-          Base genre <span className="text-amber-400/80">*</span>
+          {t("workshop.plugin.identity.baseGenre")} <span className="text-amber-400/80">*</span>
         </span>
         <Select<WorldPackDraft["baseGenre"]>
           label={t("workshop.plugin.identity.baseGenre")}
@@ -135,7 +135,7 @@ export function WorldFields({ draft, onDraft }: SectionProps) {
           options={GENRE_OPTIONS.map((option) => ({ value: option.value as WorldPackDraft["baseGenre"], label: option.label }))}
         />
         <span className="mt-1 block text-[11px] text-stone-500">
-          Every campaign that picks this world also takes this genre, so everything that knows about genres keeps working.
+          {t("workshop.plugin.identity.baseGenre.hint")}
         </span>
       </div>
       <TextField
