@@ -162,6 +162,15 @@ const sharedComponentMessages = [
   "schedule.newDate", "schedule.moveIt", "schedule.error.pickDate", "schedule.error.pickNewDate", "schedule.error.plan",
   "schedule.error.move", "schedule.error.network", "schedule.error.past", "schedule.error.invalid", "schedule.error.missing",
   "schedule.cancel.confirm",
+  "report.checkFirst.updateAvailable", "report.checkFirst.noNarrator", "report.checkFirst.backendNeedsKey",
+  "report.checkFirst.backendUnreachable", "report.checkFirst.modelMissing", "report.checkFirst.modelWarning",
+  "report.checkFirst.backendTestFailed", "report.checkFirst.narratorAddressMissing", "report.checkFirst.ollamaCompatWindow",
+  "report.checkFirst.windowAssumed", "report.checkFirst.windowShort", "report.checkFirst.windowNoFights",
+  "report.checkFirst.windowTight", "report.checkFirst.modelTooSmall", "report.checkFirst.localMemoryLow",
+  "report.checkFirst.agentNotConfigured", "report.checkFirst.agentUnavailable", "report.checkFirst.agentNotInstalled",
+  "report.checkFirst.agentSignedOut", "report.checkFirst.pictureModelMissing", "report.checkFirst.pictureBackendUnreachable",
+  "report.checkFirst.narrationModelMissing", "report.checkFirst.narrationServerUnreachable",
+  "report.checkFirst.dictationModelMissing", "report.checkFirst.unknown",
 ];
 for (const key of sharedComponentMessages) {
   assert.ok(key in DICTIONARIES.en, `English shared-component message missing: ${key}`);
