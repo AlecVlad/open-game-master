@@ -2280,7 +2280,7 @@ export const enCampaignPanels = {
   "campaign.market.error.itemNotStockedEmpty": "{shop} does not stock “{item}”; the shelves are empty.",
   "campaign.market.error.stockQuantity": "{shop} has only {quantity} of {item}.",
   "campaign.market.error.insufficientFunds": "{character} cannot afford {quantity} × {item}: the price is {price}, but the purse holds {purse}.",
-  "campaign.market.error.carryingCapacity": "Buying {item} would put {character} over the carrying limit: {carried} lb carried against a limit of {capacity} lb. Give something to another character, leave something behind, or drag the load at 5 feet.",
+  "campaign.market.error.carryingCapacity": "Buying {item} would put {character} over the carrying limit: {carried} lb carried against a limit of {capacity} lb. Give something to another character, leave something behind, or drag the load (5 feet of movement).",
   "campaign.market.error.shopDoesNotBuy": "{shop} does not buy goods.",
   "campaign.market.error.itemNotCarried": "{character} does not carry “{item}”.",
   "campaign.market.error.unknownItem": "{character} has no item called “{item}”. Carried: {carried}.",
