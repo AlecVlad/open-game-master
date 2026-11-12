@@ -20,7 +20,9 @@ const read = (file) => fs.readFileSync(new URL(`../${file}`, import.meta.url), "
 // ---- the words, pure ----
 
 await test("a hero going up says so and lists what the level owes", () => {
-  const { changes, owed } = joinChanges(LEGAL_FIGHTER, 1, { ...LEGAL_FIGHTER, maxHp: 36, features: [...LEGAL_FIGHTER.features, { name: "ASI taken: 0", source: "story" }] }, 4);
+  const { changes, changeDetails, owed } = joinChanges(LEGAL_FIGHTER, 1, { ...LEGAL_FIGHTER, maxHp: 36, features: [...LEGAL_FIGHTER.features, { name: "ASI taken: 0", source: "story" }] }, 4);
+  assert.deepEqual(changeDetails?.[0], { kind: "levelUp", from: 1, to: 4 });
+  assert.ok(changeDetails?.some((change) => change.kind === "hitPoints" && change.from === 12 && change.to === 36));
   assert.equal(changes[0], "Goes up from level 1 to 4 for this table.");
   assert.ok(changes.includes("Hit points: 12 becomes 36."), changes.join(" | "));
   assert.ok(owed.some((line) => /subclass for fighter/.test(line)), owed.join(" | "));
@@ -30,15 +32,21 @@ await test("the confirmation names a split's classes and an owed subclass in wor
   // The join sheet printed "Classes: fighter 3 / plague_doctor 2" and "a
   // subclass for plague_doctor" (the 0.31.1 playtest's setting class).
   const split = { ...LEGAL_FIGHTER, level: 5, classes: [{ id: "fighter", subclass: "", level: 3 }, { id: "plague_doctor", subclass: "", level: 2 }] };
-  const { changes } = joinChanges(split, 5, { ...LEGAL_FIGHTER, classes: [{ id: "fighter", subclass: "", level: 1 }] }, 1);
+  const { changes, changeDetails } = joinChanges(split, 5, { ...LEGAL_FIGHTER, classes: [{ id: "fighter", subclass: "", level: 1 }] }, 1);
   assert.ok(changes.includes("Classes: fighter 3 / plague doctor 2 becomes fighter 1."), changes.join(" | "));
+  const classChange = changeDetails?.find((change) => change.kind === "classes");
+  assert.deepEqual(classChange && classChange.kind === "classes" ? classChange.from.map(({ name, level }) => ({ name, level })) : [], [
+    { name: "fighter", level: 3 },
+    { name: "plague doctor", level: 2 },
+  ]);
   const owed = owedChoices({ ...LEGAL_FIGHTER, class: "plague_doctor", subclass: "", level: 3, classes: [] });
   assert.ok(!owed.some((line) => line.includes("plague_doctor")), owed.join(" | "));
 });
 
 await test("a hero at its own level changes nothing but says where it plays", () => {
-  const { changes } = joinChanges(LEGAL_FIGHTER, 1, LEGAL_FIGHTER, 1);
+  const { changes, changeDetails } = joinChanges(LEGAL_FIGHTER, 1, LEGAL_FIGHTER, 1);
   assert.deepEqual(changes, ["Plays at its own level, 1."]);
+  assert.deepEqual(changeDetails, [{ kind: "ownLevel", level: 1 }]);
 });
 
 await test("a hero going down names the improvements, feats and spells it gives back", () => {
@@ -63,11 +71,19 @@ await test("a hero going down names the improvements, feats and spells it gives 
     asiChoices: [],
     spellcasting: { ...stored.spellcasting, slots: { 1: { max: 2, used: 0 } }, prepared: ["Shield"] },
   };
-  const { changes } = joinChanges(stored, 5, seated, 1);
+  const { changes, changeDetails } = joinChanges(stored, 5, seated, 1);
   assert.equal(changes[0], "Plays at level 1 here, down from 5.");
   assert.ok(changes.includes("Gives back 1 Ability Score Improvement this level has not earned, with Alert."), changes.join(" | "));
   assert.ok(changes.includes("Gives back 1 spell this level cannot hold: Fireball."), changes.join(" | "));
   assert.ok(changes.includes("Spell slots: 2 × 1st."), changes.join(" | "));
+  assert.ok(changeDetails?.some((change) => change.kind === "levelDown" && change.level === 1 && change.from === 5));
+  assert.ok(changeDetails?.some((change) => change.kind === "improvementsReturned" && change.count === 1));
+  assert.ok(changeDetails?.some((change) => change.kind === "featsReturned" && change.feats.includes("Alert")));
+  assert.ok(changeDetails?.some((change) => change.kind === "spellsReturned" && change.spells.includes("Fireball")));
+  assert.deepEqual(changeDetails?.find((change) => change.kind === "spellSlots"), {
+    kind: "spellSlots",
+    slots: [{ level: 1, count: 2 }],
+  });
 });
 
 // ---- the chooser's order ----
