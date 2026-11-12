@@ -3478,4 +3478,9 @@ export const ruWorkshop: Partial<Record<keyof typeof enWorkshop, string>> = {
   "workshop.homebrew.hazard.boolean.yes": "да",
   "workshop.homebrew.item.ui.damageTypes": "Типы урона",
   "workshop.homebrew.species.main.size.smallHeavyHint": "Маленькие существа совершают атаки тяжёлым оружием с помехой.",
+  "workshop.homebrew.class.ui.removeWeapon": "Удалить оружие «{name}»",
+  "workshop.homebrew.class.ui.name.barbarian": "варвар",
+  "workshop.homebrew.class.ui.name.fighter": "воин",
+  "workshop.homebrew.class.ui.name.monk": "монах",
+  "workshop.homebrew.class.ui.name.rogue": "плут",
 };
