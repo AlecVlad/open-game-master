@@ -92,6 +92,51 @@ for (const key of tableViewMessages) {
   assert.ok(key in DICTIONARIES.ru, `Russian table-view message missing: ${key}`);
 }
 
+const marketErrorMessages = [
+  "campaign.market.error.shopOutOfReach",
+  "campaign.market.error.shopOutOfReachNoPlace",
+  "campaign.market.error.shopAtPlace",
+  "campaign.market.error.nothingChanged",
+  "campaign.market.error.nothingRolled",
+  "campaign.market.error.characterUnavailable",
+  "campaign.market.error.reason.dead",
+  "campaign.market.error.reason.turned",
+  "campaign.market.error.reason.down",
+  "campaign.market.error.reason.condition",
+  "campaign.market.error.condition.incapacitated",
+  "campaign.market.error.condition.paralyzed",
+  "campaign.market.error.condition.stunned",
+  "campaign.market.error.condition.unconscious",
+  "campaign.market.error.condition.petrified",
+  "campaign.market.error.action.buy",
+  "campaign.market.error.action.sell",
+  "campaign.market.error.action.haggle",
+  "campaign.market.error.itemNotStocked",
+  "campaign.market.error.itemNotStockedEmpty",
+  "campaign.market.error.stockQuantity",
+  "campaign.market.error.insufficientFunds",
+  "campaign.market.error.carryingCapacity",
+  "campaign.market.error.shopDoesNotBuy",
+  "campaign.market.error.itemNotCarried",
+  "campaign.market.error.unknownItem",
+  "campaign.market.error.nothingCarried",
+  "campaign.market.error.magicItemNotAccepted",
+  "campaign.market.error.haggleAlreadyUsed",
+  "campaign.market.error.deceptionAlreadyUsed",
+  "campaign.market.error.companionUnavailable",
+  "campaign.market.error.invalidHaggleSkill",
+  "campaign.market.error.haggleCheckUnavailable",
+  "campaign.market.error.characterMissing",
+  "campaign.market.error.shopMissing",
+  "campaign.market.error.noCharacter",
+  "campaign.market.error.invalidTradeAction",
+];
+for (const key of marketErrorMessages) {
+  assert.ok(key in DICTIONARIES.en, `English market refusal message missing: ${key}`);
+  assert.ok(key in DICTIONARIES.ru, `Russian market refusal message missing: ${key}`);
+  assert.notEqual(translate(DICTIONARIES, "ru", key), key, `Russian market refusal message fell back to its key: ${key}`);
+}
+
 const campaignRulesMessages = [
   "campaign.session.rules.houseRules",
   "campaign.session.rules.loading",
