@@ -210,7 +210,7 @@ export function PartyStory({
           {note && !error ? note : ""}
         </p>
         <p className="mt-1 text-xs text-stone-500">
-          {savedBy ? t("campaign.session.party.backstory.lastSaved", { name: savedBy }) + (savedAt && !Number.isNaN(savedAt.getTime()) ? " " + t("campaign.session.party.backstory.lastSavedDate", { date: savedAt.toLocaleDateString(lang) }) : "") + " " : ""}
+          {savedBy ? (savedAt && !Number.isNaN(savedAt.getTime()) ? t("campaign.session.party.backstory.lastSavedAt", { name: savedBy, date: savedAt.toLocaleDateString(lang) }) : t("campaign.session.party.backstory.lastSaved", { name: savedBy })) + " " : ""}
           {inPlay
             ? t("campaign.session.party.backstory.footer.play")
             : t("campaign.session.party.backstory.footer.lobby")}
