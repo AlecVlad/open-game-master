@@ -215,6 +215,18 @@ for (const key of joinChangeMessages) {
   assert.ok(key in DICTIONARIES.ru, `Russian join-change message missing: ${key}`);
 }
 
+const joinConfirmErrorMessages = [
+  "campaign.joinConfirm.error.heroNotFound",
+  "campaign.joinConfirm.error.gmSeat",
+  "campaign.joinConfirm.error.pickOneHero",
+  "campaign.joinConfirm.error.alreadyHasCharacter",
+  "campaign.joinConfirm.error.lobbyOnly",
+];
+for (const key of joinConfirmErrorMessages) {
+  assert.ok(key in DICTIONARIES.en, `English join-confirm error missing: ${key}`);
+  assert.ok(key in DICTIONARIES.ru, `Russian join-confirm error missing: ${key}`);
+}
+
 const characterRefusalMessages = [
   "builder.refusal.multiclass.disabled",
   "builder.refusal.multiclass.duplicate",
