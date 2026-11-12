@@ -39,7 +39,7 @@ const KIND_KEY: Record<PackArtKind, string> = {
 function slotLabel(slot: PackArtSlot, draft: WorldPackDraft): string {
   switch (slot.kind) {
     case "cover":
-      return draft.name.trim() || "The world";
+      return draft.name.trim();
     case "race":
       return draft.races.find((entry) => entry.id === slot.ref)?.name.trim() || catalogLabel(RACE_OPTIONS, slot.ref);
     case "class":
