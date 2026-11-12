@@ -3219,4 +3219,12 @@ export const enWorkshop = {
   "workshop.maps.scene.addAnnotated": "Add the annotated picture",
   "workshop.maps.scene.remove": "Take it away",
   "workshop.maps.scene.overlayHint": "Drawn over the map in the same register as the picture under it, for your eyes only: the version with the trap markings and the room numbers.",
+  "workshop.maps.hotkeys.tools": "Tools",
+  "workshop.maps.hotkeys.brushes": "Brushes",
+  "workshop.maps.hotkeys.editing": "Editing",
+  "workshop.maps.hotkeys.undo": "Undo",
+  "workshop.maps.hotkeys.redo": "Redo",
+  "workshop.maps.hotkeys.putDown": "Put the tool down, or clear the selection",
+  "workshop.maps.hotkeys.deleteSelection": "Delete the selection",
+  "workshop.maps.hotkeys.thisSheet": "This sheet",
 } satisfies Record<string, string>;
