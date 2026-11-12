@@ -90,10 +90,10 @@ export function MoreEffectFields({ effect, update }: { effect: MagicItemEffect; 
       return (
         <>
           <span className="w-32">
-            <Select value={effect.ability} label={t("workshop.homebrew.item.item.effects.ability")} options={abilityOptions} onChange={(ability) => update({ ...effect, ability })} />
+            <Select value={effect.ability} label={t("workshop.homebrew.item.effects.ability")} options={abilityOptions} onChange={(ability) => update({ ...effect, ability })} />
           </span>
-          <EffectStepper label={t("workshop.homebrew.item.item.effects.raisedBy")} value={effect.amount} min={1} max={4} onChange={(amount) => update({ ...effect, amount })} />
-          <EffectStepper label={t("workshop.homebrew.item.item.effects.toAtMost")} value={effect.max} min={3} max={30} onChange={(max) => update({ ...effect, max })} />
+          <EffectStepper label={t("workshop.homebrew.item.effects.raisedBy")} value={effect.amount} min={1} max={4} onChange={(amount) => update({ ...effect, amount })} />
+          <EffectStepper label={t("workshop.homebrew.item.effects.toAtMost")} value={effect.max} min={3} max={30} onChange={(max) => update({ ...effect, max })} />
         </>
       );
     case "immunity":
@@ -106,18 +106,18 @@ export function MoreEffectFields({ effect, update }: { effect: MagicItemEffect; 
           <span className="w-36">
             <Select
               value={effect.mode}
-              label={t("workshop.homebrew.item.item.effects.speed")}
+              label={t("workshop.homebrew.item.effects.speed")}
               options={SPEED_MODES.map((mode) => ({ value: mode, label: t(`workshop.homebrew.item.speed.${mode}`) }))}
               onChange={(mode) => update({ ...effect, mode })}
             />
           </span>
           <CheckField
-            label={t("workshop.homebrew.item.item.effects.walkingSpeed")}
+            label={t("workshop.homebrew.item.effects.walkingSpeed")}
             checked={effect.feet === "walk"}
             onChange={(on) => update({ ...effect, feet: on ? "walk" : 30 })}
           />
           {effect.feet === "walk" ? null : (
-            <EffectStepper label={t("workshop.homebrew.item.item.effects.feet")} value={effect.feet} min={5} max={120} step={5} onChange={(feet) => update({ ...effect, feet })} />
+            <EffectStepper label={t("workshop.homebrew.item.effects.feet")} value={effect.feet} min={5} max={120} step={5} onChange={(feet) => update({ ...effect, feet })} />
           )}
         </>
       );
@@ -125,12 +125,12 @@ export function MoreEffectFields({ effect, update }: { effect: MagicItemEffect; 
       return (
         <>
           <ToggleChips options={WEAPON_KEYS} selected={effect.weapons} labels={weaponLabels} max={8} onChange={(weapons) => update({ ...effect, weapons, ranged: weapons.includes(UNARMED_STRIKE_KEY) ? undefined : effect.ranged })} />
-          <CheckField label={t("workshop.homebrew.item.item.effects.trained")} checked={effect.proficient === true} onChange={(on) => update({ ...effect, proficient: on || undefined })} />
-          <EffectStepper label={t("workshop.homebrew.item.item.effects.attack")} value={effect.attack ?? 0} min={0} max={3} onChange={(attack) => update({ ...effect, attack: attack || undefined })} />
-          <EffectStepper label={t("workshop.homebrew.item.item.effects.extraDamage")} value={effect.damage ?? 0} min={0} max={3} onChange={(damage) => update({ ...effect, damage: damage || undefined })} />
+          <CheckField label={t("workshop.homebrew.item.effects.trained")} checked={effect.proficient === true} onChange={(on) => update({ ...effect, proficient: on || undefined })} />
+          <EffectStepper label={t("workshop.homebrew.item.effects.attack")} value={effect.attack ?? 0} min={0} max={3} onChange={(attack) => update({ ...effect, attack: attack || undefined })} />
+          <EffectStepper label={t("workshop.homebrew.item.effects.extraDamage")} value={effect.damage ?? 0} min={0} max={3} onChange={(damage) => update({ ...effect, damage: damage || undefined })} />
           {/* A fist is never at range: left on, the effect would silently never apply. */}
           {effect.weapons.includes(UNARMED_STRIKE_KEY) ? null : (
-            <CheckField label={t("workshop.homebrew.item.item.effects.onlyRange")} checked={effect.ranged === true} onChange={(on) => update({ ...effect, ranged: on || undefined })} />
+            <CheckField label={t("workshop.homebrew.item.effects.onlyRange")} checked={effect.ranged === true} onChange={(on) => update({ ...effect, ranged: on || undefined })} />
           )}
         </>
       );
