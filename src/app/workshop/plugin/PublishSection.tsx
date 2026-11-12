@@ -141,7 +141,7 @@ export function PublishSection({
         );
       } else {
         download(`${data.pack.id}.json`, data.pack);
-        setNotice(`Downloaded ${data.pack.id}.json. Hand it to an admin, or install it from Admin, Campaign plugins.`);
+        setNotice(t("workshop.plugin.publish.downloaded", { file: `${data.pack.id}.json` }));
       }
       if (data.contentChecked === false) {
         setNotice((current) => `${current} The content pack is not installed here, so monster slugs and spell names were not checked.`);
@@ -206,9 +206,7 @@ export function PublishSection({
         return;
       }
       if (await replaceDraft({ ...parsed, id: "" }, `the installed world "${data.pack.name}"`)) {
-        setNotice(
-          `Started from "${data.pack.name}". Its pictures stay with the installed copy; give this one a new name so the two do not share an id.`,
-        );
+        setNotice(t("workshop.plugin.publish.startedInstalled", { name: data.pack.name }));
       }
     } catch {
       setError("Could not reach the server.");
@@ -226,7 +224,7 @@ export function PublishSection({
       <section className={ui.card + " p-4"}>
         <SectionHead
           glyph={ready ? "quest-done" : "quest-active"}
-          title={ready ? "Ready to export" : `${check.problems.length} thing${check.problems.length === 1 ? "" : "s"} to fix first`}
+          title={ready ? t("workshop.plugin.publish.ready") : tp("workshop.plugin.publish.problems", check.problems.length)}
           aside={ready ? <CheckCircle2 className="size-4 text-emerald-400" /> : <AlertTriangle className="size-4 text-amber-400" />}
         />
         <p className="mb-3 text-[11px] text-stone-500">
@@ -245,7 +243,7 @@ export function PublishSection({
         {check.advice.length ? (
           <details className="text-xs text-stone-400">
             <summary className="cursor-pointer text-stone-500">
-              {check.advice.length} suggestion{check.advice.length === 1 ? "" : "s"} before sharing
+              {tp("workshop.plugin.publish.advice", check.advice.length)}
             </summary>
             <ul className="stagger mt-2 space-y-1">
               {check.advice.map((line) => (
@@ -264,16 +262,16 @@ export function PublishSection({
       <UnofficialPackNotice rightsHolder={draft.rightsHolder} inspiredBy={draft.inspiredBy.trim() || undefined} />
 
       <section className={ui.card + " p-4"}>
-        <SectionHead title="Share it" glyph="system-share" />
+        <SectionHead title={t("workshop.plugin.publish.share")} glyph="system-share" />
         <div className="flex flex-wrap gap-2">
           <button type="button" onClick={() => void exportPack(false)} disabled={!ready || Boolean(busy)} className={ui.btnPrimary}>
             {busy === "download" ? <Loader2 className="size-4 animate-spin" /> : <Download className="size-4" />}
-            Download the pack
+            {t("workshop.plugin.publish.download")}
           </button>
           {isAdmin ? (
             <button type="button" onClick={() => void exportPack(true)} disabled={!ready || Boolean(busy)} className={ui.btnSecondary}>
               {busy === "install" ? <Loader2 className="size-4 animate-spin" /> : <Server className="size-4" />}
-              Install on this server
+              {t("workshop.plugin.publish.install")}
             </button>
           ) : null}
         </div>
@@ -287,9 +285,9 @@ export function PublishSection({
       </section>
 
       <section className={ui.card + " p-4"}>
-        <SectionHead title="Start from something" glyph="tab-reference" />
+        <SectionHead title={t("workshop.plugin.publish.startFromSomething")} glyph="tab-reference" />
         <p className="mb-3 text-[11px] text-stone-500">
-          Read a pack into the draft to keep working on it: one you downloaded, one somebody sent you, or a world installed here.
+          {t("workshop.plugin.publish.startFromBody")}
         </p>
         <input
           ref={fileRef}
@@ -304,14 +302,14 @@ export function PublishSection({
         />
         <div className="flex flex-wrap items-center gap-2">
           <button type="button" onClick={() => fileRef.current?.click()} disabled={Boolean(busy)} className={cn(ui.btnSmall, "text-xs")}>
-            <FileUp className="size-3.5" /> A pack file
+            <FileUp className="size-3.5" /> {t("workshop.plugin.publish.packFile")}
           </button>
           {installed.length ? (
             <span className="w-56">
               <Select
                 value={startFrom}
-                label="An installed world"
-                placeholder="An installed world..."
+                label={t("workshop.plugin.publish.installedWorld")}
+                placeholder={t("workshop.plugin.publish.installedWorldPlaceholder")}
                 size="sm"
                 disabled={busy === "installed"}
                 onChange={(next) => {
@@ -337,7 +335,7 @@ export function PublishSection({
             disabled={Boolean(busy)}
             className={cn(ui.btnSmall, "ml-auto text-xs text-red-300/80 hover:text-red-200")}
           >
-            <Trash2 className="size-3.5" /> Start blank
+            <Trash2 className="size-3.5" /> {t("workshop.plugin.publish.startBlank")}
           </button>
         </div>
       </section>
