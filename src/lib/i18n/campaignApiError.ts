@@ -11,6 +11,13 @@ const CAMPAIGN_ERROR_KEYS = {
   MAX_PLAYERS_BELOW_PARTY: "campaign.editDialog.error.maxPlayers",
   OWNER_OR_GM_REQUIRED: "campaign.editDialog.error.ownerOrGm",
   CAMPAIGN_ALREADY_STARTED: "campaign.editDialog.error.alreadyStarted",
+  COVER_INVALID_IMAGE: "campaign.editDialog.cover.error.invalidImage",
+  COVER_SAVE_FAILED: "campaign.editDialog.cover.error.save",
+  NO_IMAGE_BACKEND: "campaign.editDialog.cover.error.noImageBackend",
+  INVALID_UPLOAD_REQUEST: "campaign.editDialog.cover.upload.error.invalid",
+  UPLOAD_IMAGE_TYPE_NOT_SUPPORTED: "campaign.editDialog.cover.upload.error.type",
+  UPLOAD_IMAGE_TOO_LARGE: "campaign.editDialog.cover.upload.error.size",
+  UPLOAD_IMAGE_DIMENSIONS_TOO_LARGE: "campaign.editDialog.cover.upload.error.dimensions",
 } satisfies Record<string, MessageKey>;
 
 // The server keeps its English message for old clients and logs. The UI uses
