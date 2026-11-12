@@ -44,14 +44,15 @@ export async function POST(
   // rather than left hanging until the next session (session-hold.ts).
   const between = refuseBetweenSessions(campaignId);
   if (between) {
-    return between;
+    const body = await between.clone().json().catch(() => ({}));
+    return Response.json({ ...body, errorCode: "SESSION_ON_HOLD" }, { status: between.status });
   }
   const raw = await request.json().catch(() => ({}));
 
   if ((raw as { action?: unknown }).action === "select") {
     const parsed = selectSchema.safeParse(raw);
     if (!parsed.success) {
-      return Response.json({ error: "Invalid select request." }, { status: 400 });
+      return Response.json({ error: "Invalid select request.", errorCode: "INVALID_SELECT_REQUEST" }, { status: 400 });
     }
     const selected = selectRenarrateVariant({
       campaignId,
@@ -59,7 +60,7 @@ export async function POST(
       index: parsed.data.index,
     });
     if ("error" in selected) {
-      return Response.json({ error: selected.error }, { status: selected.status });
+      return Response.json({ error: selected.error, errorCode: selected.errorCode }, { status: selected.status });
     }
     publishPersisted(campaignId, "message_updated", { message: selected.message });
     return Response.json({ message: selected.message });
@@ -67,7 +68,7 @@ export async function POST(
 
   const parsed = rerollSchema.safeParse(raw);
   if (!parsed.success) {
-    return Response.json({ error: "Invalid reroll request." }, { status: 400 });
+    return Response.json({ error: "Invalid reroll request.", errorCode: "INVALID_REROLL_REQUEST" }, { status: 400 });
   }
   // Only the newest DM narration is rerollable: anything earlier has already
   // been read and built on, and rewriting it would strand the replies to it.
@@ -81,7 +82,7 @@ export async function POST(
   // A turn in flight is about to replace this narration anyway, and the
   // reroll would queue behind it and rewrite the wrong message.
   if (getDmStatus(campaignId) !== "idle") {
-    return Response.json({ error: "The GM is mid-turn; try again after." }, { status: 409 });
+    return Response.json({ error: "The GM is mid-turn; try again after.", errorCode: "DM_BUSY" }, { status: 409 });
   }
 
   const result = await runRenarrate({
@@ -92,7 +93,7 @@ export async function POST(
     userId: context.user.id,
   });
   if ("error" in result) {
-    return Response.json({ error: result.error }, { status: result.status });
+    return Response.json({ error: result.error, errorCode: result.errorCode }, { status: result.status });
   }
   publishPersisted(campaignId, "message_updated", { message: result.message });
   return Response.json({ message: result.message, ...correctionsField(result.correctionId ? [result.correctionId] : []) });
