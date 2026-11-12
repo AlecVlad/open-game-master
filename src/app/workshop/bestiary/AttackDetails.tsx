@@ -232,7 +232,7 @@ export function AttackDetails({ attack, onChange }: { attack: EnemyAttack; onCha
           </Field>
           {onHit.damage ? (
             <>
-              <Field as="label" label="Type">
+              <Field as="label" label={t("workshop.monsterEditor.attack.type")}>
                 <input list={typeList} value={onHit.damageType ?? ""} placeholder="poison" onChange={(event) => setOnHit({ damageType: event.target.value || undefined })} className={cn(ui.input, "w-28")} />
               </Field>
               <Field label={t("workshop.monsterEditor.attack.halfOnSuccess")}>
