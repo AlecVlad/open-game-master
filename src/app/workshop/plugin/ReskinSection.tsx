@@ -152,8 +152,8 @@ export function NameReskinList({ draft, onDraft, kind }: SectionProps & { kind: 
   };
   return (
     <section className={ui.card + " p-4"}>
-      <SectionHead title={copy.title} glyph="system-plugin" className="mb-0" />
-      <p className="mb-3 text-[11px] text-stone-500">{copy.blurb}</p>
+      <SectionHead title={t(copy.title as never)} glyph="system-plugin" className="mb-0" />
+      <p className="mb-3 text-[11px] text-stone-500">{t(copy.blurb as never)}</p>
       <div className="stagger space-y-1.5">
         {list.map((entry, index) => (
           <div key={`${entry.from}-${index}`} className="flex flex-wrap items-start gap-1.5 rounded-lg border border-stone-800 p-2">
@@ -161,7 +161,7 @@ export function NameReskinList({ draft, onDraft, kind }: SectionProps & { kind: 
             <input
               value={entry.name}
               maxLength={80}
-              placeholder="Called here"
+              placeholder={t("workshop.plugin.reskin.calledHere")}
               aria-label={t("workshop.plugin.reskin.calledHere") + ": " + entry.from}
               onChange={(event) => set(replaceAt(list, index, { ...entry, name: event.target.value }))}
               className={cn(input, "w-40 min-w-0")}
@@ -169,8 +169,8 @@ export function NameReskinList({ draft, onDraft, kind }: SectionProps & { kind: 
             <input
               value={entry.blurb}
               maxLength={200}
-              placeholder="One line about it"
-              aria-label="Blurb"
+              placeholder={t("workshop.plugin.reskin.oneLine")}
+              aria-label={t("workshop.plugin.reskin.blurb")}
               onChange={(event) => set(replaceAt(list, index, { ...entry, blurb: event.target.value }))}
               className={cn(input, "min-w-0 flex-1")}
             />
