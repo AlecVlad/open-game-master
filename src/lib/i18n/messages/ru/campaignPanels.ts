@@ -2554,6 +2554,8 @@ export const ruCampaignPanels: Partial<Record<keyof typeof enCampaignPanels, str
   "campaign.relationship.romance.stage.betrothed": "Помолвлены",
   "campaign.relationship.romance.stage.married": "В браке",
   "campaign.relationship.romance.aria": "Романтические отношения: {stage}, шаг {step} из {steps}",
+  "campaign.relationship.romance.with": "Романтические отношения с",
+  "campaign.relationship.romance.title": "Романтические отношения: {stage}",
   "campaign.relationship.kind.companion": "спутник",
   "campaign.relationship.kind.npc": "НИП",
   "campaign.relationship.status.away": "отсутствует",
