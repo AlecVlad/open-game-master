@@ -2,7 +2,7 @@ import { isErrorResponse, requireMember, type MemberContext } from "@/lib/campai
 import { buildReportBundle, chosenParts, offeredParts } from "@/lib/report-bundle";
 import {
   reportAddresses,
-  reportCheckFirst,
+  reportCheckFirstData,
   reportSecrets,
   tableReportSetup,
   tableReportSources,
@@ -45,13 +45,13 @@ export async function GET(
   const viewer = tableReportViewer(context);
   const scope = { headers: request.headers };
   const setup = await tableReportSetup(context);
-  const checkFirst = reportCheckFirst(setup, {
+  const checks = reportCheckFirstData(setup, {
     viewer,
     reporterUserId: context.user.id,
     secrets: reportSecrets(context, scope),
     addresses: reportAddresses(context, scope),
   });
-  return Response.json({ parts: offeredParts(viewer), checkFirst, checkFirstItems: setup.checkFirstItems ?? [] }, { headers: { "cache-control": "no-store" } });
+  return Response.json({ parts: offeredParts(viewer), ...checks }, { headers: { "cache-control": "no-store" } });
 }
 
 export async function POST(
