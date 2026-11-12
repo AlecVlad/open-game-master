@@ -50,6 +50,7 @@ export const enBuilderChoices = {
   "builder.class.group.callingsOf": "Callings of {name}",
   "builder.class.group.standard": "Standard classes (5e Core Rules)",
   "builder.group.fromBook": "From {name}",
+  "builder.group.otherBooks": "Other books",
   "builder.group.fromSetting": "From the {name} setting",
   "builder.background.group.all": "All backgrounds",
   "builder.background.group.livesIn": "Lives in {name}",
