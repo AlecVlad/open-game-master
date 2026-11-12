@@ -262,7 +262,7 @@ export function PublishSection({
         <p className="mb-3 text-[11px] text-stone-500">
           {t("workshop.plugin.publish.installAs", { id, size: bytes < 1024 * 1024 ? `${Math.round(bytes / 1024)} KB` : `${(bytes / 1024 / 1024).toFixed(1)} MB`, max: String(MAX_MANIFEST_BYTES / 1024 / 1024) })}
         </p>
-        {check.problems.length || serverProblems.length ? (
+        {check.problems.length || serverProblems.length || serverProblemDetails.length ? (
           <ul className="stagger mb-3 space-y-1">
             <>
               {check.problemMessages.map((entry, index) => (
