@@ -40,7 +40,7 @@ export async function PATCH(
   const parsed = patchSchema.safeParse(await request.json().catch(() => ({})));
   if (!parsed.success) {
     return Response.json(
-      { error: parsed.error.issues[0]?.message || "Invalid input." },
+      { error: parsed.error.issues[0]?.message || "Invalid input.", errorCode: "INVALID_INPUT" },
       { status: 400 },
     );
   }
@@ -50,7 +50,7 @@ export async function PATCH(
   };
   const session = updateScheduledSession(campaignId, sessionId, patch);
   if (!session) {
-    return Response.json({ error: "No such session (or it was cancelled)." }, { status: 404 });
+    return Response.json({ error: "No such session (or it was cancelled).", errorCode: "SESSION_NOT_FOUND" }, { status: 404 });
   }
   notifyUsers(othersOf(campaignId, context.user.id), {
     campaignId,
@@ -74,7 +74,7 @@ export async function DELETE(
   }
   const session = cancelScheduledSession(campaignId, sessionId);
   if (!session) {
-    return Response.json({ error: "No such session." }, { status: 404 });
+    return Response.json({ error: "No such session.", errorCode: "SESSION_NOT_FOUND" }, { status: 404 });
   }
   notifyUsers(othersOf(campaignId, context.user.id), {
     campaignId,
