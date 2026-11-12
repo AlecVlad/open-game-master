@@ -9,6 +9,7 @@ import {
   ariaShortcut,
   chordFromEvent,
   chordProblem,
+  chordProblemDetail,
   formatChord,
   matchesChord,
   parseChord,
@@ -45,6 +46,7 @@ test("the layout's own letter names the key", () => {
 });
 
 test("voice chat's push-to-talk key is refused at any modifier", () => {
+  assert.deepEqual(chordProblemDetail(chordOf("Backquote", "`")), { code: "VOICE_PTT", params: { key: "`" } });
   assert.match(chordProblem(chordOf("Backquote", "`")), /voice chat's push-to-talk/);
   assert.match(chordProblem(chordOf("Backquote", "`", { altKey: true })), /voice chat's push-to-talk/);
 });
@@ -68,6 +70,10 @@ test("the browser's, the desktop app's and the system's shortcuts are refused", 
   }
   // The desktop app's own menu: Home (Ctrl+M) and developer tools (Ctrl+Shift+I).
   assert.match(chordProblem(chordOf("KeyM", "m", { ctrlKey: true })), /browser or system shortcut/);
+  assert.deepEqual(chordProblemDetail(chordOf("KeyM", "m", { ctrlKey: true })), {
+    code: "BROWSER_SHORTCUT",
+    params: { key: "Ctrl+M" },
+  });
   assert.match(chordProblem(chordOf("KeyI", "I", { ctrlKey: true, shiftKey: true })), /browser or system shortcut/);
   for (const code of ["F1", "F3", "F5", "F6", "F7", "F10", "F11", "F12"]) {
     assert.match(chordProblem(chordOf(code, code)), /browser or the app window/, code);
@@ -82,6 +88,7 @@ test("the browser's, the desktop app's and the system's shortcuts are refused", 
 test("a Ctrl+Alt press that is AltGr typing a character stays typing", () => {
   // German layout: AltGr+Q (Ctrl+Alt+Q on Windows) types @.
   const atSign = chordOf("KeyQ", "@", { ctrlKey: true, altKey: true });
+  assert.deepEqual(chordProblemDetail(atSign, "@"), { code: "ALTGR_CHARACTER", params: { key: "Ctrl+Alt+Q", typed: "@" } });
   assert.match(chordProblem(atSign, "@"), /types "@"/);
   assert.equal(chordProblem(atSign, "q"), null, "on a US layout the same chord is free");
   assert.equal(matchesChord(press("KeyQ", "@", { ctrlKey: true, altKey: true }), atSign), false, "a press that types @ is left to type");
