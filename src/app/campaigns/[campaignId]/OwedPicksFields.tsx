@@ -63,6 +63,16 @@ const skillName = (id: string, t: Translate) => {
   return key ? t(key as never) : findSkill(id)?.name ?? id.replace(/_/g, " ");
 };
 
+function skillHint(id: string, label: string, t: Translate): string | undefined {
+  const skill = findSkill(id);
+  if (!skill) return describeSkill(id) ?? undefined;
+  const abilityKey = `charSheet.ability.${skill.ability}`;
+  const ability = t(abilityKey as never);
+  return ability === abilityKey
+    ? describeSkill(id) ?? undefined
+    : t("builder.multi.skill.info", { skill: label, ability });
+}
+
 const className = (id: string, fallback: string, t: Translate) => {
   const key = `charSheet.class.${id}`;
   const translated = t(key as never);
@@ -219,7 +229,7 @@ export function OwedPicksFields({
                   <button type="button" aria-pressed={picked} className={chip(picked)} onClick={() => onChange({ ...draft, skills: toggle(draft.skills, id, owed.skills.count) })}>
                     {skillName(id, t)}
                   </button>
-                  <InfoButton label={skillName(id, t)} text={describeSkill(id) ?? undefined} />
+                  <InfoButton label={skillName(id, t)} text={skillHint(id, skillName(id, t), t)} />
                 </span>
               );
             })}
