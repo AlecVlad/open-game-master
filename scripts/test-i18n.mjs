@@ -144,6 +144,32 @@ for (const key of campaignRulesMessages) {
   assert.ok(key in DICTIONARIES.ru, `Russian campaign-rules message missing: ${key}`);
 }
 
+const dmBestiaryMessages = [
+  "campaign.dmBestiary.loadWhat",
+  "campaign.dmBestiary.sourceUnavailable",
+  "campaign.dmBestiary.createFailed",
+  "campaign.dmBestiary.saveFailed",
+  "campaign.dmBestiary.linkedWorldEntries",
+  "campaign.dmBestiary.confirmForget",
+  "campaign.dmBestiary.confirmForgetTitle",
+  "campaign.dmBestiary.confirmForgetAction",
+  "campaign.dmBestiary.deleteFailed",
+  "campaign.dmBestiary.network",
+  "campaign.dmBestiary.buildTitle",
+  "campaign.dmBestiary.monsterTitle",
+  "campaign.dmBestiary.loading",
+  "campaign.dmBestiary.yourMonsters",
+  "campaign.dmBestiary.empty",
+  "campaign.dmBestiary.closeStatBlock",
+  "campaign.dmBestiary.openStatBlock",
+  "campaign.dmBestiary.duplicate",
+  "campaign.dmBestiary.delete",
+];
+for (const key of dmBestiaryMessages) {
+  assert.ok(key in DICTIONARIES.en, `English DM bestiary message missing: ${key}`);
+  assert.ok(key in DICTIONARIES.ru, `Russian DM bestiary message missing: ${key}`);
+}
+
 const eventLogRevertMessages = [
   "campaign.session.eventLog.revertTurn",
   "campaign.session.eventLog.revertTurnCount",
