@@ -53,13 +53,13 @@ type Who = "stand-ins" | "characters";
 
 // "Level 4 Variant Human Fighter", in the words the library's cards use: the
 // ids themselves ("variant_human", "srd-2024-goliath") read as code here.
-function describe(character: Character): string {
-  return `Level ${character.level} ${[speciesName(character), classWordsAfterLevel(character)].filter(Boolean).join(" ")}`;
+function describe(character: Character, levelLabel: (level: number) => string): string {
+  return `${levelLabel(character.level)} ${[speciesName(character), classWordsAfterLevel(character)].filter(Boolean).join(" ")}`;
 }
 
-function listed(names: string[]): string {
+function listed(names: string[], conjunction: string): string {
   if (names.length <= 1) return names[0] ?? "";
-  return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
+  return `${names.slice(0, -1).join(", ")} ${conjunction} ${names[names.length - 1]}`;
 }
 
 // Whether the party picked is the one a fight's set-up was saved with
@@ -127,7 +127,7 @@ export function TestFightSheet({
     return () => {
       cancelled = true;
     };
-  }, [open, workshopId]);
+  }, [open, workshopId, t]);
 
   function close(next: boolean) {
     if (next) return;
@@ -218,7 +218,7 @@ export function TestFightSheet({
                 <span className="rounded-full border border-stone-600 px-1.5 text-[10px] uppercase tracking-[0.12em] text-amber-200">{t("workshop.testFight.ally")}</span>
               ) : null}
             </span>
-            <span className="block text-xs text-stone-400">{describe(character).replace(/^Level (\d+)/, (_match, level: string) => t("workshop.testFight.character.level", { level: Number(level) }))}</span>
+            <span className="block text-xs text-stone-400">{describe(character, (level) => t("workshop.testFight.character.level", { level }))}</span>
           </span>
         </label>
       </li>
@@ -269,7 +269,7 @@ export function TestFightSheet({
             () => setWho("stand-ins"),
             t("workshop.testFight.party.standIns"),
             standIns
-              ? t("workshop.testFight.party.standInsHint", { size: standIns.size, heroes: tp("workshop.testFight.hero", standIns.size), level: standIns.level, classes: listed(standIns.classes).replace(" and ", t("workshop.testFight.joinAnd")) })
+              ? t("workshop.testFight.party.standInsHint", { size: standIns.size, heroes: tp("workshop.testFight.hero", standIns.size), level: standIns.level, classes: listed(standIns.classes, t("workshop.testFight.joinAnd")) })
               : t("workshop.testFight.party.standInsDefault"),
           )}
           {radio(
