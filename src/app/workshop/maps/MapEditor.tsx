@@ -11,7 +11,7 @@ import { HotkeyOverlay } from "@/components/ui/HotkeyOverlay";
 import { Select } from "@/components/ui/Select";
 import { type SaveState } from "@/lib/use-autosave";
 import { useMapSelection } from "@/app/campaigns/[campaignId]/useMapSelection";
-import { BRUSH_LABELS, type Brush as BrushName } from "@/lib/battlemap/paint";
+import type { Brush as BrushName } from "@/lib/battlemap/paint";
 import { TERRAIN, tileAt } from "@/lib/battlemap/types";
 import { collectTags } from "@/lib/workshop/pickers";
 import { MapDetailsPanel, MapNameField, useMapWords } from "@/app/workshop/maps/MapDetails";
