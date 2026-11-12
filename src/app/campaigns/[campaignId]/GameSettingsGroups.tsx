@@ -9,7 +9,7 @@ import { Tooltip } from "@/components/ui/Tooltip";
 import { InfoButton } from "@/components/ui/InfoDialog";
 import { SettingToggle, panelField } from "./PanelKit";
 import { cn } from "@/lib/cn";
-import { GENRE_PRESETS, type GenrePreset } from "@/lib/genres";
+import { GENRE_PRESETS } from "@/lib/genres";
 import type { WorldPackSummary } from "@/lib/worlds/types";
 import { WorldPackGallery } from "@/components/WorldPackGallery";
 import { NarratorLanguageNote, VoicePicker } from "@/components/VoicePicker";
@@ -24,7 +24,6 @@ import {
   CONSCIENCE_SETTINGS,
   HP_METHODS,
   STARTING_WEALTH,
-  TABLE_LANGUAGE_LABELS,
   TABLE_LANGUAGES,
   type CampaignLengthSetting,
   type ConscienceSetting,
@@ -67,8 +66,7 @@ export function WorldGroup({
   patch,
   packs,
   selectedPack,
-  preset,
-}: Base & { packs: WorldPackSummary[]; selectedPack: WorldPackSummary | null; preset: GenrePreset }) {
+}: Base & { packs: WorldPackSummary[]; selectedPack: WorldPackSummary | null }) {
   const aiNarrates = settings.dmMode !== "human";
   const { t } = useI18n();
   return (
@@ -128,7 +126,7 @@ export function WorldGroup({
       </div>
       {settings.genre === "custom" ? (
         <div className="reveal flex items-start gap-2">
-          <span className="pk-rowlabel pt-1">World</span>
+          <span className="pk-rowlabel pt-1">{t("campaign.gameSettings.world.group")}</span>
           <textarea
             defaultValue={settings.customGenreText}
             rows={2}
@@ -147,7 +145,7 @@ export function WorldGroup({
           label={t("campaign.gameSettings.world.tableLanguage")}
           value={settings.tableLanguage}
           onChange={(tableLanguage) => patch({ tableLanguage })}
-          options={TABLE_LANGUAGES.map((value) => ({ value, label: TABLE_LANGUAGE_LABELS[value] }))}
+          options={TABLE_LANGUAGES.map((value) => ({ value, label: t(`createCampaign.identity.tableLanguage.${value}`) }))}
           className={selectClass}
         />
         <span className="text-stone-500">{t("campaign.gameSettings.world.languageHelp")}</span>
