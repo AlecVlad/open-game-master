@@ -137,7 +137,7 @@ function PoisonBlock({ block, put }: { block: Mech; put: (patch: Mech) => void }
       <SelectField label={t("workshop.homebrew.hazard.poison.delivered")} value={String(block.type ?? "injury")} options={[{ value: "contact", label: t("workshop.homebrew.hazard.poison.contact") }, { value: "ingested", label: t("workshop.homebrew.hazard.poison.ingested") }, { value: "inhaled", label: t("workshop.homebrew.hazard.poison.inhaled") }, { value: "injury", label: t("workshop.homebrew.hazard.poison.injury") }]} onChange={(type) => put({ type })} hint={t("workshop.homebrew.hazard.poison.injuryHint")} />
       <NumberField label={t("workshop.homebrew.hazard.poison.conSaveDC")} value={num(block.dc, 10)} min={1} max={30} onChange={(dc) => put({ dc: dc === "" ? 10 : dc })} />
       <TextField label={t("workshop.homebrew.hazard.poison.damage")} value={String(block.damage ?? "")} onChange={(damage) => put({ damage: damage || undefined })} placeholder="3d6" maxLength={40} />
-      <SelectField label={t("workshop.homebrew.hazard.onSuccess")} value={block.halfOnSave ? "half" : "none"} options={[{ value: "half", label: "half damage" }, { value: "none", label: "no damage" }]} onChange={(value) => put({ halfOnSave: value === "half" || undefined })} />
+      <SelectField label={t("workshop.homebrew.hazard.onSuccess")} value={block.halfOnSave ? "half" : "none"} options={[{ value: "half", label: t("workshop.homebrew.hazard.save.halfDamage") }, { value: "none", label: t("workshop.homebrew.mech.damage.noDamage") }]} onChange={(value) => put({ halfOnSave: value === "half" || undefined })} />
       <div className="col-span-2 space-y-1 sm:col-span-4">
         <span className="text-[11px] text-stone-400">{t("workshop.homebrew.hazard.onFail")}</span>
         <ChipList items={list(block.conditions)} onChange={(next) => put({ conditions: next.length ? next : undefined })} options={conditions} prompt={t("workshop.homebrew.hazard.conditions.add")} labelFor={(value) => conditionLabel(value, t)} removeLabelFor={(label) => t("workshop.homebrew.hazard.conditions.remove") + " " + label} max={4} />
@@ -145,7 +145,7 @@ function PoisonBlock({ block, put }: { block: Mech; put: (patch: Mech) => void }
       <NumberField label={t("workshop.homebrew.hazard.duration.minutes")} value={num(block.minutes, 0) || ""} min={1} max={525600} onChange={(value) => put({ minutes: optional(value) })} />
       <TextField label={t("workshop.homebrew.hazard.poison.hoursOf")} value={String(block.hoursDice ?? "")} onChange={(hoursDice) => put({ hoursDice: hoursDice || undefined })} placeholder="4d6" maxLength={40} />
       <NumberField label={t("workshop.homebrew.hazard.poison.unconsciousIfFailBy")} value={num(block.unconsciousIfFailBy, 0) || ""} min={1} max={20} onChange={(value) => put({ unconsciousIfFailBy: optional(value) })} />
-      <SelectField label={t("workshop.homebrew.hazard.poison.wakesOnDamage")} value={block.wakesOnDamage ? "yes" : "no"} options={[{ value: "no", label: "no" }, { value: "yes", label: "yes" }]} onChange={(value) => put({ wakesOnDamage: value === "yes" || undefined })} />
+      <SelectField label={t("workshop.homebrew.hazard.poison.wakesOnDamage")} value={block.wakesOnDamage ? "yes" : "no"} options={[{ value: "no", label: t("workshop.homebrew.hazard.boolean.no") }, { value: "yes", label: t("workshop.homebrew.hazard.boolean.yes") }]} onChange={(value) => put({ wakesOnDamage: value === "yes" || undefined })} />
       <SelectField
         label={t("workshop.homebrew.hazard.poison.savesAgain")}
         value={String(repeat.every ?? "")}
@@ -158,7 +158,7 @@ function PoisonBlock({ block, put }: { block: Mech; put: (patch: Mech) => void }
           <TextField label={t("workshop.homebrew.hazard.poison.damageEachFailure")} value={String(repeat.damage ?? "")} onChange={(damage) => put({ repeat: { ...repeat, damage: damage || undefined } })} placeholder="1d6" maxLength={40} />
         </>
       ) : null}
-      <SelectField label={t("workshop.homebrew.hazard.poison.waitsForMidnight")} value={block.atMidnight ? "yes" : "no"} options={[{ value: "no", label: "no" }, { value: "yes", label: "yes" }]} onChange={(value) => put({ atMidnight: value === "yes" || undefined })} />
+      <SelectField label={t("workshop.homebrew.hazard.poison.waitsForMidnight")} value={block.atMidnight ? "yes" : "no"} options={[{ value: "no", label: t("workshop.homebrew.hazard.boolean.no") }, { value: "yes", label: t("workshop.homebrew.hazard.boolean.yes") }]} onChange={(value) => put({ atMidnight: value === "yes" || undefined })} />
       <NumberField label={t("workshop.homebrew.hazard.poison.priceGp")} value={num(block.priceGp, 0)} min={0} max={100000} onChange={(priceGp) => put({ priceGp: priceGp === "" ? 0 : priceGp })} />
     </MechGroup>
   );
