@@ -251,3 +251,4 @@ The WorldForge component pass is complete across all 29 files in `src/app/worksh
 - `ChipList`: added optional localized remove-label callback; callers that do not supply it retain the existing fallback.
 - Added 88 EN/RU message pairs, including the missing unconscious condition label. Static checks: all 97 direct translation references resolve; no duplicate dictionary keys, missing pairs or placeholder mismatches were found.
 - TypeScript, lint, tests, production build and browser visual checks remain deferred until Remote Desktop access is available.
+- Post-commit source review caught and fixed one remaining `DAMAGE_OPTIONS` reference: the trap editor now builds its translated damage options locally. Confirmed no leftover fixed English label/title/hint/placeholder attributes or undefined legacy option constant in `HazardFields.tsx`. TypeScript was not run, so this remains a source-level check only.
