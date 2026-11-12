@@ -340,7 +340,7 @@ export default function AbilityEditor({
       <DiceDefs />
       <div className="mb-3 flex flex-wrap items-center gap-x-2.5 gap-y-2">
         <h2 className="eyebrow w-full text-xs text-amber-200/90 sm:w-auto">
-          <GameTerm id="ability_score">Ability scores</GameTerm>
+          <GameTerm id="ability_score">{t("builder.extra.ability.title")}</GameTerm>
         </h2>
         <div className="method-switch" onKeyDown={methodKeys.onKeyDown} onFocus={methodKeys.onFocus}>
           {methodOptions.map((entry) => (
