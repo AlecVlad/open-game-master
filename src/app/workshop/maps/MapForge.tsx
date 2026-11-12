@@ -451,7 +451,7 @@ export function MapForge({
               style={{ aspectRatio: `${sizeNow.width} / ${sizeNow.height}` }}
             >
               <p className="max-w-xs font-serif text-[13px] italic text-stone-500">
-                {library && !named ? "Name the place, then roll it. It draws itself in here." : "Roll, and the place draws itself in here."}
+                {t(library && !named ? "workshop.maps.forge.previewEmpty.library" : "workshop.maps.forge.previewEmpty.studio")}
               </p>
             </div>
           )}
