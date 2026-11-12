@@ -478,6 +478,8 @@ export const enCommon = {
   "infoDialog.whatIs": "What is {label}?",
   "infoDialog.chipHint": "Select the mark beside it for the full entry.",
   "dialog.close": "Close",
+  "hotkeyOverlay.title": "Keys",
+  "hotkeyOverlay.footer": "Every key has a button on screen; on a phone the buttons are the way in.",
   "infoDialog.contentBestEffort": "Best effort: the app read this entry’s rules from its text, and nobody has checked that reading yet. If it plays differently from what the text says, the text and the GM win, and a Workshop copy can fix it for your table.",
   "infoDialog.contentNeeds.one": "Level Up Advanced 5e’s {needs} is a rule this game does not play.",
   "infoDialog.contentNeeds.many": "Level Up Advanced 5e’s {needs} are rules this game does not play.",
