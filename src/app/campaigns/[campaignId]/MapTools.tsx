@@ -12,8 +12,6 @@ import {
 } from "@/lib/battlemap/paint";
 import {
   STAMPS,
-  STAMP_EFFECTS,
-  STAMP_LABELS,
   STAMP_SIZE,
   stampFootprint,
   stampStrokes,
