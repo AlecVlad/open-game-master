@@ -104,6 +104,24 @@ for (const key of partyBackstoryMessages) {
   assert.ok(key in DICTIONARIES.ru, `Russian party-backstory message missing: ${key}`);
 }
 
+// Campaign creation and update forms translate stable API refusals by code.
+const campaignApiMessages = [
+  "createCampaign.dialog.error.adminOnly",
+  "createCampaign.dialog.error.passwordChange",
+  "createCampaign.dialog.error.invalidSettings",
+  "createCampaign.identity.dm.missing",
+  "campaign.editDialog.error.invalidUpdate",
+  "campaign.editDialog.error.partyLead",
+  "campaign.editDialog.error.ended",
+  "campaign.editDialog.error.maxPlayers",
+  "campaign.editDialog.error.ownerOrGm",
+  "campaign.editDialog.error.alreadyStarted",
+];
+for (const key of campaignApiMessages) {
+  assert.ok(key in DICTIONARIES.en, `English campaign API message missing: ${key}`);
+  assert.ok(key in DICTIONARIES.ru, `Russian campaign API message missing: ${key}`);
+}
+
 // Character validation responses expose codes only for exact, stable server diagnostics.
 const characterRefusalMessages = [
   "builder.refusal.multiclass.disabled",
