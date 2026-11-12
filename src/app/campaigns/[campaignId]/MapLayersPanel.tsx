@@ -16,22 +16,20 @@ import { useI18n } from "@/lib/i18n/provider";
 
 type Row = {
   layer: MapLayer;
-  label: string;
-  meta: string;
   // The object kind this layer lists, when it lists any.
   kind?: ObjectKind;
 };
 
 const ROWS: Row[] = [
-  { layer: "labels", label: "Labels", meta: "names on tiles", kind: "labels" },
-  { layer: "props", label: "Props", meta: "things and bystanders", kind: "props" },
-  { layer: "lights", label: "Lights", meta: "placed light sources", kind: "lights" },
-  { layer: "zones", label: "Light zones", meta: "boxes of light or dark", kind: "zones" },
-  { layer: "doors", label: "Doors", meta: "locked and secret", kind: "doors" },
-  { layer: "terrain", label: "Terrain", meta: "one character per tile" },
-  { layer: "backdrop", label: "Backdrop", meta: "the picture under the grid" },
-  { layer: "overlay", label: "Overlay", meta: "your annotated picture" },
-  { layer: "drawings", label: "Drawings", meta: "marks made at the table", kind: "drawings" },
+  { layer: "labels", kind: "labels" },
+  { layer: "props", kind: "props" },
+  { layer: "lights", kind: "lights" },
+  { layer: "zones", kind: "zones" },
+  { layer: "doors", kind: "doors" },
+  { layer: "terrain" },
+  { layer: "backdrop" },
+  { layer: "overlay" },
+  { layer: "drawings", kind: "drawings" },
 ];
 
 const ROW_LABEL_KEYS: Record<MapLayer, string> = {
