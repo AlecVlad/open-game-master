@@ -88,7 +88,7 @@ export function MonsterBuildControls({
           onClick={() => void create({ from: "cr", name: newName.trim(), cr: newCr })}
           className={ui.btnPrimary}
         >
-          Start from the baseline
+          {t("workshop.monsterEditor.build.startBaseline")}
         </button>
       </div>
 
@@ -107,7 +107,7 @@ export function MonsterBuildControls({
               className={cn(ui.input, "flex-1")}
             />
             <button type="button" onClick={onFind} className={ui.btnSecondary}>
-              <Search className="size-3.5" /> Find
+              <Search className="size-3.5" /> {t("workshop.monsterEditor.build.find")}
             </button>
           </div>
         </Field>
