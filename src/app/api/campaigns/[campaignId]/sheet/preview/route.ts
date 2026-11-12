@@ -10,6 +10,7 @@ import { olderBuilderOf } from "@/lib/srd/legality/older-builder";
 import { pregenById } from "@/lib/starter/pregens";
 import { seatPicksSchema } from "@/lib/characters/seat-picks";
 import { claimRefusal, offeredPregenFor, pregenSeatRefusal } from "@/lib/db/pregen-offers";
+import { refusalCodes } from "@/lib/characters/admit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -125,7 +126,7 @@ export async function POST(
     // Nothing about joining applies to a hero who cannot join: no changes,
     // no picks, no other rule, only why not.
     preview = { ...preview, ok: false, problems: [fallenPick], changes: [], owed: [], rollsHp: false, picks: undefined };
-    return Response.json({ preview: { ...preview, alreadyHere } });
+    return Response.json({ preview: { ...preview, problemCodes: refusalCodes(preview.problems), alreadyHere } });
   }
   const doorProblems: string[] = [];
   if (flow === "join" && !alreadyHere && !door.open) {
@@ -137,5 +138,5 @@ export async function POST(
   if (doorProblems.length) {
     preview = { ...preview, ok: false, problems: [...doorProblems, ...preview.problems] };
   }
-  return Response.json({ preview: { ...preview, alreadyHere } });
+  return Response.json({ preview: { ...preview, problemCodes: refusalCodes(preview.problems), alreadyHere } });
 }
