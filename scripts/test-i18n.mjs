@@ -198,6 +198,7 @@ const sharedComponentMessages = [
   "dateTimePicker.hour", "dateTimePicker.minute", "select.placeholder",
   "infoDialog.armor", "infoDialog.weapon", "infoDialog.description",
   "infoDialog.loading", "infoDialog.noDescription", "infoDialog.noDetails", "infoDialog.requiresAttunement",
+  "infoDialog.chipHint",
   "infoDialog.magicBonus", "infoDialog.weight", "infoDialog.value", "infoDialog.acBonus", "infoDialog.armorClass",
   "infoDialog.damage", "infoDialog.none", "infoDialog.range", "infoDialog.shield", "infoDialog.shieldNote",
   "infoDialog.dexterity", "infoDialog.strength", "infoDialog.strengthRequired", "infoDialog.strengthNone",
