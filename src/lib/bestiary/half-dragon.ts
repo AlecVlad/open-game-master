@@ -91,12 +91,25 @@ function ageFor(size: string | undefined): Age {
   return word === "gargantuan" ? "adult" : word === "huge" ? "young" : "wyrmling";
 }
 
-export type HalfDragonResult = { draft: MonsterDraft; note: string } | { error: string };
+export type HalfDragonResult =
+  | {
+      draft: MonsterDraft;
+      note: string;
+      noteCode: "rating-stands" | "rating-needs-recalculation";
+      color: DragonColor;
+      cr: number;
+      prerequisite: number;
+    }
+  | { error: string; errorCode: "unsupported-type"; creatureType: string };
 
 export function applyHalfDragon(draft: MonsterDraft, color: DragonColor): HalfDragonResult {
   const type = (draft.stats.type ?? "monstrosity").toLowerCase();
   if (!TEMPLATE_TYPES.includes(type)) {
-    return { error: `Only a beast, humanoid, giant or monstrosity can become a half-dragon; this is a ${type}.` };
+    return {
+      error: `Only a beast, humanoid, giant or monstrosity can become a half-dragon; this is a ${type}.`,
+      errorCode: "unsupported-type",
+      creatureType: type,
+    };
   }
   const age = ageFor(draft.stats.size);
   const breath = BREATH[color][age];
@@ -123,11 +136,15 @@ export function applyHalfDragon(draft: MonsterDraft, color: DragonColor): HalfDr
     `${recharge}: ${breath.desc}`,
   );
   const prerequisite = PREREQUISITE[age];
+  const ratingStands = draft.stats.cr >= prerequisite;
   return {
     draft: next,
-    note:
-      draft.stats.cr >= prerequisite
-        ? `Half-${color} dragon: CR ${draft.stats.cr} meets the template's challenge ${prerequisite}, so the rating stands.`
-        : `Half-${color} dragon: below challenge ${prerequisite} the SRD asks for the rating to be worked out again; the rating panel shows what the numbers now support.`,
+    note: ratingStands
+      ? `Half-${color} dragon: CR ${draft.stats.cr} meets the template's challenge ${prerequisite}, so the rating stands.`
+      : `Half-${color} dragon: below challenge ${prerequisite} the SRD asks for the rating to be worked out again; the rating panel shows what the numbers now support.`,
+    noteCode: ratingStands ? "rating-stands" : "rating-needs-recalculation",
+    color,
+    cr: draft.stats.cr,
+    prerequisite,
   };
 }
