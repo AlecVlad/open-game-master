@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useT } from "@/lib/i18n/provider";
+import { useT } from "@/lib/i18n/provider";
 import { subclassLevelFor } from "@/lib/srd/features";
 import { Check, Plus, Search, X } from "lucide-react";
 import { cn } from "@/lib/cn";
@@ -38,8 +39,6 @@ type Flat = { level: number; feature: FeatureRow };
 
 const capital = (value: string) => value.charAt(0).toUpperCase() + value.slice(1);
 
-const ABILITY_NAMES = { int: "Intelligence", wis: "Wisdom", cha: "Charisma" } as const;
-
 // A class with Spellcasting of its own: its subclass's spells join that.
 const casterClass = (classId: string) => !subclassMayCast(classId);
 
@@ -61,8 +60,8 @@ function BorrowFeature({ onPick, taken, full }: { onPick: (feature: CatalogFeatu
         <input
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          placeholder="Borrow a feature from any subclass: improved critical, vow of enmity..."
-          aria-label="Find a published subclass feature to borrow"
+          placeholder={t("workshop.homebrew.archetype.ui.borrow.placeholder")}
+          aria-label={t("workshop.homebrew.archetype.ui.borrow.aria")}
           className={cn(ui.input, "w-full pl-7 text-sm")}
         />
       </div>
@@ -80,8 +79,8 @@ function BorrowFeature({ onPick, taken, full }: { onPick: (feature: CatalogFeatu
                   onClick={() => onPick(entry)}
                   className={cn(ui.btnSmall, addChip, "shrink-0", done && "border-emerald-500/40 text-emerald-200")}
                 >
-                  {done ? <Check className="size-3" /> : levelFull ? null : <Plus className="size-3" />} Level {entry.level}
-                  {levelFull ? " full" : ""}
+                  {done ? <Check className="size-3" /> : levelFull ? null : <Plus className="size-3" />} {t("workshop.homebrew.archetype.ui.borrow.level", { level: entry.level })}
+                  {levelFull ? ` ${t("workshop.homebrew.archetype.ui.borrow.full")}` : ""}
                 </button>
                 <span className="min-w-0 text-[11px] leading-snug text-stone-400">
                   <span className="text-stone-200">{entry.name}</span> ({capital(entry.classId)}, {entry.subclass})
@@ -100,8 +99,8 @@ function BorrowFeature({ onPick, taken, full }: { onPick: (feature: CatalogFeatu
 // subclass hands out (`spells`), or the ones it adds to what its class may
 // learn or prepare (`expanded`, a warlock patron's list, issue #833).
 const SPELL_SECTIONS = {
-  spells: { title: "Always-prepared spells", find: "Find a spell the subclass always has prepared" },
-  expanded: { title: "Adds to the class's spell list", find: "Find a spell to add to the class's list" },
+  spells: { title: "workshop.homebrew.archetype.ui.spells.prepared", find: "workshop.homebrew.archetype.ui.spells.findPrepared" },
+  expanded: { title: "workshop.homebrew.archetype.ui.spells.expanded", find: "workshop.homebrew.archetype.ui.spells.findExpanded" },
 } as const;
 
 function SpellLists({
@@ -126,18 +125,18 @@ function SpellLists({
   const [level, setLevel] = useState(3);
   return (
     <div className="space-y-1.5" data-testid={`subclass-${field}`}>
-      <SectionHead title={SPELL_SECTIONS[field].title} glyph="rest-spell-slot" className="mb-1" />
+      <SectionHead title={t(SPELL_SECTIONS[field].title)} glyph="rest-spell-slot" className="mb-1" />
       {rows.map(([at, names]) => (
         <div key={at} className="live-in flex flex-wrap items-center gap-1.5 text-xs">
           <span className="w-28 shrink-0 text-stone-400">
-            Level {at} ({names.length} of {SUBCLASS_SPELLS_PER_LEVEL})
+            {t("workshop.homebrew.archetype.ui.spells.levelCount", { level: at, count: names.length, max: SUBCLASS_SPELLS_PER_LEVEL })}
           </span>
           {names.map((name) => (
             <span key={name} className="inline-flex items-center gap-1 rounded-md border border-stone-700 px-1.5 py-0.5 text-stone-200">
               {name}
               <button
                 type="button"
-                aria-label={`Remove ${name}`}
+                aria-label={t("workshop.homebrew.archetype.ui.removeSpell", { name })}
                 onClick={() => {
                   const left = names.filter((entry) => entry !== name);
                   const next = { ...spells };
@@ -155,13 +154,13 @@ function SpellLists({
       ))}
       <div className="flex flex-wrap items-center gap-2">
         <span className="flex items-center gap-1 text-[11px] text-stone-400">
-          At class level
-          <NumberStepper size="sm" label="Class level the spells arrive at" min={1} max={20} value={level} onChange={setLevel} />
+          {t("workshop.homebrew.archetype.ui.spells.atClassLevel")}
+          <NumberStepper size="sm" label={t("workshop.homebrew.archetype.ui.spells.classLevel")} min={1} max={20} value={level} onChange={setLevel} />
         </span>
         {(spells[String(level)] ?? []).length < SUBCLASS_SPELLS_PER_LEVEL ? (
           <SpellSearch
-            label={SPELL_SECTIONS[field].find}
-            placeholder="Add a spell..."
+            label={t(SPELL_SECTIONS[field].find)}
+            placeholder={t("workshop.homebrew.archetype.field.addSpell")}
             className="min-w-48 flex-1"
             exclude={new Set((spells[String(level)] ?? []).map(textKey))}
             onPick={(entry) => {
@@ -172,20 +171,20 @@ function SpellLists({
           />
         ) : (
           <span role="status" className="live-in text-[11px] text-stone-400">
-            Level {level} holds {SUBCLASS_SPELLS_PER_LEVEL}, the most a level keeps.
+            {t("workshop.homebrew.archetype.ui.spells.levelFull", { level, max: SUBCLASS_SPELLS_PER_LEVEL })}
           </span>
         )}
       </div>
       {castsNothing && rows.length ? (
         <p className="reveal text-[11px] text-amber-300/90">
-          A {classLabel} casts nothing of its own, so these spells have no slots to be cast with. Choose a spellcasting progression above, or they are words for the GM.
+          {t("workshop.homebrew.archetype.ui.spells.classCannotCast", { className: classLabel })}
         </p>
       ) : field === "expanded" ? (
         <p className="text-[11px] text-stone-500">
-          From that level on the character may learn or prepare these as if they were on the {classLabel}&apos;s list, as a warlock patron&apos;s spells are. They count like any other spell.
+          {t("workshop.homebrew.archetype.ui.spells.expandedHint", { className: classLabel })}
         </p>
       ) : (
-        <p className="text-[11px] text-stone-500">Prepared for free from that level on, and never counted against the class&apos;s own prepared spells.</p>
+        <p className="text-[11px] text-stone-500">{t("workshop.homebrew.archetype.ui.spells.preparedHint")}</p>
       )}
     </div>
   );
@@ -201,6 +200,7 @@ export function ArchetypeFields({
   // The author's own classes (homebrew kind "class"), which a subclass can sit under.
   workshopClasses?: Array<{ id: string; name: string; subclassLevel?: number }>;
 }) {
+  const t = useT();
   const classId = String(data.classSlug ?? "fighter");
   const levels = (data.levels ?? {}) as Record<string, FeatureRow[]>;
   const flat: Flat[] = Object.entries(levels)
@@ -240,22 +240,22 @@ export function ArchetypeFields({
   return (
     <div className="space-y-3">
       <SelectField
-        label="Class"
+        label={t("workshop.homebrew.archetype.ui.class")}
         value={classId}
         options={[...CLASS_IDS.map((value) => ({ value: value as string, label: capital(value) })), ...workshopClasses.map((klass) => ({ value: klass.id, label: klass.name }))]}
         onChange={(classSlug) => set({ classSlug })}
         className="w-56"
-        hint={`The builder offers it under this class from level ${ownClass?.subclassLevel ?? subclassLevelFor(classId) ?? 3}.`}
+        hint={t("workshop.homebrew.archetype.ui.classHint", { level: ownClass?.subclassLevel ?? subclassLevelFor(classId) ?? 3 })}
       />
       {mayCast ? (
         <SelectField
           label={t("workshop.homebrew.archetype.field.progression")}
           value={casting}
           options={[
-            { value: "none", label: "No subclass spellcasting" },
+            { value: "none", label: t("workshop.homebrew.archetype.field.noSpellcasting") },
             ...THIRD_CASTER_PROFILES.map((profile) => ({
               value: profile.id,
-              label: `${profile.label} rules: ${capital(profile.list)} spells, ${ABILITY_NAMES[profile.ability]}`,
+              label: t("workshop.homebrew.archetype.ui.profileOption", { profile: profile.label, list: capital(profile.list), ability: t(`workshop.homebrew.species.ability.${profile.ability}`) }),
             })),
           ]}
           onChange={(value) =>
@@ -263,8 +263,8 @@ export function ArchetypeFields({
           }
           hint={
             rules
-              ? `${!stored && spellcastingRow ? `On because the subclass has ${spellcastingRow.feature.n.trim()}: ` : ""}${ABILITY_NAMES[rules.ability]}, ${rules.list} spells, a third of a full caster's slots, and spells mostly from ${rules.schools[0]} and ${rules.schools[1]}.`
-              : `A ${capital(classId)} casts nothing of its own; its subclass can cast as a third caster, from the wizard, cleric or druid list.`
+              ? t("workshop.homebrew.archetype.ui.profileHint", { feature: !stored && spellcastingRow ? spellcastingRow.feature.n.trim() : "", ability: t(`workshop.homebrew.species.ability.${rules.ability}`), list: capital(rules.list), schoolOne: rules.schools[0], schoolTwo: rules.schools[1] })
+              : t("workshop.homebrew.archetype.ui.profileFallback", { className: capital(classId) })
           }
         />
       ) : null}
@@ -286,21 +286,21 @@ export function ArchetypeFields({
                   <input
                     value={row.feature.n}
                     aria-label={t("workshop.homebrew.archetype.field.featureName")}
-                    placeholder="Reed Walker"
+                    placeholder={t("workshop.homebrew.archetype.ui.featureNameExample")}
                     maxLength={80}
                     onChange={(event) => write(flat.map((entry, at) => (at === index ? { ...entry, feature: { ...entry.feature, n: event.target.value } } : entry)))}
                     className={cn(ui.input, "w-full text-sm sm:w-56")}
                   />
                   {tag ? (
-                    <span className="reveal-pop rounded-full border border-emerald-500/40 px-2 py-0.5 text-[10px] text-emerald-200" title="A feature of this name is run by the server, not just read by the GM.">
-                      The engine runs it {tag}
+                    <span className="reveal-pop rounded-full border border-emerald-500/40 px-2 py-0.5 text-[10px] text-emerald-200" title={t("workshop.homebrew.class.ui.engineFeatureTitle")}>
+                      {t("workshop.homebrew.class.ui.engineRunsFeature", { tag })}
                     </span>
                   ) : null}
                 </span>
                 <textarea
                   value={row.feature.d}
                   aria-label={t("workshop.homebrew.archetype.field.whatItDoes")}
-                  placeholder="Marsh terrain costs no extra movement."
+                  placeholder={t("workshop.homebrew.archetype.ui.featureDescriptionExample")}
                   maxLength={1500}
                   rows={2}
                   onChange={(event) => write(flat.map((entry, at) => (at === index ? { ...entry, feature: { ...entry.feature, d: event.target.value } } : entry)))}
@@ -318,14 +318,14 @@ export function ArchetypeFields({
           onClick={() => write([...flat, { level: flat.length ? Math.min(20, flat[flat.length - 1].level + 3) : 3, feature: { n: "", d: "" } }])}
           className={cn(ui.btnSmall, addChip)}
         >
-          <Plus className="size-3" /> Add a feature
+          <Plus className="size-3" /> {t("workshop.homebrew.archetype.field.addFeature")}
         </button>
         {[...counts]
           .filter(([, count]) => count > FEATURE_LIMITS.perLevel)
           .sort(([a], [b]) => a - b)
           .map(([level, count]) => (
             <p key={level} role="alert" className="live-in text-[11px] text-red-300">
-              Level {level} has {count} features; a level keeps {FEATURE_LIMITS.perLevel}.
+              {t("workshop.homebrew.archetype.ui.features.overLimit", { level, count, max: FEATURE_LIMITS.perLevel })}
             </p>
           ))}
         <BorrowFeature taken={taken} full={full} onPick={(entry) => write([...flat, { level: entry.level, feature: { n: entry.name, d: entry.text } }])} />
