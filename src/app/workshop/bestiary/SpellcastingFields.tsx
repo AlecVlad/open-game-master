@@ -1,6 +1,7 @@
 "use client";
 
 import { Trash2 } from "lucide-react";
+import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui";
 import { Select } from "@/components/ui/Select";
@@ -23,17 +24,6 @@ import { textKey } from "@/lib/language/text-logic";
 
 type Props = { draft: MonsterDraft; onChange: (draft: MonsterDraft) => void };
 
-const ABILITY_OPTIONS = [
-  { value: "", label: "Unstated" },
-  ...SAVE_ABILITY_IDS.map((ability) => ({ value: ability as string, label: ability.toUpperCase() })),
-];
-
-const USE_OPTIONS = [
-  { value: "slot", label: "From a slot" },
-  { value: "atwill", label: "At will" },
-  ...[1, 2, 3].map((count) => ({ value: `day${count}`, label: `${count}/day` })),
-];
-
 function castWay(spell: MonsterSpell): string {
   if (spell.perDay) return `day${spell.perDay}`;
   return spell.level === 0 || spell.level === null ? "atwill" : "slot";
@@ -42,7 +32,23 @@ function castWay(spell: MonsterSpell): string {
 const LEVELS = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
 export function SpellcastingEditor({ draft, onChange }: Props) {
+  const { t } = useI18n();
   const casting = draft.stats.spellcasting;
+  const abilityOptions = [
+    { value: "", label: t("workshop.monsterEditor.spell.ability.unstated") },
+    ...SAVE_ABILITY_IDS.map((ability) => ({
+      value: ability as string,
+      label: t(`workshop.monsterEditor.stats.ability.${ability}` as never),
+    })),
+  ];
+  const useOptions = [
+    { value: "slot", label: t("workshop.monsterEditor.spell.use.slot") },
+    { value: "atwill", label: t("workshop.monsterEditor.spell.use.atwill") },
+    ...[1, 2, 3].map((count) => ({
+      value: `day${count}`,
+      label: t("workshop.monsterEditor.spell.use.perDay", { count }),
+    })),
+  ];
   const set = (next: MonsterSpellcasting | undefined) =>
     onChange({
       ...draft,
@@ -57,12 +63,12 @@ export function SpellcastingEditor({ draft, onChange }: Props) {
   return (
     <div className="flex flex-col gap-2">
       <SectionHead
-        title="Spellcasting"
+        title={t("workshop.monsterEditor.spell.title")}
         glyph="cue-arcane"
         className="mb-0"
         aside={
           <Switch
-            label="Casts spells"
+            label={t("workshop.monsterEditor.spell.casts")}
             on={on}
             onChange={(next) =>
               set(
@@ -83,29 +89,29 @@ export function SpellcastingEditor({ draft, onChange }: Props) {
       {casting ? (
         <div className="reveal flex flex-col gap-2">
           <div className="flex flex-wrap items-end gap-3">
-            <Field label="Ability">
+            <Field label={t("workshop.monsterEditor.spell.ability")}>
               <span className="block w-28">
-                <Select label="Spellcasting ability" size="sm" value={casting.ability ?? ""} onChange={(ability) => set({ ...casting, ability: (ability || undefined) as MonsterSpellcasting["ability"] })} options={ABILITY_OPTIONS} />
+                <Select label={t("workshop.monsterEditor.spell.abilityLabel")} size="sm" value={casting.ability ?? ""} onChange={(ability) => set({ ...casting, ability: (ability || undefined) as MonsterSpellcasting["ability"] })} options={abilityOptions} />
               </span>
             </Field>
-            <Field label="Save DC">
-              <OptionalStepper label="Spell save DC" min={1} max={30} fallback={13} value={casting.dc} onChange={(dc) => set({ ...casting, dc: dc === "" ? undefined : dc })} />
+            <Field label={t("workshop.monsterEditor.spell.saveDc")}>
+              <OptionalStepper label={t("workshop.monsterEditor.spell.spellSaveDc")} min={1} max={30} fallback={13} value={casting.dc} onChange={(dc) => set({ ...casting, dc: dc === "" ? undefined : dc })} />
             </Field>
-            <Field label="Spell attack">
-              <OptionalStepper label="Spell attack bonus" min={-5} max={20} fallback={5} value={casting.attack} onChange={(attack) => set({ ...casting, attack: attack === "" ? undefined : attack })} />
+            <Field label={t("workshop.monsterEditor.spell.spellAttack")}>
+              <OptionalStepper label={t("workshop.monsterEditor.spell.spellAttackBonus")} min={-5} max={20} fallback={5} value={casting.attack} onChange={(attack) => set({ ...casting, attack: attack === "" ? undefined : attack })} />
             </Field>
-            <Field label="Caster level">
+            <Field label={t("workshop.monsterEditor.spell.casterLevel")}>
               <OptionalStepper label="Caster level" min={1} max={20} fallback={5} value={casting.casterLevel} onChange={(casterLevel) => set({ ...casting, casterLevel: casterLevel === "" ? undefined : casterLevel })} />
             </Field>
           </div>
-          <Field label="Slots by level">
+          <Field label={t("workshop.monsterEditor.spell.slots")}>
             <div className="stagger-up grid grid-cols-[repeat(auto-fill,minmax(5.5rem,1fr))] gap-1.5">
               {LEVELS.map((level) => (
                 <span key={level} className="flex flex-col gap-0.5 text-[10px] uppercase text-stone-500">
-                  Level {level}
+                  {t("workshop.monsterEditor.spell.level", { level })}
                   <NumberStepper
                     size="sm"
-                    label={`Level ${level} slots`}
+                    label={t("workshop.monsterEditor.spell.levelSlots", { level })}
                     min={0}
                     max={9}
                     value={casting.slots[String(level)] ?? 0}
@@ -126,7 +132,7 @@ export function SpellcastingEditor({ draft, onChange }: Props) {
                 <span className="min-w-36 flex-1 text-stone-200">{spell.name}</span>
                 <span className="block w-28">
                   <Select
-                    label={`How ${spell.name} is cast`}
+                    label={t("workshop.monsterEditor.spell.howCast", { name: spell.name })}
                     size="sm"
                     value={castWay(spell)}
                     onChange={(use) => {
@@ -138,13 +144,13 @@ export function SpellcastingEditor({ draft, onChange }: Props) {
                             : { name: spell.name, level: null, perDay: Number(use.slice(3)) };
                       set({ ...casting, spells: casting.spells.map((row, at) => (at === index ? next : row)) });
                     }}
-                    options={USE_OPTIONS}
+                    options={useOptions}
                   />
                 </span>
                 {castWay(spell) === "slot" ? (
-                  <NumberStepper size="sm" label={`${spell.name} level`} min={1} max={9} value={spell.level ?? 1} onChange={(level) => set({ ...casting, spells: casting.spells.map((row, at) => (at === index ? { ...row, level } : row)) })} />
+                  <NumberStepper size="sm" label={t("workshop.monsterEditor.spell.spellLevel", { name: spell.name })} min={1} max={9} value={spell.level ?? 1} onChange={(level) => set({ ...casting, spells: casting.spells.map((row, at) => (at === index ? { ...row, level } : row)) })} />
                 ) : null}
-                <button type="button" aria-label={`Remove ${spell.name}`} onClick={() => set({ ...casting, spells: casting.spells.filter((_, at) => at !== index) })} className={cn(ui.iconAction, rowIcon, "hover:text-red-300")}>
+                <button type="button" aria-label={t("workshop.monsterEditor.spell.remove", { name: spell.name })} onClick={() => set({ ...casting, spells: casting.spells.filter((_, at) => at !== index) })} className={cn(ui.iconAction, rowIcon, "hover:text-red-300")}>
                   <Trash2 className="size-3.5" />
                 </button>
               </div>
@@ -152,8 +158,8 @@ export function SpellcastingEditor({ draft, onChange }: Props) {
             {casting.spells.length < BLOCK_LIMITS.spells ? (
               <ContentPick
                 kind="spells"
-                label="Find a spell in the catalogue to add"
-                placeholder="Add a spell from the books..."
+                label={t("workshop.monsterEditor.spell.find")}
+                placeholder={t("workshop.monsterEditor.spell.findPlaceholder")}
                 onPick={(entry) => {
                   if (casting.spells.some((known) => textKey(known.name) === textKey(entry.name))) return;
                   const level = typeof entry.level === "number" ? entry.level : null;
@@ -163,7 +169,7 @@ export function SpellcastingEditor({ draft, onChange }: Props) {
             ) : null}
           </div>
           <span className="text-[11px] text-stone-500">
-            The GM casts these for the monster; the server spends the slot or the use, and uses this DC for the save.
+            {t("workshop.monsterEditor.spell.explanation")}
           </span>
         </div>
       ) : null}
