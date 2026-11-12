@@ -261,6 +261,7 @@ export function useMapSelection({
           }
           defaultValue={editValue}
           submitLabel={t("workshop.maps.selection.apply")}
+          cancelLabel={t("workshop.maps.selection.cancel")}
           onSubmit={submitEdit}
         />
   );
