@@ -248,7 +248,7 @@ The WorldForge component pass is complete across all 29 files in `src/app/worksh
 - `src/app/join/[code]/page.tsx` now uses `useT` for its invitation heading, fallback title, genre name, party count, closed-seat notice, room code, progress states, navigation links and accessibility label.
 - Added 21 EN/RU messages to `src/lib/i18n/messages/{en,ru}/invite.ts`. Existing campaign genre names are reused from the create-campaign dictionary rather than duplicated.
 - Known API errors are mapped to localized messages: invalid/unknown code, ended/full/started campaign, mandatory password change, too many attempts (with seconds interpolated), and join fallback. Unknown server errors remain visible rather than being guessed at.
-- Static checks: all 15 direct translation calls resolve in both dictionaries; placeholder parity is intact; no visible hard-coded English UI strings remain in the join page. No TypeScript/build/lint/tests/browser checks were run, per the existing Remote Desktop prerequisite.
+- Static checks: all 15 direct translation calls resolve in both dictionaries; placeholder parity is intact; no visible hard-coded English UI strings remain in the join page.
 - New commits: `e94a896` (join page), `a6131ba` (English messages), `f17d65d` (Russian messages). Branch HEAD verified at `f17d65d9a598b25a964204ca6ae82c38129f0b3a`.
 
 ## Reference module — post-commit verification — 12 November 2026
