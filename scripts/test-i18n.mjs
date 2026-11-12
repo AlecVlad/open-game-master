@@ -221,6 +221,9 @@ const joinConfirmErrorMessages = [
   "campaign.joinConfirm.error.pickOneHero",
   "campaign.joinConfirm.error.alreadyHasCharacter",
   "campaign.joinConfirm.error.lobbyOnly",
+  "campaign.joinConfirm.error.picksUnreadable",
+  "campaign.joinConfirm.error.noCharacterToSwitch",
+  "campaign.joinConfirm.error.updateFailed",
 ];
 for (const key of joinConfirmErrorMessages) {
   assert.ok(key in DICTIONARIES.en, `English join-confirm error missing: ${key}`);
