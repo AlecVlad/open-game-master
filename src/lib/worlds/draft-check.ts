@@ -21,11 +21,18 @@ import { MAX_PACK_ART_BYTES, packArtSlots } from "@/lib/worlds/art";
 import { finishDraft, type WorldPackDraft } from "@/lib/worlds/draft";
 import { textKey } from "@/lib/language/text-logic";
 
+export type DraftCheckMessage = {
+  key: string;
+  params?: Record<string, string | number>;
+};
+
 export type DraftCheck = {
-  // Blocks export.
+  // English fallback remains for non-UI callers.
   problems: string[];
-  // Worth doing before sharing.
   advice: string[];
+  // Stable message data lets the editor render notices in the active locale.
+  problemMessages: DraftCheckMessage[];
+  adviceMessages: DraftCheckMessage[];
 };
 
 const ALIGNMENT_CODES = new Set(["LG", "NG", "CG", "LN", "N", "CN", "LE", "NE", "CE"]);
@@ -69,6 +76,16 @@ function walkStrings(value: unknown, trail: string, visit: (text: string, at: st
 export function checkDraft(draft: WorldPackDraft): DraftCheck {
   const problems: string[] = [];
   const advice: string[] = [];
+  const problemMessages: DraftCheckMessage[] = [];
+  const adviceMessages: DraftCheckMessage[] = [];
+  const addProblem = (message: string, key: string, params: Record<string, string | number> = {}) => {
+    problems.push(message);
+    problemMessages.push({ key, params });
+  };
+  const addAdvice = (message: string, key: string, params: Record<string, string | number> = {}) => {
+    advice.push(message);
+    adviceMessages.push({ key, params });
+  };
   const pack = finishDraft(draft) as ReturnType<typeof finishDraft> & {
     races: Array<{ id: string; name: string }>;
     classes: Array<{ id: string; name: string; castingLabel: string | null }>;
@@ -88,25 +105,25 @@ export function checkDraft(draft: WorldPackDraft): DraftCheck {
   };
 
   // ---- the identity a pack cannot ship without ----
-  if (!String(pack.name)) problems.push("Give the world a name.");
-  if (!String(pack.blurb)) problems.push("Write the one-line blurb the picker shows.");
-  if (!String(pack.inspiredBy)) problems.push("Say what the world is inspired by, even if the answer is 'my own'.");
-  if (!String(pack.theme)) problems.push("Set the theme line: it seeds every campaign that picks this world.");
-  if (pack.baseGenre === "custom") problems.push("Pick a base genre; a pack cannot be 'custom'.");
+  if (!String(pack.name)) addProblem("Give the world a name.", "workshop.plugin.check.nameRequired");
+  if (!String(pack.blurb)) addProblem("Write the one-line blurb the picker shows.", "workshop.plugin.check.blurbRequired");
+  if (!String(pack.inspiredBy)) addProblem("Say what the world is inspired by, even if the answer is 'my own'.", "workshop.plugin.check.inspiredByRequired");
+  if (!String(pack.theme)) addProblem("Set the theme line: it seeds every campaign that picks this world.", "workshop.plugin.check.themeRequired");
+  if (pack.baseGenre === "custom") addProblem("Pick a base genre; a pack cannot be 'custom'.", "workshop.plugin.check.baseGenreCustom");
   if (!/^[a-z][a-z0-9_]{2,49}$/.test(String(pack.id))) {
-    problems.push("The name does not fold to a usable id; give it a few letters.");
+    addProblem("The name does not fold to a usable id; give it a few letters.", "workshop.plugin.check.idInvalid");
   }
 
   // ---- reskins by id ----
   for (const entry of pack.races) {
-    if (!findRace(entry.id)) problems.push(`Race "${entry.id}" is not in the catalog.`);
+    if (!findRace(entry.id)) addProblem(`Race "${entry.id}" is not in the catalog.`, "workshop.plugin.check.raceUnknown", { id: entry.id });
   }
   for (const entry of pack.classes) {
     const klass = findClass(entry.id);
     if (!klass) {
-      problems.push(`Class "${entry.id}" is not in the catalog.`);
+      addProblem(`Class "${entry.id}" is not in the catalog.`, "workshop.plugin.check.classUnknown", { id: entry.id });
     } else if (klass.spellAbility === null && entry.castingLabel) {
-      problems.push(`${klass.name} does not cast, so its casting label must stay empty.`);
+      addProblem(`${klass.name} does not cast, so its casting label must stay empty.`, "workshop.plugin.check.classNoCasting", { name: entry.id });
     }
   }
   const backgroundIds = new Set([
@@ -114,10 +131,10 @@ export function checkDraft(draft: WorldPackDraft): DraftCheck {
     ...CUSTOM_BACKGROUNDS.map((entry) => entry.id),
   ]);
   for (const entry of pack.backgrounds) {
-    if (!backgroundIds.has(entry.id)) problems.push(`Background "${entry.id}" is not in the catalog.`);
+    if (!backgroundIds.has(entry.id)) addProblem(`Background "${entry.id}" is not in the catalog.`, "workshop.plugin.check.backgroundUnknown", { id: entry.id });
   }
   for (const id of pack.companionRaces) {
-    if (!findRace(id)) problems.push(`Companion race "${id}" is not in the catalog.`);
+    if (!findRace(id)) addProblem(`Companion race "${id}" is not in the catalog.`, "workshop.plugin.check.companionRaceUnknown", { id });
   }
   for (const [key, list] of [
     ["races", pack.races],
@@ -128,10 +145,10 @@ export function checkDraft(draft: WorldPackDraft): DraftCheck {
     const ids = new Set<string>();
     for (const entry of list) {
       if (entry.name.toLowerCase() === entry.id.toLowerCase()) {
-        problems.push(`In ${key}, "${entry.id}" is renamed to its own id.`);
+        addProblem(`In ${key}, "${entry.id}" is renamed to its own id.`, "workshop.plugin.check.reskinSameId", { group: key, id: entry.id });
       }
-      if (names.has(textKey(entry.name))) problems.push(`Two ${key} are both called "${entry.name}".`);
-      if (ids.has(entry.id)) problems.push(`"${entry.id}" is reskinned twice in ${key}; only one would show.`);
+      if (names.has(textKey(entry.name))) addProblem(`Two ${key} are both called "${entry.name}".`, "workshop.plugin.check.duplicateReskinName", { group: key, name: entry.name });
+      if (ids.has(entry.id)) addProblem(`"${entry.id}" is reskinned twice in ${key}; only one would show.`, "workshop.plugin.check.duplicateReskinId", { group: key, id: entry.id });
       names.add(textKey(entry.name));
       ids.add(entry.id);
     }
@@ -147,10 +164,10 @@ export function checkDraft(draft: WorldPackDraft): DraftCheck {
     const sources = new Set<string>();
     for (const entry of list) {
       if (textKey(entry.name) === textKey(entry.from)) {
-        problems.push(`In ${key}, "${entry.from}" is renamed to itself.`);
+        addProblem(`In ${key}, "${entry.from}" is renamed to itself.`, "workshop.plugin.check.renamedToSelf", { group: key, source: entry.from });
       }
-      if (names.has(textKey(entry.name))) problems.push(`Two ${key} are both called "${entry.name}".`);
-      if (sources.has(textKey(entry.from))) problems.push(`"${entry.from}" is reskinned twice in ${key}.`);
+      if (names.has(textKey(entry.name))) addProblem(`Two ${key} are both called "${entry.name}".`, "workshop.plugin.check.duplicateNameReskin", { group: key, name: entry.name });
+      if (sources.has(textKey(entry.from))) addProblem(`"${entry.from}" is reskinned twice in ${key}.`, "workshop.plugin.check.sourceReskinnedTwice", { group: key, source: entry.from });
       names.add(textKey(entry.name));
       sources.add(textKey(entry.from));
     }
@@ -159,50 +176,52 @@ export function checkDraft(draft: WorldPackDraft): DraftCheck {
   // ---- monsters ----
   const slugs = new Set<string>();
   for (const entry of pack.monsters) {
-    if (slugs.has(entry.slug)) problems.push(`Monster "${entry.slug}" is listed twice.`);
+    if (slugs.has(entry.slug)) addProblem(`Monster "${entry.slug}" is listed twice.`, "workshop.plugin.check.monsterDuplicate", { slug: entry.slug });
     slugs.add(entry.slug);
   }
 
   for (const code of pack.alignments) {
-    if (!ALIGNMENT_CODES.has(code)) problems.push(`"${code}" is not an alignment code.`);
+    if (!ALIGNMENT_CODES.has(code)) addProblem(`"${code}" is not an alignment code.`, "workshop.plugin.check.alignmentInvalid", { code });
   }
 
   // ---- art ----
   const slotKeys = new Set<string>();
   for (const slot of packArtSlots(pack)) {
     if (slotKeys.has(slot.key)) {
-      problems.push(`Two ${slot.kind}s fold to the same picture key "${slot.key}"; rename one.`);
+      addProblem(`Two ${slot.kind}s fold to the same picture key "${slot.key}"; rename one.`, "workshop.plugin.check.artKeyCollision", { kind: slot.kind, key: slot.key });
     }
     slotKeys.add(slot.key);
   }
   for (const [key, dataUrl] of Object.entries(pack.art)) {
     const bytes = dataUrlBytes(dataUrl);
     if (bytes > MAX_PACK_ART_BYTES) {
-      problems.push(`The picture for "${key}" is ${Math.round(bytes / 1024)} KB; the cap is ${MAX_PACK_ART_BYTES / 1024} KB.`);
+      addProblem(`The picture for "${key}" is ${Math.round(bytes / 1024)} KB; the cap is ${MAX_PACK_ART_BYTES / 1024} KB.`, "workshop.plugin.check.artTooLarge", { key, size: Math.round(bytes / 1024), max: MAX_PACK_ART_BYTES / 1024 });
     }
   }
 
   // ---- the house style ----
   walkStrings(pack, "", (text, at) => {
-    if (text.includes("—")) problems.push(`There is an em dash in ${at}; packs use plain dashes.`);
+    if (text.includes("—")) addProblem(`There is an em dash in ${at}; packs use plain dashes.`, "workshop.plugin.check.emDash", { path: at });
   });
 
   // ---- advice ----
   if (String(pack.dmFlavor).length < DM_FLAVOR_FLOOR) {
     advice.push(
       `The GM brief is ${String(pack.dmFlavor).length} characters; ${DM_FLAVOR_FLOOR} or more is what steers the narrator.`,
+      "workshop.plugin.check.briefTooShort",
+      { count: String(pack.dmFlavor).length, minimum: DM_FLAVOR_FLOOR },
     );
   }
   for (const target of SIZE_TARGETS) {
     const count = (pack[target.key as keyof typeof pack] as unknown[]).length;
-    if (count < target.floor) advice.push(`${count} ${target.label}; a full pack has at least ${target.floor}.`);
+    if (count < target.floor) addAdvice(`${count} ${target.label}; a full pack has at least ${target.floor}.`, "workshop.plugin.check.sizeBelowTarget", { count, minimum: target.floor, group: target.key });
   }
-  if (pack.nameSeeds.people.length < 6) advice.push("Fewer than six people names to suggest in the builder.");
-  if (pack.nameSeeds.places.length < 6) advice.push("Fewer than six place names to suggest in the builder.");
+  if (pack.nameSeeds.people.length < 6) addAdvice("Fewer than six people names to suggest in the builder.", "workshop.plugin.check.nameSeedsPeople");
+  if (pack.nameSeeds.places.length < 6) addAdvice("Fewer than six place names to suggest in the builder.", "workshop.plugin.check.nameSeedsPlaces");
   if (!String(pack.rightsHolder)) {
-    advice.push("No rights holder, so this ships as an original world. Fill it in if it stands on somebody else's setting.");
+    addAdvice("No rights holder, so this ships as an original world. Fill it in if it stands on somebody else's setting.", "workshop.plugin.check.rightsHolderMissing");
   }
-  if (!pack.art.cover) advice.push("No cover picture; the picker will show the genre plate.");
+  if (!pack.art.cover) addAdvice("No cover picture; the picker will show the genre plate.", "workshop.plugin.check.coverMissing");
 
-  return { problems, advice };
+  return { problems, advice, problemMessages, adviceMessages };
 }
