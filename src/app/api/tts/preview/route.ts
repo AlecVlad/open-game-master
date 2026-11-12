@@ -36,14 +36,14 @@ export async function GET(request: Request) {
 
   const voice = (new URL(request.url).searchParams.get("voice") ?? "").trim();
   if (!isPreviewableVoice(voice)) {
-    return Response.json({ error: "Unknown voice." }, { status: 400 });
+    return Response.json({ error: "Unknown voice.", errorCode: "VOICE_UNKNOWN" }, { status: 400 });
   }
   const backend = ttsBackend();
   if (backend.provider === "off") {
-    return Response.json({ error: "Narration is switched off on this server." }, { status: 409 });
+    return Response.json({ error: "Narration is switched off on this server.", errorCode: "NARRATION_OFF" }, { status: 409 });
   }
   if (!voicePreviewCached(voice) && !mayRender(user.id)) {
-    return Response.json({ error: "That is a lot of new voices at once. Try again in a few minutes." }, { status: 429 });
+    return Response.json({ error: "That is a lot of new voices at once. Try again in a few minutes.", errorCode: "VOICE_PREVIEW_LIMIT" }, { status: 429 });
   }
 
   let name: string;
