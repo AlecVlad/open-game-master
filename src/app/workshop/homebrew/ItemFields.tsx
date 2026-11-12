@@ -149,7 +149,7 @@ function WeaponBlock({ weapon, onChange }: { weapon: Weapon; onChange: (next: We
           ]}
           onChange={(type) => set({ damage: joinDamage(splitDamage(String(weapon.damage ?? "")).dice, type) })}
           hint={t("workshop.homebrew.item.weapon.damageType.hint")}
-          glossary={{ title: "Damage types", entries: glossaryFor(DAMAGE_TYPES, DAMAGE_TYPE_BLURBS) }}
+          glossary={{ title: t("workshop.homebrew.item.ui.damageTypes"), entries: glossaryFor(DAMAGE_TYPES, DAMAGE_TYPE_BLURBS) }}
         />
         <NumberField
           label={t("workshop.homebrew.item.weapon.range")}
@@ -209,7 +209,7 @@ function ArmorBlock({ armor, onChange }: { armor: Armor; onChange: (next: Armor)
       </div>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         <SelectField
-          label="Category"
+          label={t("workshop.homebrew.item.armor.category")}
           value={category}
           options={ARMOR_CATEGORIES.map((value) => ({ value, label: t(`workshop.homebrew.item.armor.category.${value}`) }))}
           onChange={(next) => set({ category: next })}
