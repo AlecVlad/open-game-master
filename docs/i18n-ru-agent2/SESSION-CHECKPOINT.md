@@ -219,5 +219,11 @@ Continue the Atlas audit with `AtlasRegion.tsx`, `AtlasEdit.tsx`, `AtlasParty.ts
 - Added 42 EN/RU messages under `campaign.editDialog.*` and `campaign.sessionSettings.*`. Static checks: all added keys are present in both dictionaries, no duplicate keys were introduced, placeholders match, and direct references in the edited components resolve against the dictionaries.
 - API-provided error messages remain as supplied by the server; only local fallback text is translated. TypeScript, lint, tests, production build and browser visual checks were not run. Preserve the Remote Desktop prerequisite above.
 
+## Table settings read-only summary and search — 12 November 2026
+- `GameSettingsPanel.tsx`: localized the read-only and edit headings, explanatory text, visible setting summaries, save status, search field and empty-search state. Server settings and enum values remain unchanged; summary text is selected by the existing stored values.
+- Localized the fallback used when a settings PATCH fails; server-provided error strings remain untouched.
+- Added 62 EN/RU messages under `campaign.gameSettings.*`. Static checks: key completeness, no duplicates, placeholder parity and direct message references passed.
+- The detailed editor groups in `GameSettingsGroups.tsx` and group titles/summaries in `table-settings-groups.ts` are still pending; keep the next pass focused there. TypeScript, lint, tests, build and browser checks were not run.
+
 ## Resume
 The WorldForge component pass is complete across all 29 files in `src/app/workshop/world/`: core views, Atlas, timeline, secrets, wiki, Ask, outline generation, paint queue, relationship graph/editor, type manager, bound records, play fields and shared pickers. Continue with the broader app-level localization audit outside this folder and fix any remaining visible English UI. Verify branch HEAD before editing. Do not run TypeScript/build/lint/tests until Remote Desktop access is available. Block 1 remains formally open; do not merge, open a PR or create its DONE flag.
