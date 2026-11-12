@@ -19,6 +19,7 @@ import type { Campaign } from "@/lib/db/campaigns";
 import { offersImages, useCapabilities } from "@/lib/use-capabilities";
 import { CampaignCover, type CoverStatus } from "@/components/CampaignCover";
 import { useI18n } from "@/lib/i18n/provider";
+import { campaignApiErrorText } from "@/lib/i18n/campaignApiError";
 
 // Matches the characters page: polls every 2.5 s while a render is queued
 // or generating, and gives up after the image backend's own timeout so a
@@ -209,7 +210,7 @@ export function EditCampaignDialog({
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError(data.error || t("campaign.editDialog.error.save"));
+        setError(campaignApiErrorText(data, t("campaign.editDialog.error.save"), t));
         return;
       }
       onClose();
