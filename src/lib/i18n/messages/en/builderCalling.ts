@@ -68,7 +68,7 @@ export const enBuilderCalling = {
   "builder.multi.showFewer": "Show fewer classes",
   "builder.multi.showMore": "Show {count} more from other books and settings",
   "builder.multi.noLevel": "Your {klass} has one level left, so you cannot give a level to another class.",
-  "builder.multi.class.aria": "{name}, {level} {levelWord}",
+  "builder.multi.class.aria": "{name}, level {level}",
   "builder.multi.remove": "Remove",
   "builder.multi.class.levels": "{name} levels",
   "builder.multi.extra.adds": "Adds: {grants}.",
