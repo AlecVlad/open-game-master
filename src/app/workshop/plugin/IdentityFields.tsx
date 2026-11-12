@@ -122,6 +122,10 @@ export function OriginFields({ draft, onDraft }: SectionProps) {
 export function WorldFields({ draft, onDraft }: SectionProps) {
   const { t } = useI18n();
   const set = (patch: Partial<WorldPackDraft>) => onDraft({ ...draft, ...patch });
+  const alignments = ALIGNMENT_OPTIONS.map((option) => ({
+    value: option.value,
+    label: t(`workshop.plugin.alignment.${option.value}` as never),
+  }));
   return (
     <div className="grid gap-3 sm:grid-cols-2">
       <div className="block">
@@ -162,7 +166,7 @@ export function WorldFields({ draft, onDraft }: SectionProps) {
         <ChipList
           items={draft.alignments}
           onChange={(alignments) => set({ alignments })}
-          options={ALIGNMENT_OPTIONS}
+          options={alignments}
           prompt={t("workshop.plugin.identity.addAlignment")}
           labelFor={(code) => catalogLabel(ALIGNMENT_OPTIONS, code)}
           max={9}
@@ -176,6 +180,10 @@ export function VoiceFields({ draft, onDraft }: SectionProps) {
   const { t } = useI18n();
   const set = (patch: Partial<WorldPackDraft>) => onDraft({ ...draft, ...patch });
   const thin = draft.dmFlavor.trim().length < DM_FLAVOR_FLOOR;
+  const companionRaces = RACE_OPTIONS.map((option) => ({
+    ...option,
+    label: t(`campaign.npcEditor.raceOption.${option.value}` as never),
+  }));
   return (
     <div className="grid gap-3 sm:grid-cols-2">
       <TextField
@@ -237,9 +245,9 @@ export function VoiceFields({ draft, onDraft }: SectionProps) {
         <ChipList
           items={draft.companionRaces}
           onChange={(companionRaces) => set({ companionRaces })}
-          options={RACE_OPTIONS}
+          options={companionRaces}
           prompt={t("workshop.plugin.identity.companionRaces.prompt")}
-          labelFor={(id) => catalogLabel(RACE_OPTIONS, id)}
+          labelFor={(id) => t(`campaign.npcEditor.raceOption.${id}` as never)}
         />
         <p className="mt-1 text-[11px] text-stone-500">{t("workshop.plugin.identity.companionRaces.empty")}</p>
       </div>
