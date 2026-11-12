@@ -122,6 +122,20 @@ const sharedComponentMessages = [
   "deviceSettings.effects.manual", "deviceSettings.effects.choose", "deviceSettings.effects.paintedMaps",
   "deviceSettings.effects.paintedMapsHint", "deviceSettings.effects.chime",
   "deletionBanner.message", "deletionBanner.error", "deletionBanner.keep",
+  "assistantLink.title", "assistantLink.copyLabel", "assistantLink.hint",
+  "correction.announce.saved", "correction.announce.prompt", "correction.group.aria", "correction.saved",
+  "correction.prompt", "correction.reason.wrongRule", "correction.reason.wrongNumber", "correction.reason.wrongTarget",
+  "correction.reason.story", "correction.reason.changedMind", "correction.close",
+  "campaignCover.alt", "campaignCover.emptyAlt", "campaignCover.loading",
+  "handout.found", "handout.source", "handout.openPages", "handout.download", "handout.takeDown", "handout.foldAway",
+  "pageSkeleton.loadingTable", "pageSkeleton.loading",
+  "serverAddress.dialog.aria", "serverAddress.eyebrow", "serverAddress.close", "serverAddress.preparing",
+  "serverAddress.copied", "serverAddress.copy", "serverAddress.share", "serverAddress.description",
+  "serverAddress.hide", "serverAddress.show", "serverAddress.title", "serverAddress.qrAlt",
+  "agentConnect.programLabel", "agentConnect.program.other", "agentConnect.copyThis", "agentConnect.copyLabel",
+  "agentConnect.where.claude", "agentConnect.where.codex", "agentConnect.where.opencode", "agentConnect.where.other",
+  "agentConnect.askExample", "agentConnect.example", "agentConnect.connected", "agentConnect.firstCall",
+  "agentConnect.arrived", "agentConnect.at", "agentConnect.noCall", "agentConnect.waiting",
 ];
 for (const key of sharedComponentMessages) {
   assert.ok(key in DICTIONARIES.en, `English shared-component message missing: ${key}`);
