@@ -2,9 +2,10 @@
 
 import { Box, Hand, MapPin, Pencil, Ruler } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { useI18n } from "@/lib/i18n/provider";
 import { Slider } from "@/components/ui/Slider";
-import { ADHOC_LABELS, ADHOC_HINTS, ADHOC_NAME_MAX } from "@/lib/dm/board-logic";
-import { SHAPE_LABELS, SHAPE_MEASURES, TEMPLATE_SHAPES } from "@/lib/battlemap/template";
+import { ADHOC_NAME_MAX } from "@/lib/dm/board-logic";
+import { TEMPLATE_SHAPES } from "@/lib/battlemap/template";
 import type { TemplateShape } from "@/lib/battlemap/template";
 import type { AdhocTokenKind } from "@/lib/battlemap/types";
 
@@ -14,12 +15,36 @@ import type { AdhocTokenKind } from "@/lib/battlemap/types";
 
 export type BoardTool = "handle" | "place" | "measure" | "point" | "draw";
 
-const TOOL_LABELS: Record<BoardTool, string> = {
-  handle: "Move pieces",
-  place: "Put something down",
-  measure: "Measure an area",
-  point: "Point at a tile",
-  draw: "Draw on the board",
+const TOOL_LABEL_KEYS: Record<BoardTool, string> = {
+  handle: "campaign.session.battle.dmTool.move",
+  place: "campaign.session.battle.dmTool.place",
+  measure: "campaign.session.battle.dmTool.measure",
+  point: "campaign.session.battle.dmTool.point",
+  draw: "campaign.session.battle.dmTool.draw",
+};
+const ADHOC_LABEL_KEYS: Record<AdhocTokenKind, string> = {
+  npc: "campaign.session.battle.dmToken.person",
+  prop: "campaign.session.battle.dmToken.object",
+};
+const ADHOC_HINT_KEYS: Record<AdhocTokenKind, string> = {
+  npc: "campaign.session.battle.dmToken.personHint",
+  prop: "campaign.session.battle.dmToken.objectHint",
+};
+const ADHOC_PLACEHOLDER_KEYS: Record<AdhocTokenKind, string> = {
+  npc: "campaign.session.battle.dmToken.personPlaceholder",
+  prop: "campaign.session.battle.dmToken.objectPlaceholder",
+};
+const SHAPE_LABEL_KEYS: Record<TemplateShape, string> = {
+  sphere: "campaign.session.battle.dmTemplate.sphere",
+  cone: "campaign.session.battle.dmTemplate.cone",
+  line: "campaign.session.battle.dmTemplate.line",
+  cube: "campaign.session.battle.dmTemplate.cube",
+};
+const SHAPE_MEASURE_KEYS: Record<TemplateShape, string> = {
+  sphere: "campaign.session.battle.dmTemplate.radius",
+  cone: "campaign.session.battle.dmTemplate.length",
+  line: "campaign.session.battle.dmTemplate.length",
+  cube: "campaign.session.battle.dmTemplate.side",
 };
 
 const TOOL_ICONS: Record<BoardTool, typeof Hand> = {
@@ -39,11 +64,12 @@ export function BoardToolRail({
   onTool: (tool: BoardTool) => void;
   disabled: boolean;
 }) {
+  const { t } = useI18n();
   return (
     // board-tools: in a fixed window the row keeps to one line and scrolls
     // sideways, so it never takes the board's height (world.css, issue 87).
     <div data-pill-group="" className="board-tools flex flex-wrap gap-1">
-      {(Object.keys(TOOL_LABELS) as BoardTool[]).map((option) => {
+      {(Object.keys(TOOL_LABEL_KEYS) as BoardTool[]).map((option) => {
         const Icon = TOOL_ICONS[option];
         return (
           <button data-on={tool === option ? "" : undefined}
@@ -51,7 +77,7 @@ export function BoardToolRail({
             type="button"
             disabled={disabled}
             onClick={() => onTool(option)}
-            title={TOOL_LABELS[option]}
+            title={t(TOOL_LABEL_KEYS[option] as never)}
             className={cn(
               "flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs disabled:opacity-40",
               tool === option
@@ -60,7 +86,7 @@ export function BoardToolRail({
             )}
           >
             <Icon className="size-3.5" />
-            {TOOL_LABELS[option]}
+            {t(TOOL_LABEL_KEYS[option] as never)}
           </button>
         );
       })}
@@ -79,15 +105,16 @@ export function PlaceTokenForm({
   onKind: (kind: AdhocTokenKind) => void;
   onName: (name: string) => void;
 }) {
+  const { t } = useI18n();
   return (
     <div className="space-y-1.5 rounded-lg border border-stone-800 bg-stone-950/60 px-2.5 py-2">
       <div data-pill-group="" className="flex gap-1">
-        {(Object.keys(ADHOC_LABELS) as AdhocTokenKind[]).map((option) => (
+        {(Object.keys(ADHOC_LABEL_KEYS) as AdhocTokenKind[]).map((option) => (
           <button data-on={kind === option ? "" : undefined}
             key={option}
             type="button"
             onClick={() => onKind(option)}
-            title={ADHOC_HINTS[option]}
+            title={t(ADHOC_HINT_KEYS[option] as never)}
             className={cn(
               "rounded-md border px-2 py-1 text-xs",
               kind === option
@@ -95,7 +122,7 @@ export function PlaceTokenForm({
                 : "border-stone-700 text-stone-400 hover:text-stone-200",
             )}
           >
-            {ADHOC_LABELS[option]}
+            {t(ADHOC_LABEL_KEYS[option] as never)}
           </button>
         ))}
       </div>
@@ -103,13 +130,13 @@ export function PlaceTokenForm({
         value={name}
         onChange={(event) => onName(event.target.value)}
         maxLength={ADHOC_NAME_MAX}
-        placeholder={kind === "npc" ? "Marla the smith" : "Overturned cart"}
+        placeholder={t(ADHOC_PLACEHOLDER_KEYS[kind] as never)}
         className="w-full rounded-md border border-stone-700 bg-stone-950 px-2 py-1 text-xs text-stone-200 placeholder:text-stone-600"
       />
       <p className="text-[11px] text-stone-500">
         {name.trim()
-          ? "Now tap the tile it stands on."
-          : "Name it first. An unlabelled circle is a puzzle for the whole table."}
+          ? t("campaign.session.battle.dmToken.tapTile")
+          : t("campaign.session.battle.dmToken.nameFirst")}
       </p>
     </div>
   );
@@ -132,6 +159,7 @@ export function MeasureControls({
   onSize: (feet: number) => void;
   onClear: () => void;
 }) {
+  const { t } = useI18n();
   const enemyIds = caught.map((entry) => entry.enemyId).filter(Boolean).join(", ");
   return (
     <div className="space-y-1.5 rounded-lg border border-stone-800 bg-stone-950/60 px-2.5 py-2">
@@ -148,30 +176,30 @@ export function MeasureControls({
                 : "border-stone-700 text-stone-400 hover:text-stone-200",
             )}
           >
-            {SHAPE_LABELS[option]}
+            {t(SHAPE_LABEL_KEYS[option] as never)}
           </button>
         ))}
       </div>
       <label className="flex items-center gap-2 text-[11px] text-stone-400">
-        <span className="w-16 capitalize">{SHAPE_MEASURES[shape]}</span>
+        <span className="w-16 capitalize">{t(SHAPE_MEASURE_KEYS[shape] as never)}</span>
         <Slider
           min={5}
           max={60}
           step={5}
           value={sizeFeet}
           onChange={onSize}
-          label={`Template ${SHAPE_MEASURES[shape]} in feet`}
+          label={t("campaign.session.battle.dmTemplate.sliderLabel", { measure: t(SHAPE_MEASURE_KEYS[shape] as never) })}
           bubble={(feet) => `${feet} ft`}
           className="min-w-0 flex-1"
         />
         <span className="w-12 text-right tabular-nums text-stone-300">{sizeFeet} ft</span>
       </label>
       <p className="text-[11px] leading-4 text-stone-500">
-        Tap where it starts, then tap where it points. Nobody else sees it.
+        {t("campaign.session.battle.dmTemplate.tapStart")}
       </p>
       {caught.length ? (
         <p className="text-[11px] leading-4 text-amber-300">
-          Caught: {caught.map((entry) => entry.name).join(", ")}
+          {t("campaign.session.battle.dmTemplate.caught", { names: caught.map((entry) => entry.name).join(", ") })}
         </p>
       ) : null}
       <div className="flex flex-wrap gap-1">
@@ -180,7 +208,7 @@ export function MeasureControls({
           onClick={onClear}
           className="rounded-md border border-stone-700 px-2 py-1 text-xs text-stone-400 hover:text-stone-200"
         >
-          Clear the measure
+          {t("campaign.session.battle.dmTemplate.clear")}
         </button>
         {/* The console's Area of effect takes enemy ids as comma-separated
             text, so measuring and resolving are two steps rather than one
@@ -192,7 +220,7 @@ export function MeasureControls({
             title={enemyIds}
             className="rounded-md border border-stone-700 px-2 py-1 text-xs text-stone-400 hover:text-stone-200"
           >
-            Copy the enemy ids
+            {t("campaign.session.battle.dmTemplate.copyEnemyIds")}
           </button>
         ) : null}
       </div>
