@@ -453,7 +453,7 @@ export const ruMonsterEditor: Partial<Record<keyof typeof enMonsterEditor, strin
   "workshop.monsterEditor.stats.spellPlaceholder": "Огненный снаряд, Щит, Туманный шаг",
   "workshop.monsterEditor.stats.traitSection": "Раздел",
   "workshop.monsterEditor.stats.full": "Блок заполнен: максимум {count} строк.",
-  "workshop.monsterEditor.stats.hiddenCheck": "Чтобы скрыться от существа, персонаж должен превзойти его пассивную Внимательность. Сначала учитывается указанное значение, затем навык и Мудрость."
+  "workshop.monsterEditor.stats.hiddenCheck": "Чтобы скрыться от существа, персонаж должен превзойти его пассивную Внимательность. Сначала учитывается указанное значение, затем навык и Мудрость.",
   "workshop.monsterEditor.routine.step": "Шаг",
   "workshop.monsterEditor.routine.single": "Последовательность атак",
   "workshop.monsterEditor.routine.alternative": "Альтернативная последовательность",
