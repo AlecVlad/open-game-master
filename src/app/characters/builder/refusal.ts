@@ -14,6 +14,9 @@ const REFUSAL_MESSAGE_KEYS = {
   PICK_ONE_HERO: "campaign.joinConfirm.error.pickOneHero",
   HERO_ALREADY_HAS_CHARACTER: "campaign.joinConfirm.error.alreadyHasCharacter",
   CAMPAIGN_NOT_LOBBY: "campaign.joinConfirm.error.lobbyOnly",
+  PICKS_COULD_NOT_BE_READ: "campaign.joinConfirm.error.picksUnreadable",
+  NO_CHARACTER_TO_SWITCH: "campaign.joinConfirm.error.noCharacterToSwitch",
+  CHARACTER_UPDATE_FAILED: "campaign.joinConfirm.error.updateFailed",
 } satisfies Record<string, MessageKey>;
 
 // API refusals keep their original prose for older clients and unknown
