@@ -2774,6 +2774,8 @@ export const enCampaignPanels = {
   "campaign.session.eventLog.someone": "Someone",
   "campaign.session.eventLog.empty": "No stat changes yet. Damage, loot, XP, conditions, and milestones the GM applies will show here.",
   "campaign.session.eventLog.revertTurnTitle": "Put the character sheets, the clock and the fight back as they were before this GM turn: hit points, conditions, creatures, tokens, areas, effects and whose turn it is, with the prepared events it fired, a test's forced dice and a card resolved as played. World events and companions who left stay; rewinding the chapter takes those back.",
+  "campaign.session.eventLog.revertTurn": "Revert this turn",
+  "campaign.session.eventLog.revertTurnCount": "Revert this turn ({count})",
   "campaign.session.eventLog.undoTitle": "Undo this change (restores the sheet fields it touched)",
   "campaign.session.eventLog.undoLabel": "Undo this change",
   "campaign.session.composer.mode.do": "Do",
