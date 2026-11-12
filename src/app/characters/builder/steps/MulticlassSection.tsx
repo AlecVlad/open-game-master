@@ -315,7 +315,7 @@ function ExtraClassCard({
   index: number;
   numbers: boolean;
 }) {
-  const { t, tp } = useI18n();
+  const { t } = useI18n();
   const row = entry.klass;
   const name = row.name;
   // As many levels as it has plus all but one of the first class's.
@@ -335,7 +335,7 @@ function ExtraClassCard({
   );
   return (
     <section
-      aria-label={t("builder.multi.class.aria", { name, level: entry.level, levelWord: tp("builder.multi.levelWord", entry.level) })}
+      aria-label={t("builder.multi.class.aria", { name, level: entry.level })}
       className="mb-3 rounded-lg border border-stone-700/70 bg-stone-950/40 p-3"
       data-extra-class={row.id}
     >
