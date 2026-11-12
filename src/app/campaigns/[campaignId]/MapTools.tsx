@@ -100,7 +100,7 @@ export function BrushPalette({
                 key={nib}
                 type="button"
                 aria-pressed={radius === nib}
-                aria-label={`${nib * 2 + 1} by ${nib * 2 + 1} tiles`}
+                aria-label={t("workshop.maps.tools.brushSizeAria", { size: `${nib * 2 + 1} × ${nib * 2 + 1}` })}
                 onClick={() => onRadius(nib)}
                 className={cn(
                   "flex h-8 items-center justify-center rounded-md border motion-press",
