@@ -4948,6 +4948,7 @@ export const ruCampaignPanels: Partial<Record<keyof typeof enCampaignPanels, str
   "campaign.session.formation.moveFront": "Переместить персонажа {name} вперёд",
   "campaign.session.formation.moveRear": "Переместить персонажа {name} назад",
   "campaign.session.formation.out": "Убрать",
+  "campaign.session.formation.removeFromFormation": "Убрать персонажа {name} из порядка движения",
   "campaign.session.formation.notPlaced": "Не включены:",
   "campaign.session.formation.addAtRear": "Добавить {name} в конец",
   "campaign.session.formation.saveNow": "Сохранить сразу",
