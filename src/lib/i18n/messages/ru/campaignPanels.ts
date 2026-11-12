@@ -5125,6 +5125,12 @@ export const ruCampaignPanels: Partial<Record<keyof typeof enCampaignPanels, str
   "campaign.session.encounterPrep.takeBack": "Отозвать",
   "campaign.session.encounterPrep.cue": "Подготовить",
   "campaign.session.encounterPrep.deploy": "Начать бой",
+  "campaign.session.inlineMessageEditor.label": "Повествование",
+  "campaign.session.inlineMessageEditor.save": "Сохранить",
+  "campaign.session.inlineMessageEditor.cancel": "Отмена",
+  "campaign.session.inlineMessageEditor.keyboardHint": "Enter — сохранить, Shift+Enter — новая строка, Escape — отменить. Маркеры бросков костей сохраняются.",
+  "campaign.session.labelSheet.loading": "Открываем запись…",
+  "campaign.session.labelSheet.missing": "Эту запись нельзя просмотреть: возможно, у вас нет доступа или она была удалена.",
 
 
 
