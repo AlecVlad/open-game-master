@@ -11,7 +11,7 @@ import { NumberField, SelectField, TextArea, TextField, ToggleChips } from "@/ap
 import { ChipList } from "@/app/workshop/plugin/fields";
 import { languageLabel, languageOptions, toolLabel, toolOptions } from "@/app/workshop/homebrew/catalogLabels";
 import { MechGroup, list, num, sub } from "@/app/workshop/homebrew/MechGroup";
-import { LANGUAGES, TOOL_PROFICIENCIES, VISION_SUGGESTIONS } from "@/lib/workshop/pickers";
+import { TOOL_PROFICIENCIES, VISION_SUGGESTIONS } from "@/lib/workshop/pickers";
 import { SKILL_IDS } from "@/lib/homebrew/item-magic-schema";
 import { SRD_WEAPONS } from "@/lib/srd/weapons";
 import { addChip, rowIcon } from "@/app/workshop/kit";
