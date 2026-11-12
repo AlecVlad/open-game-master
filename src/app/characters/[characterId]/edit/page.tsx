@@ -103,7 +103,7 @@ function EditCharacterInner({ characterId }: { characterId: string }) {
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
         // Refused whole: the stored character is as it was.
-        setError(refusalText(data, t("charEdit.err.save")));
+        setError(refusalText(data, t("charEdit.err.save"), t));
         return;
       }
       navigateTo(`/characters/${characterId}`);
