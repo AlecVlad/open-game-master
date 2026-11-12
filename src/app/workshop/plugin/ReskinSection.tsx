@@ -57,8 +57,16 @@ export function IdReskinList({ draft, onDraft, kind }: SectionProps & { kind: Id
   const { t } = useI18n();
   const copy = ID_COPY[kind];
   const list = draft[kind];
+  const optionLabel = (id: string) =>
+    kind === "races"
+      ? t(`campaign.npcEditor.raceOption.${id}` as never)
+      : kind === "classes"
+        ? t(`charSheet.class.${id}` as never)
+        : catalogLabel(copy.catalog, id);
   const used = new Set(list.map((entry) => entry.id));
-  const remaining = copy.catalog.filter((option) => !used.has(option.value));
+  const remaining = copy.catalog
+    .filter((option) => !used.has(option.value))
+    .map((option) => ({ ...option, label: optionLabel(option.value) }));
   const set = (next: WorldPackDraft[IdKind]) => onDraft({ ...draft, [kind]: next } as WorldPackDraft);
   return (
     <section className={ui.card + " p-4"}>
@@ -68,7 +76,7 @@ export function IdReskinList({ draft, onDraft, kind }: SectionProps & { kind: Id
         {list.map((entry, index) => (
           <div key={`${entry.id}-${index}`} className="flex flex-wrap items-start gap-1.5 rounded-lg border border-stone-800 p-2">
             <span className="w-full text-[11px] text-stone-400 sm:w-36 sm:pt-1.5">
-              {catalogLabel(copy.catalog, entry.id)}
+              {optionLabel(entry.id)}
             </span>
             <input
               value={entry.name}
