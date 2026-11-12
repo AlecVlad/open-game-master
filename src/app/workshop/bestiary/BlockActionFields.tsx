@@ -25,20 +25,20 @@ import { Field, FieldLabel, OptionalStepper, addChip, chip, chipOn, chipRow, row
 type Props = { draft: MonsterDraft; onChange: (draft: MonsterDraft) => void };
 
 const RECHARGE_OPTIONS = [
-  { value: "", label: t("workshop.monsterEditor.actions.recharge.none") },
-  { value: "6", label: t("workshop.monsterEditor.actions.recharge.six") },
-  { value: "5", label: t("workshop.monsterEditor.actions.recharge.fiveSix") },
-  { value: "4", label: t("workshop.monsterEditor.actions.recharge.fourSix") },
+  { value: "", label: "No recharge" },
+  { value: "6", label: "Recharge 6" },
+  { value: "5", label: "Recharge 5-6" },
+  { value: "4", label: "Recharge 4-6" },
 ];
 const SAVE_OPTIONS = [
-  { value: "", label: t("workshop.monsterEditor.actions.save.none") },
+  { value: "", label: "No save" },
   ...SAVE_ABILITY_IDS.map((ability) => ({ value: ability as string, label: `${ability.toUpperCase()} save` })),
 ];
 const COST_OPTIONS = [
-  { value: "", label: t("workshop.monsterEditor.actions.cost.none") },
-  { value: "1", label: t("workshop.monsterEditor.actions.cost.one") },
-  { value: "2", label: t("workshop.monsterEditor.actions.cost.two") },
-  { value: "3", label: t("workshop.monsterEditor.actions.cost.three") },
+  { value: "", label: "Not legendary" },
+  { value: "1", label: "Legendary, 1 action" },
+  { value: "2", label: "Legendary, 2 actions" },
+  { value: "3", label: "Legendary, 3 actions" },
 ];
 
 function clean<T extends object>(value: T): T {
