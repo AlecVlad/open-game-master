@@ -852,4 +852,11 @@ export const ruCampaignSession: Partial<Record<keyof typeof enCampaignSession, s
   "campaign.npcEditor.raceOption.bugbear": "Багбир",
   "campaign.npcEditor.raceOption.lizardfolk": "Ящеролюд",
   "campaign.npcEditor.raceOption.orc": "Орк",
+  "campaign.tableBreak.error.pause": "Не удалось приостановить игру.",
+  "campaign.tableBreak.error.resume": "Не удалось возобновить игру.",
+  "campaign.sessionHold.error.end": "Не удалось завершить сессию.",
+  "campaign.sessionHold.error.start": "Не удалось начать сессию.",
+  "campaign.sessionHold.confirmEnd.body": "Игра остановится для всех в текущем месте и будет ждать следующей сессии. Ничего не потеряется: история, все листы персонажей, игровое поле и незавершённые сражения останутся без изменений, а общение за столом продолжится. Чтобы завершить кампанию окончательно, выберите в настройках команду «Завершить кампанию».",
+  "campaign.session.sendActionError": "Не удалось отправить действие.",
+  "campaign.session.networkError": "Не удалось связаться с сервером.",
 };
