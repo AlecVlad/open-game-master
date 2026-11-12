@@ -50,12 +50,16 @@ export async function POST(
     return context;
   }
   if (!capsFor(context).needsCharacter) {
-    return Response.json({ error: "The GM seat plays no character." }, { status: 400 });
+    return Response.json({ error: "The GM seat plays no character.", errorCode: "GM_SEAT_NO_CHARACTER" }, { status: 400 });
   }
   const raw = await request.json().catch(() => ({}));
   const parsed = previewSchema.safeParse(raw);
   if (!parsed.success) {
-    return Response.json({ error: parsed.error.issues[0]?.message || "Pick a hero." }, { status: 400 });
+    const message = parsed.error.issues[0]?.message || "Pick a hero.";
+    return Response.json({
+      error: message,
+      ...(message === "Pick one hero." ? { errorCode: "PICK_ONE_HERO" } : {}),
+    }, { status: 400 });
   }
   const { libraryCharacterId, pregenId, offeredPregenId, sheet, flow, picks } = parsed.data;
   // A first seat is judged at the level it joins at: a fallen hero's
@@ -70,7 +74,7 @@ export async function POST(
   if (libraryCharacterId) {
     const character = getCharacterForUser(context.user.id, libraryCharacterId);
     if (!character) {
-      return Response.json({ error: "Character not found in your library." }, { status: 404 });
+      return Response.json({ error: "Character not found in your library.", errorCode: "CHARACTER_NOT_FOUND" }, { status: 404 });
     }
     if (character.role === "companion") {
       return Response.json({ error: companionRoleRefusal(character) }, { status: 400 });
@@ -102,7 +106,7 @@ export async function POST(
     // DM's own pregens are in their library already.
     const offer = offeredPregenFor(campaignId, offeredPregenId);
     if (!offer || offer.character.userId === context.user.id) {
-      return Response.json({ error: "No such hero." }, { status: 404 });
+      return Response.json({ error: "No such hero.", errorCode: "HERO_NOT_FOUND" }, { status: 404 });
     }
     preview = previewLibraryJoin(offer.character, seatCampaign, context.user.id, picks);
     const refusals = [
@@ -115,7 +119,7 @@ export async function POST(
   } else {
     const pregen = pregenById(pregenId ?? "");
     if (!pregen) {
-      return Response.json({ error: "No such hero." }, { status: 404 });
+      return Response.json({ error: "No such hero.", errorCode: "HERO_NOT_FOUND" }, { status: 404 });
     }
     preview = previewPregenJoin(pregen, seatCampaign, context.user.id, picks);
   }
