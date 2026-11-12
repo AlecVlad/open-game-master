@@ -73,13 +73,14 @@ export function RowMenu({
   className?: string;
   trigger?: { label: string; icon?: ReactNode };
 }) {
+  const { t } = useI18n();
   if (!items.length) {
     return null;
   }
   return (
     <DropdownMenu.Root>
       <DropdownMenu.Trigger asChild>
-        <button type="button" aria-label={trigger?.label ?? `Actions for ${label}`} className={cn(TONE.icon, "pk-always shrink-0", className)}>
+        <button type="button" aria-label={trigger?.label ?? t("common.actionsFor", { label })} className={cn(TONE.icon, "pk-always shrink-0", className)}>
           {trigger?.icon ?? <MoreVertical className="size-4" aria-hidden="true" />}
         </button>
       </DropdownMenu.Trigger>
