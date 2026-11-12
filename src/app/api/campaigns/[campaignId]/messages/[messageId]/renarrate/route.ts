@@ -75,7 +75,7 @@ export async function POST(
   const latest = getLatestDmMessage(campaignId);
   if (!latest || latest.id !== messageId) {
     return Response.json(
-      { error: "Only the GM's most recent message can be rerolled." },
+      { error: "Only the GM's most recent message can be rerolled.", errorCode: "NOT_LATEST_MESSAGE" },
       { status: 400 },
     );
   }
