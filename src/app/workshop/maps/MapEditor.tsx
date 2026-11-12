@@ -27,6 +27,7 @@ import { MapTilesetPanel } from "@/app/campaigns/[campaignId]/MapTilesetPanel";
 import { MapInspector, MapStatusLine, createHoverStore } from "@/app/campaigns/[campaignId]/MapInspector";
 import type { MapToast } from "@/app/campaigns/[campaignId]/MapToasts";
 import { skinSwatches } from "@/app/campaigns/[campaignId]/mapUi";
+import { MAP_BRUSH_LABEL_KEYS, MAP_TOOL_LABEL_KEYS } from "@/app/campaigns/[campaignId]/mapI18n";
 import { useI18n } from "@/lib/i18n/provider";
 import { useCatalogue, usePaintedGround, usePaintedPreference } from "@/app/campaigns/[campaignId]/useMapPaint";
 import {
@@ -59,34 +60,6 @@ const CHAR_TO_BRUSH = Object.fromEntries(
 
 const EMPTY_SKIN: MapSkin = { id: "", bind: {} };
 
-const TOOL_LABEL_KEYS: Record<string, string> = {
-  brush: "workshop.maps.tools.brush",
-  line: "workshop.maps.tools.line",
-  rect: "workshop.maps.tools.outline",
-  box: "workshop.maps.tools.box",
-  fill: "workshop.maps.tools.fill",
-  stamp: "workshop.maps.tools.stamp",
-  pick: "workshop.maps.tools.pick",
-  select: "workshop.maps.tools.select",
-  light: "workshop.maps.tools.light",
-  door: "workshop.maps.tools.door",
-  label: "workshop.maps.tools.label",
-  prop: "workshop.maps.tools.prop",
-  zone: "workshop.maps.tools.lightZone",
-  roll: "workshop.maps.tools.roll",
-  pan: "workshop.maps.tools.move",
-  backdrop: "workshop.maps.tools.alignPicture",
-};
-
-const BRUSH_LABEL_KEYS: Record<BrushName, string> = {
-  floor: "workshop.maps.brush.floor",
-  wall: "workshop.maps.brush.wall",
-  water: "workshop.maps.brush.water",
-  difficult: "workshop.maps.brush.difficult",
-  door: "workshop.maps.brush.door",
-  lowwall: "workshop.maps.brush.lowwall",
-  climb: "workshop.maps.brush.climb",
-};
 const LAYERS: MapLayer[] = ["labels", "props", "lights", "zones", "doors", "terrain", "backdrop", "overlay", "drawings"];
 
 function SaveDot({ state }: { state: SaveState }) {
@@ -266,8 +239,8 @@ export function MapEditor({
   }
 
   const held = MODES.find((entry) => entry.mode === tools.mode);
-  const toolLabel = held ? t(TOOL_LABEL_KEYS[tools.mode] as never) : t("workshop.maps.editor.noTool");
-  const holding = held ? (isPaintMode(tools.mode) ? `${toolLabel} · ${t(BRUSH_LABEL_KEYS[tools.brush] as never)}` : toolLabel) : toolLabel;
+  const toolLabel = held ? t(MAP_TOOL_LABEL_KEYS[tools.mode] as never) : t("workshop.maps.editor.noTool");
+  const holding = held ? (isPaintMode(tools.mode) ? `${toolLabel} · ${t(MAP_BRUSH_LABEL_KEYS[tools.brush] as never)}` : toolLabel) : toolLabel;
   const backdropPanel = (
     <BackdropControls
       backdrop={selected.backdrop}
