@@ -94,6 +94,12 @@ const disputeRoute = await world.route("campaigns/[campaignId]/disputes/[dispute
 const reasonRoute = await world.route("campaigns/[campaignId]/corrections");
 const loreRoute = await world.route("campaigns/[campaignId]/lore-check");
 
+await test("a missing sheet has a stable API error code", async () => {
+  const response = await call(sheetRoute, "PATCH", { campaignId: world.campaignId, sheetId: "missing-sheet" }, { currentHp: 4 });
+  assert.equal(response.status, 404);
+  assert.equal((await response.json()).errorCode, "CHARACTER_NOT_FOUND");
+});
+
 await test("an undo of the AI's change writes one direct row naming the audit row and the tool", async () => {
   const before = rows(world.campaignId).length;
   const { turn, entry } = aiChange(world, hero, { currentHp: 4 });
