@@ -3323,4 +3323,5 @@ export const ruWorkshop: Partial<Record<keyof typeof enWorkshop, string>> = {
   "workshop.maps.canvas.battleMap": "Боевая карта",
   "workshop.maps.selection.cancel": "Отмена",
   "workshop.maps.hotkeys.phoneHint": "Для каждой клавиши есть экранная кнопка; на телефоне используйте кнопки.",
+  "workshop.maps.library.loading": "Открываем коллекцию карт...",
 };
