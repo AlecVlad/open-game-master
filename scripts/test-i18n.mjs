@@ -236,6 +236,14 @@ for (const key of joinConfirmErrorMessages) {
   assert.ok(key in DICTIONARIES.en, `English join-confirm error missing: ${key}`);
   assert.ok(key in DICTIONARIES.ru, `Russian join-confirm error missing: ${key}`);
 }
+assert.equal(
+  translate(DICTIONARIES, "ru", "campaign.joinConfirm.error.pregenAlreadyTaken", { name: "Thessaly" }),
+  "«Thessaly» за этим столом уже занят.",
+);
+assert.equal(
+  translate(DICTIONARIES, "ru", "campaign.joinConfirm.error.heroFell", { name: "Pip" }),
+  "«Pip» погиб за этим игровым столом. Выберите другого персонажа.",
+);
 
 const characterRefusalMessages = [
   "builder.refusal.multiclass.disabled",
