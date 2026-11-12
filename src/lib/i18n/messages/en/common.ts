@@ -440,4 +440,13 @@ export const enCommon = {
   "confirmDialog.ok": "OK",
   "promptDialog.save": "Save",
   "promptDialog.cancel": "Cancel",
+  "dateTimePicker.placeholder": "Pick a date",
+  "dateTimePicker.earlierMonth": "Earlier month",
+  "dateTimePicker.laterMonth": "Later month",
+  "dateTimePicker.hour": "Hour",
+  "dateTimePicker.minute": "Minute",
+  "select.placeholder": "Choose",
+  "infoDialog.armor": "Armor",
+  "infoDialog.weapon": "Weapon",
+  "infoDialog.description": "Description",
 } satisfies Record<string, string>;
