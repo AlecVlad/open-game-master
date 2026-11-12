@@ -122,6 +122,18 @@ for (const key of campaignApiMessages) {
   assert.ok(key in DICTIONARIES.ru, `Russian campaign API message missing: ${key}`);
 }
 
+// Character bundle import: fixed format errors and sheet refusals are translated by code.
+const characterImportMessages = [
+  "characters.err.import.tooLarge",
+  "characters.err.import.notCharacter",
+  "characters.err.import.notOgm",
+  "characters.err.import.invalidJson",
+];
+for (const key of characterImportMessages) {
+  assert.ok(key in DICTIONARIES.en, `English character-import message missing: ${key}`);
+  assert.ok(key in DICTIONARIES.ru, `Russian character-import message missing: ${key}`);
+}
+
 // Character validation responses expose codes only for exact, stable server diagnostics.
 const characterRefusalMessages = [
   "builder.refusal.multiclass.disabled",
