@@ -3292,4 +3292,12 @@ export const ruWorkshop: Partial<Record<keyof typeof enWorkshop, string>> = {
   "workshop.maps.scene.addAnnotated": "Добавить изображение с пометками",
   "workshop.maps.scene.remove": "Убрать",
   "workshop.maps.scene.overlayHint": "Изображение накладывается на карту и совмещается с подложкой. Его видите только вы: например, схема с ловушками и номерами комнат.",
+  "workshop.maps.hotkeys.tools": "Инструменты",
+  "workshop.maps.hotkeys.brushes": "Кисти",
+  "workshop.maps.hotkeys.editing": "Редактирование",
+  "workshop.maps.hotkeys.undo": "Отменить",
+  "workshop.maps.hotkeys.redo": "Повторить",
+  "workshop.maps.hotkeys.putDown": "Убрать инструмент или снять выделение",
+  "workshop.maps.hotkeys.deleteSelection": "Удалить выделенные объекты",
+  "workshop.maps.hotkeys.thisSheet": "Это окно",
 };
