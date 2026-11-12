@@ -221,7 +221,7 @@ export default function CharactersPage() {
       const response = await fetch(`/api/characters/${id}/clone`, { method: "POST" }).catch(() => null);
       if (!response?.ok) {
         const data = (await response?.json().catch(() => null)) as { error?: string } | null;
-        setActionError(data?.error ?? t("characters.err.clone"));
+        setActionError(refusalText(data, t("characters.err.clone"), t));
         return;
       }
       const data = await response.json().catch(() => ({}));
