@@ -6,7 +6,7 @@ import { SectionHead } from "@/components/ui/SectionHead";
 import { UnofficialPackNotice } from "@/components/UnofficialPackNotice";
 import { ui } from "@/lib/ui";
 import { useI18n } from "@/lib/i18n/provider";
-import { GENRE_OPTIONS, RACE_OPTIONS, ALIGNMENT_OPTIONS, catalogLabel } from "@/lib/worlds/catalog";
+import { GENRE_OPTIONS, RACE_OPTIONS, ALIGNMENT_OPTIONS } from "@/lib/worlds/catalog";
 import type { WorldPackDraft } from "@/lib/worlds/draft";
 import { DM_FLAVOR_FLOOR } from "@/lib/worlds/draft-check";
 import { ChipList, TextField } from "@/app/workshop/plugin/fields";
