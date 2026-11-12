@@ -153,6 +153,7 @@ export function RulesPanel({
   // campaign's lead steers the story but does not get the almanac.
   isDm: boolean;
 }) {
+  const { t } = useI18n();
   const [loading, setLoading] = useState(true);
   // A refused or failed read is shown in the server's words with a way to
   // ask again, never as "nothing here yet" (issue 140).
@@ -188,6 +189,7 @@ export function RulesPanel({
 
   async function saveText() {
     setSaving(true);
+    setSettingsError("");
     try {
       const response = await fetch(`/api/campaigns/${campaignId}/rules`, {
         method: "PUT",
@@ -198,7 +200,11 @@ export function RulesPanel({
         const data = await response.json();
         setSavedText(String(data.text ?? text));
         setChunks(Array.isArray(data.chunks) ? data.chunks : []);
+      } else {
+        setSettingsError(t("campaign.session.rules.saveFailed"));
       }
+    } catch {
+      setSettingsError(t("campaign.session.rules.network"));
     } finally {
       setSaving(false);
     }
@@ -215,6 +221,8 @@ export function RulesPanel({
       setChunks((current) =>
         current.map((chunk) => (chunk.id === chunkId ? { ...chunk, ...data.chunk } : chunk)),
       );
+    } else {
+      setSettingsError(t("campaign.session.rules.changeFailed"));
     }
   }
 
@@ -228,35 +236,50 @@ export function RulesPanel({
         body: JSON.stringify({ variantRules: { ...settings.variantRules, ...update } }),
       });
       if (!response.ok) {
-        const data = (await response.json().catch(() => ({}))) as { error?: string };
-        setSettingsError(data.error ?? "That rule could not be changed.");
+        const data = (await response.json().catch(() => ({}))) as { error?: string; errorCode?: string };
+        setSettingsError(
+          data.errorCode === "INVALID_GAME_SETTINGS"
+            ? t("campaign.session.rules.invalidSettings")
+            : t("campaign.session.rules.changeFailed"),
+        );
       }
     } catch {
-      setSettingsError("Could not reach the server.");
+      setSettingsError(t("campaign.session.rules.network"));
     } finally {
       setSettingsBusy(false);
     }
   }
 
   const variant = settings.variantRules;
+  const restOptions = (Object.keys(REST_LABELS) as RestVariant[]).map((restVariant) => ({
+    value: restVariant,
+    label: t(variantRuleMessage(`rest.${restVariant}`)),
+    icon: { kind: "glyph" as const, key: restVariant === "standard" ? "rest-short" : "rest-long" },
+  }));
 
   return (
     <div className="space-y-3">
       <div className="panel rounded-lg p-3" data-tour="rules-variants">
-        <SectionHead title="Variant rules" glyph="system-rules" />
+        <SectionHead title={t(variantRuleMessage("title"))} glyph="system-rules" />
         {steersStory ? (
           <div className={cn("reveal space-y-0.5", settingsBusy && "opacity-70")}>
             {VARIANT_TOGGLES.map((toggle) => (
-              <VariantSwitch key={toggle.key} label={toggle.label} tip={toggle.tip} on={Boolean(variant[toggle.key])} onChange={(next) => patchVariant({ [toggle.key]: next })} />
+              <VariantSwitch
+                key={toggle.key}
+                label={t(variantRuleMessage(`${toggle.key}.label`))}
+                tip={t(variantRuleMessage(`${toggle.key}.tip`))}
+                on={Boolean(variant[toggle.key])}
+                onChange={(next) => patchVariant({ [toggle.key]: next })}
+              />
             ))}
-            <Tooltip content="How long short and long rests take at this table. The GM's rest tool follows it.">
+            <Tooltip content={t("campaign.session.rules.restHint")}>
               <span className="block pt-1.5">
                 <Select<RestVariant>
                   size="sm"
                   value={variant.restVariant}
                   onChange={(restVariant) => patchVariant({ restVariant })}
-                  options={REST_OPTIONS}
-                  label="Rest lengths"
+                  options={restOptions}
+                  label={t(variantRuleMessage("restLengths"))}
                   className="w-full"
                 />
               </span>
@@ -271,18 +294,20 @@ export function RulesPanel({
           <p className="text-xs leading-5 text-stone-400">
             {[
               ...VARIANT_TOGGLES.filter((toggle) => variant[toggle.key]).map(
-                (toggle) => toggle.label,
+                (toggle) => t(variantRuleMessage(`${toggle.key}.label`)),
               ),
-              ...(variant.restVariant !== "standard" ? [REST_LABELS[variant.restVariant]] : []),
-            ].join(" · ") || "No variant rules in effect."}
+              ...(variant.restVariant !== "standard"
+                ? [t(variantRuleMessage(`rest.${variant.restVariant}`))]
+                : []),
+            ].join(" · ") || t("campaign.session.rules.noVariants")}
           </p>
         )}
       </div>
 
       <div className="panel rounded-lg p-3" data-tour="rules-house">
-        <SectionHead title="House rules" glyph="system-homebrew" />
+        <SectionHead title={t("campaign.session.rules.houseRules")} glyph="system-homebrew" />
         {loading ? (
-          <PanelLoading label="Loading..." rows={2} />
+          <PanelLoading label={t("campaign.session.rules.loading")} rows={2} />
         ) : steersStory ? (
           <>
             <textarea
@@ -291,18 +316,18 @@ export function RulesPanel({
               rows={8}
               maxLength={20_000}
               placeholder={
-                "Write your table's house rules. Use headings to group them, e.g.\n\nDrinking potions:\nDrinking a potion is a bonus action at this table.\n\nThe GM retrieves only the relevant rules each turn."
+                t("campaign.session.rules.houseRulesPlaceholder")
               }
-              aria-label="House rules"
+              aria-label={t("campaign.session.rules.houseRulesAria")}
               className={cn(panelField, "leading-5")}
             />
             <div className="mt-1.5 flex items-center gap-2">
               <KitButton tone="primary" onClick={saveText} disabled={saving || text === savedText} busy={saving}>
                 {saving ? null : <Save className="size-3.5" />}
-                Save rules
+                {saving ? t("campaign.session.rules.saving") : t("campaign.session.rules.save")}
               </KitButton>
               {text !== savedText ? (
-                <span className="live-in text-xs text-amber-300/80">Unsaved changes</span>
+                <span className="live-in text-xs text-amber-300/80">{t("campaign.session.rules.unsaved")}</span>
               ) : null}
             </div>
           </>
@@ -318,7 +343,7 @@ export function RulesPanel({
             <EmptyState
               size="sm"
               art="board"
-              title="No house rules set."
+              title={t("campaign.session.rules.noneSet")}
             />
           ) : null)
         )}
@@ -326,10 +351,9 @@ export function RulesPanel({
 
       {steersStory && chunks.length ? (
         <div className="panel reveal rounded-lg p-3">
-          <SectionHead title="Rule sections" glyph="system-rulesets" aside={chunks.length} />
+          <SectionHead title={t("campaign.session.rules.sections")} glyph="system-rulesets" aside={chunks.length} />
           <p className="mb-2 text-xs leading-5 text-stone-500">
-            The GM sees only the sections relevant to each turn. Pin one to include it every turn;
-            switch one off to silence it without deleting the text.
+            {t("campaign.session.rules.sectionsHint")}
           </p>
           <ul className="stagger space-y-1.5">
             {chunks.map((chunk) => (
@@ -337,16 +361,16 @@ export function RulesPanel({
                 key={chunk.id}
                 className={cn("flex items-start gap-2 rounded-md border border-stone-700/50 bg-stone-950/40 p-2", !chunk.enabled && "opacity-60")}
               >
-                <span className="mt-0.5 shrink-0" title={chunk.enabled ? "Switch this section off" : "Switch this section on"}>
-                  <Switch on={chunk.enabled} onChange={(enabled) => patchChunk(chunk.id, { enabled })} label={chunk.enabled ? "Switch this section off" : "Switch this section on"} />
+                <span className="mt-0.5 shrink-0" title={chunk.enabled ? t("campaign.session.rules.section.disable") : t("campaign.session.rules.section.enable")}>
+                  <Switch on={chunk.enabled} onChange={(enabled) => patchChunk(chunk.id, { enabled })} label={chunk.enabled ? t("campaign.session.rules.section.disable") : t("campaign.session.rules.section.enable")} />
                 </span>
                 <KitButton
                   tone="icon"
                   always
                   onClick={() => patchChunk(chunk.id, { pinned: !chunk.pinned })}
                   aria-pressed={chunk.pinned}
-                  aria-label={chunk.pinned ? "Unpin: retrieved only when relevant" : "Pin: included in every GM turn"}
-                  title={chunk.pinned ? "Unpin: retrieved only when relevant" : "Pin: included in every GM turn"}
+                  aria-label={chunk.pinned ? t("campaign.session.rules.section.unpin") : t("campaign.session.rules.section.pin")}
+                  title={chunk.pinned ? t("campaign.session.rules.section.unpin") : t("campaign.session.rules.section.pin")}
                   className={cn("shrink-0", chunk.pinned && "text-amber-300")}
                 >
                   <Pin className={cn("size-3.5", chunk.pinned && "fill-current")} />
