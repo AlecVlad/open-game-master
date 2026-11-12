@@ -15,6 +15,7 @@ import {
   ANCESTRY_OPTIONS,
   CLASS_KIT_OPTIONS,
   MOVEMENT_MODES,
+  DAMAGE_TYPES,
   addTrait,
   applyAncestry,
   applyArmor,
@@ -95,7 +96,88 @@ const TRANSLATABLE_CLASSES = new Set([
 const CREATURE_TYPE_IDS = [
   "aberration", "beast", "celestial", "construct", "dragon", "elemental",
   "fey", "fiend", "giant", "humanoid", "monstrosity", "ooze", "plant", "undead",
+
 ] as const;
+
+const ARMOUR_NAME_KEYS: Record<string, string> = {
+  "Padded": "workshop.monsterEditor.kit.catalog.armour.padded",
+  "Leather": "workshop.monsterEditor.kit.catalog.armour.leather",
+  "Studded Leather": "workshop.monsterEditor.kit.catalog.armour.studdedLeather",
+  "Hide": "workshop.monsterEditor.kit.catalog.armour.hide",
+  "Chain Shirt": "workshop.monsterEditor.kit.catalog.armour.chainShirt",
+  "Scale Mail": "workshop.monsterEditor.kit.catalog.armour.scaleMail",
+  "Breastplate": "workshop.monsterEditor.kit.catalog.armour.breastplate",
+  "Half Plate": "workshop.monsterEditor.kit.catalog.armour.halfPlate",
+  "Ring Mail": "workshop.monsterEditor.kit.catalog.armour.ringMail",
+  "Chain Mail": "workshop.monsterEditor.kit.catalog.armour.chainMail",
+  "Splint": "workshop.monsterEditor.kit.catalog.armour.splint",
+  "Plate": "workshop.monsterEditor.kit.catalog.armour.plate",
+  "Shield": "workshop.monsterEditor.kit.catalog.armour.shield",
+  "Armorweave Vest": "workshop.monsterEditor.kit.catalog.armour.armorweaveVest",
+  "Kevlar Vest": "workshop.monsterEditor.kit.catalog.armour.kevlarVest",
+  "Riot Plating": "workshop.monsterEditor.kit.catalog.armour.riotPlating",
+  "Brass Carapace": "workshop.monsterEditor.kit.catalog.armour.brassCarapace",
+  "Scrap Plate": "workshop.monsterEditor.kit.catalog.armour.scrapPlate",
+  "Ballistic Shield": "workshop.monsterEditor.kit.catalog.armour.ballisticShield",
+};
+
+const WEAPON_NAME_KEYS: Record<string, string> = {
+  "Club": "workshop.monsterEditor.kit.catalog.weapon.club",
+  "Dagger": "workshop.monsterEditor.kit.catalog.weapon.dagger",
+  "Greatclub": "workshop.monsterEditor.kit.catalog.weapon.greatclub",
+  "Handaxe": "workshop.monsterEditor.kit.catalog.weapon.handaxe",
+  "Javelin": "workshop.monsterEditor.kit.catalog.weapon.javelin",
+  "Light Hammer": "workshop.monsterEditor.kit.catalog.weapon.lightHammer",
+  "Mace": "workshop.monsterEditor.kit.catalog.weapon.mace",
+  "Quarterstaff": "workshop.monsterEditor.kit.catalog.weapon.quarterstaff",
+  "Sickle": "workshop.monsterEditor.kit.catalog.weapon.sickle",
+  "Spear": "workshop.monsterEditor.kit.catalog.weapon.spear",
+  "Light Crossbow": "workshop.monsterEditor.kit.catalog.weapon.lightCrossbow",
+  "Dart": "workshop.monsterEditor.kit.catalog.weapon.dart",
+  "Shortbow": "workshop.monsterEditor.kit.catalog.weapon.shortbow",
+  "Sling": "workshop.monsterEditor.kit.catalog.weapon.sling",
+  "Battleaxe": "workshop.monsterEditor.kit.catalog.weapon.battleaxe",
+  "Flail": "workshop.monsterEditor.kit.catalog.weapon.flail",
+  "Glaive": "workshop.monsterEditor.kit.catalog.weapon.glaive",
+  "Greataxe": "workshop.monsterEditor.kit.catalog.weapon.greataxe",
+  "Greatsword": "workshop.monsterEditor.kit.catalog.weapon.greatsword",
+  "Halberd": "workshop.monsterEditor.kit.catalog.weapon.halberd",
+  "Lance": "workshop.monsterEditor.kit.catalog.weapon.lance",
+  "Longsword": "workshop.monsterEditor.kit.catalog.weapon.longsword",
+  "Maul": "workshop.monsterEditor.kit.catalog.weapon.maul",
+  "Morningstar": "workshop.monsterEditor.kit.catalog.weapon.morningstar",
+  "Pike": "workshop.monsterEditor.kit.catalog.weapon.pike",
+  "Rapier": "workshop.monsterEditor.kit.catalog.weapon.rapier",
+  "Scimitar": "workshop.monsterEditor.kit.catalog.weapon.scimitar",
+  "Shortsword": "workshop.monsterEditor.kit.catalog.weapon.shortsword",
+  "Trident": "workshop.monsterEditor.kit.catalog.weapon.trident",
+  "War Pick": "workshop.monsterEditor.kit.catalog.weapon.warPick",
+  "Warhammer": "workshop.monsterEditor.kit.catalog.weapon.warhammer",
+  "Whip": "workshop.monsterEditor.kit.catalog.weapon.whip",
+  "Blowgun": "workshop.monsterEditor.kit.catalog.weapon.blowgun",
+  "Hand Crossbow": "workshop.monsterEditor.kit.catalog.weapon.handCrossbow",
+  "Heavy Crossbow": "workshop.monsterEditor.kit.catalog.weapon.heavyCrossbow",
+  "Longbow": "workshop.monsterEditor.kit.catalog.weapon.longbow",
+  "Net": "workshop.monsterEditor.kit.catalog.weapon.net",
+  "Pistol": "workshop.monsterEditor.kit.catalog.weapon.pistol",
+  "Revolver": "workshop.monsterEditor.kit.catalog.weapon.revolver",
+  "Sawed-off Scattergun": "workshop.monsterEditor.kit.catalog.weapon.sawedOffScattergun",
+  "Hunting Rifle": "workshop.monsterEditor.kit.catalog.weapon.huntingRifle",
+  "Musket": "workshop.monsterEditor.kit.catalog.weapon.musket",
+  "Hand Cannon": "workshop.monsterEditor.kit.catalog.weapon.handCannon",
+  "Monoblade": "workshop.monsterEditor.kit.catalog.weapon.monoblade",
+  "Chainblade": "workshop.monsterEditor.kit.catalog.weapon.chainblade",
+  "Shock Baton": "workshop.monsterEditor.kit.catalog.weapon.shockBaton",
+  "Vibroknife": "workshop.monsterEditor.kit.catalog.weapon.vibroknife",
+  "Ripper Gauntlet": "workshop.monsterEditor.kit.catalog.weapon.ripperGauntlet",
+  "Heavy Spanner": "workshop.monsterEditor.kit.catalog.weapon.heavySpanner",
+  "Sword Cane": "workshop.monsterEditor.kit.catalog.weapon.swordCane",
+  "Machete": "workshop.monsterEditor.kit.catalog.weapon.machete",
+  "Crowbar": "workshop.monsterEditor.kit.catalog.weapon.crowbar",
+  "Silvered Stake": "workshop.monsterEditor.kit.catalog.weapon.silveredStake",
+  "Censer Mace": "workshop.monsterEditor.kit.catalog.weapon.censerMace",
+  "Hurled Vial": "workshop.monsterEditor.kit.catalog.weapon.hurledVial",
+};
 
 // A term list stored as one comma-joined string. The catalogue is offered as
 // chips; anything not in it stays typeable, because a monster immune to
@@ -267,6 +349,20 @@ export function MonsterKitPanel({
   const chassisDetails = chassisDescription(chassis);
   const traitsFull = draft.stats.traits.length >= MAX_TRAITS;
   const attacksFull = draft.stats.attacks.length >= 4;
+  const armourLabel = (name: string) =>
+    ARMOUR_NAME_KEYS[name] ? t(ARMOUR_NAME_KEYS[name] as never) : name;
+  const weaponLabel = (name: string) =>
+    WEAPON_NAME_KEYS[name] ? t(WEAPON_NAME_KEYS[name] as never) : name;
+  const weaponDamageLabel = (damage: string) => {
+    const match = /^(\\d+d\\d+|\\d+)\\s+([a-z]+)$/i.exec(damage.trim());
+    if (match && (DAMAGE_TYPES as readonly string[]).includes(match[2].toLowerCase())) {
+      return `${match[1]} ${t(`workshop.monsterEditor.defence.damageType.${match[2].toLowerCase()}` as never).toLowerCase()}`;
+    }
+    if (damage === "0 (restrains)") {
+      return t("workshop.monsterEditor.kit.catalog.weaponDamage.restrains");
+    }
+    return damage;
+  };
 
   return (
     <div className="flex flex-col gap-3 rounded-lg border border-stone-800 bg-stone-950/50 p-3">
@@ -415,7 +511,7 @@ export function MonsterKitPanel({
             { value: "", label: t("workshop.monsterEditor.kit.unarmoured") },
             ...armorOptionsFor(classId)
               .filter((armor) => armor.category !== "shield")
-              .map((armor) => ({ value: armor.name, label: `${armor.name} (${armor.baseAc})` })),
+              .map((armor) => ({ value: armor.name, label: `${armourLabel(armor.name)} (${armor.baseAc})` })),
           ]}
         />
         <label className="flex items-center gap-1.5 pb-1 text-[11px] text-stone-400">
@@ -437,7 +533,7 @@ export function MonsterKitPanel({
           value={weaponName}
           onChange={setWeaponName}
           className="w-44"
-          options={[{ value: "", label: t("workshop.monsterEditor.kit.pickOne") }, ...weaponOptionsFor(classId).map((weapon) => ({ value: weapon.name, label: `${weapon.name} (${weapon.damage})` }))]}
+          options={[{ value: "", label: t("workshop.monsterEditor.kit.pickOne") }, ...weaponOptionsFor(classId).map((weapon) => ({ value: weapon.name, label: `${weaponLabel(weapon.name)} (${weaponDamageLabel(weapon.damage)})` }))]}
         />
         <div className="flex flex-col gap-0.5">
           <span className="text-[10px] uppercase tracking-wide text-stone-500">{t("workshop.monsterEditor.kit.abilityMod")}</span>
