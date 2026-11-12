@@ -214,7 +214,7 @@ export function EventLog({
           ) : (
             <RotateCcw className="size-3" />
           )}
-          {changes ? `Revert this turn (${changes})` : "Revert this turn"}
+          {changes ? t("campaign.session.eventLog.revertTurnCount", { count: changes }) : t("campaign.session.eventLog.revertTurn")}
         </button>
         {errors[`turn:${turnId}`] ? (
           <p role="alert" className="motion-shake text-[11px] text-red-300">{errors[`turn:${turnId}`]}</p>
