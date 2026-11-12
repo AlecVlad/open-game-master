@@ -215,7 +215,7 @@ export type DictationShortcutProblem = {
 export function chordProblemDetail(chord: DictationChord, typed = ""): DictationShortcutProblem | null {
   const name = formatChord(chord);
   if (chord.meta) return { code: "SYSTEM_MODIFIER" };
-  if (chord.code === VOICE_PTT_CODE) return { code: "VOICE_PTT" };
+  if (chord.code === VOICE_PTT_CODE) return { code: "VOICE_PTT", params: { key: keyLabel(chord.code) } };
   if (EDITING_CODES.has(chord.code) || (chord.code === "Insert" && (chord.ctrl || chord.shift))) {
     return { code: "EDITING_KEY", params: { key: EDITING_CODES.has(chord.code) ? keyLabel(chord.code) : name } };
   }
