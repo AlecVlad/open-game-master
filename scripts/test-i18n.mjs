@@ -172,6 +172,27 @@ for (const key of campaignCoverMessages) {
   assert.ok(key in DICTIONARIES.ru, `Russian campaign-cover message missing: ${key}`);
 }
 
+// Campaign lobby API refusals with fixed meanings are localized by stable code.
+const lobbyErrorMessages = [
+  "campaign.lobby.error.oneCharacterOnly",
+  "campaign.lobby.error.chooseCharacter",
+  "campaign.lobby.error.notYourCharacter",
+  "campaign.lobby.error.combatSwitchWait",
+  "campaign.lobby.error.invalidReady",
+  "campaign.lobby.error.noGmSeat",
+  "campaign.lobby.error.assignSeatPermission",
+  "campaign.lobby.error.invalidSeatRequest",
+  "campaign.lobby.error.playerNotAtTable",
+  "campaign.lobby.error.coGmDifferent",
+  "campaign.lobby.error.humanGameNeedsGm",
+  "campaign.lobby.error.seatMoveFailed",
+  "campaign.lobby.error.noCharacterToRemove",
+];
+for (const key of lobbyErrorMessages) {
+  assert.ok(key in DICTIONARIES.en, `English lobby error missing: ${key}`);
+  assert.ok(key in DICTIONARIES.ru, `Russian lobby error missing: ${key}`);
+}
+
 // Character validation responses expose codes only for exact, stable server diagnostics.
 const characterRefusalMessages = [
   "builder.refusal.multiclass.disabled",
