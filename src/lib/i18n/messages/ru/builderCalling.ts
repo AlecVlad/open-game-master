@@ -138,4 +138,6 @@ export const ruBuilderCalling: Partial<Record<keyof typeof enBuilderCalling, str
   "builder.multi.skill.stealth": "Скрытность",
   "builder.multi.skill.survival": "Выживание",
   "builder.multi.skill.info": "Для навыка «{skill}» используется характеристика «{ability}».",
+  "builder.multi.levelWord.few": "уровня",
+  "builder.multi.levelWord.many": "уровней",
 };
