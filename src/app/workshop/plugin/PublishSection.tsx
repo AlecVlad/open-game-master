@@ -144,7 +144,7 @@ export function PublishSection({
         setNotice(t("workshop.plugin.publish.downloaded", { file: `${data.pack.id}.json` }));
       }
       if (data.contentChecked === false) {
-        setNotice((current) => `${current} The content pack is not installed here, so monster slugs and spell names were not checked.`);
+        setNotice((current) => `${current}${t("workshop.plugin.publish.contentNotChecked")}`);
       }
     } catch {
       setError(t("workshop.plugin.publish.serverFailed"));
@@ -156,15 +156,13 @@ export function PublishSection({
   async function replaceDraft(next: WorldPackDraft, from: string): Promise<boolean> {
     if (
       draft.name.trim() &&
-      !(await appConfirm(`Replace the draft "${draft.name}" with ${from}? The current draft is lost.`, {
-        title: "Replace the draft",
-        actionLabel: "Replace",
+      !(await appConfirm(t("workshop.plugin.publish.replaceConfirm", { name: draft.name, source: from }), { title: t("workshop.plugin.publish.replaceTitle"), actionLabel: t("workshop.plugin.publish.replaceAction"),
       }))
     ) {
       return false;
     }
     onDraft(next);
-    setNotice(`Started from ${from}.`);
+    setNotice(t("workshop.plugin.publish.startedFrom", { source: from }));
     return true;
   }
 
@@ -209,7 +207,7 @@ export function PublishSection({
         setNotice(t("workshop.plugin.publish.startedInstalled", { name: data.pack.name }));
       }
     } catch {
-      setError("Could not reach the server.");
+      setError(t("workshop.plugin.publish.serverFailed"));
     } finally {
       setBusy("");
       setStartFrom("");
@@ -228,7 +226,7 @@ export function PublishSection({
           aside={ready ? <CheckCircle2 className="size-4 text-emerald-400" /> : <AlertTriangle className="size-4 text-amber-400" />}
         />
         <p className="mb-3 text-[11px] text-stone-500">
-          Will install as <span className="text-stone-300">{id}.json</span>, {bytes < 1024 * 1024 ? `${Math.round(bytes / 1024)} KB` : `${(bytes / 1024 / 1024).toFixed(1)} MB`} of {MAX_MANIFEST_BYTES / 1024 / 1024} MB.
+          {t("workshop.plugin.publish.installAs", { id, size: bytes < 1024 * 1024 ? `${Math.round(bytes / 1024)} KB` : `${(bytes / 1024 / 1024).toFixed(1)} MB`, max: String(MAX_MANIFEST_BYTES / 1024 / 1024) })}
         </p>
         {check.problems.length || serverProblems.length ? (
           <ul className="stagger mb-3 space-y-1">
@@ -324,9 +322,9 @@ export function PublishSection({
             type="button"
             onClick={async () => {
               if (
-                await appConfirm("Throw the draft away and start blank? Pictures go with it.", {
-                  title: "Start blank",
-                  actionLabel: "Throw it away",
+                await appConfirm(t("workshop.plugin.publish.startBlankConfirm"), {
+                  title: t("workshop.plugin.publish.startBlankTitle"),
+                  actionLabel: t("workshop.plugin.publish.startBlankAction"),
                 })
               ) {
                 void onClear();
