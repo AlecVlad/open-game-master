@@ -5,7 +5,31 @@ import { useRef, type ReactNode } from "react";
 import { useT } from "@/lib/i18n/provider";
 import { cn } from "@/lib/cn";
 import { DICTATION_MAX_MS, DICTATION_WARN_MS, formatElapsed } from "@/lib/dictation";
-import { useDictation } from "@/lib/use-dictation";
+import { useDictation, type DictationHint } from "@/lib/use-dictation";
+import type { MessageKey } from "@/lib/i18n/messages/index";
+
+const DICTATION_ERROR_KEYS: Record<string, MessageKey> = {
+  NO_WORDS: "dictate.error.noWords",
+  TRANSCRIPTION_PARTIAL: "dictate.error.partial",
+  SERVER_UNREACHABLE: "dictate.error.server",
+  TRANSCRIPTION_ERROR: "dictate.error.generic",
+  DEVICE_SPEECH_RECOGNIZER_ERROR: "dictate.error.device",
+  DEVICE_SPEECH_RECOGNIZER_UNAVAILABLE: "dictate.error.deviceUnavailable",
+  NO_SPEECH_TO_TEXT: "dictate.error.noService",
+  MIC_INSECURE: "dictate.error.https",
+  MIC_UNSUPPORTED: "dictate.error.unsupportedMic",
+  RECORDING_UNSUPPORTED: "dictate.error.recordingUnsupported",
+  MICROPHONE_UNAVAILABLE: "dictate.error.microphonePermission",
+  MISSING_AUDIO: "dictate.error.missingAudio",
+  RECORDING_TOO_LONG: "dictate.error.recordingTooLong",
+  SPEECH_SERVICE_FAILED: "dictate.error.speechServiceFailed",
+  SPEECH_SERVICE_UNREACHABLE: "dictate.error.speechServiceUnreachable",
+  AUDIO_FORMAT_UNSUPPORTED: "dictate.error.audioFormat",
+  BUILTIN_TRANSCRIPTION_FAILED: "dictate.error.builtinFailed",
+  OPENAI_KEY_REJECTED: "dictate.error.openAiKey",
+  OPENAI_TRANSCRIPTION_FAILED: "dictate.error.openAiFailed",
+  OPENAI_UNREACHABLE: "dictate.error.openAiUnreachable",
+};
 
 // A field you can speak into. Wraps one textarea (or a one-line input with
 // `single`) and pins a microphone in its corner: tap to start, talk for as
@@ -44,7 +68,7 @@ export function DictateField({
       settle();
     },
   });
-  const { state, hint, elapsed, partial, progress, busy, start, stop, cancel, meterRef, clearHint } = dictation;
+  const { state, hint, hintDetail, elapsed, partial, progress, busy, start, stop, cancel, meterRef, clearHint } = dictation;
   const shown = dictation.available;
   const recording = state === "recording";
 
@@ -117,6 +141,7 @@ export function DictateField({
         <DictateStatus
           state={state}
           hint={hint}
+          hintDetail={hintDetail}
           elapsed={elapsed}
           partial={partial}
           progress={progress}
@@ -131,6 +156,7 @@ export function DictateField({
 function DictateStatus({
   state,
   hint,
+  hintDetail,
   elapsed,
   partial,
   progress,
@@ -139,6 +165,7 @@ function DictateStatus({
 }: {
   state: string;
   hint: string;
+  hintDetail: DictationHint | null;
   elapsed: number;
   partial: string;
   progress: { done: number; total: number } | null;
@@ -185,7 +212,14 @@ function DictateStatus({
   if (state === "error" && hint) {
     return (
       <p role="alert" className="dictate-status dictate-error">
-        <span className="min-w-0 flex-1">{hint}</span>
+        <span className="min-w-0 flex-1">
+          {hintDetail
+            ? t(
+                DICTATION_ERROR_KEYS[hintDetail.code] ?? "dictate.error.generic",
+                hintDetail.params ?? { detail: hint },
+              )
+            : hint}
+        </span>
         <button type="button" onClick={onDismiss} aria-label={t("dictate.dismiss")} className="dictate-discard">
           <X className="size-3" />
         </button>
