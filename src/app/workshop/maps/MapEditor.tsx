@@ -503,7 +503,7 @@ export function MapEditor({
         }
       />
       {selection.dialog}
-      <HotkeyOverlay open={keysOpen} onOpenChange={setKeysOpen} groups={mapHotkeyGroups(LIBRARY_CAPS, (key) => t(key as never))} />
+      <HotkeyOverlay open={keysOpen} onOpenChange={setKeysOpen} title={t("workshop.maps.rail.keys")} footer={t("workshop.maps.hotkeys.phoneHint")} groups={mapHotkeyGroups(LIBRARY_CAPS, (key) => t(key as never))} />
     </>
   );
 }
