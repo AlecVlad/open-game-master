@@ -164,6 +164,52 @@ for (const key of messageContentMessages) {
   assert.ok(key in DICTIONARIES.ru, `Russian message-content message missing: ${key}`);
 }
 
+const messageActionMessages = [
+  "campaign.session.messages.uploadFailed",
+  "campaign.session.messages.pictureAttachFailed",
+  "campaign.session.messages.gameMaster",
+  "campaign.session.messages.gameMasterOoc",
+  "campaign.session.messages.messageActions",
+  "campaign.session.messages.reroll",
+  "campaign.session.messages.rerollLabel",
+  "campaign.session.messages.rerollHint",
+  "campaign.session.messages.continueScene",
+  "campaign.session.messages.continueSceneLabel",
+  "campaign.session.messages.continueSceneHint",
+  "campaign.session.messages.edit",
+  "campaign.session.messages.editLabel",
+  "campaign.session.messages.editHint",
+  "campaign.session.messages.pinMemory",
+  "campaign.session.messages.pinMemoryLabel",
+  "campaign.session.messages.pinMemoryHint",
+  "campaign.session.messages.loreCheck",
+  "campaign.session.messages.loreCheckLabel",
+  "campaign.session.messages.loreCheckHint",
+  "campaign.session.messages.addFacts",
+  "campaign.session.messages.addFactsLabel",
+  "campaign.session.messages.addFactsHint",
+  "campaign.session.messages.replacePicture",
+  "campaign.session.messages.addPicture",
+  "campaign.session.messages.replacePictureHint",
+  "campaign.session.messages.addPictureHint",
+  "campaign.session.messages.readAloud",
+  "campaign.session.messages.readAloudLabel",
+  "campaign.session.messages.readAloudHint",
+  "campaign.session.messages.previousTake",
+  "campaign.session.messages.nextTake",
+  "campaign.session.messages.passageActions",
+  "campaign.session.messages.scene",
+  "campaign.session.messages.illustrating",
+  "campaign.session.messages.trying",
+  "campaign.session.messages.tryAgain",
+  "campaign.session.messages.mapOf",
+  "campaign.session.messages.chartingArea",
+];
+for (const key of messageActionMessages) {
+  assert.ok(key in DICTIONARIES.en, `English message-action message missing: ${key}`);
+  assert.ok(key in DICTIONARIES.ru, `Russian message-action message missing: ${key}`);
+}
+
 const messageAndMomentsMessages = [
   "common.gameMaster",
   "campaign.session.messageItem.speakerThroughGm",
