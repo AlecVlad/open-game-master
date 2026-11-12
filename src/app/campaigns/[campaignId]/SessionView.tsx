@@ -585,7 +585,9 @@ export function SessionView({
       const response = await fetch(`/api/campaigns/${breakCampaignId}/table-break`, { method }).catch(() => null);
       if (!response?.ok) {
         const body = (await response?.json().catch(() => null)) as { error?: string } | null;
-        setError(body?.error || (method === "POST" ? "Could not pause the table." : "Could not resume the table."));
+        setError(body?.error || (method === "POST"
+          ? t("campaign.tableBreak.error.pause")
+          : t("campaign.tableBreak.error.resume")));
       }
     },
     [breakCampaignId],
@@ -759,16 +761,22 @@ export function SessionView({
       }).catch(() => null);
       if (!response?.ok) {
         const body = (await response?.json().catch(() => null)) as { error?: string } | null;
-        setError(body?.error || (action === "end" ? "Could not end the session." : "Could not start the session."));
+        setError(body?.error || (action === "end"
+          ? t("campaign.sessionHold.error.end")
+          : t("campaign.sessionHold.error.start")));
       }
     },
     [sessionCampaignId],
   );
   const endSession = useCallback(async () => {
     const ok = await appConfirm(
-      "Play stops for everyone where it stands, and waits for the next session. Nothing is lost: the story, every sheet, the board and any fight under way stay exactly as they are, and table talk stays open. To finish the campaign for good, use End the campaign in the settings instead.",
+      t("campaign.sessionHold.confirmEnd.body"),
       // Nothing is lost, so the action is gold, not the ember of End the campaign.
-      { title: "End the session", actionLabel: "End the session", tone: "plain" },
+      {
+        title: t("campaign.sessionHeader.endSession"),
+        actionLabel: t("campaign.sessionHeader.endSession"),
+        tone: "plain",
+      },
     );
     if (ok) {
       await sendSession("end");
@@ -894,11 +902,11 @@ export function SessionView({
             response = await send({ concentrationAck });
             if (!response.ok) {
               const again = await response.json().catch(() => ({}));
-              setError(again.error || "Could not send your action.");
+              setError(again.error || t("campaign.session.sendActionError"));
               return;
             }
           } else {
-            setError(data.error || "Could not send your action.");
+            setError(data.error || t("campaign.session.sendActionError"));
             return;
           }
         }
@@ -908,7 +916,7 @@ export function SessionView({
         if (kind === "do" && speakingAs) markReactionSent(speakingAs.id);
         setReactAs(null);
       } catch {
-        setError("Could not reach the server.");
+        setError(t("campaign.session.networkError"));
       } finally {
         setSending(false);
       }
