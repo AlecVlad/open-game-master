@@ -610,7 +610,7 @@ for (const suffix of ["one", "few", "many", "other"]) {
   assert.ok(`rulebook.search.results.${suffix}` in DICTIONARIES.ru, `Russian rulebook search plural missing: ${suffix}`);
 }
 for (const count of [1, 2, 5]) {
-  for (const lang of ["en", "ru"] as const) {
+  for (const lang of ["en", "ru"]) {
     const rendered = translatePlural(DICTIONARIES, lang, "rulebook.search.results", count);
     assert.ok(!rendered.includes("{count}"), `${lang} rulebook search count was not filled: ${count}`);
     assert.notEqual(rendered, "rulebook.search.results", `${lang} rulebook search plural fell back to its key: ${count}`);
