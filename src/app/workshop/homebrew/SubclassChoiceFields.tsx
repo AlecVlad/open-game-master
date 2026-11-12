@@ -34,8 +34,6 @@ import { uniqueVariantId } from "@/lib/content/species-variants";
 // feature of their own.
 
 const L = SUBCLASS_CHOICE_LIMITS;
-const SKILL_LABELS = Object.fromEntries(SKILL_IDS.map((id) => [id, id.replace(/_/g, " ")])) as Record<(typeof SKILL_IDS)[number], string>;
-
 // An option as the draft holds it, read for its summary line.
 function readOption(raw: Data): SubclassChoiceOption {
   return {
