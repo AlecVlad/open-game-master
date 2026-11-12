@@ -22,11 +22,11 @@ export async function POST(
   }
   const parsed = rsvpSchema.safeParse(await request.json().catch(() => ({})));
   if (!parsed.success) {
-    return Response.json({ error: "Invalid input." }, { status: 400 });
+    return Response.json({ error: "Invalid input.", errorCode: "INVALID_INPUT" }, { status: 400 });
   }
   const session = getScheduledSession(campaignId, sessionId);
   if (!session || session.cancelledAt) {
-    return Response.json({ error: "No such session (or it was cancelled)." }, { status: 404 });
+    return Response.json({ error: "No such session (or it was cancelled).", errorCode: "SESSION_NOT_FOUND" }, { status: 404 });
   }
   setRsvp(sessionId, context.user.id, parsed.data.response);
   // Only a "no" interrupts the scheduler; yes and maybe just show on the
