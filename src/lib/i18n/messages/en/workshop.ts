@@ -3403,4 +3403,9 @@ export const enWorkshop = {
   "workshop.homebrew.hazard.boolean.yes": "yes",
   "workshop.homebrew.item.ui.damageTypes": "Damage types",
   "workshop.homebrew.species.main.size.smallHeavyHint": "A Small creature attacks with a heavy weapon at disadvantage.",
+  "workshop.homebrew.class.ui.removeWeapon": "Remove {name}",
+  "workshop.homebrew.class.ui.name.barbarian": "Barbarian",
+  "workshop.homebrew.class.ui.name.fighter": "Fighter",
+  "workshop.homebrew.class.ui.name.monk": "Monk",
+  "workshop.homebrew.class.ui.name.rogue": "Rogue",
 } satisfies Record<string, string>;
