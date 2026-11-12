@@ -442,17 +442,34 @@ export function applyClassChassis(draft: MonsterDraft, pick: ChassisPick): Monst
   };
 }
 
-// What applying a chassis would say, for the line under the button. A DM
-// deserves to know a pick raises hit points to 94 before it does.
-export function describeChassis(pick: ChassisPick): string {
+// Numeric parts of the chassis summary, so the UI can render them in its
+// active language without changing the class IDs or the character rules.
+export function chassisDescription(pick: ChassisPick): {
+  hitDie: number;
+  hitPoints: number;
+  saves: SaveAbility[];
+  proficiency: number;
+} | null {
   const klass = findClassKit(pick.classId);
   if (!klass) {
-    return "";
+    return null;
   }
   const level = Math.max(1, Math.min(20, Math.round(pick.level)));
-  const hp = suggestedStartingHp(pick.classId, pick.ancestryId, pick.con, level);
-  const saves = klass.saves.map((ability) => ability.toUpperCase()).join(" and ");
-  return `d${klass.hitDie} hit die: at least ${hp} hit points, ${saves} saves at +${proficiencyBonus(
-    level,
-  )} or better.`;
+  return {
+    hitDie: klass.hitDie,
+    hitPoints: suggestedStartingHp(pick.classId, pick.ancestryId, pick.con, level),
+    saves: klass.saves,
+    proficiency: proficiencyBonus(level),
+  };
+}
+
+// Legacy English formatter retained for non-UI callers. The editor uses
+// chassisDescription above and localizes the sentence in its own layer.
+export function describeChassis(pick: ChassisPick): string {
+  const details = chassisDescription(pick);
+  if (!details) {
+    return "";
+  }
+  const saves = details.saves.map((ability) => ability.toUpperCase()).join(" and ");
+  return `d${details.hitDie} hit die: at least ${details.hitPoints} hit points, ${saves} saves at +${details.proficiency} or better.`;
 }
