@@ -77,7 +77,11 @@ export function MapPanel({
       setPopulateNote(
         response.ok
           ? t("campaign.mapPanel.populate.done", { npcs: data.npcs, shops: data.shops, hook: data.hook?.title ?? "" })
-          : String(data.error ?? t("campaign.mapPanel.populate.error")),
+          : data.errorCode === "PLACE_ALREADY_POPULATED"
+            ? t("campaign.mapPanel.populate.alreadyPopulated", { place: data.errorParams?.place ?? shown.name })
+            : data.errorCode === "PLACE_NOT_FOUND"
+              ? t("campaign.mapPanel.populate.placeNotFound")
+              : String(data.error ?? t("campaign.mapPanel.populate.error")),
       );
     } finally {
       setPopulating(false);
