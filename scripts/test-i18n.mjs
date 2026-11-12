@@ -224,6 +224,13 @@ const joinConfirmErrorMessages = [
   "campaign.joinConfirm.error.picksUnreadable",
   "campaign.joinConfirm.error.noCharacterToSwitch",
   "campaign.joinConfirm.error.updateFailed",
+  "campaign.joinConfirm.error.companionRole",
+  "campaign.joinConfirm.error.heroFell",
+  "campaign.joinConfirm.error.pregenAlreadyMine",
+  "campaign.joinConfirm.error.pregenAlreadyTaken",
+  "campaign.joinConfirm.error.pregenCopyAlreadyMine",
+  "campaign.joinConfirm.error.pregenCopyPlayedByAnother",
+  "campaign.joinConfirm.error.offeredPregenJoinOnly",
 ];
 for (const key of joinConfirmErrorMessages) {
   assert.ok(key in DICTIONARIES.en, `English join-confirm error missing: ${key}`);
