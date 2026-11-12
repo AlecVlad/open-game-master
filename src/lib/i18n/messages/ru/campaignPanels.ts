@@ -5447,6 +5447,8 @@ export const ruCampaignPanels: Partial<Record<keyof typeof enCampaignPanels, str
   "campaign.mapPanel.empty.uploadOnly": "Пока нет ни одной отмеченной области. Области будут появляться по мере исследования; ведущий может загрузить карту для каждой.",
   "campaign.mapPanel.populate.done": "Добавлено: жителей — {npcs}, магазинов — {shops}. Зацепка: {hook}",
   "campaign.mapPanel.populate.error": "Не удалось заполнить это место.",
+  "campaign.mapPanel.populate.alreadyPopulated": "В месте «{place}» уже есть жители, магазины и слухи. Используйте существующее поселение вместо повторной генерации.",
+  "campaign.mapPanel.populate.placeNotFound": "Это место больше не существует в кампании.",
   "campaign.mapPanel.error.upload": "Не удалось загрузить это изображение.",
   "campaign.mapPanel.error.set": "Не удалось установить карту.",
   "campaign.mapPanel.error.redraw": "Не удалось добавить перерисовку в очередь.",
