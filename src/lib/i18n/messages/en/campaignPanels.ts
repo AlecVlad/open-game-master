@@ -4226,6 +4226,8 @@ export const enCampaignPanels = {
   "campaign.relationship.romance.stage.betrothed": "Betrothed",
   "campaign.relationship.romance.stage.married": "Married",
   "campaign.relationship.romance.aria": "Romance: {stage}, step {step} of {steps}",
+  "campaign.relationship.romance.with": "Romance with",
+  "campaign.relationship.romance.title": "Romance: {stage}",
   "campaign.relationship.kind.companion": "companion",
   "campaign.relationship.kind.npc": "NPC",
   "campaign.relationship.status.away": "away",
