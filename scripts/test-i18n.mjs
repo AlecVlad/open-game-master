@@ -104,6 +104,17 @@ for (const key of partyBackstoryMessages) {
   assert.ok(key in DICTIONARIES.ru, `Russian party-backstory message missing: ${key}`);
 }
 
+// Character validation responses expose codes only for exact, stable server diagnostics.
+const characterRefusalMessages = [
+  "builder.refusal.multiclass.disabled",
+  "builder.refusal.multiclass.duplicate",
+  "builder.refusal.spellcasting.thirdCaster",
+];
+for (const key of characterRefusalMessages) {
+  assert.ok(key in DICTIONARIES.en, `English character-refusal message missing: ${key}`);
+  assert.ok(key in DICTIONARIES.ru, `Russian character-refusal message missing: ${key}`);
+}
+
 // Companion relationship labels must follow the selected interface language.
 for (const key of ["campaign.relationship.romance.with", "campaign.relationship.romance.title"]) {
   assert.ok(key in DICTIONARIES.en, `English relationship message missing: ${key}`);
