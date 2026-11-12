@@ -68,6 +68,7 @@ const tableViewMessages = [
   "campaign.tableView.error.memberOnly",
   "campaign.tableView.backToCampaigns",
   "campaign.tableView.backToTable",
+  "campaign.session.formation.removeFromFormation",
 ];
 for (const key of tableViewMessages) {
   assert.ok(key in DICTIONARIES.en, `English table-view message missing: ${key}`);
