@@ -357,6 +357,8 @@ await test("The setup names the narrator's engine, model, size and window, never
   const checks = made.setup.checkFirst;
   assert.ok(checks.some((line) => line.includes("is small, about 8B parameters")), checks.join("\n"));
   assert.ok(checks.some((line) => line.startsWith("The narrator's window:") && line.includes("too small to narrate")), checks.join("\n"));
+  assert.ok(made.setup.checkFirstItems.some((item) => item.code === "MODEL_TOO_SMALL"));
+  assert.ok(made.setup.checkFirstItems.some((item) => item.code === "NARRATOR_WINDOW_SHORT"));
   assert.equal(made.setup.helper, null);
   assert.equal(made.setup.agentProgram, null);
   for (const key of ["install", "channel", "pictures", "narration", "dictation", "voiceChat"]) {
