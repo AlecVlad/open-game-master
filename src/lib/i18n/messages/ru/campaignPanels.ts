@@ -5124,6 +5124,7 @@ export const ruCampaignPanels: Partial<Record<keyof typeof enCampaignPanels, str
   "campaign.session.encounterPrep.difficulty.summary": "{count} · {verdict} ({xp} XP; порог {ceiling})",
   "campaign.session.encounterPrep.takeBack": "Отозвать",
   "campaign.session.encounterPrep.cue": "Подготовить",
+  "campaign.session.encounterPrep.deploy": "Начать бой",
 
 
 
