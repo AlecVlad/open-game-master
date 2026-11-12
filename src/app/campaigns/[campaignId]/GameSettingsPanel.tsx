@@ -257,7 +257,7 @@ export function GameSettingsPanel({
           <span className="flex items-center gap-1.5">
             <GameIcon icon={{ kind: "glyph", key: "cue-bell" }} size="size-5" />
             {narrating
-              ? t("campaign.gameSettings.summary.narration.on", { voice: voiceLabel(voices, settings.ttsVoice) })
+              ? t("campaign.gameSettings.summary.narration.on", { voice: voiceLabel(voices, settings.ttsVoice, t) })
               : narrationOff
                 ? t("campaign.gameSettings.summary.narration.serverOff")
                 : t("campaign.gameSettings.summary.narration.off")}
