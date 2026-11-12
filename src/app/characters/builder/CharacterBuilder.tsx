@@ -49,7 +49,7 @@ import { BuildMathPanel } from "./BuildMathPanel";
 import { useArchetypeOptions, useBuilderOptions, useWorldPack, type OptionListKind } from "./useBuilderOptions";
 import { TableScopeNote } from "./TableScopeNote";
 import { UndoChangeBar } from "./UndoChangeBar";
-import { putBackMessage, undoMessage } from "./buildUndo";
+import { undoNounKey } from "./buildUndo";
 import { summaryRows, type SummaryRowKey } from "./summary";
 import { ALIGNMENT_LABELS } from "./usePickerGroups";
 import { listWords, unofferedPicks } from "./unoffered";
@@ -372,7 +372,9 @@ function CharacterBuilderForm({
   } else if (state.undo && undoAt && undoAt.step !== step) {
     state.clearUndo();
   }
-  const undoSaid = state.undo ? undoMessage(state.undo) : putBackSaid;
+  const undoSaid = state.undo
+    ? t("builder.extra.undo.message", { noun: t(undoNounKey(state.undo.because) as MessageKey), from: state.undo.from, to: state.undo.to })
+    : putBackSaid;
   function putBack() {
     if (!state.undo) {
       return;
@@ -385,7 +387,7 @@ function CharacterBuilderForm({
     document
       .querySelector<HTMLElement>(`[data-builder-root="${rootId}"] section[data-active] .wizard-step-heading`)
       ?.focus({ preventScroll: true });
-    setPutBackSaid(putBackMessage(state.undo));
+    setPutBackSaid(t("builder.extra.undo.putBack", { from: state.undo.from }));
     state.putBack();
   }
   const [cameFrom, setCameFrom] = useState<SummaryRowKey | null>(null);
