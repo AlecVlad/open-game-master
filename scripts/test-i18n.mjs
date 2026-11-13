@@ -1475,6 +1475,7 @@ const builderBlockKeys = [
   "builder.block.spells.preparedBookMissing",
   "builder.block.spells.preparedMissing",
   "builder.block.spells.preparedOver",
+  "builder.block.spells.noSpells",
   "builder.block.abilities.missing",
   "builder.block.abilities.standardArray",
   "builder.block.abilities.pointBuyRange",
