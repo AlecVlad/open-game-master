@@ -4389,6 +4389,7 @@ export const enCampaignPanels = {
   "campaign.relationship.act.motive": "Wants {motive}",
   "campaign.relationship.act.seenBy": "Seen through by {names}",
   "campaign.relationship.loading": "Reading the room...",
+  "campaign.relationship.loadError": "Relationships could not be loaded. Check your connection and try again.",
   "campaign.relationship.disabled": "Relationship tracking is off for this campaign. Whoever runs the story can turn it on in Settings, under Bonds and romance.",
   "campaign.relationship.empty": "Nobody has an opinion yet. How NPCs and companions feel about each character builds as you deal with them, and shows up here.",
   "campaign.relationship.noOpinion": "Nobody has an opinion of {name} yet.",
