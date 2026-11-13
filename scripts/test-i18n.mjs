@@ -187,8 +187,8 @@ for (const [code, key, params, expected] of levelUpBuilderRefusalCases) {
   assert.equal(actual, expected, `level-up builder refusal ${code} did not localize`);
 }
 const levelUpChoiceRefusalCases = [
-  ["LEVEL_UP_ABILITY_LOWERED", "charSheet.levelUp.error.abilityLowered", { ability: "Сила", current: 16, requested: 15 }, "Улучшение характеристик не может уменьшать значение Сила с 16 до 15. Оно позволяет только повышать характеристики."],
-  ["LEVEL_UP_ABILITY_CAP", "charSheet.levelUp.error.abilityCap", { ability: "Сила", maximum: 20 }, "Улучшение характеристик не позволяет повысить Сила выше 20."],
+  ["LEVEL_UP_ABILITY_LOWERED", "charSheet.levelUp.error.abilityLowered", { ability: "str", current: 16, requested: 15 }, "Улучшение характеристик не может уменьшать значение Сила с 16 до 15. Оно позволяет только повышать характеристики."],
+  ["LEVEL_UP_ABILITY_CAP", "charSheet.levelUp.error.abilityCap", { ability: "str", maximum: 20 }, "Улучшение характеристик не позволяет повысить Сила выше 20."],
   ["LEVEL_UP_ASI_TOO_MANY", "charSheet.levelUp.error.asiTooMany", { name: "Corin", owed: 1, requested: 2 }, "На этом уровне персонажу Corin положено вариантов улучшения характеристик: 1. Получено вариантов: 2."],
   ["LEVEL_UP_ASI_NOT_GRANTED", "charSheet.levelUp.error.asiNotGranted", { classLevel: 2 }, "2-й уровень класса не даёт улучшения характеристик."],
   ["LEVEL_UP_FEAT_ALREADY_TAKEN", "charSheet.levelUp.error.featAlreadyTaken", { name: "Corin", feat: "Lucky" }, "У персонажа Corin уже есть черта «Lucky». Каждую черту можно выбрать только один раз."],
