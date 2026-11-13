@@ -13,6 +13,7 @@ export type Notification = {
   campaignId: string;
   kind: string;
   body: string;
+  params?: Record<string, string | number>;
   createdAt: string;
   readAt: string | null;
 };
@@ -23,19 +24,36 @@ type NotificationRow = {
   campaign_id: string;
   kind: string;
   body: string;
+  params_json?: string | null;
   created_at: string;
   read_at: string | null;
 };
 
 const KEEP_PER_USER = 200;
 
+function notificationParams(raw: string | null | undefined): Record<string, string | number> | undefined {
+  if (!raw) return undefined;
+  try {
+    const value = JSON.parse(raw) as unknown;
+    if (!value || typeof value !== "object" || Array.isArray(value)) return undefined;
+    const entries = Object.entries(value).filter(
+      (entry): entry is [string, string | number] =>
+        typeof entry[1] === "string" || (typeof entry[1] === "number" && Number.isFinite(entry[1])),
+    );
+    return entries.length ? Object.fromEntries(entries) : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 function mapRow(row: NotificationRow): Notification {
-  return {
-    id: row.id,
+  const params = notificationParams(row.params_json);
+  return {    id: row.id,
     userId: row.user_id,
     campaignId: row.campaign_id,
     kind: row.kind,
     body: row.body,
+    ...(params ? { params } : {}),
     createdAt: row.created_at,
     readAt: row.read_at,
   };
@@ -43,15 +61,15 @@ function mapRow(row: NotificationRow): Notification {
 
 export function notifyUsers(
   userIds: string[],
-  input: { campaignId?: string; kind: string; body: string },
+  input: { campaignId?: string; kind: string; body: string; params?: Record<string, string | number> },
 ): void {
   if (userIds.length === 0) {
     return;
   }
   const db = getDatabase();
   const insert = db.prepare(
-    `INSERT INTO notifications (id, user_id, campaign_id, kind, body, created_at)
-     VALUES (?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO notifications (id, user_id, campaign_id, kind, body, params_json, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?)`,
   );
   const prune = db.prepare(
     `DELETE FROM notifications WHERE user_id = ? AND id NOT IN (
@@ -60,7 +78,7 @@ export function notifyUsers(
   );
   const all = db.transaction((ids: string[]) => {
     for (const userId of ids) {
-      insert.run(randomUUID(), userId, input.campaignId ?? "", input.kind, input.body, nowIso());
+      insert.run(randomUUID(), userId, input.campaignId ?? "", input.kind, input.body, JSON.stringify(input.params ?? {}), nowIso());
       prune.run(userId, userId, KEEP_PER_USER);
     }
   });
