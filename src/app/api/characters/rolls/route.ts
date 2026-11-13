@@ -36,13 +36,14 @@ const rollSchema = z.discriminatedUnion("kind", [
 function wealthRefusal(userId: string, campaignId: string): Response | null {
   const campaign = getCampaignById(campaignId);
   if (!campaign || !isCampaignMember(campaignId, userId)) {
-    return Response.json({ error: "That campaign is not one of yours." }, { status: 404 });
+    return Response.json({ error: "That campaign is not one of yours.", errorCode: "campaignNotAccessible" }, { status: 404 });
   }
   if ((campaign.gameSettings.startingWealth ?? "equipment") !== "rolled") {
     return Response.json(
       {
         error:
           "This table starts characters with their class's equipment and their background's coin; starting wealth is not rolled here.",
+        errorCode: "notRolled",
       },
       { status: 409 },
     );
@@ -103,7 +104,10 @@ export async function POST(request: Request) {
   const parsed = rollSchema.safeParse(await request.json().catch(() => ({})));
   if (!parsed.success) {
     return Response.json(
-      { error: "Say which dice to roll: the ability scores, or a class's starting wealth at a table." },
+      {
+        error: "Say which dice to roll: the ability scores, or a class's starting wealth at a table.",
+        errorCode: "invalidRequest",
+      },
       { status: 400 },
     );
   }
