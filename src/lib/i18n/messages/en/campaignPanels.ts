@@ -112,6 +112,13 @@ export const enCampaignPanels = {
   "campaign.quest.fromStory": "From the story",
   "campaign.quest.loading": "Opening the log...",
   "campaign.quest.empty": "Nothing on the log yet.",
+  "campaign.quest.error.create": "Could not add the quest.",
+  "campaign.quest.error.update": "Could not update the quest.",
+  "campaign.quest.error.remove": "Could not remove the quest.",
+  "campaign.quest.error.server": "Could not reach the server.",
+  "campaign.quest.error.titleRequired": "A quest needs a title.",
+  "campaign.quest.error.notFound": "That quest no longer exists.",
+  "campaign.quest.error.fromStory": "This quest comes from the story. Mark it done or failed instead.",
 
   "campaign.calendar.error.clock": "The clock",
   "campaign.calendar.error.events": "The calendar",
