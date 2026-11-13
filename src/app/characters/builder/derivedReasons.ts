@@ -9,6 +9,7 @@ import type { PurseView } from "./EquipmentSection";
 import type { TableRulesState } from "./useTableRules";
 import type { Params } from "@/lib/i18n/core";
 import type { MessageKey } from "@/lib/i18n/messages";
+import type { GearProblemDetail } from "@/lib/srd/gear-problems";
 
 export type DerivedLine = { value: string; reason: string };
 
@@ -89,6 +90,7 @@ export function purseViewFor(input: {
     copper: number;
     spentCopper: number;
     problems: string[];
+    problemDetails: GearProblemDetail[];
     method: string;
     receipt?: PurseView["receipt"];
   };
@@ -100,21 +102,32 @@ export function purseViewFor(input: {
   table: TableRulesState;
 }): PurseView {
   const { purse, table } = input;
-  const spent = purse.spentCopper ? ` Bought: ${formatPrice(purse.spentCopper)}.` : "";
+  const t = (key: MessageKey, params?: Params) => messages?.t?.(key, params);
+  const spent = purse.spentCopper
+    ? (t("builder.gear.source.spent", { amount: formatPrice(purse.spentCopper) }) ?? " Bought: " + formatPrice(purse.spentCopper) + ".")
+    : "";
   const rolledTable = !input.keepsStoredGear && purse.method === "rolled";
   const dice = describeWealthDice(startingWealthDice(input.classId));
   const source = input.keepsStoredGear
-    ? `The coin this character already carries; gear added now is paid from it.${spent}`
+    ? (t("builder.gear.source.stored") ?? "The coin this character already carries; gear added now is paid from it.") + spent
     : rolledTable
       ? table.wealth
-        ? `This table rolls a ${input.className}'s starting wealth in place of the class kit, and every item is bought from it.${spent}`
-        : `This table rolls a ${input.className}'s starting wealth (${dice}) in place of the class kit. Roll it, then buy your gear.`
-      : `The ${input.backgroundName} background's purse of ${input.backgroundPurse} gp. The class and background kit is free; anything more is bought from the purse.${spent}`;
+        ? (t("builder.gear.source.rolledTable", { className: input.className }) ?? "This table rolls a " + input.className + "'s starting wealth in place of the class kit, and every item is bought from it.") + spent
+        : (t("builder.gear.source.rolledPrompt", { className: input.className, dice }) ?? "This table rolls a " + input.className + "'s starting wealth (" + dice + ") in place of the class kit. Roll it, then buy your gear.")
+      : (t("builder.gear.source.background", { backgroundName: input.backgroundName, purse: input.backgroundPurse }) ?? "The " + input.backgroundName + " background's purse of " + input.backgroundPurse + " gp. The class and background kit is free; anything more is bought from the purse.") + spent;
   return {
     gold: purse.gold,
     copper: purse.copper,
     source,
     problems: [...new Set(purse.problems)],
+    problemDetails: (() => {
+      const seen = new Set<string>();
+      return purse.problems.flatMap((problem, index) => {
+        if (seen.has(problem)) return [];
+        seen.add(problem);
+        return purse.problemDetails[index] ? [purse.problemDetails[index]] : [];
+      });
+    })(),
     ...(purse.receipt ? { receipt: purse.receipt } : {}),
     wealth: rolledTable
       ? {
@@ -122,6 +135,7 @@ export function purseViewFor(input: {
           rolled: table.wealth ? { faces: table.wealth.faces, gold: table.wealth.gold } : null,
           busy: table.wealthBusy,
           error: table.wealthError,
+          errorCode: table.wealthErrorCode,
           onRoll: table.rollWealth,
         }
       : null,
