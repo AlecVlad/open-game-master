@@ -41,6 +41,7 @@ const REFUSAL_MESSAGE_KEYS = {
   COMPANION_ALREADY_HERE: "charUse.err.companion.alreadyHere",
   COMPANION_LEFT_PARTY: "charUse.err.companion.leftParty",
   COMPANION_NOT_IN_LIBRARY: "charUse.err.companion.notInLibrary",
+  MULTICLASS_NOT_ALLOWED_FOR_CHARACTER: "charUse.err.multiclass",
   INVALID_COMPANION_SHEET: "charUse.err.companion.invalidSheet",
   HERO_FELL_AT_TABLE: "campaign.joinConfirm.error.heroFell",
   PREGEN_ALREADY_PLAYED_BY_YOU: "campaign.joinConfirm.error.pregenAlreadyMine",
