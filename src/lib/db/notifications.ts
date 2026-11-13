@@ -48,7 +48,8 @@ function notificationParams(raw: string | null | undefined): Record<string, stri
 
 function mapRow(row: NotificationRow): Notification {
   const params = notificationParams(row.params_json);
-  return {    id: row.id,
+  return {
+    id: row.id,
     userId: row.user_id,
     campaignId: row.campaign_id,
     kind: row.kind,
@@ -78,7 +79,10 @@ export function notifyUsers(
   );
   const all = db.transaction((ids: string[]) => {
     for (const userId of ids) {
-      insert.run(randomUUID(), userId, input.campaignId ?? "", input.kind, input.body, JSON.stringify(input.params ?? {}), nowIso());
+      insert.run(
+        randomUUID(), userId, input.campaignId ?? "", input.kind, input.body,
+        JSON.stringify(input.params ?? {}), nowIso(),
+      );
       prune.run(userId, userId, KEEP_PER_USER);
     }
   });
