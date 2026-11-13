@@ -16,7 +16,7 @@ import { localizeStoryboardError } from "../src/lib/workshop/storyboard-api-i18n
 import { gearProblemText } from "../src/app/characters/builder/gearProblemText.ts";
 import { campaignApiErrorText } from "../src/lib/i18n/campaignApiError.ts";
 import { notificationText } from "../src/lib/i18n/notificationText.ts";
-import { readLoad, UNREACHABLE, UNREADABLE } from "../src/lib/load-state.ts";
+import { readLoad, readWrite, UNREACHABLE, UNREADABLE } from "../src/lib/load-state.ts";
 import { featOwedText } from "../src/app/characters/builder/featOwedText.ts";
 import { featPrerequisiteText } from "../src/app/characters/builder/featPrereqText.ts";
 import { multiclassPrerequisiteText } from "../src/app/characters/builder/multiclassPrereqText.ts";
@@ -1536,6 +1536,16 @@ const unreachableRulesLoad = await readLoad(
       : reason,
 );
 assert.equal(unreachableRulesLoad.error, campaignApiT("campaign.session.rules.network"));
+const refusedFactionWrite = await readWrite(
+  Promise.resolve(new Response(JSON.stringify({ error: "A faction needs a name.", errorCode: "FACTION_NAME_REQUIRED" }), {
+    status: 400,
+    headers: { "Content-Type": "application/json" },
+  })),
+  "Could not save the faction.",
+  (body, status) => campaignApiErrorText(body, `The server answered ${status}.`, campaignApiT),
+);
+assert.equal(refusedFactionWrite.error, campaignApiT("campaign.factions.error.nameRequired"));
+assert.equal(refusedFactionWrite.unanswered, false);
 
 // Starting equipment diagnostics are structured and translated in the builder.
 const gearDiagnosticKeys = [
