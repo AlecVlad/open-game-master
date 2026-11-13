@@ -1593,6 +1593,12 @@ assert.match(prereqText, /Resilient/);
 assert.match(prereqText, /Сила/);
 assert.match(prereqText, /13/);
 assert.match(prereqText, /10/);
+const skillPrereqText = featPrerequisiteText({
+  feat: "Skilled",
+  requirements: JSON.stringify([{ code: "skills", skills: ["animal_handling", "sleight_of_hand"] }]),
+}, featPrereqT);
+assert.match(skillPrereqText, /Уход за животными/);
+assert.match(skillPrereqText, /Ловкость рук/);
 const multiclassPrereqT = (key, params) => translate(DICTIONARIES, "ru", key, params);
 const fighterPrereqText = multiclassPrerequisiteText({
   className: "Воин",
