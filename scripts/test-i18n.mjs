@@ -149,6 +149,21 @@ for (const key of fightSetupReadoutMessages) {
   assert.ok(key in DICTIONARIES.ru, `Russian saved-fight readout message missing: ${key}`);
   assert.notEqual(translate(DICTIONARIES, "ru", key), key, `Russian saved-fight readout fell back to its key: ${key}`);
 }
+const levelUpRefusalCases = [
+  ["LEVEL_UP_ALREADY_TAKEN", "charSheet.levelUp.error.alreadyTaken", { name: "Corin", level: 3, nextLevel: 4 }, "Corin уже достиг 3-го уровня. Следующий — 4-й."],
+  ["LEVEL_UP_ALREADY_AT_MAX", "charSheet.levelUp.error.alreadyAtMax", { name: "Corin", level: 20 }, "Corin уже достиг максимального уровня — 20."],
+  ["LEVEL_UP_COSMETIC_FIELDS_ONLY", "charSheet.levelUp.error.cosmeticFieldsOnly", {}, "Вне повышения уровня можно менять только портрет, заметки, предысторию и пожелания к истории. Чтобы изменить остальные параметры, обратитесь к ведущему кампании."],
+];
+for (const [code, key, params, expected] of levelUpRefusalCases) {
+  assert.ok(key in DICTIONARIES.en, `English level-up refusal message missing: ${key}`);
+  assert.ok(key in DICTIONARIES.ru, `Russian level-up refusal message missing: ${key}`);
+  const actual = refusalText(
+    { error: "legacy English text", errorCode: code, errorParams: params },
+    "fallback",
+    (messageKey, messageParams) => translate(DICTIONARIES, "ru", messageKey, messageParams),
+  );
+  assert.equal(actual, expected, `refusal ${code} did not localize`);
+}
 const tableViewMessages = [
   "campaign.tableView.error.memberOnly",
   "campaign.tableView.backToCampaigns",

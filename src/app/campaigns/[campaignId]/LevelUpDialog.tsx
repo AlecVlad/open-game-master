@@ -14,6 +14,7 @@ import { ChevronDown, Dices, Loader2, Search, Sparkles, X } from "lucide-react";
 import { useEffect, useId, useMemo, useState } from "react";
 import { cn } from "@/lib/cn";
 import { useI18n } from "@/lib/i18n/provider";
+import { refusalText } from "@/app/characters/builder/refusal";
 import { InfoButton, InfoChipList } from "@/components/ui/InfoDialog";
 import { describeFeature, describeSkill } from "@/lib/help";
 import { useClassFeatureText } from "@/lib/classes/use-feature-text";
@@ -889,7 +890,7 @@ export function LevelUpDialog({
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError(typeof data?.error === "string" ? data.error : t("charSheet.levelUp.error.refused"));
+        setError(refusalText(data, t("charSheet.levelUp.error.refused"), t));
         return;
       }
       setResult({

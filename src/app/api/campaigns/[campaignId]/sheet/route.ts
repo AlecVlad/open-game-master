@@ -616,9 +616,16 @@ export async function PATCH(
   // agent retrying after its first call went through). Refused as any other
   // edit outside a level-up is, but said as what it is.
   if (typeof parsed.data.level === "number" && !levelingUp && !companionPortrait) {
+    const alreadyAtMax = sheet.level >= 20;
     return Response.json(
       {
-        error: `${sheet.name} is already level ${sheet.level}. ${sheet.level >= 20 ? "No character passes level 20." : `A level-up names the next level, ${sheet.level + 1}.`}`,
+        error: `${sheet.name} is already level ${sheet.level}. ${alreadyAtMax ? "No character passes level 20." : `A level-up names the next level, ${sheet.level + 1}.`}`,
+        errorCode: alreadyAtMax ? "LEVEL_UP_ALREADY_AT_MAX" : "LEVEL_UP_ALREADY_TAKEN",
+        errorParams: {
+          name: sheet.name,
+          level: sheet.level,
+          ...(alreadyAtMax ? {} : { nextLevel: sheet.level + 1 }),
+        },
         level: sheet.level,
       },
       { status: 403 },
@@ -629,6 +636,7 @@ export async function PATCH(
       {
         error:
           "Only portrait, notes, backstory, and hopes for the story can be changed here outside of a level-up. Ask the party lead to adjust other stats.",
+        errorCode: "LEVEL_UP_COSMETIC_FIELDS_ONLY",
       },
       { status: 403 },
     );

@@ -63,6 +63,9 @@ const REFUSAL_MESSAGE_KEYS = {
   PREGEN_COPY_ALREADY_PLAYED_BY_YOU: "campaign.joinConfirm.error.pregenCopyAlreadyMine",
   PREGEN_COPY_PLAYED_BY_ANOTHER: "campaign.joinConfirm.error.pregenCopyPlayedByAnother",
   OFFERED_PREGEN_JOIN_ONLY: "campaign.joinConfirm.error.offeredPregenJoinOnly",
+  LEVEL_UP_ALREADY_TAKEN: "charSheet.levelUp.error.alreadyTaken",
+  LEVEL_UP_ALREADY_AT_MAX: "charSheet.levelUp.error.alreadyAtMax",
+  LEVEL_UP_COSMETIC_FIELDS_ONLY: "charSheet.levelUp.error.cosmeticFieldsOnly",
 } satisfies Record<string, MessageKey>;
 
 // Refusals retain their original prose for older clients and unknown

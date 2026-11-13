@@ -117,6 +117,13 @@ await test("experience for several levels lets them be taken, one request each",
 await test("outside a level-up only portrait, notes and backstory can be written", async () => {
   const { sheet, patch } = await table({ ...FIGHTER, level: 3 }, { xp: XP[3] });
   const before = sheet();
+  const alreadyTaken = await patch({ level: before.level });
+  assert.equal(alreadyTaken.status, 403);
+  assert.equal(alreadyTaken.json.errorCode, "LEVEL_UP_ALREADY_TAKEN");
+  assert.deepEqual(alreadyTaken.json.errorParams, { name: before.name, level: before.level, nextLevel: before.level + 1 });
+  const cosmeticsOnly = await patch({ maxHp: 200 });
+  assert.equal(cosmeticsOnly.status, 403);
+  assert.equal(cosmeticsOnly.json.errorCode, "LEVEL_UP_COSMETIC_FIELDS_ONLY");
   const attempts = [
     { maxHp: 200 },
     { currentHp: 1 },
@@ -142,7 +149,17 @@ await test("outside a level-up only portrait, notes and backstory can be written
   assert.equal(sheet().level, 3);
 });
 
-await test("no sheet passes level 20, and a level is a whole number from 1", async () => {
+await test("no sheet passes level 20, and a level is a whole number from 1", async () => {await test("a repeated request at level 20 uses the maximum-level refusal code", async () => {
+  const { sheet, patch } = await table({ ...FIGHTER, level: 20 });
+  const before = sheet();
+  const response = await patch({ level: 20 });
+  assert.equal(response.status, 403);
+  assert.equal(response.json.errorCode, "LEVEL_UP_ALREADY_AT_MAX");
+  assert.deepEqual(response.json.errorParams, { name: before.name, level: 20 });
+  assert.deepEqual(sheet(), before);
+});
+
+
   const { sheet, patch } = await table({ ...FIGHTER, level: 19 }, { xp: 20000 });
   const before = sheet();
   for (const level of [21, 25, 0, -1, 19.5, "20"]) {
