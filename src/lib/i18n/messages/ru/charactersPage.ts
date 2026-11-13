@@ -4,6 +4,7 @@ import type { enCharactersPage } from "../en/charactersPage.ts";
 
 export const ruCharactersPage: Partial<Record<keyof typeof enCharactersPage, string>> & Record<string, string> = {
   "characters.err.queue": "Не удалось поставить портрет в очередь.",
+  "characters.err.portrait.noImageModel": "На сервере нет модели для генерации изображений. Вместо этого загрузите портрет.",
   "characters.err.net": "Не удалось связаться с сервером.",
   "characters.err.portrait": "Портрет не сохранён. Проверьте соединение и попробуйте ещё раз.",
   "characters.err.clone": "Копия не создана. Проверьте соединение и попробуйте ещё раз.",
