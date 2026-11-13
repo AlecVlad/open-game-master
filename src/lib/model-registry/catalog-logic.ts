@@ -10,7 +10,7 @@
 // cache file). It is read field by field into fresh objects: nothing in it
 // is ever executed, and an unknown field is dropped.
 
-import { RECOMMENDED_WINDOW, storyWindowVerdict } from "@/lib/story-window";
+import { MIN_COMBAT_WINDOW, MIN_NARRATION_WINDOW, RECOMMENDED_WINDOW, storyWindowVerdict, windowLabel } from "@/lib/story-window";
 
 export type CatalogModel = {
   // The models.dev provider id ("openai", "openrouter", "deepinfra").
@@ -333,12 +333,24 @@ export function findCatalogModel(providers: CatalogProviders, modelId: string, p
 export type ModelRole = "story" | "utility" | "image" | "narration" | "dictation";
 export type ModelFit = "ok" | "warn" | "unfit" | "unknown";
 
+export type ModelDiagnostic = {
+  code: string;
+  params?: Record<string, string | number>;
+};
+
+export type ModelSummaryPart = {
+  code: string;
+  params?: Record<string, string | number>;
+};
+
 export type ModelVerdict = {
   fit: ModelFit;
-  // Worded for the admin, worst first.
+  // Kept in English for existing API consumers and model-registry tests.
   warnings: string[];
-  // One line of what the catalog says: window, abilities, price.
   summary: string;
+  // Stable diagnostics for translating the same verdict in the interface.
+  warningDetails: ModelDiagnostic[];
+  summaryParts: ModelSummaryPart[];
 };
 
 // A picture model by its name, for a server whose list carries no
@@ -402,59 +414,80 @@ export function assessModel(input: {
   memory?: { sizeGb: number; budgetGb: number } | null;
 }): ModelVerdict {
   const warnings: string[] = [];
+  const warningDetails: ModelDiagnostic[] = [];
   let fit: ModelFit = "ok";
-  const unfit = (why: string) => {
+  const unfit = (why: string, detail: ModelDiagnostic) => {
     fit = "unfit";
     warnings.push(why);
+    warningDetails.push(detail);
   };
-  const warn = (why: string) => {
+  const warn = (why: string, detail: ModelDiagnostic) => {
     if (fit === "ok") fit = "warn";
     warnings.push(why);
+    warningDetails.push(detail);
   };
   const { catalog, role } = input;
   const writes = role === "story" || role === "utility";
   if (input.listed === false) {
-    warn("Not listed by the server right now. Load it there, or pick one it lists.");
+    warn("Not listed by the server right now. Load it there, or pick one it lists.", { code: "notListed" });
   }
-  const noTools = (why: string) => {
-    if (role === "story") unfit(`${why} The storyteller runs on them: dice, sheets and scenes are all tool calls.`);
-    else warn(`${why} Lore checks and bookkeeping that use them will fall back to plain text.`);
+  const noTools = (why: string, source: "server" | "catalog") => {
+    if (role === "story") {
+      unfit(
+        `${why} The storyteller runs on them: dice, sheets and scenes are all tool calls.`,
+        { code: `noTools.story.${source}` },
+      );
+    } else {
+      warn(
+        `${why} Lore checks and bookkeeping that use them will fall back to plain text.`,
+        { code: `noTools.utility.${source}` },
+      );
+    }
   };
   if (writes && input.tools === false) {
-    noTools("Takes no tool calls, by the server's own account.");
+    noTools("Takes no tool calls, by the server's own account.", "server");
   }
   if (input.memory && input.memory.sizeGb && input.memory.budgetGb && input.memory.sizeGb * 1.1 > input.memory.budgetGb) {
-    unfit(`Too big for this machine: ${input.memory.sizeGb} GB of weights against ${Math.round(input.memory.budgetGb)} GB of memory.`);
+    unfit(
+      `Too big for this machine: ${input.memory.sizeGb} GB of weights against ${Math.round(input.memory.budgetGb)} GB of memory.`,
+      { code: "tooBig", params: { sizeGb: input.memory.sizeGb, budgetGb: Math.round(input.memory.budgetGb) } },
+    );
   }
   if (!catalog) {
     if (role === "image" && !isImageModelId(input.id)) {
-      warn("Not in the catalog, and its name does not say it paints. ODM will try it as a picture model.");
+      warn("Not in the catalog, and its name does not say it paints. ODM will try it as a picture model.", { code: "unknownImageModel" });
     }
-    return { fit: fit === "ok" ? "unknown" : fit, warnings, summary: describeCatalogModel(null) };
+    return {
+      fit: fit === "ok" ? "unknown" : fit,
+      warnings,
+      summary: describeCatalogModel(null),
+      warningDetails,
+      summaryParts: [{ code: "notInCatalog" }],
+    };
   }
   if (input.local) {
     // Weights on the admin's own disk are nobody's to retire.
   } else if (catalog.status === "deprecated") {
-    warn("Deprecated by its provider. It may stop answering; pick a newer model when you can.");
+    warn("Deprecated by its provider. It may stop answering; pick a newer model when you can.", { code: "deprecated" });
   } else if (catalog.status === "alpha" || catalog.status === "beta") {
-    warn(`Marked ${catalog.status} by its provider; it may change or go away.`);
+    warn(`Marked ${catalog.status} by its provider; it may change or go away.`, { code: "preRelease", params: { status: catalog.status } });
   }
   if (role === "image") {
     if (!catalog.output.includes("image")) {
-      unfit("Does not paint pictures: it answers in text only.");
+      unfit("Does not paint pictures: it answers in text only.", { code: "notImage" });
     }
   } else if (writes) {
     if (!catalog.output.includes("text")) {
-      unfit("Does not write text, so it cannot narrate.");
+      unfit("Does not write text, so it cannot narrate.", { code: "notText" });
     }
     if (!catalog.toolCall && input.tools !== false) {
       if (input.tools === true) {
         // The server says it does; the catalog's row was another host's.
       } else if (input.local) {
-        // A loosely matched row for weights on this machine: a doubt, not a verdict.
-        warn("The catalog's row for these weights takes no tool calls; test the backend to be sure.");
+        // A loosely matched row for the weights on this machine: a doubt, not a verdict.
+        warn("The catalog's row for these weights takes no tool calls; test the backend to be sure.", { code: "localCatalogNoTools" });
       } else {
-        noTools("Takes no tool calls.");
+        noTools("Takes no tool calls.", "catalog");
       }
     }
     if (catalog.contextTokens && role === "story") {
@@ -462,11 +495,50 @@ export function assessModel(input: {
       // to narrate rules a hosted model out; a local row is a loose match
       // for the weights, so it only warns.
       const verdict = storyWindowVerdict(catalog.contextTokens);
-      if (verdict.level === "short" && !input.local) unfit(verdict.text);
-      else if (verdict.text) warn(verdict.text);
+      const params = {
+        window: windowLabel(catalog.contextTokens),
+        narration: windowLabel(MIN_NARRATION_WINDOW),
+        combat: windowLabel(MIN_COMBAT_WINDOW),
+        recommended: windowLabel(RECOMMENDED_WINDOW),
+      };
+      if (verdict.level === "short" && !input.local) {
+        unfit(verdict.text, { code: "storyWindow.short", params });
+      } else if (verdict.level === "short") {
+        warn(verdict.text, { code: "storyWindow.short", params });
+      } else if (verdict.level === "no-fights") {
+        warn(verdict.text, { code: "storyWindow.noFights", params });
+      } else if (verdict.level === "tight") {
+        warn(verdict.text, { code: "storyWindow.tight", params });
+      }
     } else if (catalog.contextTokens && catalog.contextTokens < SMALL_CONTEXT_TOKENS) {
-      warn(`A ${formatTokens(catalog.contextTokens)} window is small for a campaign; the table will forget recent turns often.`);
+      warn(
+        `A ${formatTokens(catalog.contextTokens)} window is small for a campaign; the table will forget recent turns often.`,
+        { code: "smallContext", params: { window: formatTokens(catalog.contextTokens) } },
+      );
     }
   }
-  return { fit, warnings, summary: describeCatalogModel(catalog, { local: input.local }) };
+  const summaryParts: ModelSummaryPart[] = [];
+  if (catalog.contextTokens) summaryParts.push({ code: "context", params: { window: formatTokens(catalog.contextTokens) } });
+  if (catalog.output.includes("image")) summaryParts.push({ code: "paintsPictures" });
+  if (catalog.toolCall) summaryParts.push({ code: "toolCalls" });
+  if (catalog.reasoning) summaryParts.push({ code: "reasoning" });
+  if (catalog.input.includes("image")) summaryParts.push({ code: "seesPictures" });
+  if (catalog.openWeights) summaryParts.push({ code: "openWeights" });
+  if (!input.local && catalog.cost) {
+    if (catalog.cost.input === 0 && catalog.cost.output === 0) {
+      summaryParts.push({ code: "free" });
+    } else {
+      const dollars = (value: number) => (value >= 1 ? `$${Math.round(value * 100) / 100}` : `$${value}`);
+      summaryParts.push({ code: "price", params: { input: dollars(catalog.cost.input), output: dollars(catalog.cost.output) } });
+    }
+  }
+  if (catalog.status && !input.local) summaryParts.push({ code: `status.${catalog.status}` });
+  if (!summaryParts.length) summaryParts.push({ code: "modelName", params: { name: catalog.name } });
+  return {
+    fit,
+    warnings,
+    summary: describeCatalogModel(catalog, { local: input.local }),
+    warningDetails,
+    summaryParts,
+  };
 }
