@@ -68,6 +68,10 @@ const CAMPAIGN_ERROR_KEYS = {
   SEAT_UPDATE_FAILED: "campaign.lobby.error.seatMoveFailed",
   NO_CHARACTER_TO_REMOVE: "campaign.lobby.error.noCharacterToRemove",
   INVITE_REGENERATE_FAILED: "invite.error.regenerate",
+  INVALID_COMPANION_COMMAND: "campaign.companionCommand.error.invalid",
+  COMPANION_NOT_FOUND: "campaign.companionCommand.error.notFound",
+  COMPANION_COMMAND_PLAYER_REQUIRED: "campaign.companionCommand.error.playerRequired",
+  COMPANION_COMMAND_CHANGE_FAILED: "campaign.companionCommand.error.change",
 } satisfies Record<string, MessageKey>;
 
 // The server keeps its English message for old clients and logs. The UI uses
