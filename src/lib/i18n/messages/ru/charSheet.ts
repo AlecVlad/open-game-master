@@ -153,6 +153,7 @@ export const ruCharSheet: Partial<Record<keyof typeof enCharSheet, string>> & Re
   "charSheet.spellSlot.spendTitle": "Отметить ячейку как потраченную",
   "charSheet.spellSlot.spendAria": "Потратить ячейку {label}",
   "charSheet.spellSlot.recoverTitle": "Исправление: вернуть одну ячейку",
+  "charSheet.spellSlot.recoverAria": "Вернуть ячейку заклинания {label}",
   "charSheet.resource.spendTitle": "Потратить использование",
   "charSheet.resource.recoverTitle": "Исправление: вернуть использование",
   "charSheet.resource.nextDc": "следующая СЛ {dc}",
