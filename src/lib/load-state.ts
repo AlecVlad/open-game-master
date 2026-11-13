@@ -21,13 +21,18 @@ export const UNREADABLE = "The server's answer could not be read.";
 // Dungeon Master can do that."), after what did not load. Never throws, so
 // a `.then` on it is the whole handling.
 export type LoadErrorFormatter = (body: unknown, status: number) => string;
+export type LoadFailureFormatter = (what: string, reason: string) => string;
 
 export async function readLoad<T>(
   request: Promise<Response>,
   what: string,
   formatError?: LoadErrorFormatter,
+  formatFailure?: LoadFailureFormatter,
 ): Promise<LoadOutcome<T>> {
-  const failed = (reason: string): LoadOutcome<T> => ({ payload: null, error: `${what} did not load. ${reason}` });
+  const failed = (reason: string): LoadOutcome<T> => ({
+    payload: null,
+    error: formatFailure ? formatFailure(what, reason) : `${what} did not load. ${reason}`,
+  });
   let response: Response;
   try {
     response = await request;
