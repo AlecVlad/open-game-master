@@ -29,6 +29,8 @@ const REFUSAL_MESSAGE_KEYS = {
   STARTING_GEAR_NOT_PROFICIENT: "builder.gear.problem.notProficient",
   STARTING_GEAR_INVALID_SLOT: "builder.gear.problem.invalidSlot",
   STARTING_GEAR_INVALID_BACKGROUND_CHOICE: "builder.gear.problem.invalidBackgroundChoice",
+  AUTH_REQUIRED: "auth.err.notLoggedIn",
+  PASSWORD_CHANGE_REQUIRED: "createCampaign.dialog.error.passwordChange",
   CAMPAIGN_NOT_FOUND: "campaign.session.rules.error.campaignNotFound",
   STORY_GAME_MASTER_REQUIRED: "campaign.session.rules.error.gameMasterRequired",
   STORY_PARTY_LEAD_REQUIRED: "campaign.session.rules.error.partyLeadRequired",
