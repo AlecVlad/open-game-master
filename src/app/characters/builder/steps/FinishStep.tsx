@@ -76,9 +76,9 @@ export function FinishStep({
           kept: preview.hpKept,
           atTable: Boolean(table.rules),
           ...(derived.multiclass ? { dice: [klass.hitDie, ...derived.extras.map((entry) => entry.klass.hitDie)] } : {}),
-        })
+        }, { t })
       : null;
-  const acLine = armorClassLine(acInfo?.ac ?? ac, acInfo?.parts);
+  const acLine = armorClassLine(acInfo?.ac ?? ac, acInfo?.parts, { t });
   const purse = purseViewFor({
     purse: derived.purse,
     keepsStoredGear: state.keepsStoredGear,
@@ -87,7 +87,7 @@ export function FinishStep({
     classId: klass?.id ?? "",
     className: klass?.name ?? "character",
     table,
-  });
+  }, { t });
   // Feats come with Ability Score Improvements (picked on the Abilities
   // step) or, for a variant human, with the race (picked on the Ancestry
   // step, issue #124). What is left here is what the character already
