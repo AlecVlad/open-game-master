@@ -30,14 +30,14 @@ export async function POST(
 
   const message = getCampaignMessage(messageId);
   if (!message || message.campaignId !== campaignId) {
-    return Response.json({ error: "Message not found." }, { status: 404 });
+    return Response.json({ errorCode: "NARRATION_MESSAGE_NOT_FOUND", error: "Message not found." }, { status: 404 });
   }
   if (message.authorType !== "dm") {
-    return Response.json({ error: "Only the GM's narration can be voiced." }, { status: 400 });
+    return Response.json({ errorCode: "NARRATION_GM_ONLY", error: "Only the GM's narration can be voiced." }, { status: 400 });
   }
 
   if (ttsBackend().provider === "off") {
-    return Response.json({ error: "Narration is switched off on this server (Admin > Speech)." }, { status: 409 });
+    return Response.json({ errorCode: "NARRATION_DISABLED", error: "Narration is switched off on this server (Admin > Speech)." }, { status: 409 });
   }
 
   await enqueueNarrationAudio(
@@ -55,7 +55,7 @@ export async function POST(
   if (!existsSync(narrationAudioPath(campaignId, message.id))) {
     const reason = takeNarrationFailure(message.id);
     return Response.json(
-      { error: reason ? `Narration failed. ${reason}` : "Narration failed. Check that the speech service is reachable." },
+      { ...(reason ? {} : { errorCode: "NARRATION_RENDER_FAILED" }), error: reason ? `Narration failed. ${reason}` : "Narration failed. Check that the speech service is reachable." },
       { status: 502 },
     );
   }
