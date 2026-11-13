@@ -988,6 +988,15 @@ for (const key of narrationMessages) {
 assert.ok("voicePicker.narratorLanguageNote" in DICTIONARIES.en, "English narrator language note missing");
 assert.ok("voicePicker.narratorLanguageNote" in DICTIONARIES.ru, "Russian narrator language note missing");
 
+const characterSheetAccessibilityKey = "charSheet.spellSlot.recoverAria";
+assert.ok(characterSheetAccessibilityKey in DICTIONARIES.en, "English spell-slot recovery label missing");
+assert.ok(characterSheetAccessibilityKey in DICTIONARIES.ru, "Russian spell-slot recovery label missing");
+assert.equal(
+  translate(DICTIONARIES, "ru", characterSheetAccessibilityKey, { label: "1-го уровня" }),
+  "Вернуть ячейку заклинания 1-го уровня",
+  "Russian spell-slot recovery label must preserve and interpolate its level",
+);
+
 const sheetRowMessages = [
   "aiStorySetup.label", "aiStorySetup.hint",
   "narrationGuard.label", "narrationGuard.hint",
