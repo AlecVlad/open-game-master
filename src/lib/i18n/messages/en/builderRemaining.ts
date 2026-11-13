@@ -85,7 +85,7 @@ export const enBuilderRemaining = {
   "builder.gear.problem.invalidSlot": "{name} is not a valid choice for the {slot} slot in the {className}'s {option} kit; choose an item from the weapon table.",
   "builder.gear.problem.invalidBackgroundChoice": "The background's kit offers {options}; \"{choice}\" is not one of them.",
   "builder.gear.problem.more.one": "{count} more issue is listed under Equipment.",
-  "builder.block.spells.noSpells": "{characterName} has no spells selected and will start unable to cast. Press again to continue anyway.",
+  "builder.block.spells.noSpells": "No spells are selected. This character will start unable to cast. Press again to continue anyway.",
   "builder.block.identity.name": "Give your character a name.",
   "builder.block.background.missing": "Choose what your hero did before adventuring (background).",
   "builder.block.background.skills": "Choose the skills your {backgroundName} background trained.",
