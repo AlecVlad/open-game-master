@@ -41,11 +41,13 @@ import {
   type BlockerTarget,
   type BuilderResult,
   type StepBlock,
+  type GearProblemFormatter,
 } from "./submit";
 import { clearBuilderDraft, readBuilderDraft, writeBuilderDraft, type BuilderDraft } from "./builderDraft";
 import { builderActions, extraClassRows, useBuilderDerived } from "./useBuilderDerived";
 import { classSplitWords } from "./multiclassBuild";
 import { BuildMathPanel } from "./BuildMathPanel";
+import { gearProblemText } from "./gearProblemText";
 import { useArchetypeOptions, useBuilderOptions, useWorldPack, type OptionListKind } from "./useBuilderOptions";
 import { TableScopeNote } from "./TableScopeNote";
 import { UndoChangeBar } from "./UndoChangeBar";
@@ -262,6 +264,10 @@ function CharacterBuilderForm({
 }) {
   const i18n = useI18n();
   const { t, tp } = i18n;
+  const formatGearProblem: GearProblemFormatter = (detail, fallback, more) => {
+    const first = detail ? gearProblemText(detail, t) : fallback;
+    return more > 0 ? first + " " + tp("builder.gear.problem.more", more, { count: more }) : first;
+  };
   // creator.css stills its loops under <html data-effects="low">, which only
   // the table's session view set; the library and join pages build
   // characters outside it.
@@ -538,7 +544,7 @@ function CharacterBuilderForm({
       return;
     }
     const input = { state, derived, race, klass, background, initial, featJudge };
-    const problem = validateBuilder(input);
+    const problem = validateBuilder(input, formatGearProblem);
     if (problem) {
       if (problem.kind === "spellWarning") {
         state.setSpellWarningAck(true);
@@ -593,7 +599,7 @@ function CharacterBuilderForm({
   // Each gate mirrors a rule the final check enforces, so a player learns
   // about a missing pick on the step where they can fix it. The gate is the
   // first pick owed; the step's "choices left" line names them all.
-  const gear = gearBlocker(derived);
+  const gear = gearBlocker(derived, formatGearProblem);
   const owed = {
     // The name alone: nothing before this step waits on it (backlog F4).
     identity: identityBlocks(state),
