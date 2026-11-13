@@ -14,6 +14,7 @@ import { GlyphChip, KitButton, LoadFailed, PanelError, PanelLoading, panelField,
 import { WorldEntryLink, useOpenOnArrival } from "@/app/workshop/world/WorldEntryLink";
 import { useUnsavedDraft } from "@/app/workshop/unsaved";
 import { useI18n } from "@/lib/i18n/provider";
+import { campaignApiErrorText } from "@/lib/i18n/campaignApiError";
 
 // A faction as the editor's draft.
 function draftOf(faction: FactionView): Draft {
@@ -160,6 +161,7 @@ export function FactionsPanel({
           body: JSON.stringify(body),
         }),
         t("campaign.factions.error.save"),
+        (body, status) => campaignApiErrorText(body, t("campaign.factions.error.save"), t),
       );
       if (sent.error !== null) {
         // A new faction whose answer was lost is looked for first: the
@@ -198,7 +200,11 @@ export function FactionsPanel({
       return;
     }
     setError("");
-    const sent = await readWrite(fetch(`/api/campaigns/${campaignId}/factions/${faction.id}`, { method: "DELETE" }), t("campaign.factions.error.remove"));
+    const sent = await readWrite(
+      fetch(`/api/campaigns/${campaignId}/factions/${faction.id}`, { method: "DELETE" }),
+      t("campaign.factions.error.remove"),
+      (body, status) => campaignApiErrorText(body, t("campaign.factions.error.remove"), t),
+    );
     setError(sent.error ?? "");
     setReload((current) => current + 1);
   }
@@ -212,6 +218,7 @@ export function FactionsPanel({
         body: JSON.stringify({ standing }),
       }),
       t("campaign.factions.error.standing"),
+      (body, status) => campaignApiErrorText(body, t("campaign.factions.error.standing"), t),
     );
     setError(sent.error ?? "");
     setReload((current) => current + 1);
