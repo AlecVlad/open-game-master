@@ -259,7 +259,7 @@ export async function POST(
     olderBuilder: olderBuilderOf(raw),
   });
   if (!admitted.ok) {
-    return refusal(admitted.problems);
+    return refusal(admitted.problems, 400, admitted.problemDetails);
   }
   const libraryCharacter = createCharacter(
     targetUserId,
@@ -419,7 +419,7 @@ export async function PUT(
       ...(character.sheet.classes?.length ? { heldClasses: character.sheet.classes } : {}),
     });
     if (!edited.ok) {
-      return refusal(edited.problems);
+      return refusal(edited.problems, 400, edited.problemDetails);
     }
     edit.data.sheet = edited.sheet;
     edited.settle();
@@ -493,7 +493,7 @@ export async function PUT(
     ...(existing?.classes?.length ? { heldClasses: existing.classes } : {}),
   });
   if (!replaced.ok) {
-    return refusal(replaced.problems);
+    return refusal(replaced.problems, 400, replaced.problemDetails);
   }
   deleteSheetForUser(campaignId, context.user.id);
   const libraryCharacter = createCharacter(
