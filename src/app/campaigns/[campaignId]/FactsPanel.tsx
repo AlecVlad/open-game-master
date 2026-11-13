@@ -52,16 +52,27 @@ function FactCard({
   const [editing, setEditing] = useState(false);
   const [text, setText] = useState(fact.fact);
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
 
-  async function patch(payload: Record<string, unknown>) {
+  async function patch(payload: Record<string, unknown>): Promise<boolean> {
     setBusy(true);
+    setError("");
     try {
-      await fetch(`/api/campaigns/${campaignId}/facts`, {
+      const response = await fetch(`/api/campaigns/${campaignId}/facts`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ factId: fact.id, ...payload }),
       });
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        setError(campaignApiErrorText(data, t("campaign.fact.error.update"), t));
+        return false;
+      }
       await refresh();
+      return true;
+    } catch {
+      setError(t("campaign.fact.error.server"));
+      return false;
     } finally {
       setBusy(false);
     }
@@ -86,6 +97,7 @@ function FactCard({
 
   return (
     <ContextMenu as="li" items={editing ? [] : items} label={fact.subject || t(CATEGORY_LABEL_KEY[fact.category])} className={panelRow}>
+      {error ? <PanelError className="mb-2">{error}</PanelError> : null}
       {editing ? (
         <div className="reveal space-y-1.5">
           <DictateField label={t("campaign.fact.label")} onTranscript={(spoken) => setText((current) => appendDictation(current, spoken, 300))}>
@@ -104,8 +116,7 @@ function FactCard({
               disabled={busy || !text.trim()}
               busy={busy}
               onClick={async () => {
-                await patch({ fact: text.trim() });
-                setEditing(false);
+                if (await patch({ fact: text.trim() })) setEditing(false);
               }}
             >
               {busy ? null : <Check className="size-3.5" />}
