@@ -10,6 +10,7 @@ export const enAuthForm = {
   "auth.mode.aria": "Log in or create an account",
   "auth.err.taken": "That name is already taken at this table. Pick another, or ask the host to remove the old seat.",
   "auth.err.generic": "Something went wrong.",
+  "auth.err.notLoggedIn": "You are not logged in.",
   "auth.err.network": "Could not reach the server.",
   "auth.reset.body": "An admin reset your password. Pick a new one to continue.",
   "auth.reset.submit": "Set new password",
