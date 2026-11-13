@@ -1074,7 +1074,11 @@ const campaignAiMessages = [
   "campaign.storyAi.proseSize.giant",
   "campaign.storyAi.proseSize.description",
   "campaign.storyAi.error.notSaved",
-  "campaign.storyAi.error.network"
+  "campaign.storyAi.error.network",
+  "campaign.storyAi.error.invalid",
+  "campaign.storyAi.error.agentUnavailable",
+  "campaign.storyAi.error.agentImagesUnavailable",
+  "campaign.storyAi.error.campaignMissing"
 ];
 for (const key of campaignAiMessages) {
   assert.ok(key in DICTIONARIES.en, `English campaign-AI message missing: ${key}`);
