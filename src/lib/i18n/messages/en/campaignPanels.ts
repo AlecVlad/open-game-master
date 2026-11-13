@@ -91,6 +91,7 @@ export const enCampaignPanels = {
   "campaign.fact.error.save": "Could not save the fact.",
   "campaign.fact.error.update": "Could not update the fact.",
   "campaign.fact.error.server": "Could not reach the server.",
+  "campaign.fact.error.secretsLoad": "Could not load the storyteller-only facts. Try again.",
 
   "campaign.quest.status.active": "Active",
   "campaign.quest.status.done": "Done",
