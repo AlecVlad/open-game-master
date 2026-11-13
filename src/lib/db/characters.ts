@@ -5,6 +5,7 @@ import { heroDoorOpen } from "@/lib/characters/fallen-logic";
 import { adaptSheetToLevel } from "@/lib/characters/adapt";
 import { multiclassEntryProblem } from "@/lib/srd/sheet-legality";
 import { admitSheet } from "@/lib/characters/admit";
+import type { GearProblemDetail } from "@/lib/srd/gear-problems";
 import { getCampaignById, type Campaign } from "@/lib/db/campaigns";
 import { XP_THRESHOLDS, levelForXp } from "@/lib/srd";
 import { subclassExtrasFor } from "@/lib/db/subclass-extras";
@@ -405,15 +406,22 @@ export function instantiateIntoCampaign(
   // the admitted sheet before it is stored (src/lib/characters/seat-preview.ts
   // admitLibraryForSeat). Absent: the sheet as the door admitted it.
   admit: typeof admitLibraryCharacter = admitLibraryCharacter,
-): CharacterSheet | { error: string; problems?: string[] } {
+): CharacterSheet | {
+  error: string;
+  problems?: string[];
+  errorCode?: string;
+  errorParams?: Record<string, string | number>;
+  problemDetails?: Array<GearProblemDetail | null>;
+} {
   const character = getCharacterForUser(userId, characterId);
   if (!character) {
-    return { error: "Character not found in your library." };
+    return { error: "Character not found in your library.", errorCode: "CHARACTER_NOT_FOUND" };
   }
   // Every player-character door ends here, so this is where the role holds
   // whatever a client sends (issue 192).
   if (character.role === "companion") {
-    return { error: companionRoleRefusal(character) };
+    const refusal = companionRoleRefusalDetail(character);
+    return { error: refusal.message, errorCode: refusal.code, errorParams: refusal.params };
   }
 
   // A retry selects the existing campaign copy; it must not clone the same
@@ -428,7 +436,7 @@ export function instantiateIntoCampaign(
   // whose heroes have all fallen is let in either way
   // (src/lib/characters/fallen-logic.ts).
   if (!heroDoorOpen(listSheetsForUser(campaignId, userId), campaign?.gameSettings.multiCharacter ?? "off")) {
-    return { error: "You already have a character in this campaign." };
+    return { error: "You already have a character in this campaign.", errorCode: "HERO_ALREADY_HAS_CHARACTER" };
   }
   const level = Math.max(1, Math.min(20, targetLevel));
   const admitted = admit(character, campaign, userId, level);
@@ -452,7 +460,14 @@ export function admitLibraryCharacter(
   // The classes the seat this character replaces holds: its own edit at a
   // table that turned multiclassing off after it sat down.
   held?: ReadonlyArray<{ id: string }>,
-): { ok: true; sheet: CreateSheetInput } | { ok: false; error: string; problems: string[] } {
+): { ok: true; sheet: CreateSheetInput } | {
+  ok: false;
+  error: string;
+  problems: string[];
+  errorCode?: string;
+  errorParams?: Record<string, string | number>;
+  problemDetails?: Array<GearProblemDetail | null>;
+} {
   // The adaptation itself lives in src/lib/characters/adapt.ts, pure, so a
   // companion coming out of this same library gets exactly the work done to
   // it and a test can drive every branch without a database.
@@ -464,7 +479,13 @@ export function admitLibraryCharacter(
     held,
   );
   if (split) {
-    return { ok: false, error: split, problems: [split] };
+    return {
+      ok: false,
+      error: split,
+      problems: [split],
+      errorCode: "MULTICLASS_NOT_ALLOWED_FOR_CHARACTER",
+      errorParams: { name: character.name },
+    };
   }
   const admitted = admitSheet({
     door: "stored",
@@ -478,6 +499,7 @@ export function admitLibraryCharacter(
       ok: false,
       error: `${character.name} cannot enter play as stored. ${admitted.problems[0]} Edit the character in your library, then try again.`,
       problems: admitted.problems,
+      problemDetails: admitted.problemDetails,
     };
   }
   return { ok: true, sheet: admitted.sheet };
