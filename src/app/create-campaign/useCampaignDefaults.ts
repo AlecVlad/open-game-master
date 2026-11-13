@@ -48,7 +48,7 @@ export function useCampaignDefaults(open: boolean, onLoaded: (defaults: Campaign
           return;
         }
         if (!response.ok) {
-          setState({ status: "unavailable", error: await reason(response, t("createCampaign.defaults.error.read"), t) });
+          setState({ status: "unavailable", error: await reason(response, t("createCampaign.defaults.error.remove"), t) });
           return;
         }
         const data = (await response.json().catch(() => null)) as { defaults?: CampaignDefaults | null } | null;
@@ -65,7 +65,7 @@ export function useCampaignDefaults(open: boolean, onLoaded: (defaults: Campaign
     return () => {
       cancelled = true;
     };
-  }, [open]);
+  }, [open, t]);
 
   const save = useCallback(async (settings: CampaignDefaultSettings): Promise<Outcome> => {
     try {
@@ -85,7 +85,7 @@ export function useCampaignDefaults(open: boolean, onLoaded: (defaults: Campaign
     } catch {
       return { ok: false, error: t("createCampaign.defaults.error.saveNetwork") };
     }
-  }, []);
+  }, [t]);
 
   const remove = useCallback(async (): Promise<Outcome> => {
     try {
@@ -98,7 +98,7 @@ export function useCampaignDefaults(open: boolean, onLoaded: (defaults: Campaign
     } catch {
       return { ok: false, error: t("createCampaign.defaults.error.removeNetwork") };
     }
-  }, []);
+  }, [t]);
 
   return { state, save, remove };
 }
