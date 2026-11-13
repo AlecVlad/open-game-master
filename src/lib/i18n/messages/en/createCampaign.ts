@@ -38,6 +38,7 @@ export const enCreateCampaign = {
   "createCampaign.defaults.error.read": "Your saved defaults could not be read.",
   "createCampaign.defaults.error.readNetwork": "Could not reach the server to read your saved defaults.",
   "createCampaign.defaults.error.saveNetwork": "Could not reach the server; your defaults were not saved.",
+  "createCampaign.defaults.error.remove": "Your saved defaults could not be removed.",
   "createCampaign.defaults.error.removeNetwork": "Could not reach the server; your defaults were not removed.",
   "createCampaign.defaults.saveError": "{error} Nothing here changed, and you can still create the campaign.",
   "createCampaign.defaults.useMine": "This campaign now starts from your defaults.",
