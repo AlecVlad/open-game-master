@@ -1172,5 +1172,9 @@ export const enCampaignSession = {
   "campaign.storyAi.proseSize.description": "Controls how long each narrated passage is.",
   "campaign.storyAi.error.notSaved": "That change was not saved.",
   "campaign.storyAi.error.network": "Could not reach the server.",
+  "campaign.storyAi.error.invalid": "The campaign AI settings are invalid. Check the values and try again.",
+  "campaign.storyAi.error.agentUnavailable": "The server agent is not available for this campaign.",
+  "campaign.storyAi.error.agentImagesUnavailable": "The server agent is not allowed to generate images.",
+  "campaign.storyAi.error.campaignMissing": "This campaign could not be found.",
 
 } satisfies Record<string, string>;
