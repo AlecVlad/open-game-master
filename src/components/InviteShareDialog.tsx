@@ -23,6 +23,7 @@ import { ui } from "@/lib/ui";
 import { useShellShare } from "@/lib/use-shell-share";
 import { Dialog } from "@/components/ui/Dialog";
 import { useT } from "@/lib/i18n/provider";
+import { campaignApiErrorText } from "@/lib/i18n/campaignApiError";
 
 // The QR for an invite link in a box that exists before the code does: the
 // slot is a fixed square with the skeleton shimmer, so neither the dialog nor
@@ -245,7 +246,7 @@ export function InviteShareDialog({
       const response = await fetch(`/api/campaigns/${campaignId}/invite`, { method: "POST" });
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        setError(data.error || t("invite.error.regenerate"));
+        setError(campaignApiErrorText(data, t("invite.error.regenerate"), t));
       }
       // The campaign_updated stream event delivers the new code; the
       // inviteCode prop re-renders this dialog with it.
