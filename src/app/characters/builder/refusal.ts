@@ -12,6 +12,7 @@ const REFUSAL_MESSAGE_KEYS = {
   NOT_OGM_CHARACTER_FILE: "characters.err.import.notOgm",
   INVALID_CHARACTER_FILE_JSON: "characters.err.import.invalidJson",
   CHARACTER_NOT_FOUND: "characters.err.notFound",
+  PORTRAIT_NO_IMAGE_MODEL: "characters.err.portrait.noImageModel",
   HERO_NOT_FOUND: "campaign.joinConfirm.error.heroNotFound",
   GM_SEAT_NO_CHARACTER: "campaign.joinConfirm.error.gmSeat",
   PICK_ONE_HERO: "campaign.joinConfirm.error.pickOneHero",
