@@ -15,13 +15,27 @@
 // reading of the text is src/lib/srd/feat-grant-text.ts. Pure.
 import type { Proficiencies } from "@/lib/schemas/sheet";
 import { ALL_SKILLS } from "@/lib/content/mechanics";
-import { featSpellsOwed, type CastingAbility } from "@/lib/srd/feat-spells";
+import { featSpellsOwed, featSpellsOwedDetail, type CastingAbility, type FeatSpellOwedDetail } from "@/lib/srd/feat-spells";
 import { featGrantSpec, featGrantsAnything, lowerText as lower, type FeatGrantSpec, type PickKind } from "@/lib/srd/feat-grant-text";
 import { SRD_WEAPONS } from "@/lib/srd/weapons";
 import { featChoice } from "@/lib/schemas/sheet";
 
 export { featGrantSpec, featGrantsAnything, KNOWN_TOOLS, type FeatGrantSpec, type PickKind } from "@/lib/srd/feat-grant-text";
 
+export type FeatPickOwedDetail = {
+  languages: number;
+  skills: number;
+  expertise: number;
+  weapons: number;
+  tools: number;
+  shared: number;
+  sharedKinds: PickKind[];
+  damageType: boolean;
+};
+
+export type FeatOwedDetail =
+  | { kind: "picks"; feat: string; picks: FeatPickOwedDetail }
+  | { kind: "spells"; feat: string; spells: FeatSpellOwedDetail };
 export type FeatPicks = {
   languages?: string[];
   skills?: string[];
@@ -95,6 +109,29 @@ export function featPicksOwed(feat: string, spec: FeatGrantSpec, picks: FeatPick
 
 // Everything a feat still waits for, training and spells alike: the one
 // sentence the builder's gate and the level-up dialog show.
+export function featPicksOwedDetail(spec: FeatGrantSpec, picks: FeatPicks | undefined): FeatPickOwedDetail | null {
+  const has = (list: string[] | undefined) => named(list).length;
+  const detail: FeatPickOwedDetail = {
+    languages: Math.max(0, spec.languages - has(picks?.languages)),
+    skills: Math.max(0, spec.skills - has(picks?.skills)),
+    expertise: Math.max(0, spec.expertise - has(picks?.expertise)),
+    weapons: Math.max(0, spec.weapons - has(picks?.weapons)),
+    tools: Math.max(0, spec.tools - has(picks?.tools)),
+    shared: Math.max(0, spec.any - anyPicksMade(spec, picks)),
+    sharedKinds: spec.anyKinds,
+    damageType: spec.damageTypes.length > 0 && !(picks?.damageType ?? "").trim(),
+  };
+  return detail.languages || detail.skills || detail.expertise || detail.weapons || detail.tools || detail.shared || detail.damageType
+    ? detail
+    : null;
+}
+
+export function featOwedDetail(feat: string, spec: FeatGrantSpec, picks: FeatPicks | undefined): FeatOwedDetail | null {
+  const pickDetail = featPicksOwedDetail(spec, picks);
+  if (pickDetail) return { kind: "picks", feat, picks: pickDetail };
+  const spellDetail = featSpellsOwedDetail(spec.taught, picks);
+  return spellDetail ? { kind: "spells", feat, spells: spellDetail } : null;
+}
 export function featOwed(feat: string, spec: FeatGrantSpec, picks: FeatPicks | undefined): string | null {
   return featPicksOwed(feat, spec, picks) ?? featSpellsOwed(feat, spec.taught, picks);
 }
