@@ -1618,7 +1618,10 @@ const campaignEntryRefusals = [
   ["COMPANION_NOT_IN_LIBRARY", {}, /нет в вашей библиотеке/],
   ["INVALID_COMPANION_SHEET", {}, /прочитать лист спутника/],
   ["CAMPAIGN_NOT_FOUND", {}, /Кампания не найдена/],
-  ["STORY_GAME_MASTER_REQUIRED", {}, /Только ведущий игры/],
+  ["STORY_GAME_MASTER_REQUIRED", {}, /только ведущий/],
+  ["STORY_PARTY_LEAD_REQUIRED", {}, /лидер группы/],
+  ["AUTH_REQUIRED", {}, /в систему/],
+  ["PASSWORD_CHANGE_REQUIRED", {}, /пароль/],
 ];
 for (const [code, params, expected] of campaignEntryRefusals) {
   const message = refusalText({
