@@ -1304,6 +1304,7 @@ function ensureSchema(db: SqliteDatabase) {
       campaign_id TEXT NOT NULL DEFAULT '',
       kind TEXT NOT NULL,
       body TEXT NOT NULL,
+      params_json TEXT NOT NULL DEFAULT '{}',
       created_at TEXT NOT NULL,
       read_at TEXT
     );
@@ -1397,6 +1398,12 @@ function ensureSchema(db: SqliteDatabase) {
       }
     }
   };
+
+  addColumns("notifications", [
+    // Structured message parameters let each recipient read their inbox in
+    // their own interface language; body remains the legacy fallback.
+    ["params_json", `TEXT NOT NULL DEFAULT '{}'`],
+  ]);
 
   addColumns("campaign_members", [
     // Party-lead mute: the member stays at the table and can read, but the
