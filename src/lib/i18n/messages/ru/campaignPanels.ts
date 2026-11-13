@@ -116,6 +116,13 @@ export const ruCampaignPanels: Partial<Record<keyof typeof enCampaignPanels, str
   "campaign.quest.fromStory": "Из сюжета",
   "campaign.quest.loading": "Открываем журнал...",
   "campaign.quest.empty": "В журнале пока нет заданий.",
+  "campaign.quest.error.create": "Не удалось добавить задание.",
+  "campaign.quest.error.update": "Не удалось изменить задание.",
+  "campaign.quest.error.remove": "Не удалось удалить задание.",
+  "campaign.quest.error.server": "Не удалось связаться с сервером.",
+  "campaign.quest.error.titleRequired": "У задания должно быть название.",
+  "campaign.quest.error.notFound": "Это задание больше не существует.",
+  "campaign.quest.error.fromStory": "Это задание создано сюжетом. Вместо удаления отметьте его выполненным или проваленным."
 
   "campaign.calendar.error.clock": "Игровое время",
   "campaign.calendar.error.events": "Календарь",
