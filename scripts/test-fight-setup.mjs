@@ -305,11 +305,13 @@ await test("what Save as set-up refuses: another's test, a table that is no test
   world.signIn(author);
   const live = await call(route.save, "POST", undefined, { campaignId: world.campaignId });
   assert.equal(live.status, 409);
+  assert.equal(live.json.errorCode, "FIGHT_SETUP_NOT_TEST_AUTHOR");
   assert.match(live.json.error, /test fight's author/);
   const fight = getActiveEncounter(first);
   saveEncounter({ ...fight, orderReady: false });
   const early = await call(route.save, "POST", undefined, { campaignId: first });
   assert.equal(early.status, 409);
+  assert.equal(early.json.errorCode, "FIGHT_SETUP_INITIATIVE_NOT_READY");
   assert.match(early.json.error, /every initiative is in/);
   assert.equal(templates.getTemplateSetup(ambush.id), null, "a refused save wrote a set-up");
 });
