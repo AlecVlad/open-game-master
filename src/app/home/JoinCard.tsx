@@ -4,6 +4,7 @@ import { type FormEvent, type RefObject, useState } from "react";
 import { cn } from "@/lib/cn";
 import { navigateTo } from "@/lib/navigation";
 import { useI18n } from "@/lib/i18n/provider";
+import { refusalText } from "@/app/characters/builder/refusal";
 
 // Joining someone else's table by its invite code: "join by sigil". The
 // menu line above scrolls here and drops the cursor into the field through
@@ -29,7 +30,7 @@ export function JoinCard({ inputRef }: { inputRef: RefObject<HTMLInputElement | 
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setJoinError(data.error || t("home.join.err"));
+        setJoinError(refusalText(data, t("home.join.err"), t));
         setShakeKey((n) => n + 1);
         return;
       }
