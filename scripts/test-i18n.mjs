@@ -15,6 +15,7 @@ import { DICTIONARIES } from "../src/lib/i18n/messages/index.ts";
 import { localizeStoryboardError } from "../src/lib/workshop/storyboard-api-i18n.ts";
 import { gearProblemText } from "../src/app/characters/builder/gearProblemText.ts";
 import { campaignApiErrorText } from "../src/lib/i18n/campaignApiError.ts";
+import { notificationText } from "../src/lib/i18n/notificationText.ts";
 import { readLoad, UNREACHABLE, UNREADABLE } from "../src/lib/load-state.ts";
 import { featOwedText } from "../src/app/characters/builder/featOwedText.ts";
 import { featPrerequisiteText } from "../src/app/characters/builder/featPrereqText.ts";
@@ -1401,6 +1402,36 @@ for (const count of [1, 2, 5]) {
   assert.ok(!translatePlural(DICTIONARIES, "ru", "schedule.duration.session", count).includes("{count}"));
 }
 
+// Inbox messages are reconstructed per recipient from structured event data.
+const notificationT = (key, params) => translate(DICTIONARIES, "ru", key, params);
+const notificationKeys = [
+  "notifications.message.scheduled",
+  "notifications.message.scheduledUntitled",
+  "notifications.message.updated",
+  "notifications.message.updatedUntitled",
+  "notifications.message.cancelled",
+  "notifications.message.cancelledUntitled",
+  "notifications.message.rsvpNo",
+  "notifications.message.rsvpNoUntitled",
+];
+for (const key of notificationKeys) {
+  assert.ok(key in DICTIONARIES.en, `English notification message missing: ${key}`);
+  assert.ok(key in DICTIONARIES.ru, `Russian notification message missing: ${key}`);
+}
+const localizedScheduled = notificationText("session_scheduled", {
+  campaignTitle: "Тихая гавань", sessionTitle: "Врата", startsAt: "2026-09-05T19:00:00.000Z",
+}, "Legacy English notification.", "ru", notificationT);
+assert.match(localizedScheduled, /Тихая гавань/);
+assert.match(localizedScheduled, /Врата/);
+assert.match(localizedScheduled, /UTC/);
+assert.ok(!localizedScheduled.includes("Legacy English"));
+const localizedUntitledRsvp = notificationText("rsvp", {
+  username: "Artem", campaignTitle: "Тихая гавань", sessionTitle: "",
+}, "Legacy English notification.", "ru", notificationT);
+assert.match(localizedUntitledRsvp, /Artem/);
+assert.match(localizedUntitledRsvp, /не сможет прийти/);
+assert.equal(notificationText("session_scheduled", undefined, "Old saved notification.", "ru", notificationT), "Old saved notification.");
+assert.equal(notificationText("future_kind", { campaignTitle: "Table" }, "Unknown event body.", "ru", notificationT), "Unknown event body.");
 // Shared campaign membership and story-authority refusals carry stable codes.
 const campaignApiT = (key) => translate(DICTIONARIES, "ru", key);
 const campaignApiCases = [
