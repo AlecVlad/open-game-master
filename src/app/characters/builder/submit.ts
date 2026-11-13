@@ -20,7 +20,7 @@ import { reconcilePicks, type ReconcileContext } from "./reconcile";
 import { builderCasting, builderSpellSlots } from "./casting";
 import { fitExtraClasses, fitSpellLists, primaryLevelOf, unmetPrereqs } from "./multiclassBuild";
 import { multiclassGrantsFor } from "@/lib/srd/multiclass";
-import { unmetFeatMessage, type FeatJudge } from "./featPrereqs";
+import { unmetFeatDetail, unmetFeatMessage, type FeatJudge } from "./featPrereqs";
 import type { BackgroundOption, ClassOption, RaceOption } from "./useBuilderOptions";
 import type { BuilderDerived } from "./useBuilderDerived";
 import type { BuilderState, EquipmentItem } from "./useBuilderState";
@@ -155,6 +155,17 @@ export function bonusLanguageCount(
 
 // The picks a feat leaves open, as the gate asks for them: what the feat's
 // text grants (derived.featSpecOf) against what is picked so far.
+function unmetFeatBlock(judge: FeatJudge | undefined, feats: string[], target: BlockerTarget): StepBlock | null {
+  const message = unmetFeatMessage(judge, feats);
+  if (!message) return null;
+  const detail = unmetFeatDetail(judge, feats);
+  return block(
+    target,
+    message,
+    undefined,
+    detail ? { key: "builder.block.feat.prerequisite", params: { feat: detail.feat, requirements: JSON.stringify(detail.requirements) } } : undefined,
+  );
+}
 function featOwedBlockDetail(feat: string, spec: FeatGrantSpec, picks: ReturnType<typeof featChoice>): BuilderBlockDetail | undefined {
   const detail = featOwedDetail(feat, spec, picks);
   if (!detail) return undefined;
@@ -271,10 +282,8 @@ export function ancestryBlocks(
     owed.push(block("racialFeat", featPicks.message, undefined, featPicks.detail));
   }
   // A feat whose prerequisite a later choice broke: flagged, never dropped.
-  const racialUnmet = unmetFeatMessage(featJudge, (state.feats ?? []).slice(0, racialFeatCount(race.id)));
-  if (racialUnmet) {
-    owed.push(block("racialFeat", racialUnmet));
-  }
+  const racialUnmet = unmetFeatBlock(featJudge, (state.feats ?? []).slice(0, racialFeatCount(race.id)), "racialFeat");
+  if (racialUnmet) owed.push(racialUnmet);
   if (takesDraconicAncestry(race.id) && !findDraconicAncestry(state.racialAncestry ?? "")) {
     owed.push(block("ancestry", `Pick the kind of dragon your ${race.name} descends from (draconic ancestry).`, undefined, { key: "builder.block.ancestry.dragon", params: { raceName: race.name } }));
   }
@@ -553,10 +562,8 @@ export function abilitiesBlocks(
     owed.push(block("asi", featPicks.message, undefined, featPicks.detail));
   }
   // A feat whose prerequisite a later choice broke: flagged, never dropped.
-  const asiUnmet = unmetFeatMessage(featJudge, asiFeats);
-  if (asiUnmet) {
-    owed.push(block("asi", asiUnmet));
-  }
+  const asiUnmet = unmetFeatBlock(featJudge, asiFeats, "asi");
+  if (asiUnmet) owed.push(asiUnmet);
   return owed;
 }
 
