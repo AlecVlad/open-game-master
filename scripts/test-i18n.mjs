@@ -1634,6 +1634,9 @@ const campaignEntryRefusals = [
   ["CAMPAIGN_CREATION_ADMIN_ONLY", {}, /администратор/],
   ["STARTER_INVALID_REQUEST", {}, /не удалось прочитать запрос/],
   ["STARTER_NO_STORYTELLER", {}, /не настроен рассказчик/],
+  ["CAMPAIGN_DELETE_OWNER_ONLY", {}, /только её владелец/],
+  ["CAMPAIGN_CLONE_NOT_FOUND", {}, /недоступна для копирования/],
+  ["INVALID_CAMPAIGN_CLONE", {}, /копирование содержит неверные данные/],
 ];
 for (const [code, params, expected] of campaignEntryRefusals) {
   const message = refusalText({
