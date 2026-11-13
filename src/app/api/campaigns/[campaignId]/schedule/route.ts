@@ -71,6 +71,11 @@ export async function POST(
       body: `${context.campaign.title}: ${
         session.title || "a session"
       } is planned for ${sessionWhen(session.startsAt)}.`,
+      params: {
+        campaignTitle: context.campaign.title,
+        sessionTitle: session.title,
+        startsAt: session.startsAt,
+      },
     },
   );
   publishEphemeral(campaignId, "schedule_updated", {});
