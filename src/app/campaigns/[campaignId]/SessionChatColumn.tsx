@@ -225,21 +225,25 @@ export function SessionChatColumn({
           // onPinCanon (facts), which is lead-only canon.
           const selection = window.getSelection()?.toString().trim() ?? "";
           const isFullMessage = selection.length <= 3;
-          const response = await fetch(`/api/campaigns/${campaignId}/pins`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              messageId: message.id,
-              text: isFullMessage ? message.content : selection,
-              isFullMessage,
-            }),
-          });
-          if (!response.ok) {
-            const data = await response.json().catch(() => ({}));
-            onError(campaignApiErrorText(data, t("campaign.pins.error.invalid"), t));
-            return;
+          try {
+            const response = await fetch(`/api/campaigns/${campaignId}/pins`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                messageId: message.id,
+                text: isFullMessage ? message.content : selection,
+                isFullMessage,
+              }),
+            });
+            if (!response.ok) {
+              const data = await response.json().catch(() => ({}));
+              onError(campaignApiErrorText(data, t("campaign.pins.error.invalid"), t));
+              return;
+            }
+            onPinned();
+          } catch {
+            onError(t("campaign.pins.error.server"));
           }
-          onPinned();
         }}
         onPinCanon={
           steersStory
