@@ -2,7 +2,8 @@
 
 import { AlignLeft, Bot, Image as ImageIcon, Wrench } from "lucide-react";
 import { useEffect, useState } from "react";
-import { ART_STYLE_LABELS, ART_STYLE_NOTES } from "@/lib/art-direction";
+import { useI18n } from "@/lib/i18n/provider";
+
 import { cn } from "@/lib/cn";
 import { ImagesNote } from "@/app/campaigns/[campaignId]/NarrationNote";
 import { commitValue, draftsFrom, editDraft, followSaved, inStep } from "@/app/campaigns/[campaignId]/settingDrafts";
@@ -32,21 +33,6 @@ type TextField = "customBaseUrl" | "customModel" | "utilityBaseUrl" | "utilityMo
 
 // In the order the pickers offer them: llama.cpp (or another
 // OpenAI-compatible server) is the one ODM sets up and recommends.
-const PROVIDER_LABELS: Record<TextProvider, string> = {
-  custom: "llama.cpp or compatible server",
-  local: "Ollama",
-  none: "No AI storyteller",
-  harness: "The server's agent",
-};
-
-const BACKEND_LABELS: Record<ImageBackend, string> = {
-  comfyui: "ComfyUI",
-  openai: "OpenAI-compatible",
-  "mflux-hs": "MFLUX (home server)",
-  "sdnq-hs": "SDNQ (home server)",
-  harness: "The server's agent",
-};
-
 // Per-campaign AI settings for the Settings tab. The values render from the
 // campaign snapshot (kept live by campaign_updated over SSE); only the
 // key-existence booleans come from the story-settings GET, because the
@@ -60,6 +46,47 @@ export function StoryAiPanel({
   settings: StorySettings;
   steersStory: boolean;
 }) {
+  const { t } = useI18n();
+  const PROVIDER_LABELS: Record<TextProvider, string> = {
+    custom: t("campaign.storyAi.provider.custom"),
+    local: t("campaign.storyAi.provider.local"),
+    none: t("campaign.storyAi.provider.none"),
+    harness: t("campaign.storyAi.provider.harness"),
+  };
+  const BACKEND_LABELS: Record<ImageBackend, string> = {
+    comfyui: t("campaign.storyAi.backend.comfyui"),
+    openai: t("campaign.storyAi.backend.openai"),
+    "mflux-hs": t("campaign.storyAi.backend.mflux"),
+    "sdnq-hs": t("campaign.storyAi.backend.sdnq"),
+    harness: t("campaign.storyAi.backend.harness"),
+  };
+  const artStyleLabels: Record<ArtStyle, string> = {
+    setting: t("campaign.storyAi.artStyle.setting"),
+    painted: t("campaign.storyAi.artStyle.painted"),
+    ink: t("campaign.storyAi.artStyle.ink"),
+    realistic: t("campaign.storyAi.artStyle.realistic"),
+    comic: t("campaign.storyAi.artStyle.comic"),
+    custom: t("campaign.storyAi.artStyle.custom"),
+  };
+  const artStyleNotes: Record<ArtStyle, string> = {
+    setting: t("campaign.storyAi.artStyleNote.setting"),
+    painted: t("campaign.storyAi.artStyleNote.painted"),
+    ink: t("campaign.storyAi.artStyleNote.ink"),
+    realistic: t("campaign.storyAi.artStyleNote.realistic"),
+    comic: t("campaign.storyAi.artStyleNote.comic"),
+    custom: t("campaign.storyAi.artStyleNote.custom"),
+  };
+  const proseSizeLabels: Record<StorySettings["proseSize"], string> = {
+    tiny: t("campaign.storyAi.proseSize.tiny"),
+    xsmall: t("campaign.storyAi.proseSize.xsmall"),
+    small: t("campaign.storyAi.proseSize.small"),
+    medium: t("campaign.storyAi.proseSize.medium"),
+    large: t("campaign.storyAi.proseSize.large"),
+    xlarge: t("campaign.storyAi.proseSize.xlarge"),
+    xxlarge: t("campaign.storyAi.proseSize.xxlarge"),
+    huge: t("campaign.storyAi.proseSize.huge"),
+    giant: t("campaign.storyAi.proseSize.giant"),
+  };
   const [busy, setBusy] = useState(false);
   // Every control renders the server's settings, so a refused PATCH changes
   // nothing on screen; without this line it changes nothing silently.
