@@ -76,6 +76,12 @@ const CAMPAIGN_ERROR_KEYS = {
   NARRATION_GM_ONLY: "campaign.narrationFailure.error.gmOnly",
   NARRATION_DISABLED: "campaign.narrationFailure.error.disabled",
   NARRATION_RENDER_FAILED: "campaign.narrationFailure.error.render",
+  FIGHT_SETUP_NO_ACTIVE_FIGHT: "workshop.testFight.setup.error.noActiveFight",
+  FIGHT_SETUP_INITIATIVE_NOT_READY: "workshop.testFight.setup.error.initiativeNotReady",
+  FIGHT_SETUP_NO_PREPARED_FIGHT: "workshop.testFight.setup.error.noPreparedFight",
+  FIGHT_SETUP_NOT_TEST_AUTHOR: "workshop.testFight.setup.error.notTestAuthor",
+  FIGHT_SETUP_SOURCE_MISSING: "workshop.testFight.setup.error.sourceMissing",
+  FIGHT_SETUP_MAP_SAVE_FAILED: "workshop.testFight.setup.error.mapSaveFailed",
 } satisfies Record<string, MessageKey>;
 
 // The server keeps its English message for old clients and logs. The UI uses
