@@ -204,6 +204,17 @@ await test("A bard who takes College of Lore at level 3 is asked for the three s
   }
 });
 
+await test("A Lore bard's subclass-training refusal keeps its structured reason.", async () => {
+  const context = await levelContext();
+  const refused = buildLevelUp(
+    bardAt2,
+    levelRequest({ featChoices: keyedFeatChoices({ "Bonus Proficiencies (Lore)": { skills: ["not-a-skill", "arcana", "history"] } }) }),
+    context,
+  );
+  assert.ok("error" in refused);
+  assert.equal(refused.errorCode, "FEAT_GRANT_SKILL_INVALID");
+  assert.deepEqual(refused.errorParams, { feat: "Bonus Proficiencies (Lore)", skill: "not-a-skill" });
+});
 await test("A companion levelling into College of Lore takes its skills on its own.", async () => {
   const taken = buildLevelUp(bardAt2, levelRequest(), await levelContext({ autoPicks: true }));
   assert.ok(!("error" in taken), taken.error);

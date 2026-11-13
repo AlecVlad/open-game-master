@@ -547,7 +547,8 @@ export function buildLevelUp(
       abilities,
     });
     if (trained.problems.length) {
-      return refuse(trained.problems[0]);
+      const detail = trained.problemDetails[0];
+      return refuse(trained.problems[0], 400, detail?.code, detail?.params);
     }
     proficiencies = trained.proficiencies;
   }

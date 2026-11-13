@@ -471,7 +471,7 @@ export function applySubclassTraining(input: {
   abilities?: Partial<Record<Ability, number>>;
 }): FeatGrantVerdict {
   if (!input.grants.length) {
-    return { proficiencies: input.proficiencies, problems: [] };
+    return { proficiencies: input.proficiencies, problems: [], problemDetails: [] };
   }
   const grants = grantsForHeldTraining(input.grants, input.proficiencies);
   const required = grants.filter((grant) => !grant.optional);
@@ -493,11 +493,12 @@ export function applySubclassTraining(input: {
         strict: input.strict,
         picksMayWait: true,
       })
-    : { proficiencies: applied.proficiencies, problems: [] as string[], owed: undefined };
+    : { proficiencies: applied.proficiencies, problems: [] as string[], problemDetails: [] as typeof applied.problemDetails, owed: undefined };
   const saves = withSaves(optional.proficiencies.saves as Ability[], input.grants, input.abilities);
   const owed = [...(applied.owed ?? []), ...(input.strict ? (optional.owed ?? []) : [])];
   return {
     problems: [...applied.problems, ...optional.problems],
+    problemDetails: [...applied.problemDetails, ...optional.problemDetails],
     proficiencies: { ...optional.proficiencies, saves },
     ...(owed.length ? { owed } : {}),
   };
