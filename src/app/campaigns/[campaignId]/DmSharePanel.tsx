@@ -117,7 +117,7 @@ export function DmSharePanel({ campaignId }: { campaignId: string }) {
       }
       download(`${fileStem(manifest.name)}.world-pack.json`, data.draft);
     } catch (thrown) {
-      setError(thrown instanceof Error ? thrown.message : "That could not be built.");
+      setError(thrown instanceof Error ? thrown.message : t("campaign.dmShare.error.build"));
     } finally {
       setBusy("");
     }
