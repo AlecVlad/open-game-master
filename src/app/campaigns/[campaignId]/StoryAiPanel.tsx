@@ -197,7 +197,7 @@ export function StoryAiPanel({
         harness?: HarnessOffer;
       };
       if (!response.ok) {
-        setError(data.error ?? "That change was not saved.");
+        setError(data.error ?? t("campaign.storyAi.error.notSaved"));
         return;
       }
       if (data.settings) {
@@ -216,7 +216,7 @@ export function StoryAiPanel({
         setKeys((prev) => ({ ...prev, utilityApiKey: SECRET_KEPT }));
       }
     } catch {
-      setError("Could not reach the server.");
+      setError(t("campaign.storyAi.error.network"));
     } finally {
       setBusy(false);
     }
@@ -237,11 +237,17 @@ export function StoryAiPanel({
   }
 
   const harnessName = harness?.label
-    ? `The server's ${harness.label}${harness.model ? ` (${harness.model})` : ""}`
+    ? harness.model
+      ? t("campaign.storyAi.provider.harnessNamedModel", { label: harness.label, model: harness.model })
+      : t("campaign.storyAi.provider.harnessNamed", { label: harness.label })
     : PROVIDER_LABELS.harness;
+
+  
   // A blank model is the server's, said with its name and where it comes
   // from rather than left for the reader to infer.
-  const inheritedModel = serverModel ? `${serverModel} · the server's model` : "the server's model";
+  const inheritedModel = serverModel
+    ? t("campaign.storyAi.summary.modelOnServer", { model: serverModel })
+    : t("campaign.storyAi.summary.serverModel");
   const storytellerSummary =
     settings.textProvider === "custom"
       ? settings.customModel || inheritedModel
@@ -249,32 +255,34 @@ export function StoryAiPanel({
         ? harnessName
         : PROVIDER_LABELS[settings.textProvider];
   const imagesSummary = settings.imageGenerationEnabled
-    ? `${BACKEND_LABELS[settings.imageBackend]}${settings.autoImages ? ", automatic" : ""}${
-        settings.artStyle === "setting" ? "" : `, ${ART_STYLE_LABELS[settings.artStyle].toLowerCase()} style`
-      }`
-    : "off";
+    ? [
+        BACKEND_LABELS[settings.imageBackend],
+        settings.autoImages ? t("campaign.storyAi.summary.auto") : null,
+        settings.artStyle === "setting" ? null : t("campaign.storyAi.summary.style", { style: artStyleLabels[settings.artStyle].toLowerCase() }),
+      ].filter(Boolean).join(", ")
+    : t("campaign.storyAi.summary.off");
 
   if (!steersStory) {
     return (
       <section className="rounded-lg border border-stone-800 bg-stone-950/60 p-4">
-        <h2 className="mb-1 text-sm font-medium text-stone-300">Story AI</h2>
-        <p className="mb-2 text-xs text-stone-500">The AI services this campaign plays with, chosen by whoever runs the story.</p>
+        <h2 className="mb-1 text-sm font-medium text-stone-300">{t("campaign.storyAi.title")}</h2>
+        <p className="mb-2 text-xs text-stone-500">{t("campaign.storyAi.viewer.description")}</p>
         <div className="flex flex-wrap gap-x-5 gap-y-1.5 text-xs text-stone-400">
           <span className="flex items-center gap-1.5">
             <Bot className="size-3.5 text-amber-200" />
-            Storyteller: {storytellerSummary}
+            {t("campaign.storyAi.summary.storyteller", { name: storytellerSummary })}
           </span>
           <span className="flex items-center gap-1.5">
             <Wrench className="size-3.5 text-amber-200" />
-            Utility model: {settings.utilityModel || "off"}
+            {t("campaign.storyAi.summary.utility", { name: settings.utilityModel || t("campaign.storyAi.summary.off") })}
           </span>
           <span className="flex items-center gap-1.5">
             <ImageIcon className="size-3.5 text-amber-200" />
-            Images: {imagesSummary}
+            {t("campaign.storyAi.summary.images", { name: imagesSummary })}
           </span>
           <span className="flex items-center gap-1.5">
             <AlignLeft className="size-3.5 text-amber-200" />
-            Passage length: {settings.proseSize}
+            {t("campaign.storyAi.summary.passages", { name: proseSizeLabels[settings.proseSize] })}
           </span>
         </div>
       </section>
@@ -282,12 +290,14 @@ export function StoryAiPanel({
   }
 
   const shell = shellHost();
-  const backendName = { openai: "OpenAI", openrouter: "OpenRouter", local: "local model" }[
-    endpointKind(settings.customBaseUrl)
-  ];
+  const backendName = {
+    openai: t("campaign.storyAi.endpoint.openai"),
+    openrouter: t("campaign.storyAi.endpoint.openrouter"),
+    local: t("campaign.storyAi.backend.localModel"),
+  }[endpointKind(settings.customBaseUrl)];
   const deviceStoryteller =
     settings.textProvider === "custom"
-      ? `${settings.customModel || "custom backend"} (${backendName})`
+      ? `${settings.customModel || t("campaign.storyAi.backend.custom")} (${backendName})`
       : settings.textProvider === "harness"
         ? harnessName
         : PROVIDER_LABELS[settings.textProvider];
@@ -300,7 +310,7 @@ export function StoryAiPanel({
   const selectClass =
     "rounded-md border border-stone-700 bg-stone-900 px-2 py-1 text-xs outline-none focus:border-amber-600";
   const inputClass = cn(selectClass, "w-64 max-w-full");
-  const labelClass = "w-20 shrink-0 text-stone-500";
+  const labelClass = "w-32 shrink-0 text-stone-500";
   const blurOnEnter = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
       event.currentTarget.blur();
@@ -309,17 +319,17 @@ export function StoryAiPanel({
 
   return (
     <section className="rounded-lg border border-stone-800 bg-stone-950/60 p-4">
-      <h2 className="mb-1 text-sm font-medium text-stone-300">Story AI</h2>
+      <h2 className="mb-1 text-sm font-medium text-stone-300">{t("campaign.storyAi.title")}</h2>
       <p className="mb-3 text-xs text-stone-500">
-        Which AI services this campaign uses: who tells the story, the helper model, and pictures. It changes this campaign
-        only, as soon as you pick; {deviceManaged ? "the device's own choice is set from the app's home screen." : "the server's defaults live in the admin panel."}
+        {t("campaign.storyAi.editor.description")} {t(deviceManaged ? "campaign.storyAi.editor.deviceChoice" : "campaign.storyAi.editor.serverChoice")}
+
       </p>
       {error ? <p className="motion-shake mb-2 text-xs text-red-400">{error}</p> : null}
       <div className={cn("space-y-3 text-xs", busy && "opacity-70")}>
         {deviceManaged === null ? null : deviceManaged ? (
           <div className="reveal space-y-2">
             <div className="flex flex-wrap items-center gap-2">
-              <span className={labelClass}>Storyteller</span>
+              <span className={labelClass}>{t("campaign.storyAi.label.storyteller")}</span>
               <span className="text-stone-300">{deviceStoryteller}</span>
             </div>
             {settings.textProvider !== "none" && settings.utilityModel ? (
@@ -329,10 +339,10 @@ export function StoryAiPanel({
               </div>
             ) : null}
             <p className="text-stone-500">
-              Story AI is chosen once for this device, and every campaign here follows it.{" "}
+              {t("campaign.storyAi.device.explanation")}{" "}
               {shell
-                ? "Change it from Story AI on the app's home screen."
-                : "Change it in the app that hosts this world."}
+                ? t("campaign.storyAi.device.changeHome")
+                : t("campaign.storyAi.device.changeHost")}
             </p>
             {shell ? (
               <button
@@ -340,14 +350,14 @@ export function StoryAiPanel({
                 onClick={() => shell.showServers()}
                 className="motion-press rounded-md border border-stone-700 px-2 py-1 text-stone-300 hover:border-amber-700 hover:text-amber-200"
               >
-                App home
+                {t("campaign.storyAi.device.homeButton")}
               </button>
             ) : null}
           </div>
         ) : (
           <div className="reveal space-y-3">
             <div className="flex flex-wrap items-center gap-2">
-              <span className={labelClass}>Storyteller</span>
+              <span className={labelClass}>{t("campaign.storyAi.label.storyteller")}</span>
               <Select
                 value={settings.textProvider}
                 onChange={(textProvider) => patch({ textProvider })}
@@ -355,7 +365,7 @@ export function StoryAiPanel({
                   value: provider,
                   label: provider === "harness" ? harnessName : PROVIDER_LABELS[provider],
                 }))}
-                label="Storyteller"
+                label={t("campaign.storyAi.label.storyteller")}
                 size="sm"
               />
             </div>
