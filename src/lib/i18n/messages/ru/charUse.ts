@@ -12,6 +12,7 @@ export const ruCharUse: Partial<Record<keyof typeof enCharUse, string>> & Record
   "charUse.err.companion.leftParty": "Персонаж «{name}» покинул группу. Вернуть его за этот стол может только история кампании.",
   "charUse.err.companion.notInLibrary": "Этого спутника нет в вашей библиотеке.",
   "charUse.err.companion.invalidSheet": "Не удалось прочитать лист спутника.",
+  "charUse.err.multiclass": "У персонажа «{name}» несколько классов, а в этой кампании мультиклассирование запрещено. Возьмите персонажа с одним классом.",
   "charUse.err.net": "Не удалось связаться с сервером.",
   "charUse.title.ally": "Привести персонажа {name} в кампанию как союзника",
   "charUse.title.use": "Использовать персонажа {name} в кампании",
