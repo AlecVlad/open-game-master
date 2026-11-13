@@ -818,6 +818,9 @@ for (const key of partyBackstoryMessages) {
 
 // Campaign creation and update forms translate stable API refusals by code.
 const campaignApiMessages = [
+  "campaign.companionCommand.error.invalid",
+  "campaign.companionCommand.error.notFound",
+  "campaign.companionCommand.error.playerRequired",
   "createCampaign.dialog.error.adminOnly",
   "createCampaign.dialog.error.passwordChange",
   "createCampaign.dialog.error.invalidSettings",
