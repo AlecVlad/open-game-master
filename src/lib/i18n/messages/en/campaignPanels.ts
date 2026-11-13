@@ -42,6 +42,8 @@ export const enCampaignPanels = {
   "campaign.notes.author.you": "You",
   "campaign.notes.author.onlyYou": "Only you can see this",
   "campaign.notes.error.save": "Could not save the note.",
+  "campaign.notes.error.update": "Could not update the note.",
+  "campaign.notes.error.remove": "Could not delete the note.",
   "campaign.notes.error.server": "Could not reach the server.",
   "campaign.fact.error.addLead": "Only the party lead can add facts.",
   "campaign.fact.error.editLead": "Only the party lead can edit or retire facts.",
@@ -87,6 +89,7 @@ export const enCampaignPanels = {
   "campaign.fact.empty.lead": "Nothing recorded yet. The GM writes durable facts here as chapters close, or pin one yourself above.",
   "campaign.fact.empty.player": "Nothing recorded yet. The GM writes durable facts here as chapters close.",
   "campaign.fact.error.save": "Could not save the fact.",
+  "campaign.fact.error.update": "Could not update the fact.",
   "campaign.fact.error.server": "Could not reach the server.",
 
   "campaign.quest.status.active": "Active",
