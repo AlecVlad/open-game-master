@@ -4,7 +4,7 @@ import { SRD_CLASSES } from "@/lib/srd";
 import { expertiseAllowed, expertiseSlotsFor, racialTraitsFor, subclassLevelFor, subclassSpellsFor } from "@/lib/srd/features";
 import { fightingStyleFeatureName } from "@/lib/srd/feature-effects";
 import { featAbilityIncrease } from "@/lib/srd/feat-effects";
-import { featOwed, type FeatChoices, type FeatGrantSpec } from "@/lib/srd/feat-grants";
+import { featOwed, featOwedDetail, type FeatChoices, type FeatGrantSpec } from "@/lib/srd/feat-grants";
 import { STANDARD_ARRAY } from "@/lib/srd/legality/abilities";
 import { racialFeatCount } from "@/lib/srd/race-id";
 import {
@@ -155,19 +155,54 @@ export function bonusLanguageCount(
 
 // The picks a feat leaves open, as the gate asks for them: what the feat's
 // text grants (derived.featSpecOf) against what is picked so far.
+function featOwedBlockDetail(feat: string, spec: FeatGrantSpec, picks: ReturnType<typeof featChoice>): BuilderBlockDetail | undefined {
+  const detail = featOwedDetail(feat, spec, picks);
+  if (!detail) return undefined;
+  if (detail.kind === "picks") {
+    return {
+      key: "builder.block.feat.choices",
+      params: {
+        kind: "picks",
+        feat,
+        languages: detail.picks.languages,
+        skills: detail.picks.skills,
+        expertise: detail.picks.expertise,
+        weapons: detail.picks.weapons,
+        tools: detail.picks.tools,
+        shared: detail.picks.shared,
+        sharedKinds: detail.picks.sharedKinds.join(","),
+        damageType: detail.picks.damageType ? "yes" : "no",
+      },
+    };
+  }
+  return {
+    key: "builder.block.feat.choices",
+    params: {
+      kind: "spells",
+      feat,
+      listChoice: detail.spells.listChoice ? "yes" : "no",
+      abilityChoice: detail.spells.abilityChoice ? "yes" : "no",
+      cantrips: detail.spells.cantrips,
+      attackCantrip: detail.spells.attackCantrip ? "yes" : "no",
+      spells: detail.spells.spells,
+      spellLevel: detail.spells.spellLevel,
+      schools: detail.spells.schools.join(","),
+      ritualBook: detail.spells.ritualBook ? "yes" : "no",
+    },
+  };
+}
+
 function featPicksBlock(
   feats: string[],
   featChoices: FeatChoices | undefined,
   specOf: ((name: string) => FeatGrantSpec) | undefined,
-): string | null {
-  if (!specOf) {
-    return null;
-  }
+): { message: string; detail?: BuilderBlockDetail } | null {
+  if (!specOf) return null;
   for (const feat of feats) {
-    const owed = featOwed(feat, specOf(feat), featChoice(featChoices, feat));
-    if (owed) {
-      return owed;
-    }
+    const spec = specOf(feat);
+    const picks = featChoice(featChoices, feat);
+    const owed = featOwed(feat, spec, picks);
+    if (owed) return { message: owed, detail: featOwedBlockDetail(feat, spec, picks) };
   }
   return null;
 }
