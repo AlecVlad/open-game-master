@@ -1174,5 +1174,9 @@ export const ruCampaignSession: Partial<Record<keyof typeof enCampaignSession, s
   "campaign.storyAi.proseSize.description": "Задаёт длину каждого фрагмента повествования.",
   "campaign.storyAi.error.notSaved": "Не удалось сохранить изменения.",
   "campaign.storyAi.error.network": "Не удалось связаться с сервером.",
+  "campaign.storyAi.error.invalid": "Некорректные настройки ИИ кампании. Проверьте значения и попробуйте ещё раз.",
+  "campaign.storyAi.error.agentUnavailable": "Агент сервера недоступен для этой кампании.",
+  "campaign.storyAi.error.agentImagesUnavailable": "Агенту сервера не разрешено создавать изображения.",
+  "campaign.storyAi.error.campaignMissing": "Не удалось найти эту кампанию."
 
 };
