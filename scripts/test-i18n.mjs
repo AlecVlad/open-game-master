@@ -1624,6 +1624,16 @@ const campaignEntryRefusals = [
   ["STORY_PARTY_LEAD_REQUIRED", {}, /лидер группы/],
   ["AUTH_REQUIRED", {}, /в систему/],
   ["PASSWORD_CHANGE_REQUIRED", {}, /пароль/],
+  ["JOIN_INVALID_INVITE_CODE", {}, /корректный код приглашения/],
+  ["JOIN_INVITE_NOT_FOUND", {}, /такому коду приглашения не найдена/],
+  ["JOIN_CAMPAIGN_ENDED", {}, /уже завершена/],
+  ["JOIN_CAMPAIGN_STARTED", {}, /присоединение закрыто/],
+  ["JOIN_CAMPAIGN_FULL", {}, /нет свободных мест/],
+  ["JOIN_THROTTLED", { seconds: 17 }, /через 17 с/],
+  ["JOIN_FAILED", {}, /не удалось присоединиться к кампании/],
+  ["CAMPAIGN_CREATION_ADMIN_ONLY", {}, /администратор/],
+  ["STARTER_INVALID_REQUEST", {}, /не удалось прочитать запрос/],
+  ["STARTER_NO_STORYTELLER", {}, /не настроен рассказчик/],
 ];
 for (const [code, params, expected] of campaignEntryRefusals) {
   const message = refusalText({
