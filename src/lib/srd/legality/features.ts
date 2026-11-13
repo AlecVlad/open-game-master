@@ -266,10 +266,21 @@ export type FeatWaiting = {
 // builder has not made, or of a kind only the table can check. The note
 // says it in words ("Needs Strength 13, you have 12"), so no reader has to
 // go by its color.
+export type RequirementDetail =
+  | { code: "abilityScore"; abilities: Ability[]; minimum: number; actual: number[] }
+  | { code: "armor"; armorType: string }
+  | { code: "spellcasting" }
+  | { code: "race"; ancestry: string }
+  | { code: "level"; minimum: number; actual: number }
+  | { code: "skills"; skills: string[] }
+  | { code: "vehicle" }
+  | { code: "weapon"; weaponType: string; subtype: string | null };
+
 export type RequirementCheck = {
   requirement: string;
   state: "met" | "unmet" | "waiting" | "unchecked";
   note: string;
+  detail?: RequirementDetail;
 };
 
 export type PrerequisiteCheck = {
@@ -290,14 +301,14 @@ const orList = (items: string[]) =>
 // One requirement, judged. A requirement of a kind the server cannot check
 // (a prestige rating, a class feature by name) is the table's.
 function requirementCheck(requirement: string, who: FeatCandidate, waiting: FeatWaiting = {}): RequirementCheck {
-  const verdict = (state: RequirementCheck["state"], note: string): RequirementCheck => ({ requirement, state, note });
+  const verdict = (state: RequirementCheck["state"], note: string, detail?: RequirementDetail): RequirementCheck => ({ requirement, state, note, ...(detail ? { detail } : {}) });
   const unchecked = () => verdict("unchecked", `${sentence(requirement)}: the table checks this`);
-  const held = (yes: boolean, waits: boolean | undefined, waitsOn: string) =>
+  const held = (yes: boolean, waits: boolean | undefined, waitsOn: string, detail?: RequirementDetail) =>
     yes
       ? verdict("met", `${sentence(requirement)}, you have it`)
       : waits
         ? verdict("waiting", `Waiting on ${waitsOn}`)
-        : verdict("unmet", `Needs ${phrase(requirement)}`);
+        : verdict("unmet", `Needs ${phrase(requirement)}`, detail);
   const part = requirement.toLowerCase().replace(/^(?:the|a|an) /, "").trim();
   const scores = /^(\w+)(?: or (\w+))? (\d+)(?: or higher)?$/.exec(part);
   if (scores) {
@@ -325,19 +336,19 @@ function requirementCheck(requirement: string, who: FeatCandidate, waiting: Feat
       );
     }
     const have = abilities.map((ability) => String(who.abilities[ability]));
-    return verdict("unmet", `Needs ${orList(abilities.map((ability) => ABILITY_NAMES[ability]))} ${need}, you have ${have.join(" and ")}`);
+    return verdict("unmet", `Needs ${orList(abilities.map((ability) => ABILITY_NAMES[ability]))} ${need}, you have ${have.join(" and ")}`, { code: "abilityScore", abilities, minimum: need, actual: abilities.map((ability) => who.abilities[ability]) });
   }
   const armor = /^proficiency with (light|medium|heavy) armor$/.exec(part);
   if (armor) {
     const sample = { light: "Leather", medium: "Breastplate", heavy: "Plate" }[armor[1] as "light" | "medium" | "heavy"];
     const piece = SRD_ARMOR.find((entry) => entry.name === sample);
-    return held(Boolean(piece && isArmorProficient(who.armor, piece)), waiting.armor, "your class");
+    return held(Boolean(piece && isArmorProficient(who.armor, piece)), waiting.armor, "your class", { code: "armor", armorType: armor[1] });
   }
   if (/^(?:ability to cast (?:at least )?one spell|ability to cast spells|spellcasting or pact magic)$/.test(part)) {
-    return held(who.casts, waiting.casts, "your class");
+    return held(who.casts, waiting.casts, "your class", { code: "spellcasting" });
   }
   if (/^elf or half-elf$/.test(part)) {
-    return held(/elf|drow/i.test(`${who.raceId} ${who.raceName}`), waiting.race, "your race");
+    return held(/elf|drow/i.test(`${who.raceId} ${who.raceName}`), waiting.race, "your race", { code: "race", ancestry: "elf or half-elf" });
   }
   const level = /^(\d+)(?:st|nd|rd|th) level or higher$/.exec(part);
   if (level) {
@@ -345,7 +356,7 @@ function requirementCheck(requirement: string, who: FeatCandidate, waiting: Feat
       return unchecked();
     }
     return who.level < Number(level[1])
-      ? verdict("unmet", `Needs level ${level[1]}, you are level ${who.level}`)
+      ? verdict("unmet", `Needs level ${level[1]}, you are level ${who.level}`, { code: "level", minimum: Number(level[1]), actual: who.level })
       : verdict("met", `Level ${level[1]}, you are level ${who.level}`);
   }
   const trained = /^proficiency (?:in|with) (?:at least )?(?:one of the following skills: )?(.+?)(?: skills?)?$/.exec(part);
@@ -357,12 +368,12 @@ function requirementCheck(requirement: string, who: FeatCandidate, waiting: Feat
   if (skills.length) {
     return who.skills === undefined
       ? unchecked()
-      : held(skills.some((skill) => who.skills!.some((entry) => textKey(entry) === textKey(skill))), waiting.skills, "your skill picks");
+      : held(skills.some((skill) => who.skills!.some((entry) => textKey(entry) === textKey(skill))), waiting.skills, "your skill picks", { code: "skills", skills });
   }
   if (/\btype of vehicle\b|\bvehicles?\b/.test(wanted)) {
     return who.tools === undefined
       ? unchecked()
-      : held(who.tools.some((tool) => /vehicle/i.test(tool)), waiting.tools, "your tool picks");
+      : held(who.tools.some((tool) => /vehicle/i.test(tool)), waiting.tools, "your tool picks", { code: "vehicle" });
   }
   const weapon = /^(?:one |a )?(martial|simple|ranged|melee)(?: (ranged|melee))? weapons?$/.exec(wanted);
   if (weapon && who.weapons !== undefined) {
@@ -373,6 +384,7 @@ function requirementCheck(requirement: string, who: FeatCandidate, waiting: Feat
       owned.some((entry) => broad.includes(entry)) || owned.some((entry) => names.includes(entry)),
       waiting.weapons,
       "your class",
+      { code: "weapon", weaponType: weapon[1], subtype: weapon[2] ?? null },
     );
   }
   return unchecked();
