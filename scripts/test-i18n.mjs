@@ -14,6 +14,8 @@ import {
 import { DICTIONARIES } from "../src/lib/i18n/messages/index.ts";
 import { localizeStoryboardError } from "../src/lib/workshop/storyboard-api-i18n.ts";
 import { gearProblemText } from "../src/app/characters/builder/gearProblemText.ts";
+import { campaignApiErrorText } from "../src/lib/i18n/campaignApiError.ts";
+import { readLoad, UNREACHABLE, UNREADABLE } from "../src/lib/load-state.ts";
 import { featOwedText } from "../src/app/characters/builder/featOwedText.ts";
 import { featPrerequisiteText } from "../src/app/characters/builder/featPrereqText.ts";
 import { multiclassPrerequisiteText } from "../src/app/characters/builder/multiclassPrereqText.ts";
@@ -1398,6 +1400,57 @@ for (const count of [1, 2, 5]) {
   assert.ok(!translatePlural(DICTIONARIES, "ru", "schedule.duration.hours", count).includes("{count}"));
   assert.ok(!translatePlural(DICTIONARIES, "ru", "schedule.duration.session", count).includes("{count}"));
 }
+
+// Shared campaign membership and story-authority refusals carry stable codes.
+const campaignApiT = (key) => translate(DICTIONARIES, "ru", key);
+const campaignApiCases = [
+  ["PASSWORD_CHANGE_REQUIRED", "createCampaign.dialog.error.passwordChange"],
+  ["CAMPAIGN_NOT_FOUND", "campaign.session.rules.error.campaignNotFound"],
+  ["STORY_GAME_MASTER_REQUIRED", "campaign.session.rules.error.gameMasterRequired"],
+  ["STORY_PARTY_LEAD_REQUIRED", "campaign.session.rules.error.partyLeadRequired"],
+  ["INVALID_HOUSE_RULES", "campaign.session.rules.error.invalidHouseRules"],
+  ["INVALID_RULE_CHUNK_UPDATE", "campaign.session.rules.error.invalidChunkUpdate"],
+  ["RULE_CHUNK_NOT_FOUND", "campaign.session.rules.error.chunkNotFound"],
+  ["INVALID_GAME_SETTINGS", "campaign.session.rules.invalidSettings"],
+];
+for (const [code, key] of campaignApiCases) {
+  assert.ok(key in DICTIONARIES.en, `English campaign API message missing: ${key}`);
+  assert.ok(key in DICTIONARIES.ru, `Russian campaign API message missing: ${key}`);
+  assert.equal(
+    campaignApiErrorText({ error: "Legacy English response.", errorCode: code }, "Fallback.", campaignApiT),
+    campaignApiT(key),
+    `Campaign API code ${code} must use its localized message`,
+  );
+}
+assert.equal(
+  campaignApiErrorText({ error: "A dynamic server detail.", errorCode: "UNKNOWN_CODE" }, "Fallback.", campaignApiT),
+  "A dynamic server detail.",
+  "Unknown campaign API errors must preserve the server's original text",
+);
+const refusedRulesLoad = await readLoad(
+  Promise.resolve(new Response(JSON.stringify({ error: "Only the Game Master can do that.", errorCode: "STORY_GAME_MASTER_REQUIRED" }), {
+    status: 403,
+    headers: { "Content-Type": "application/json" },
+  })),
+  "House rules",
+  (body, status) => campaignApiErrorText(body, `The server answered ${status}.`, campaignApiT),
+  (_what, reason) => `Не удалось загрузить домашние правила. ${reason}`,
+);
+assert.equal(
+  refusedRulesLoad.error,
+  `Не удалось загрузить домашние правила. ${campaignApiT("campaign.session.rules.error.gameMasterRequired")}`,
+);
+const unreachableRulesLoad = await readLoad(
+  Promise.reject(new Error("offline")),
+  "House rules",
+  (body, status) => campaignApiErrorText(body, `The server answered ${status}.`, campaignApiT),
+  (_what, reason) => reason === UNREACHABLE
+    ? campaignApiT("campaign.session.rules.network")
+    : reason === UNREADABLE
+      ? campaignApiT("campaign.session.rules.loadFailed")
+      : reason,
+);
+assert.equal(unreachableRulesLoad.error, campaignApiT("campaign.session.rules.network"));
 
 // Starting equipment diagnostics are structured and translated in the builder.
 const gearDiagnosticKeys = [
