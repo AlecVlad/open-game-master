@@ -704,6 +704,48 @@ for (const key of sharedComponentMessages) {
   assert.ok(key in DICTIONARIES.en, `English shared-component message missing: ${key}`);
   assert.ok(key in DICTIONARIES.ru, `Russian shared-component message missing: ${key}`);
 }
+// Model catalog notes: every stable warning and summary part has an English and Russian label.
+const modelNoteMessages = [
+  "modelNote.warning.notListed",
+  "modelNote.warning.noTools.story.server",
+  "modelNote.warning.noTools.utility.server",
+  "modelNote.warning.noTools.story.catalog",
+  "modelNote.warning.noTools.utility.catalog",
+  "modelNote.warning.tooBig",
+  "modelNote.warning.unknownImageModel",
+  "modelNote.warning.deprecated",
+  "modelNote.warning.preRelease",
+  "modelNote.warning.notImage",
+  "modelNote.warning.notText",
+  "modelNote.warning.localCatalogNoTools",
+  "modelNote.warning.storyWindow.short",
+  "modelNote.warning.storyWindow.noFights",
+  "modelNote.warning.storyWindow.tight",
+  "modelNote.warning.smallContext",
+  "modelNote.summary.notInCatalog",
+  "modelNote.summary.context",
+  "modelNote.summary.paintsPictures",
+  "modelNote.summary.toolCalls",
+  "modelNote.summary.reasoning",
+  "modelNote.summary.seesPictures",
+  "modelNote.summary.openWeights",
+  "modelNote.summary.free",
+  "modelNote.summary.price",
+  "modelNote.summary.status.deprecated",
+  "modelNote.summary.status.beta",
+  "modelNote.summary.status.alpha",
+  "modelNote.summary.modelName",
+  "modelNote.status.beta",
+  "modelNote.status.alpha"
+];
+for (const key of modelNoteMessages) {
+  assert.ok(key in DICTIONARIES.en, `English model-note message missing: ${key}`);
+  assert.ok(key in DICTIONARIES.ru, `Russian model-note message missing: ${key}`);
+  const params = (value) => [...value.matchAll(/\{([A-Za-z0-9_]+)\}/g)].map((match) => match[1]).sort();
+  assert.deepEqual(params(DICTIONARIES.en[key]), params(DICTIONARIES.ru[key]), `Model-note placeholders differ: ${key}`);
+}
+assert.equal(translate(DICTIONARIES, "ru", "modelNote.warning.tooBig", { sizeGb: 24, budgetGb: 16 }), "Модель слишком велика для этого устройства: веса занимают 24 ГБ при доступном бюджете памяти 16 ГБ.");
+
 // Rulebook search result count: the reader uses locale-aware plural forms.
 for (const suffix of ["one", "other"]) {
   assert.ok(`rulebook.search.results.${suffix}` in DICTIONARIES.en, `English rulebook search plural missing: ${suffix}`);
