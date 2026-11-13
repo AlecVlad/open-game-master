@@ -35,7 +35,12 @@ export function ModelNote({ role, baseUrl, model }: { role: ModelRole; baseUrl: 
   if (!verdict) return null;
   const tone = verdict.fit === "unfit" ? "text-red-400" : verdict.fit === "warn" ? "text-amber-300" : "text-stone-500";
   const warnings = verdict.warningDetails?.length
-    ? verdict.warningDetails.map((detail: ModelDiagnostic) => t(("modelNote.warning." + detail.code) as MessageKey, detail.params))
+    ? verdict.warningDetails.map((detail: ModelDiagnostic) => {
+        const params = detail.code === "preRelease" && detail.params?.status
+          ? { ...detail.params, status: t(("modelNote.status." + detail.params.status) as MessageKey) }
+          : detail.params;
+        return t(("modelNote.warning." + detail.code) as MessageKey, params);
+      })
     : verdict.warnings;
   const summary = verdict.summaryParts?.length
     ? verdict.summaryParts.map((part: ModelSummaryPart) => t(("modelNote.summary." + part.code) as MessageKey, part.params)).join(" · ")
