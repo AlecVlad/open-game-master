@@ -270,22 +270,25 @@ export function FactsPanel({
   // Lead-only peek at DM secrets: fetched separately so the spoilers never
   // sit in shared state, and merged in only while the toggle is on.
   const [secrets, setSecrets] = useState<WorldFact[] | null>(null);
+  const [secretsError, setSecretsError] = useState("");
 
   async function toggleSecrets() {
     if (secrets) {
       setSecrets(null);
+      setSecretsError("");
       return;
     }
+    setSecretsError("");
     try {
       const response = await fetch(`/api/campaigns/${campaignId}/facts?secrets=1`);
-      if (response.ok) {
-        const data = await response.json();
-        setSecrets(
-          ((data.facts ?? []) as WorldFact[]).filter((fact) => isSecretFact(fact.knownBy)),
-        );
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        setSecretsError(campaignApiErrorText(data, t("campaign.fact.error.secretsLoad"), t));
+        return;
       }
+      setSecrets(((data.facts ?? []) as WorldFact[]).filter((fact) => isSecretFact(fact.knownBy)));
     } catch {
-      // transient; the button retries
+      setSecretsError(t("campaign.fact.error.server"));
     }
   }
 
@@ -353,6 +356,7 @@ export function FactsPanel({
             {secrets ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
             {secrets ? t("campaign.fact.action.hideSecrets") : t("campaign.fact.action.showSecrets")}
           </KitButton>
+          {secretsError ? <PanelError>{secretsError}</PanelError> : null}
           {secrets ? (
             secrets.length ? (
               <ul className="stagger space-y-1.5">
