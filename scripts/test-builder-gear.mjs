@@ -45,6 +45,8 @@ function stateWith(fields) {
 }
 
 test("each line of the barbarian's kit names its own items", () => {
+  const invalid = kits.resolveKit(kit, { options: [999], picks: [] }, { armor: [], weapons: [] }, "barbarian");
+  assert.equal(invalid.problemDetails[0]?.code, "invalidOption");
   assert.deepEqual(kits.kitLineNames(kit, null, 0), ["Greataxe"]);
   assert.deepEqual(kits.kitLineNames(kit, { options: [0, 1], picks: ["Club"] }, 1), ["Club"]);
   assert.ok(kits.kitLineNames(kit, null, 2).includes("Javelin"));
