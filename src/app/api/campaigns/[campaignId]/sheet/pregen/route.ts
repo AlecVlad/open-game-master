@@ -54,7 +54,7 @@ export async function POST(
   // shared with the confirm sheet the player reads before this.
   const admitted = admitPregen(pregen, door.campaign, context.user.id, parsed.success ? parsed.data.picks : null);
   if (!admitted.ok) {
-    return refusal(admitted.problems);
+    return refusal(admitted.problems, 400, admitted.problemDetails);
   }
   const seated = admitted.sheet;
   const libraryCharacter = createCharacter(context.user.id, door.level, seated);
