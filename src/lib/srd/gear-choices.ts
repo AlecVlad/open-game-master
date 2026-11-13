@@ -27,6 +27,7 @@ import { matchGear, resolveGearLine } from "@/lib/srd/adventuring-gear";
 import type { KitItem } from "@/lib/srd/starting-kit";
 import { ARTISANS_TOOLS, GAMING_SETS, MUSICAL_INSTRUMENTS, splitToolGrants } from "@/lib/srd/tool-choices";
 import { textKey } from "@/lib/language/text-logic";
+import type { GearProblemDetail } from "@/lib/srd/gear-problems";
 
 // ---- a tool-kind line, filled from the character's training ----
 
@@ -262,6 +263,7 @@ export type BackgroundKit = {
   // still owed on the class step.
   toolLines: Array<{ line: string; item: string | null }>;
   problems: string[];
+  problemDetails: GearProblemDetail[];
 };
 
 // The background's kit as the character carries it. `equipment` is the kit
@@ -276,6 +278,7 @@ export function expandBackgroundGear(
   const choices: BackgroundGearChoice[] = [];
   const toolLines: BackgroundKit["toolLines"] = [];
   const problems: string[] = [];
+  const problemDetails: GearProblemDetail[] = [];
   const used = new Set<string>();
   for (const line of equipment ?? []) {
     if (/^\s*\d[\d,]*\s*gp\s*$/i.test(line)) {
@@ -308,9 +311,14 @@ export function expandBackgroundGear(
       named = alternatives[chosen]?.options?.find((name) => textKey(name) === textKey(asked));
     }
     if (chosen < 0) {
-      problems.push(
-        `The background's kit offers ${alternatives.map((entry) => entry.label.toLowerCase()).join(" or ")}; "${asked}" is not one of them.`,
-      );
+      problems.push(`The background's kit offers ${alternatives.map((entry) => entry.label.toLowerCase()).join(" or ")}; "${asked}" is not one of them.`);
+      problemDetails.push({
+        code: "invalidBackgroundChoice",
+        params: {
+          options: alternatives.map((entry) => entry.label).join(", "),
+          choice: asked,
+        },
+      });
       chosen = 0;
     }
     const taken = alternatives[chosen];
@@ -336,5 +344,5 @@ export function expandBackgroundGear(
   // say more than an item's name (a content pack's Lyceum Student carries "A
   // writing kit (small pouch with a quill, ink, folded parchment, and a small
   // penknife)"), and the builder and the server fit it the same way.
-  return { names: names.map(fitItemName), choices, toolLines, problems };
+  return { names: names.map(fitItemName), choices, toolLines, problems, problemDetails };
 }
