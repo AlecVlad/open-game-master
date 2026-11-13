@@ -55,6 +55,16 @@ export type FeatSpellSpec = {
   ability: "choice" | "list" | "raised";
 };
 
+export type FeatSpellOwedDetail = {
+  listChoice: boolean;
+  abilityChoice: boolean;
+  cantrips: number;
+  attackCantrip: boolean;
+  spells: number;
+  spellLevel: number;
+  schools: string[];
+  ritualBook: boolean;
+};
 export type FeatSpellPicks = {
   cantrips?: string[];
   spells?: string[];
@@ -213,6 +223,22 @@ const ordinal = (level: number) => (level === 1 ? "1st" : level === 2 ? "2nd" : 
 
 // What the player has yet to name for the feat's spells, as the sentence
 // the gate shows, or null.
+// Stable outstanding choices for translated builder diagnostics.
+export function featSpellsOwedDetail(spec: FeatSpellSpec, picks: FeatSpellPicks | undefined): FeatSpellOwedDetail | null {
+  if (!featSpellsAnything(spec)) return null;
+  const has = (list: string[] | undefined) => (list ?? []).filter((entry) => entry && entry.trim()).length;
+  const detail: FeatSpellOwedDetail = {
+    listChoice: spec.listChoice && !(picks?.list ?? "").trim(),
+    abilityChoice: spec.ability === "choice" && !picks?.ability,
+    cantrips: Math.max(0, spec.cantrips - has(picks?.cantrips)),
+    attackCantrip: spec.attackCantrip,
+    spells: Math.max(0, spec.spells - has(picks?.spells)),
+    spellLevel: spec.spellLevel,
+    schools: spec.schools,
+    ritualBook: spec.ritualBook,
+  };
+  return detail.listChoice || detail.abilityChoice || detail.cantrips || detail.spells ? detail : null;
+}
 export function featSpellsOwed(feat: string, spec: FeatSpellSpec, picks: FeatSpellPicks | undefined): string | null {
   if (!featSpellsAnything(spec)) {
     return null;
