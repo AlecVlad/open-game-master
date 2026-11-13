@@ -2637,6 +2637,7 @@ export const ruCampaignPanels: Partial<Record<keyof typeof enCampaignPanels, str
   "campaign.relationship.act.motive": "Хочет: {motive}",
   "campaign.relationship.act.seenBy": "Раскрыли: {names}",
   "campaign.relationship.loading": "Изучаем отношения...",
+  "campaign.relationship.loadError": "Не удалось загрузить отношения. Проверьте подключение и попробуйте ещё раз.",
   "campaign.relationship.disabled": "Отслеживание отношений в этой кампании выключено. Ведущий может включить его в настройках, в разделе «Связи и романтика».",
   "campaign.relationship.empty": "Пока ни у кого нет сложившегося мнения. Отношение НИПов и спутников к персонажам формируется по мере общения и отображается здесь.",
   "campaign.relationship.noOpinion": "У {name} пока ни с кем не сложились отношения.",
