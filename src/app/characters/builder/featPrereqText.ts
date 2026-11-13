@@ -4,8 +4,6 @@ import type { MessageKey } from "@/lib/i18n/messages";
 type Translator = (key: MessageKey, params?: Params) => string;
 type Requirement = Record<string, string | number | string[]>;
 
-const ABILITY_NAMES: Record<string, string> = { str: "str", dex: "dex", con: "con", int: "int", wis: "wis", cha: "cha" };
-
 export function featPrerequisiteText(params: Params | undefined, t: Translator): string {
   const p = params ?? {};
   let requirements: Requirement[] = [];
