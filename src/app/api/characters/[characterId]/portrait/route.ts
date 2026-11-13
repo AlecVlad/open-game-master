@@ -22,17 +22,17 @@ export async function POST(
   }
   const { characterId } = await params;
   if (!getCharacterForUser(user.id, characterId)) {
-    return Response.json({ error: "Character not found." }, { status: 404 });
+    return Response.json({ error: "Character not found.", errorCode: "CHARACTER_NOT_FOUND" }, { status: 404 });
   }
   if (!(await imagesAvailable())) {
     return Response.json(
-      { error: "This server has no image model to paint with. Upload a portrait instead." },
+      { error: "This server has no image model to paint with. Upload a portrait instead.", errorCode: "PORTRAIT_NO_IMAGE_MODEL" },
       { status: 409 },
     );
   }
   const cleared = updateCharacterPortrait(user.id, characterId, null);
   if (!cleared) {
-    return Response.json({ error: "Character not found." }, { status: 404 });
+    return Response.json({ error: "Character not found.", errorCode: "CHARACTER_NOT_FOUND" }, { status: 404 });
   }
   mirrorToCampaignSheets(characterId, null, { overwrite: true });
   queueLibraryPortrait(cleared);
