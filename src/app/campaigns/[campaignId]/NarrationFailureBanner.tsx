@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { useI18n } from "@/lib/i18n/provider";
+import { campaignApiErrorText } from "@/lib/i18n/campaignApiError";
 import { SessionBanner, bannerButtonClass } from "@/app/campaigns/[campaignId]/SessionBanner";
 import { appNotice } from "@/components/ui/ConfirmDialog";
 import type { NarrationAudio } from "@/app/campaigns/[campaignId]/useNarrationAudio";
@@ -61,7 +62,7 @@ export function useNarrationReplay(
       const response = await fetch(`/api/campaigns/${campaignId}/messages/${messageId}/narrate`, { method: "POST" });
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        return data.error || t("campaign.narrationFailure.error.render");
+        return campaignApiErrorText(data, t("campaign.narrationFailure.error.render"), t);
       }
       const data = await response.json();
       play(messageId, data.url);
