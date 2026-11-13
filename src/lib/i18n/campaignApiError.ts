@@ -72,6 +72,10 @@ const CAMPAIGN_ERROR_KEYS = {
   COMPANION_NOT_FOUND: "campaign.companionCommand.error.notFound",
   COMPANION_COMMAND_PLAYER_REQUIRED: "campaign.companionCommand.error.playerRequired",
   COMPANION_COMMAND_CHANGE_FAILED: "campaign.companionCommand.error.change",
+  NARRATION_MESSAGE_NOT_FOUND: "campaign.narrationFailure.error.messageNotFound",
+  NARRATION_GM_ONLY: "campaign.narrationFailure.error.gmOnly",
+  NARRATION_DISABLED: "campaign.narrationFailure.error.disabled",
+  NARRATION_RENDER_FAILED: "campaign.narrationFailure.error.render",
 } satisfies Record<string, MessageKey>;
 
 // The server keeps its English message for old clients and logs. The UI uses
