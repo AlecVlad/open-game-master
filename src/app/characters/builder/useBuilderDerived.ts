@@ -841,6 +841,12 @@ export function useBuilderDerived({
         ...(keepsStoredGear || wealthMethod === "rolled" ? [] : [...(startingKit?.problems ?? []), ...backgroundKit.problems]),
         ...verdict.problems,
       ],
+      problemDetails: [
+        ...(keepsStoredGear || wealthMethod === "rolled"
+          ? []
+          : [...(startingKit?.problemDetails ?? []), ...backgroundKit.problemDetails]),
+        ...verdict.problemDetails,
+      ],
       gold: Math.floor(left / 100),
       copper: left % 100,
     };
