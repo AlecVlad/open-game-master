@@ -55,8 +55,10 @@ import {
 import { settleSlots } from "@/lib/srd/level-change";
 import { levelUpSpells, type SpellPicks } from "@/lib/srd/level-up-spells";
 import {
+  MULTICLASS_CAP,
   canMulticlassInto,
   classListFor,
+  meetsPrereq,
   multiclassGrantsFor,
 } from "@/lib/srd/multiclass";
 import { hpBonusPerLevel } from "@/lib/srd/race-id";
@@ -284,7 +286,32 @@ export function buildLevelUp(
     }
     const check = canMulticlassInto(sheet, classId);
     if (!check.ok) {
-      return refuse(check.error ?? "Cannot multiclass into that class.");
+      if (classListFor(sheet).length >= MULTICLASS_CAP) {
+        return refuse(
+          check.error ?? "Too many classes.",
+          400,
+          "LEVEL_UP_MULTICLASS_LIMIT",
+          { count: MULTICLASS_CAP },
+        );
+      }
+      if (!meetsPrereq(sheet.abilities, classId)) {
+        return refuse(
+          check.error ?? "The character does not meet this class's multiclass prerequisite.",
+          400,
+          "LEVEL_UP_MULTICLASS_CANDIDATE_PREREQUISITE",
+          { classId, className: klass.name },
+        );
+      }
+      const held = classListFor(sheet).find((entry) => !meetsPrereq(sheet.abilities, entry.id));
+      if (held) {
+        return refuse(
+          check.error ?? "The character no longer meets a held class's multiclass prerequisite.",
+          400,
+          "LEVEL_UP_MULTICLASS_HELD_PREREQUISITE",
+          { classId: held.id, className: context.classOf(held.id)?.name ?? held.id },
+        );
+      }
+      return refuse(check.error ?? "Cannot multiclass into that class.", 400, "LEVEL_UP_MULTICLASS_UNAVAILABLE");
     }
     leveled = { id: klass.id, subclass: "", level: 0 };
     classes.push(leveled);

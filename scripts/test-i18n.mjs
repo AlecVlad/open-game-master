@@ -235,6 +235,21 @@ for (const key of levelUpMulticlassMessages) {
   assert.notEqual(translate(DICTIONARIES, "ru", key), key, `Russian level-up multiclass message fell back to its key: ${key}`);
 }
 
+const levelUpMulticlassRefusalCases = [
+  ["LEVEL_UP_MULTICLASS_LIMIT", { count: 3 }, "Персонаж не может иметь уровни более чем в 3 классах."],
+  ["LEVEL_UP_MULTICLASS_CANDIDATE_PREREQUISITE", { classId: "cleric", className: "Cleric" }, "Персонаж не соответствует требованиям по характеристикам, чтобы получить уровень класса «Жрец»."],
+  ["LEVEL_UP_MULTICLASS_HELD_PREREQUISITE", { classId: "paladin", className: "Paladin" }, "Персонаж больше не соответствует требованиям по характеристикам класса «Паладин»."],
+  ["LEVEL_UP_MULTICLASS_UNAVAILABLE", {}, "Этот класс нельзя выбрать по текущим правилам кампании."],
+];
+for (const [code, params, expected] of levelUpMulticlassRefusalCases) {
+  const actual = refusalText(
+    { error: "legacy English text", errorCode: code, errorParams: params },
+    "fallback",
+    (messageKey, messageParams) => translate(DICTIONARIES, "ru", messageKey, messageParams),
+  );
+  assert.equal(actual, expected, `multiclass refusal ${code} did not localize`);
+}
+
 const tableViewMessages = [
   "campaign.tableView.error.memberOnly",
   "campaign.tableView.backToCampaigns",

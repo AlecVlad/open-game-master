@@ -521,6 +521,8 @@ export const enCharSheet = {
   "charSheet.levelUp.multiclass.error.candidatePrerequisite": "To multiclass into {className}, meet these ability requirements: {requirements}.",
   "charSheet.levelUp.multiclass.error.heldPrerequisite": "To add another class, {className} must still meet these ability requirements: {requirements}.",
   "charSheet.levelUp.multiclass.error.unavailable": "This class cannot be selected under the current campaign rules.",
+  "charSheet.levelUp.multiclass.error.candidateShort": "The character does not meet the ability-score requirements to take a level in {className}.",
+  "charSheet.levelUp.multiclass.error.heldShort": "The character no longer meets the ability-score requirements for {className}.",
   "charSheet.race.hill_dwarf": "Dwarf (Hill)",
   "charSheet.race.mountain_dwarf": "Dwarf (Mountain)",
   "charSheet.race.high_elf": "Elf (High)",

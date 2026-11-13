@@ -3,6 +3,22 @@ import { gearProblemText } from "./gearProblemText";
 
 type MessageParams = Record<string, string | number>;
 
+const MULTICLASS_CLASS_MESSAGE_KEYS: Record<string, MessageKey> = {
+  barbarian: "charSheet.class.barbarian",
+  bard: "charSheet.class.bard",
+  cleric: "charSheet.class.cleric",
+  druid: "charSheet.class.druid",
+  fighter: "charSheet.class.fighter",
+  monk: "charSheet.class.monk",
+  paladin: "charSheet.class.paladin",
+  ranger: "charSheet.class.ranger",
+  rogue: "charSheet.class.rogue",
+  sorcerer: "charSheet.class.sorcerer",
+  warlock: "charSheet.class.warlock",
+  wizard: "charSheet.class.wizard",
+  artificer: "charSheet.class.artificer",
+};
+
 const ABILITY_MESSAGE_KEYS: Record<string, MessageKey> = {
   str: "charSheet.ability.str",
   dex: "charSheet.ability.dex",
@@ -82,6 +98,10 @@ const REFUSAL_MESSAGE_KEYS = {
   LEVEL_UP_XP_REQUIRED: "charSheet.levelUp.block.xp",
   LEVEL_UP_UNKNOWN_CLASS: "charSheet.levelUp.error.unknownClass",
   LEVEL_UP_MULTICLASS_DISABLED: "charSheet.levelUp.error.multiclassDisabled",
+  LEVEL_UP_MULTICLASS_LIMIT: "charSheet.levelUp.multiclass.error.limit",
+  LEVEL_UP_MULTICLASS_CANDIDATE_PREREQUISITE: "charSheet.levelUp.multiclass.error.candidateShort",
+  LEVEL_UP_MULTICLASS_HELD_PREREQUISITE: "charSheet.levelUp.multiclass.error.heldShort",
+  LEVEL_UP_MULTICLASS_UNAVAILABLE: "charSheet.levelUp.multiclass.error.unavailable",
   LEVEL_UP_SUBCLASS_ALREADY_SET: "charSheet.levelUp.error.subclassAlreadySet",
   LEVEL_UP_SUBCLASS_TOO_EARLY: "charSheet.levelUp.error.subclassTooEarly",
   LEVEL_UP_SUBCLASS_NOT_OFFERED: "charSheet.levelUp.error.subclassNotOffered",
@@ -140,6 +160,15 @@ export function refusalText(
       const ability = messageParams?.ability;
       if (typeof ability === "string" && ABILITY_MESSAGE_KEYS[ability]) {
         messageParams.ability = t(ABILITY_MESSAGE_KEYS[ability]);
+      }
+    }
+    if (
+      code === "LEVEL_UP_MULTICLASS_CANDIDATE_PREREQUISITE" ||
+      code === "LEVEL_UP_MULTICLASS_HELD_PREREQUISITE"
+    ) {
+      const classId = messageParams?.classId;
+      if (typeof classId === "string" && MULTICLASS_CLASS_MESSAGE_KEYS[classId]) {
+        messageParams.className = t(MULTICLASS_CLASS_MESSAGE_KEYS[classId]);
       }
     }
     if (typeof code === "string" && code in REFUSAL_MESSAGE_KEYS) {
