@@ -4,6 +4,8 @@ import type { enHomeBench } from "../en/homeBench.ts";
 
 export const ruHomeBench: Partial<Record<keyof typeof enHomeBench, string>> & Record<string, string> = {
   "home.starter.err": "Не удалось запустить приключение.",
+  "home.starter.error.invalidRequest": "Не удалось прочитать запрос на быстрый старт.",
+  "home.starter.error.noStoryteller": "На сервере не настроен рассказчик. Настройте его, прежде чем запускать приключение.",
   "home.starter.title": "Быстрый старт",
   "home.starter.fallbackTitle": "Приключение на один вечер",
   "home.starter.loading": "Загружаю приключение...",
