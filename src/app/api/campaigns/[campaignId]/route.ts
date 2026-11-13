@@ -401,7 +401,7 @@ export async function DELETE(
 
   const { campaign, user } = context;
   if (campaign.ownerUserId !== user.id) {
-    return Response.json({ error: "Only the campaign owner can delete it." }, { status: 403 });
+    return Response.json({ error: "Only the campaign owner can delete it.", errorCode: "CAMPAIGN_DELETE_OWNER_ONLY" }, { status: 403 });
   }
 
   deleteCampaignWithFiles(campaignId);
