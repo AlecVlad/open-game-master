@@ -4,10 +4,11 @@ import { EmptyState } from "@/components/EmptyState";
 import { Heart, HeartCrack, VenetianMask } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useI18n } from "@/lib/i18n/provider";
+import { campaignApiErrorText } from "@/lib/i18n/campaignApiError";
 import { GameIcon } from "@/components/ui/GameIcon";
 import { SectionHead } from "@/components/ui/SectionHead";
 import { cn } from "@/lib/cn";
-import { PanelLoading } from "./PanelKit";
+import { LoadFailed, PanelLoading } from "./PanelKit";
 import { ADVANCES_CONSENT, ConsentSwitch, PACTS_CONSENT } from "./ConsentSwitch";
 import { OwnPacts } from "./PactPanel";
 import { ConscienceLadder, type ConscienceView } from "./ConscienceLadder";
@@ -313,22 +314,28 @@ export function BondsPanel({
   const [advances, setAdvances] = useState(false);
   const [pacts, setPacts] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   const load = useCallback(async () => {
+    setLoading(true);
+    setError("");
     try {
       const response = await fetch(`/api/campaigns/${campaignId}/relationships`);
+      const data = await response.json().catch(() => ({}));
       if (!response.ok) {
+        setError(campaignApiErrorText(data, t("campaign.relationship.loadError"), t));
         return;
       }
-      const data = await response.json();
       setEnabled(data.enabled !== false);
       setAdvances(data.advances === true);
       setPacts(data.pacts === true);
       setBonds(Array.isArray(data.relationships) ? data.relationships : []);
+    } catch {
+      setError(t("campaign.relationship.loadError"));
     } finally {
       setLoading(false);
     }
-  }, [campaignId]);
+  }, [campaignId, t]);
 
   // Refetches on mount and whenever the stream reports a change, exactly
   // like the facts panel.
@@ -338,6 +345,9 @@ export function BondsPanel({
 
   if (loading) {
     return <PanelLoading label={t("campaign.relationship.loading")} />;
+  }
+  if (error) {
+    return <LoadFailed error={error} onRetry={() => void load()} />;
   }
   if (!enabled) {
     return (
