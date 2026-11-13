@@ -3,6 +3,13 @@ import type { MessageKey } from "@/lib/i18n/messages";
 const CAMPAIGN_ERROR_KEYS = {
   CAMPAIGN_CREATION_ADMIN_ONLY: "createCampaign.dialog.error.adminOnly",
   PASSWORD_CHANGE_REQUIRED: "createCampaign.dialog.error.passwordChange",
+  CAMPAIGN_NOT_FOUND: "campaign.session.rules.error.campaignNotFound",
+  STORY_GAME_MASTER_REQUIRED: "campaign.session.rules.error.gameMasterRequired",
+  STORY_PARTY_LEAD_REQUIRED: "campaign.session.rules.error.partyLeadRequired",
+  INVALID_HOUSE_RULES: "campaign.session.rules.error.invalidHouseRules",
+  INVALID_RULE_CHUNK_UPDATE: "campaign.session.rules.error.invalidChunkUpdate",
+  RULE_CHUNK_NOT_FOUND: "campaign.session.rules.error.chunkNotFound",
+  INVALID_GAME_SETTINGS: "campaign.session.rules.invalidSettings",
   INVALID_CAMPAIGN_SETTINGS: "createCampaign.dialog.error.invalidSettings",
   NO_STORYTELLER: "createCampaign.identity.dm.missing",
   INVALID_CAMPAIGN_UPDATE: "campaign.editDialog.error.invalidUpdate",
