@@ -218,6 +218,8 @@ export function ancestryBlocks(
         cantripChoice.count === 1
           ? `Pick the simple spell your ${race.name} can cast at will (cantrip).`
           : `Pick ${left} ${cantripsPicked ? "more " : ""}simple ${left === 1 ? "spell" : "spells"} your ${race.name} can cast at will (${left === 1 ? "cantrip" : "cantrips"}).`,
+        undefined,
+        { key: "builder.block.ancestry.cantrip", params: { raceName: race.name, count: left, chosen: cantripsPicked } },
       ),
     );
   }
