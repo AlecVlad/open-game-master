@@ -4,6 +4,7 @@ import { readLoad, useLoadStatus } from "@/lib/load-state";
 import { EmptyState } from "@/components/EmptyState";
 import { useEffect, useState } from "react";
 import { useI18n } from "@/lib/i18n/provider";
+import { campaignApiErrorText } from "@/lib/i18n/campaignApiError";
 import { GameIcon } from "@/components/ui/GameIcon";
 import { SectionHead } from "@/components/ui/SectionHead";
 import { cn } from "@/lib/cn";
@@ -61,7 +62,11 @@ export function TimelinePanel({ campaignId, refreshKey }: { campaignId: string; 
 
   useEffect(() => {
     let cancelled = false;
-    readLoad<{ rows?: TimelineRow[] }>(fetch(`/api/campaigns/${campaignId}/timeline`), "The timeline").then((outcome) => {
+    readLoad<{ rows?: TimelineRow[] }>(
+      fetch(`/api/campaigns/${campaignId}/timeline`),
+      t("campaign.timeline.title"),
+      (body, status) => campaignApiErrorText(body, `The server answered ${status}.`, t),
+    ).then((outcome) => {
       if (cancelled) {
         return;
       }
@@ -73,7 +78,7 @@ export function TimelinePanel({ campaignId, refreshKey }: { campaignId: string; 
     return () => {
       cancelled = true;
     };
-  }, [campaignId, refreshKey, reloads, settle]);
+  }, [campaignId, refreshKey, reloads, settle, t]);
 
   if (rows === null && loadError) {
 
