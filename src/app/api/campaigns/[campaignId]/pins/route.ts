@@ -44,12 +44,12 @@ export async function POST(
   const raw = await request.json().catch(() => ({}));
   const parsed = createSchema.safeParse(raw);
   if (!parsed.success) {
-    return Response.json({ error: "Invalid pin." }, { status: 400 });
+    return Response.json({ error: "Invalid pin.", errorCode: "INVALID_PIN" }, { status: 400 });
   }
 
   const message = getCampaignMessage(parsed.data.messageId);
   if (!message || message.campaignId !== campaignId) {
-    return Response.json({ error: "Message not found." }, { status: 404 });
+    return Response.json({ error: "Message not found.", errorCode: "PIN_MESSAGE_NOT_FOUND" }, { status: 404 });
   }
 
   // The cap is checked against what is currently stored, not against what the
@@ -57,7 +57,7 @@ export async function POST(
   const existing = listPins(campaignId);
   const check = checkPin(existing, parsed.data.text);
   if (!check.ok) {
-    return Response.json({ error: check.reason }, { status: 409 });
+    return Response.json({ error: check.reason, errorCode: check.code }, { status: 409 });
   }
 
   const pin = createPin({
@@ -85,7 +85,7 @@ export async function DELETE(
   const raw = await request.json().catch(() => ({}));
   const parsed = deleteSchema.safeParse(raw);
   if (!parsed.success) {
-    return Response.json({ error: "Invalid unpin." }, { status: 400 });
+    return Response.json({ error: "Invalid unpin.", errorCode: "INVALID_UNPIN" }, { status: 400 });
   }
   // Own pin, or the lead. A pin rides in every prompt, so unpinning someone
   // else's silently changes what the DM remembers for the whole table.
@@ -96,7 +96,7 @@ export async function DELETE(
     })
   ) {
     return Response.json(
-      { error: "That pin is not yours to remove." },
+      { error: "That pin is not yours to remove.", errorCode: "PIN_REMOVE_FORBIDDEN" },
       { status: 403 },
     );
   }
