@@ -513,7 +513,8 @@ export function buildLevelUp(
       strict: true,
     });
     if (granted.problems.length) {
-      return refuse(granted.problems[0]);
+      const detail = granted.problemDetails[0];
+      return refuse(granted.problems[0], 400, detail?.code, detail?.params);
     }
     proficiencies = granted.proficiencies;
   }

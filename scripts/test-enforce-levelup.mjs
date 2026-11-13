@@ -140,6 +140,19 @@ await test("a half-feat with an unselected ability returns a structured refusal"
   assert.equal(response.json.errorParams.abilities.split(",").length, 6);
   assert.deepEqual(sheet(), before);
 });
+await test("invalid feat-grant selections return structured refusal details", async () => {
+  const { sheet, patch } = await table({ ...FIGHTER, level: 3 }, { xp: XP[4] });
+  const before = sheet();
+  const response = await patch({
+    level: 4,
+    asiChoices: [{ mode: "feat", feat: "Skilled" }],
+    featChoices: { Skilled: { skills: ["not-a-skill", "athletics", "perception"] } },
+  });
+  assert.equal(response.status, 400);
+  assert.equal(response.json.errorCode, "FEAT_GRANT_SKILL_INVALID");
+  assert.deepEqual(response.json.errorParams, { feat: "Skilled", skill: "not-a-skill" });
+  assert.deepEqual(sheet(), before);
+});
 await test("an earned level is taken, and the stored sheet is the levelled one", async () => {
   const { sheet, patch } = await table(FIGHTER, { xp: XP[2] });
   const before = sheet();

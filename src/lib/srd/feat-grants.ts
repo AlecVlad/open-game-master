@@ -155,8 +155,32 @@ export type FeatGrantInput = {
   picksMayWait?: boolean;
 };
 
+// Stable detail codes accompany the legacy prose. Unknown/custom names stay as parameters.
+export type FeatGrantProblemDetail = {
+  code:
+    | "FEAT_GRANT_DAMAGE_TYPE_NOT_OFFERED"
+    | "FEAT_GRANT_SKILL_INVALID"
+    | "FEAT_GRANT_SKILL_NOT_OFFERED"
+    | "FEAT_GRANT_SKILL_ALREADY_HELD"
+    | "FEAT_GRANT_LANGUAGE_ALREADY_HELD"
+    | "FEAT_GRANT_EXPERTISE_NOT_PROFICIENT"
+    | "FEAT_GRANT_EXPERTISE_ALREADY_HELD"
+    | "FEAT_GRANT_TOOL_NOT_OFFERED"
+    | "FEAT_GRANT_TOOL_ALREADY_HELD"
+    | "FEAT_GRANT_WEAPON_INVALID"
+    | "FEAT_GRANT_WEAPON_NOT_OFFERED"
+    | "FEAT_GRANT_ARMOR_NOT_OFFERED"
+    | "FEAT_GRANT_ARMOR_ALREADY_HELD";
+  params: Record<string, string | number>;
+};
+
 // `owed`: the picks still to make, when they may wait (picksMayWait).
-export type FeatGrantVerdict = { proficiencies: Proficiencies; problems: string[]; owed?: string[] };
+export type FeatGrantVerdict = {
+  proficiencies: Proficiencies;
+  problems: string[];
+  problemDetails: Array<FeatGrantProblemDetail | null>;
+  owed?: string[];
+};
 
 const WEAPON_NAMES = new Set(SRD_WEAPONS.map((weapon) => lower(weapon.name)));
 const weaponName = (name: string) => SRD_WEAPONS.find((weapon) => lower(weapon.name) === lower(name))?.name ?? null;
@@ -165,6 +189,11 @@ const weaponName = (name: string) => SRD_WEAPONS.find((weapon) => lower(weapon.n
 // picks as the sheet records them, held to the feat's text when strict.
 export function applyFeatGrants(input: FeatGrantInput): FeatGrantVerdict {
   const problems: string[] = [];
+  const problemDetails: Array<FeatGrantProblemDetail | null> = [];
+  const addProblem = (message: string, detail?: FeatGrantProblemDetail) => {
+    problems.push(message);
+    problemDetails.push(detail ?? null);
+  };
   const owedPicks: string[] = [];
   let languages = [...input.proficiencies.languages];
   let skills = [...input.proficiencies.skills];
@@ -211,11 +240,18 @@ export function applyFeatGrants(input: FeatGrantInput): FeatGrantVerdict {
     if (input.strict) {
       const owed = featPicksOwed(feat.name, spec, picks);
       if (owed) {
-        (input.picksMayWait ? owedPicks : problems).push(owed);
+        if (input.picksMayWait) {
+          owedPicks.push(owed);
+        } else {
+          addProblem(owed);
+        }
       }
       const element = lower(picks.damageType ?? "");
       if (spec.damageTypes.length && element && !spec.damageTypes.includes(element)) {
-        problems.push(`"${picks.damageType}" is not a damage type ${feat.name} offers; pick one of ${spec.damageTypes.join(", ")}.`);
+        addProblem(
+          `"${picks.damageType}" is not a damage type ${feat.name} offers; pick one of ${spec.damageTypes.join(", ")}.`,
+          { code: "FEAT_GRANT_DAMAGE_TYPE_NOT_OFFERED", params: { feat: feat.name, damageType: picks.damageType, offered: spec.damageTypes.join(", ") } },
+        );
       }
     }
     // Each kind takes its own count, then what is left of the shared one
@@ -234,19 +270,28 @@ export function applyFeatGrants(input: FeatGrantInput): FeatGrantVerdict {
     for (const skill of pickedSkills) {
       if (!ALL_SKILLS.includes(skill as (typeof ALL_SKILLS)[number])) {
         if (input.strict) {
-          problems.push(`"${skill}" is not a skill; ${feat.name}'s skill is picked from the skill list.`);
+          addProblem(
+            `"${skill}" is not a skill; ${feat.name}'s skill is picked from the skill list.`,
+            { code: "FEAT_GRANT_SKILL_INVALID", params: { feat: feat.name, skill } },
+          );
         }
         continue;
       }
       if (spec.skillsFrom.length && !spec.skillsFrom.includes(skill)) {
         if (input.strict) {
-          problems.push(`${skill.replace(/_/g, " ")} is not a skill ${feat.name} offers; pick from ${spec.skillsFrom.map((entry) => entry.replace(/_/g, " ")).join(", ")}.`);
+          addProblem(
+            `${skill.replace(/_/g, " ")} is not a skill ${feat.name} offers; pick from ${spec.skillsFrom.map((entry) => entry.replace(/_/g, " ")).join(", ")}.`,
+            { code: "FEAT_GRANT_SKILL_NOT_OFFERED", params: { feat: feat.name, skill, offered: spec.skillsFrom.join(",") } },
+          );
         }
         continue;
       }
       if (has(skills, skill)) {
         if (input.strict) {
-          problems.push(`${feat.name} grants a new skill; this character is already proficient in ${skill}.`);
+          addProblem(
+            `${feat.name} grants a new skill; this character is already proficient in ${skill}.`,
+            { code: "FEAT_GRANT_SKILL_ALREADY_HELD", params: { feat: feat.name, skill } },
+          );
         }
         continue;
       }
@@ -267,7 +312,10 @@ export function applyFeatGrants(input: FeatGrantInput): FeatGrantVerdict {
     for (const language of pickedLanguages) {
       if (has(languages, language)) {
         if (input.strict) {
-          problems.push(`${feat.name}'s languages are new ones; this character already speaks ${language}.`);
+          addProblem(
+            `${feat.name}'s languages are new ones; this character already speaks ${language}.`,
+            { code: "FEAT_GRANT_LANGUAGE_ALREADY_HELD", params: { feat: feat.name, language } },
+          );
         }
         continue;
       }
@@ -278,13 +326,19 @@ export function applyFeatGrants(input: FeatGrantInput): FeatGrantVerdict {
     for (const skill of pickedExpertise) {
       if (!has(skills, skill)) {
         if (input.strict) {
-          problems.push(`${feat.name}'s expertise doubles a skill the character has; ${skill} is not among them.`);
+          addProblem(
+            `${feat.name}'s expertise doubles a skill the character has; ${skill} is not among them.`,
+            { code: "FEAT_GRANT_EXPERTISE_NOT_PROFICIENT", params: { feat: feat.name, skill } },
+          );
         }
         continue;
       }
       if (has(expertise, skill)) {
         if (input.strict) {
-          problems.push(`This character already has expertise in ${skill}; ${feat.name}'s goes on another skill.`);
+          addProblem(
+            `This character already has expertise in ${skill}; ${feat.name}'s goes on another skill.`,
+            { code: "FEAT_GRANT_EXPERTISE_ALREADY_HELD", params: { feat: feat.name, skill } },
+          );
         }
         continue;
       }
@@ -295,13 +349,19 @@ export function applyFeatGrants(input: FeatGrantInput): FeatGrantVerdict {
     for (const tool of pickedTools) {
       if (spec.toolsFrom.length && !spec.toolsFrom.includes(tool)) {
         if (input.strict) {
-          problems.push(`"${tool}" is not a tool ${feat.name} offers.`);
+          addProblem(
+            `"${tool}" is not a tool ${feat.name} offers.`,
+            { code: "FEAT_GRANT_TOOL_NOT_OFFERED", params: { feat: feat.name, tool } },
+          );
         }
         continue;
       }
       if (has(tools, tool)) {
         if (input.strict) {
-          problems.push(`${feat.name} grants a new tool; this character already has ${tool}.`);
+          addProblem(
+            `${feat.name} grants a new tool; this character already has ${tool}.`,
+            { code: "FEAT_GRANT_TOOL_ALREADY_HELD", params: { feat: feat.name, tool } },
+          );
         }
         continue;
       }
@@ -314,13 +374,19 @@ export function applyFeatGrants(input: FeatGrantInput): FeatGrantVerdict {
       const name = weaponName(weapon);
       if (!name || !WEAPON_NAMES.has(lower(name))) {
         if (input.strict) {
-          problems.push(`"${weapon}" is not a weapon on the table; ${feat.name}'s weapons are picked from it.`);
+          addProblem(
+            `"${weapon}" is not a weapon on the table; ${feat.name}'s weapons are picked from it.`,
+            { code: "FEAT_GRANT_WEAPON_INVALID", params: { feat: feat.name, weapon } },
+          );
         }
         continue;
       }
       if (spec.weaponsFrom.length && !spec.weaponsFrom.some((offered) => lower(offered) === lower(name))) {
         if (input.strict) {
-          problems.push(`${name} is not a weapon ${feat.name} offers.`);
+          addProblem(
+            `${name} is not a weapon ${feat.name} offers.`,
+            { code: "FEAT_GRANT_WEAPON_NOT_OFFERED", params: { feat: feat.name, weapon: name } },
+          );
         }
         continue;
       }
@@ -334,13 +400,19 @@ export function applyFeatGrants(input: FeatGrantInput): FeatGrantVerdict {
     for (const piece of pickedArmor) {
       if (!spec.armorFrom.includes(piece)) {
         if (input.strict) {
-          problems.push(`"${piece}" is not armor ${feat.name} offers.`);
+          addProblem(
+            `"${piece}" is not armor ${feat.name} offers.`,
+            { code: "FEAT_GRANT_ARMOR_NOT_OFFERED", params: { feat: feat.name, armor: piece } },
+          );
         }
         continue;
       }
       if (has(armor, piece)) {
         if (input.strict) {
-          problems.push(`${feat.name} grants new armor training; this character already has ${piece}.`);
+          addProblem(
+            `${feat.name} grants new armor training; this character already has ${piece}.`,
+            { code: "FEAT_GRANT_ARMOR_ALREADY_HELD", params: { feat: feat.name, armor: piece } },
+          );
         }
         continue;
       }
@@ -355,6 +427,7 @@ export function applyFeatGrants(input: FeatGrantInput): FeatGrantVerdict {
   armor = [...new Set(armor)];
   return {
     problems,
+    problemDetails,
     proficiencies: { ...input.proficiencies, languages, skills, expertise, weapons, tools, armor },
     ...(owedPicks.length ? { owed: owedPicks } : {}),
   };

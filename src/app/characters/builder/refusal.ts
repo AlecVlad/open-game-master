@@ -117,6 +117,19 @@ const REFUSAL_MESSAGE_KEYS = {
   LEVEL_UP_EXPERTISE_REQUIRES_PROFICIENCY: "charSheet.levelUp.error.expertiseProficiency",
   LEVEL_UP_FIGHTING_STYLE_NOT_OFFERED: "charSheet.levelUp.error.fightingStyleNotOffered",
   FEAT_ABILITY_CHOICE_REQUIRED: "charSheet.levelUp.error.featAbilityChoice",
+  FEAT_GRANT_DAMAGE_TYPE_NOT_OFFERED: "charSheet.levelUp.error.grantDamageTypeNotOffered",
+  FEAT_GRANT_SKILL_INVALID: "charSheet.levelUp.error.grantSkillInvalid",
+  FEAT_GRANT_SKILL_NOT_OFFERED: "charSheet.levelUp.error.grantSkillNotOffered",
+  FEAT_GRANT_SKILL_ALREADY_HELD: "charSheet.levelUp.error.grantSkillAlreadyHeld",
+  FEAT_GRANT_LANGUAGE_ALREADY_HELD: "charSheet.levelUp.error.grantLanguageAlreadyHeld",
+  FEAT_GRANT_EXPERTISE_NOT_PROFICIENT: "charSheet.levelUp.error.grantExpertiseNotProficient",
+  FEAT_GRANT_EXPERTISE_ALREADY_HELD: "charSheet.levelUp.error.grantExpertiseAlreadyHeld",
+  FEAT_GRANT_TOOL_NOT_OFFERED: "charSheet.levelUp.error.grantToolNotOffered",
+  FEAT_GRANT_TOOL_ALREADY_HELD: "charSheet.levelUp.error.grantToolAlreadyHeld",
+  FEAT_GRANT_WEAPON_INVALID: "charSheet.levelUp.error.grantWeaponInvalid",
+  FEAT_GRANT_WEAPON_NOT_OFFERED: "charSheet.levelUp.error.grantWeaponNotOffered",
+  FEAT_GRANT_ARMOR_NOT_OFFERED: "charSheet.levelUp.error.grantArmorNotOffered",
+  FEAT_GRANT_ARMOR_ALREADY_HELD: "charSheet.levelUp.error.grantArmorAlreadyHeld",
 } satisfies Record<string, MessageKey>;
 
 // Refusals retain their original prose for older clients and unknown
