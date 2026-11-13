@@ -570,4 +570,4 @@ export const ruCharSheet: Partial<Record<keyof typeof enCharSheet, string>> & Re
   "charSheet.levelUp.multiclass.error.heldPrerequisite": "Чтобы взять ещё один класс, персонаж должен и дальше соответствовать требованиям класса «{className}»: {requirements}.",
   "charSheet.levelUp.multiclass.error.unavailable": "Этот класс нельзя выбрать по текущим правилам кампании.",
   "charSheet.levelUp.multiclass.error.candidateShort": "Персонаж не соответствует требованиям по характеристикам, чтобы получить уровень класса «{className}».",
-  "charSheet.levelUp.multiclass.error.heldShort": "Персонаж больше не соответствует требованиям по характеристикам класса «{className}».
+  "charSheet.levelUp.multiclass.error.heldShort": "Персонаж больше не соответствует требованиям по характеристикам класса «{className}».",
