@@ -112,7 +112,11 @@ export function FactionsPanel({
 
   useEffect(() => {
     let cancelled = false;
-    readLoad<{ factions?: FactionView[] }>(fetch(`/api/campaigns/${campaignId}/factions`), t("campaign.factions.load.label")).then((outcome) => {
+    readLoad<{ factions?: FactionView[] }>(
+      fetch(`/api/campaigns/${campaignId}/factions`),
+      t("campaign.factions.load.label"),
+      (body, status) => campaignApiErrorText(body, `The server answered ${status}.`, t),
+    ).then((outcome) => {
       if (cancelled) {
         return;
       }
