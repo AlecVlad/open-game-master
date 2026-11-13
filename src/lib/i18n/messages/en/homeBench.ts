@@ -1,6 +1,8 @@
 // English, the source language: the home screen: quick start dialog and the workshop shelf.
 export const enHomeBench = {
   "home.starter.err": "Could not start the adventure.",
+  "home.starter.error.invalidRequest": "The quick-start request could not be read.",
+  "home.starter.error.noStoryteller": "No storyteller is configured on this server. Configure one before starting the adventure.",
   "home.starter.title": "Quick start",
   "home.starter.fallbackTitle": "A one-evening adventure",
   "home.starter.loading": "Loading the adventure...",
