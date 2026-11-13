@@ -58,6 +58,11 @@ export async function PATCH(
     body: `${context.campaign.title}: ${
       session.title || "the session"
     } moved to ${sessionWhen(session.startsAt)}.`,
+    params: {
+      campaignTitle: context.campaign.title,
+      sessionTitle: session.title,
+      startsAt: session.startsAt,
+    },
   });
   publishEphemeral(campaignId, "schedule_updated", {});
   return Response.json({ session });
@@ -82,6 +87,11 @@ export async function DELETE(
     body: `${context.campaign.title}: ${
       session.title || "the session"
     } on ${sessionWhen(session.startsAt)} was called off.`,
+    params: {
+      campaignTitle: context.campaign.title,
+      sessionTitle: session.title,
+      startsAt: session.startsAt,
+    },
   });
   publishEphemeral(campaignId, "schedule_updated", {});
   return Response.json({ session });
