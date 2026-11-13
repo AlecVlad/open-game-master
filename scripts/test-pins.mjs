@@ -33,13 +33,14 @@ check("normalization collapses whitespace so duplicates are detectable", () => {
 check("an empty or whitespace selection is refused", () => {
   assert.equal(checkPin([], "").ok, false);
   assert.equal(checkPin([], "   \n ").ok, false);
-  assert.match(checkPin([], "").reason, /select some text/i);
+  assert.equal(checkPin([], "").code, "PIN_TEXT_REQUIRED");
 });
 
 check("a pin longer than the per-pin limit is refused with the limit named", () => {
   const result = checkPin([], "y".repeat(MAX_PIN_LENGTH + 1));
   assert.equal(result.ok, false);
   assert.match(result.reason, new RegExp(String(MAX_PIN_LENGTH)));
+  assert.equal(result.code, "PIN_TOO_LONG");
 });
 
 check("an exact duplicate is refused rather than stored twice", () => {
@@ -47,6 +48,7 @@ check("an exact duplicate is refused rather than stored twice", () => {
   const result = checkPin(existing, "The   sigil was burned into the door.  ");
   assert.equal(result.ok, false);
   assert.match(result.reason, /already pinned/i);
+  assert.equal(result.code, "PIN_ALREADY_PINNED");
 });
 
 check("a good pin comes back normalized, ready to store", () => {
@@ -65,6 +67,7 @@ check("the cap refuses rather than evicting", () => {
   assert.match(result.reason, /full/i);
   assert.match(result.reason, /unpin/i);
   assert.equal(existing.length, 1, "nothing was removed to make room");
+  assert.equal(result.code, "PIN_BUDGET_FULL");
 });
 
 check("a pin that exactly fits the remaining budget is accepted", () => {
