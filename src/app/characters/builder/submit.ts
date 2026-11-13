@@ -607,9 +607,15 @@ export function validateBuilder(
   // Casters with no spells at all can still be submitted (homebrew varies),
   // but not by accident: one confirmation makes it a deliberate choice.
   if (derived.castingLabel && !state.spells.length && !state.cantrips.length && !state.spellWarningAck) {
+    const warning = block(
+      "spells",
+      `${state.name.trim() || "This character"} has no ${derived.castingLabel.toLowerCase()} selected and will start unable to cast. Press again to continue anyway.`,
+      undefined,
+      { key: "builder.block.spells.noSpells", params: { characterName: state.name.trim() || "This character" } },
+    );
     return {
       kind: "spellWarning",
-      message: `${state.name.trim() || "This character"} has no ${derived.castingLabel.toLowerCase()} selected and will start unable to cast. Press again to continue anyway.`,
+      message: formatBlock?.(warning) ?? warning.message,
     };
   }
   return null;
