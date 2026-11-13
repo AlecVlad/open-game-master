@@ -50,6 +50,7 @@ import { classSplitWords } from "./multiclassBuild";
 import { BuildMathPanel } from "./BuildMathPanel";
 import { gearProblemText } from "./gearProblemText";
 import { featOwedText } from "./featOwedText";
+import { featPrerequisiteText } from "./featPrereqText";
 import { useArchetypeOptions, useBuilderOptions, useWorldPack, type OptionListKind } from "./useBuilderOptions";
 import { TableScopeNote } from "./TableScopeNote";
 import { UndoChangeBar } from "./UndoChangeBar";
@@ -272,9 +273,9 @@ function CharacterBuilderForm({
   };
   const formatStepBlock: BuilderBlockFormatter = (entry) => {
     if (!entry.detail) return entry.message;
-    return entry.detail.key === "builder.block.feat.choices"
-      ? featOwedText(entry.detail.params, t)
-      : t(entry.detail.key, entry.detail.params);
+    if (entry.detail.key === "builder.block.feat.choices") return featOwedText(entry.detail.params, t);
+    if (entry.detail.key === "builder.block.feat.prerequisite") return featPrerequisiteText(entry.detail.params, t);
+    return t(entry.detail.key, entry.detail.params);
   };
   // creator.css stills its loops under <html data-effects="low">, which only
   // the table's session view set; the library and join pages build
