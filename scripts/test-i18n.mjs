@@ -14,6 +14,7 @@ import {
 import { DICTIONARIES } from "../src/lib/i18n/messages/index.ts";
 import { localizeStoryboardError } from "../src/lib/workshop/storyboard-api-i18n.ts";
 import { gearProblemText } from "../src/app/characters/builder/gearProblemText.ts";
+import { refusalText } from "../src/app/characters/builder/refusal.ts";
 import { campaignApiErrorText } from "../src/lib/i18n/campaignApiError.ts";
 import { notificationText } from "../src/lib/i18n/notificationText.ts";
 import { readLoad, readWrite, UNREACHABLE, UNREADABLE } from "../src/lib/load-state.ts";
@@ -1586,6 +1587,26 @@ for (const key of gearDiagnosticKeys) {
 assert.ok(translate(DICTIONARIES, "ru", "builder.gear.problem.magic", { name: "Мешок хранения" }).includes("Мешок хранения"));
 assert.ok(translate(DICTIONARIES, "ru", "builder.gear.problem.insufficientFunds", { cost: "20 зм", available: "5 зм", shortfall: "15 зм" }).includes("15 зм"));
 const gearT = (key, params) => translate(DICTIONARIES, "ru", key, params);
+const gearRefusalCases = [
+  ["STARTING_GEAR_HOMEBREW", { name: "Авторский меч" }, /Авторский меч/],
+  ["STARTING_GEAR_MAGIC", { name: "Магический клинок" }, /Магический клинок/],
+  ["STARTING_GEAR_UNPRICED", { name: "Редкий предмет" }, /Редкий предмет/],
+  ["STARTING_GEAR_INSUFFICIENT_FUNDS", { cost: "20 зм", available: "5 зм", shortfall: "15 зм" }, /15 зм/],
+  ["STARTING_GEAR_INVALID_OPTION", { className: "жрец", options: "булава или молот" }, /жрец/],
+  ["STARTING_GEAR_NOT_PROFICIENT", { className: "жрец", option: "боевой молот", alternatives: "булава" }, /боевой молот/],
+  ["STARTING_GEAR_INVALID_SLOT", { name: "Дубина", slot: "воинское оружие ближнего боя", className: "варвар", option: "оружие" }, /Дубина/],
+  ["STARTING_GEAR_INVALID_BACKGROUND_CHOICE", { options: "кинжал или молот", choice: "двуручный меч" }, /двуручный меч/],
+];
+for (const [code, params, expected] of gearRefusalCases) {
+  const message = refusalText({
+    error: "Legacy diagnostic",
+    problems: ["Legacy diagnostic"],
+    problemCodes: [code],
+    problemParams: [params],
+  }, "fallback", gearT);
+  assert.notEqual(message, "Legacy diagnostic", `refusal code ${code} was not translated`);
+  assert.match(message, expected, `refusal code ${code} lost its parameters`);
+}
 assert.match(gearProblemText({ code: "magic", params: { name: "Меч" } }, gearT), /Меч/);
 assert.match(gearProblemText({ code: "invalidOption", params: { className: "жрец", options: "булава, молот" } }, gearT), /жрец/);
 assert.match(gearProblemText({ code: "notProficient", params: { className: "жрец", option: "боевой молот", alternatives: "булава" } }, gearT), /боевой молот/);
