@@ -116,6 +116,7 @@ const REFUSAL_MESSAGE_KEYS = {
   LEVEL_UP_EXPERTISE_NOT_AVAILABLE: "charSheet.levelUp.error.expertiseNotAvailable",
   LEVEL_UP_EXPERTISE_REQUIRES_PROFICIENCY: "charSheet.levelUp.error.expertiseProficiency",
   LEVEL_UP_FIGHTING_STYLE_NOT_OFFERED: "charSheet.levelUp.error.fightingStyleNotOffered",
+  FEAT_ABILITY_CHOICE_REQUIRED: "charSheet.levelUp.error.featAbilityChoice",
 } satisfies Record<string, MessageKey>;
 
 // Refusals retain their original prose for older clients and unknown
@@ -160,6 +161,15 @@ export function refusalText(
       const ability = messageParams?.ability;
       if (typeof ability === "string" && ABILITY_MESSAGE_KEYS[ability]) {
         messageParams.ability = t(ABILITY_MESSAGE_KEYS[ability]);
+      }
+    }
+    if (code === "FEAT_ABILITY_CHOICE_REQUIRED") {
+      const abilities = messageParams?.abilities;
+      if (typeof abilities === "string") {
+        messageParams.abilities = abilities
+          .split(",")
+          .map((ability) => ABILITY_MESSAGE_KEYS[ability] ? t(ABILITY_MESSAGE_KEYS[ability]) : ability)
+          .join(t("builder.block.feat.requirement.or"));
       }
     }
     if (

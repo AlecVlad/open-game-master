@@ -421,7 +421,7 @@ export function buildLevelUp(
     feats.push(facts.name);
     const raised = applyFeatIncrease(abilities, facts.name, choice.ability ?? null, facts.desc);
     if ("error" in raised) {
-      return refuse(raised.error);
+      return refuse(raised.error, 400, raised.errorCode, raised.errorParams);
     }
     abilities = raised.abilities;
     const save = featSaveProficiency(facts.name, raised.raised, facts.desc);

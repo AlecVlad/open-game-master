@@ -467,6 +467,7 @@ export const ruCharSheet: Partial<Record<keyof typeof enCharSheet, string>> & Re
   "charSheet.levelUp.error.expertiseNotAvailable": "На текущих уровнях классов персонажу не положен выбор экспертизы.",
   "charSheet.levelUp.error.expertiseProficiency": "Экспертиза требует владения навыком. У персонажа {name} нет владения: {skills}.",
   "charSheet.levelUp.error.fightingStyleNotOffered": "Классы персонажа {name} не предлагают боевой стиль «{style}».",
+  "charSheet.levelUp.error.featAbilityChoice": "Черта «{feat}» повышает одну из характеристик на 1: {abilities}. Выберите характеристику.",
   "charSheet.levelUp.error.network": "Не удалось связаться с сервером.",
   "charSheet.levelUp.block.dead": "{name} мёртв. Мёртвые персонажи не получают уровни.",
   "charSheet.levelUp.block.zeroHp": "У {name} 0 хитов. Повысить уровень можно, когда персонаж снова сможет действовать.",

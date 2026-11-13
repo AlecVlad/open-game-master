@@ -465,6 +465,7 @@ export const enCharSheet = {
   "charSheet.levelUp.error.expertiseNotAvailable": "This character has no expertise choice available at their current class levels.",
   "charSheet.levelUp.error.expertiseProficiency": "Expertise requires proficiency. {name} is not proficient in: {skills}.",
   "charSheet.levelUp.error.fightingStyleNotOffered": "{style} is not a fighting style offered by {name}'s classes.",
+  "charSheet.levelUp.error.featAbilityChoice": "The {feat} feat raises one of these abilities by 1: {abilities}. Choose which ability to raise.",
   "charSheet.levelUp.error.network": "Could not reach the server.",
   "charSheet.levelUp.block.dead": "{name} is dead, and the dead gain no levels.",
   "charSheet.levelUp.block.zeroHp": "{name} is at 0 hit points. A character levels up once they are back on their feet.",

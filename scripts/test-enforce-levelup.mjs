@@ -130,6 +130,16 @@ await test("level-up choice refusals carry stable codes", async () => {
   assert.equal(expertise.json.errorCode, "LEVEL_UP_EXPERTISE_NOT_AVAILABLE");
   assert.deepEqual(sheet(), before);
 });
+await test("a half-feat with an unselected ability returns a structured refusal", async () => {
+  const { sheet, patch } = await table({ ...FIGHTER, level: 3 }, { xp: XP[4] });
+  const before = sheet();
+  const response = await patch({ level: 4, asiChoices: [{ mode: "feat", feat: "Resilient" }] });
+  assert.equal(response.status, 400);
+  assert.equal(response.json.errorCode, "FEAT_ABILITY_CHOICE_REQUIRED");
+  assert.equal(response.json.errorParams.feat, "Resilient");
+  assert.equal(response.json.errorParams.abilities.split(",").length, 6);
+  assert.deepEqual(sheet(), before);
+});
 await test("an earned level is taken, and the stored sheet is the levelled one", async () => {
   const { sheet, patch } = await table(FIGHTER, { xp: XP[2] });
   const before = sheet();

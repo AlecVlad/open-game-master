@@ -250,6 +250,16 @@ for (const [code, params, expected] of levelUpMulticlassRefusalCases) {
   assert.equal(actual, expected, `multiclass refusal ${code} did not localize`);
 }
 
+const featAbilityChoiceRefusal = refusalText(
+  { error: "legacy English text", errorCode: "FEAT_ABILITY_CHOICE_REQUIRED", errorParams: { feat: "Resilient", abilities: "str,dex,con,int,wis,cha" } },
+  "fallback",
+  (messageKey, messageParams) => translate(DICTIONARIES, "ru", messageKey, messageParams),
+);
+assert.equal(
+  featAbilityChoiceRefusal,
+  "Черта «Resilient» повышает одну из характеристик на 1: Сила или Ловкость или Телосложение или Интеллект или Мудрость или Харизма. Выберите характеристику.",
+);
+
 const tableViewMessages = [
   "campaign.tableView.error.memberOnly",
   "campaign.tableView.backToCampaigns",
