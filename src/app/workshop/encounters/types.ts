@@ -4,6 +4,7 @@ import {
   type TemplateExtras,
 } from "@/lib/dm/encounter-template-logic";
 import type { MapLabel, MapProp } from "@/lib/battlemap/scene";
+import type { FightSetupReadout } from "@/lib/workshop/fight-setup-logic";
 
 // What /api/campaigns/:id/dm/encounter-templates hands the client. Shared by
 // the prep panel and the workshop's rows so a row and the editor behind it
@@ -29,8 +30,6 @@ export type TemplateReadout = {
   // older host's answer.
   names?: Record<string, string>;
 };
-
-import type { FightSetupReadout } from "@/lib/workshop/fight-setup-logic";
 
 export type PreparedEncounter = {
   id: string;
