@@ -17,6 +17,7 @@ import {
 export type { JoinPreview };
 import { createSheetSchema, type CreateSheetInput } from "@/lib/schemas/sheet";
 import type { OlderBuilder } from "@/lib/srd/legality/older-builder";
+import type { GearProblemDetail } from "@/lib/srd/gear-problems";
 import type { Pregen } from "@/lib/starter/pregens";
 
 // The ways a hero takes a seat, each written once: the join itself (POST
@@ -32,7 +33,7 @@ import type { Pregen } from "@/lib/starter/pregens";
 // the hero came through and before the stored door that judges the result.
 
 type Seated = { ok: true; sheet: CreateSheetInput; rolledHp?: number[]; settle?: () => void };
-type Refused = { ok: false; problems: string[] };
+type Refused = { ok: false; problems: string[]; problemDetails?: Array<GearProblemDetail | null> };
 
 // The table's catalog for the picks: its DMs' homebrew, as the level-up
 // reads it (src/app/api/campaigns/[campaignId]/sheet/route.ts PATCH).
@@ -83,7 +84,7 @@ export function withSeatPicks<T extends Seated>(
 
 export type PregenAdmitted =
   | { ok: true; built: CreateSheetInput; sheet: CreateSheetInput; rolledHp?: number[]; settle: () => void }
-  | { ok: false; problems: string[] };
+  | { ok: false; problems: string[]; problemDetails?: Array<GearProblemDetail | null> };
 
 // A ready-made hero (src/lib/starter/pregens.ts) through the table door: the
 // same door as a character the builder made, judged by the table's rules.
@@ -130,13 +131,20 @@ export function admitLibraryForSeat(
   userId: string,
   level: number,
   picks?: SeatPicks | null,
-): { ok: true; sheet: CreateSheetInput; rolledHp?: number[]; settle?: () => void } | { ok: false; error: string; problems: string[] } {
+): { ok: true; sheet: CreateSheetInput; rolledHp?: number[]; settle?: () => void } | { ok: false; error: string; problems: string[]; problemDetails?: Array<GearProblemDetail | null> } {
   const admitted = admitLibraryCharacter(character, campaign, userId, level);
   if (!admitted.ok) {
     return admitted;
   }
   const seated = withSeatPicks(admitted, level, picks, campaign, userId);
-  return seated.ok ? seated : { ok: false, error: seated.problems[0] ?? "Those picks are not within the rules.", problems: seated.problems };
+  return seated.ok
+    ? seated
+    : {
+        ok: false,
+        error: seated.problems[0] ?? "Those picks are not within the rules.",
+        problems: seated.problems,
+        problemDetails: seated.problemDetails,
+      };
 }
 
 function preview(
