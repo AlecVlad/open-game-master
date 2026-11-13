@@ -210,6 +210,31 @@ for (const [code, key, params, expected] of levelUpChoiceRefusalCases) {
   assert.equal(actual, expected, `level-up choice refusal ${code} did not localize`);
 }
 
+const levelUpMulticlassMessages = [
+  "charSheet.levelUp.multiclass.noPrerequisite",
+  "charSheet.levelUp.multiclass.grant.lightArmor",
+  "charSheet.levelUp.multiclass.grant.mediumArmor",
+  "charSheet.levelUp.multiclass.grant.shields",
+  "charSheet.levelUp.multiclass.grant.simpleWeapons",
+  "charSheet.levelUp.multiclass.grant.martialWeapons",
+  "charSheet.levelUp.multiclass.grant.shortswords",
+  "charSheet.levelUp.multiclass.grant.thievesTools",
+  "charSheet.levelUp.multiclass.grant.tinkersTools",
+  "charSheet.levelUp.multiclass.grant.musicalInstrument",
+  "charSheet.levelUp.multiclass.grant.skillFromClass",
+  "charSheet.levelUp.multiclass.grant.skillAny",
+  "charSheet.levelUp.multiclass.grant.none",
+  "charSheet.levelUp.multiclass.error.limit",
+  "charSheet.levelUp.multiclass.error.candidatePrerequisite",
+  "charSheet.levelUp.multiclass.error.heldPrerequisite",
+  "charSheet.levelUp.multiclass.error.unavailable",
+];
+for (const key of levelUpMulticlassMessages) {
+  assert.ok(key in DICTIONARIES.en, `English level-up multiclass message missing: ${key}`);
+  assert.ok(key in DICTIONARIES.ru, `Russian level-up multiclass message missing: ${key}`);
+  assert.notEqual(translate(DICTIONARIES, "ru", key), key, `Russian level-up multiclass message fell back to its key: ${key}`);
+}
+
 const tableViewMessages = [
   "campaign.tableView.error.memberOnly",
   "campaign.tableView.backToCampaigns",

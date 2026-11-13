@@ -14,6 +14,7 @@ import { ChevronDown, Dices, Loader2, Search, Sparkles, X } from "lucide-react";
 import { useEffect, useId, useMemo, useState } from "react";
 import { cn } from "@/lib/cn";
 import { useI18n } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages";
 import { refusalText } from "@/app/characters/builder/refusal";
 import { InfoButton, InfoChipList } from "@/components/ui/InfoDialog";
 import { describeFeature, describeSkill } from "@/lib/help";
@@ -44,11 +45,12 @@ import { subclassOwed } from "@/lib/srd/owed-choices";
 import { fixedDieValue, type HpMethod } from "@/lib/srd/hit-points";
 import {
   MULTICLASS_CAP,
+  MULTICLASS_MIN_SCORE,
   canMulticlassInto,
   classListFor,
-  describeGrant,
-  describePrereq,
+  meetsPrereq,
   multiclassGrantsFor,
+  multiclassPrereq,
 } from "@/lib/srd/multiclass";
 import {
   populateFeaturesForClasses,
@@ -100,6 +102,79 @@ import { workshopClassList } from "@/lib/classes/workshop-registry";
 
 
 type LevelUpTranslator = ReturnType<typeof useI18n>["t"];
+
+const MULTICLASS_GRANT_KEYS = {
+  "light armor": "charSheet.levelUp.multiclass.grant.lightArmor",
+  "medium armor": "charSheet.levelUp.multiclass.grant.mediumArmor",
+  shields: "charSheet.levelUp.multiclass.grant.shields",
+  "simple weapons": "charSheet.levelUp.multiclass.grant.simpleWeapons",
+  "martial weapons": "charSheet.levelUp.multiclass.grant.martialWeapons",
+  shortswords: "charSheet.levelUp.multiclass.grant.shortswords",
+  "thieves' tools": "charSheet.levelUp.multiclass.grant.thievesTools",
+  "tinker's tools": "charSheet.levelUp.multiclass.grant.tinkersTools",
+  "one musical instrument": "charSheet.levelUp.multiclass.grant.musicalInstrument",
+} as const;
+
+function multiclassRequirementsText(classId: string, t: LevelUpTranslator): string | null {
+  const alternatives = multiclassPrereq(classId);
+  if (!alternatives?.length) return null;
+  const and = t("builder.block.feat.requirement.and");
+  const or = t("builder.block.feat.requirement.or");
+  return alternatives
+    .map((group) => group.map((ability) => t((`builder.block.feat.ability.${ability}`) as MessageKey) + " " + MULTICLASS_MIN_SCORE).join(and))
+    .join(or);
+}
+
+function multiclassGrantText(classId: string, t: LevelUpTranslator): string {
+  const grant = multiclassGrantsFor(classId);
+  const parts = [...grant.armor, ...grant.weapons, ...grant.tools].map((entry) => {
+    const key = MULTICLASS_GRANT_KEYS[entry as keyof typeof MULTICLASS_GRANT_KEYS];
+    return key ? t(key) : entry;
+  });
+  if (grant.skillChoice) {
+    parts.push(t(
+      grant.skillChoice.from.length
+        ? "charSheet.levelUp.multiclass.grant.skillFromClass"
+        : "charSheet.levelUp.multiclass.grant.skillAny",
+    ));
+  }
+  return parts.length ? parts.join(", ") : t("charSheet.levelUp.multiclass.grant.none");
+}
+
+function multiclassPrerequisiteLine(classId: string, t: LevelUpTranslator): string {
+  const requirement = multiclassRequirementsText(classId, t);
+  return requirement
+    ? t("charSheet.levelUp.multiclass.requires", { requirement })
+    : t("charSheet.levelUp.multiclass.noPrerequisite");
+}
+
+function multiclassRefusalText(
+  sheet: CharacterSheet,
+  option: { id: string; name: string },
+  t: LevelUpTranslator,
+): string {
+  if (classListFor(sheet).length >= MULTICLASS_CAP) {
+    return t("charSheet.levelUp.multiclass.error.limit", { count: MULTICLASS_CAP });
+  }
+  const candidateName = classLabel(option.id, option.name, t);
+  const candidateRequirements = multiclassRequirementsText(option.id, t);
+  if (!meetsPrereq(sheet.abilities, option.id)) {
+    return t("charSheet.levelUp.multiclass.error.candidatePrerequisite", {
+      className: candidateName,
+      requirements: candidateRequirements ?? t("charSheet.levelUp.multiclass.noPrerequisite"),
+    });
+  }
+  const heldClass = classListFor(sheet).find((entry) => !meetsPrereq(sheet.abilities, entry.id));
+  if (heldClass) {
+    const heldName = classLabel(heldClass.id, findClass(heldClass.id)?.name ?? heldClass.id, t);
+    return t("charSheet.levelUp.multiclass.error.heldPrerequisite", {
+      className: heldName,
+      requirements: multiclassRequirementsText(heldClass.id, t) ?? t("charSheet.levelUp.multiclass.noPrerequisite"),
+    });
+  }
+  return t("charSheet.levelUp.multiclass.error.unavailable");
+}
+
 
 function classLabel(id: string, fallback: string, t: LevelUpTranslator): string {
   switch (id.toLowerCase()) {
@@ -1191,6 +1266,7 @@ export function LevelUpDialog({
                             key={option.id}
                             option={option}
                             check={check}
+                            sheet={sheet}
                             chosen={classChoice}
                             onPick={() => {
                               setClassChoice(option.id);
@@ -1209,6 +1285,7 @@ export function LevelUpDialog({
                                   key={option.id}
                                   option={option}
                                   check={check}
+                                  sheet={sheet}
                                   chosen={classChoice}
                                   onPick={() => {
                                     setClassChoice(option.id);
@@ -1236,6 +1313,7 @@ export function LevelUpDialog({
                                       key={option.id}
                                       option={option}
                                       check={check}
+                                      sheet={sheet}
                                       chosen={classChoice}
                                       onPick={() => {
                                         setClassChoice(option.id);
@@ -1742,17 +1820,22 @@ export function LevelUpDialog({
 function NewClassButton({
   option,
   check,
+  sheet,
   chosen,
   onPick,
 }: {
   option: { id: string; name: string; hitDie: number };
   check: ReturnType<typeof canMulticlassInto>;
+  sheet: CharacterSheet;
   // The class id picked so far; class ids fold to lower case.
   chosen: string;
   onPick: () => void;
 }) {
   const { t } = useI18n();
   const picked = chosen.toLowerCase() === option.id.toLowerCase();
+  const grants = multiclassGrantText(option.id, t);
+  const prerequisite = multiclassPrerequisiteLine(option.id, t);
+  const refusal = check.ok ? "" : multiclassRefusalText(sheet, option, t);
   return (
     <button
       type="button"
@@ -1776,9 +1859,9 @@ function NewClassButton({
         <span className="text-xs text-stone-500">d{option.hitDie}</span>
       </span>
       <span className="block text-xs text-stone-400">
-        {check.ok ? t("charSheet.levelUp.multiclass.grants", { grant: describeGrant(multiclassGrantsFor(option.id)) }) : check.error}
+        {check.ok ? t("charSheet.levelUp.multiclass.grants", { grant: grants }) : refusal}
       </span>
-      <span className="block text-[11px] text-stone-600">{t("charSheet.levelUp.multiclass.requires", { requirement: describePrereq(option.id) })}</span>
+      <span className="block text-[11px] text-stone-600">{prerequisite}</span>
     </button>
   );
 }
