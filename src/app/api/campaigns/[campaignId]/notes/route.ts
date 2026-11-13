@@ -44,7 +44,7 @@ export async function POST(
   const raw = await request.json().catch(() => ({}));
   const parsed = createSchema.safeParse(raw);
   if (!parsed.success) {
-    return Response.json({ error: "Invalid note." }, { status: 400 });
+    return Response.json({ error: "Invalid note.", errorCode: "INVALID_NOTE" }, { status: 400 });
   }
   const input = parsed.data;
 
@@ -52,7 +52,7 @@ export async function POST(
   if (input.characterId) {
     const sheet = getSheetById(input.characterId);
     if (!sheet || sheet.campaignId !== campaignId) {
-      return Response.json({ error: "Character not found." }, { status: 404 });
+      return Response.json({ error: "Character not found.", errorCode: "NOTE_CHARACTER_NOT_FOUND" }, { status: 404 });
     }
     characterId = sheet.id;
   }
