@@ -5,6 +5,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { Check, EyeOff, Plus, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useI18n } from "@/lib/i18n/provider";
+import { campaignApiErrorText } from "@/lib/i18n/campaignApiError";
 import { cn } from "@/lib/cn";
 import { appConfirm } from "@/components/ui/ConfirmDialog";
 import { ContextMenu, type ContextMenuItem } from "@/components/ui/ContextMenu";
@@ -54,7 +55,11 @@ export function QuestsPanel({ campaignId, steersStory, refreshKey }: { campaignI
 
   useEffect(() => {
     let cancelled = false;
-    readLoad<{ quests?: Quest[] }>(fetch(`/api/campaigns/${campaignId}/quests`), "The quest log").then((outcome) => {
+    readLoad<{ quests?: Quest[] }>(
+      fetch(`/api/campaigns/${campaignId}/quests`),
+      t("campaign.quest.title"),
+      (body, status) => campaignApiErrorText(body, `The server answered ${status}.`, t),
+    ).then((outcome) => {
       if (cancelled) {
         return;
       }
@@ -66,7 +71,7 @@ export function QuestsPanel({ campaignId, steersStory, refreshKey }: { campaignI
     return () => {
       cancelled = true;
     };
-  }, [campaignId, refreshKey, reload, settle]);
+  }, [campaignId, refreshKey, reload, settle, t]);
 
   async function patch(questId: string, body: Record<string, unknown>) {
     const response = await fetch(`/api/campaigns/${campaignId}/quests/${questId}`, {
