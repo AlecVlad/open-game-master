@@ -1148,6 +1148,10 @@ for (const key of narrationMessages) {
 assert.ok("voicePicker.narratorLanguageNote" in DICTIONARIES.en, "English narrator language note missing");
 assert.ok("voicePicker.narratorLanguageNote" in DICTIONARIES.ru, "Russian narrator language note missing");
 
+// The starter-pack tag in the equipment browser is interface copy, not an item name.
+assert.ok("builder.gear.starter.kitTag" in DICTIONARIES.en, "English starter-kit tag missing");
+assert.ok("builder.gear.starter.kitTag" in DICTIONARIES.ru, "Russian starter-kit tag missing");
+
 const characterSheetAccessibilityKey = "charSheet.spellSlot.recoverAria";
 assert.ok(characterSheetAccessibilityKey in DICTIONARIES.en, "English spell-slot recovery label missing");
 assert.ok(characterSheetAccessibilityKey in DICTIONARIES.ru, "Russian spell-slot recovery label missing");
