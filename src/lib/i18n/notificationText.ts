@@ -37,20 +37,38 @@ export function notificationText(
   const when = notificationWhen(stringParam(params, "startsAt"), lang);
   switch (kind) {
     case "session_scheduled":
-      return t(sessionTitle ? "notifications.message.scheduled" : "notifications.message.scheduledUntitled", { campaignTitle, sessionTitle, when });
+      return t(
+        sessionTitle ? "notifications.message.scheduled" : "notifications.message.scheduledUntitled",
+        { campaignTitle, sessionTitle, when },
+      );
     case "session_updated":
-      return t(sessionTitle ? "notifications.message.updated" : "notifications.message.updatedUntitled", { campaignTitle, sessionTitle, when });
+      return t(
+        sessionTitle ? "notifications.message.updated" : "notifications.message.updatedUntitled",
+        { campaignTitle, sessionTitle, when },
+      );
     case "session_cancelled":
-      return t(sessionTitle ? "notifications.message.cancelled" : "notifications.message.cancelledUntitled", { campaignTitle, sessionTitle, when });
+      return t(
+        sessionTitle ? "notifications.message.cancelled" : "notifications.message.cancelledUntitled",
+        { campaignTitle, sessionTitle, when },
+      );
     case "session_reminder":
-      return t(sessionTitle ? "notifications.message.reminder" : "notifications.message.reminderUntitled", { campaignTitle, sessionTitle, when });
+      return t(
+        sessionTitle ? "notifications.message.reminder" : "notifications.message.reminderUntitled",
+        { campaignTitle, sessionTitle, when },
+      );
     case "session_starting":
-      return t(sessionTitle ? "notifications.message.starting" : "notifications.message.startingUntitled", { campaignTitle, sessionTitle });
+      return t(
+        sessionTitle ? "notifications.message.starting" : "notifications.message.startingUntitled",
+        { campaignTitle, sessionTitle },
+      );
     case "campaign_idle":
       return t("notifications.message.campaignIdle", { campaignTitle });
     case "rsvp": {
       const username = stringParam(params, "username");
-      return t(sessionTitle ? "notifications.message.rsvpNo" : "notifications.message.rsvpNoUntitled", { username, campaignTitle, sessionTitle });
+      return t(
+        sessionTitle ? "notifications.message.rsvpNo" : "notifications.message.rsvpNoUntitled",
+        { username, campaignTitle, sessionTitle },
+      );
     }
     default:
       return legacyBody;
