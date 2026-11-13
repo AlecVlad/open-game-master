@@ -1510,7 +1510,16 @@ const featBlockKeys = [
   "builder.block.feat.kind.ritualSpell",
   "builder.block.feat.kind.spell",
   "builder.block.feat.spellLevel",
-  "builder.block.feat.schools"
+  "builder.block.feat.schools",
+  "builder.block.feat.kind.armor",
+  "builder.block.feat.school.abjuration",
+  "builder.block.feat.school.conjuration",
+  "builder.block.feat.school.divination",
+  "builder.block.feat.school.enchantment",
+  "builder.block.feat.school.evocation",
+  "builder.block.feat.school.illusion",
+  "builder.block.feat.school.necromancy",
+  "builder.block.feat.school.transmutation"
 ];
 for (const key of featBlockKeys) {
   assert.ok(key in DICTIONARIES.en, `English feat blocker missing: ${key}`);
@@ -1530,6 +1539,17 @@ const mysticOwed = featOwedText({
 assert.match(mysticOwed, /список заклинаний класса/);
 assert.match(mysticOwed, /заговоры/);
 assert.match(mysticOwed, /заклинания/);
+const schoolOwed = featOwedText({
+  kind: "spells", feat: "Fey Touched", listChoice: "no", abilityChoice: "no",
+  cantrips: 0, attackCantrip: "no", spells: 1, spellLevel: 1, schools: "divination,enchantment", ritualBook: "no",
+}, featT);
+assert.match(schoolOwed, /прорицание/);
+assert.match(schoolOwed, /очарование/);
+const armorOwed = featOwedText({
+  kind: "picks", feat: "Heavy Armor Master", languages: 0, skills: 0, expertise: 0,
+  weapons: 0, tools: 0, shared: 1, sharedKinds: "armor", damageType: "no",
+}, featT);
+assert.match(armorOwed, /доспехи и щиты/);
 
 // Report (not fail on) what Russian still lacks, so progress is visible.
 const missing = Object.keys(DICTIONARIES.en).filter((key) => !(key in DICTIONARIES.ru));
