@@ -223,6 +223,7 @@ export function useTableRules(
     }
     setWealthBusy(true);
     setWealthError("");
+    setWealthErrorCode("");
     fetch("/api/characters/rolls", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -235,6 +236,7 @@ export function useTableRules(
       .then(({ ok, data }) => {
         if (ok && data?.wealth) {
           setWealth(data.wealth);
+          setWealthErrorCode("");
         } else {
           setWealthError(data?.error || "The server could not roll your starting wealth. Try again.");
           setWealthErrorCode(data?.errorCode || "");
