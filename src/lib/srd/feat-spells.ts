@@ -294,11 +294,32 @@ export type FeatSpellInput = {
   picksMayWait?: boolean;
 };
 
-export type FeatSpellVerdict = { grants: FeatSpellGrant[]; problems: string[]; owed?: string[] };
+export type FeatSpellProblemDetail = {
+  code:
+    | "FEAT_SPELL_CHOICES_OWED"
+    | "FEAT_SPELL_LIST_NOT_OFFERED"
+    | "FEAT_SPELL_UNKNOWN"
+    | "FEAT_SPELL_WRONG_LEVEL"
+    | "FEAT_SPELL_WRONG_CLASS_LIST"
+    | "FEAT_SPELL_WRONG_SCHOOL"
+    | "FEAT_SPELL_NOT_RITUAL";
+  params: Record<string, string | number>;
+};
+export type FeatSpellVerdict = {
+  grants: FeatSpellGrant[];
+  problems: string[];
+  problemDetails: Array<FeatSpellProblemDetail | null>;
+  owed?: string[];
+};
 
 // The spells every feat on the sheet teaches, with the picks as recorded.
 export function featSpellGrants(input: FeatSpellInput): FeatSpellVerdict {
   const problems: string[] = [];
+  const problemDetails: Array<FeatSpellProblemDetail | null> = [];
+  const addProblem = (message: string, detail?: FeatSpellProblemDetail) => {
+    problems.push(message);
+    problemDetails.push(detail ?? null);
+  };
   const owedPicks: string[] = [];
   const grants: FeatSpellGrant[] = [];
   for (const feat of input.feats) {
@@ -310,12 +331,33 @@ export function featSpellGrants(input: FeatSpellInput): FeatSpellVerdict {
     if (input.strict) {
       const owed = featSpellsOwed(feat.name, spec, picks);
       if (owed) {
-        (input.picksMayWait ? owedPicks : problems).push(owed);
+        if (input.picksMayWait) {
+          owedPicks.push(owed);
+        } else {
+          const detail = featSpellsOwedDetail(spec, picks);
+          addProblem(owed, detail ? {
+            code: "FEAT_SPELL_CHOICES_OWED",
+            params: {
+              feat: feat.name,
+              listChoice: detail.listChoice ? 1 : 0,
+              abilityChoice: detail.abilityChoice ? 1 : 0,
+              cantrips: detail.cantrips,
+              attackCantrip: detail.attackCantrip ? 1 : 0,
+              spells: detail.spells,
+              spellLevel: detail.spellLevel,
+              schools: detail.schools.join(","),
+              ritualBook: detail.ritualBook ? 1 : 0,
+            },
+          } : undefined);
+        }
       }
     }
     const list = spec.listChoice ? textKey(picks.list ?? "") || null : null;
     if (input.strict && list && spec.lists.length && !spec.lists.includes(list)) {
-      problems.push(`${feat.name}'s spells come from the ${spec.lists.join(", ")} list; "${picks.list}" is not one of them.`);
+      addProblem(
+        `${feat.name}'s spells come from the ${spec.lists.join(", ")} list; "${picks.list}" is not one of them.`,
+        { code: "FEAT_SPELL_LIST_NOT_OFFERED", params: { feat: feat.name, list, offered: spec.lists.join(",") } },
+      );
     }
     const allowedLists = list ? [list] : spec.lists;
     const check = (name: string, level: number, kind: string): KnownSpell | null => {
@@ -324,14 +366,23 @@ export function featSpellGrants(input: FeatSpellInput): FeatSpellVerdict {
         return known;
       }
       if (!known) {
-        problems.push(`"${name}" is not a spell the server knows; ${feat.name}'s ${kind} is picked from the spell list.`);
+        addProblem(
+          `"${name}" is not a spell the server knows; ${feat.name}'s ${kind} is picked from the spell list.`,
+          { code: "FEAT_SPELL_UNKNOWN", params: { feat: feat.name, spell: name, kind } },
+        );
         return null;
       }
       if (known.level !== level) {
-        problems.push(`${known.name} is a ${known.level === 0 ? "cantrip" : `level ${known.level} spell`}; ${feat.name}'s ${kind} is ${level === 0 ? "a cantrip" : `a ${ordinal(level)}-level spell`}.`);
+        addProblem(
+          `${known.name} is a ${known.level === 0 ? "cantrip" : `level ${known.level} spell`}; ${feat.name}'s ${kind} is ${level === 0 ? "a cantrip" : `a ${ordinal(level)}-level spell`}.`,
+          { code: "FEAT_SPELL_WRONG_LEVEL", params: { feat: feat.name, spell: known.name, actualLevel: known.level, requiredLevel: level, kind } },
+        );
       }
       if (allowedLists.length && !known.classes.some((entry) => allowedLists.includes(textKey(entry)))) {
-        problems.push(`${known.name} is not on the ${allowedLists.join(" or ")} list, which is where ${feat.name}'s ${kind} comes from.`);
+        addProblem(
+          `${known.name} is not on the ${allowedLists.join(" or ")} list, which is where ${feat.name}'s ${kind} comes from.`,
+          { code: "FEAT_SPELL_WRONG_CLASS_LIST", params: { feat: feat.name, spell: known.name, allowedLists: allowedLists.join(","), kind } },
+        );
       }
       return known;
     };
@@ -343,10 +394,16 @@ export function featSpellGrants(input: FeatSpellInput): FeatSpellVerdict {
     for (const name of picked) {
       const known = check(name, spec.spellLevel, spec.ritualBook ? "ritual spell" : "spell");
       if (input.strict && known && spec.schools.length && known.school && !spec.schools.includes(textKey(known.school))) {
-        problems.push(`${known.name} is a ${textKey(known.school)} spell; ${feat.name}'s spell is picked from ${spec.schools.join(" or ")}.`);
+        addProblem(
+          `${known.name} is a ${textKey(known.school)} spell; ${feat.name}'s spell is picked from ${spec.schools.join(" or ")}.`,
+          { code: "FEAT_SPELL_WRONG_SCHOOL", params: { feat: feat.name, spell: known.name, school: textKey(known.school), schools: spec.schools.join(",") } },
+        );
       }
       if (input.strict && known && spec.ritualBook && known.ritual === false) {
-        problems.push(`${known.name} has no ritual tag; ${feat.name}'s book holds rituals only.`);
+        addProblem(
+          `${known.name} has no ritual tag; ${feat.name}'s book holds rituals only.`,
+          { code: "FEAT_SPELL_NOT_RITUAL", params: { feat: feat.name, spell: known.name } },
+        );
       }
     }
     const sorted = (names: string[], cantrip: boolean) =>
@@ -373,7 +430,7 @@ export function featSpellGrants(input: FeatSpellInput): FeatSpellVerdict {
       ability,
     });
   }
-  return { grants, problems, ...(owedPicks.length ? { owed: owedPicks } : {}) };
+  return { grants, problems, problemDetails, ...(owedPicks.length ? { owed: owedPicks } : {}) };
 }
 
 // Each word's first letter, not the one after a possessive's apostrophe

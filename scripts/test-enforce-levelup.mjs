@@ -153,6 +153,19 @@ await test("invalid feat-grant selections return structured refusal details", as
   assert.deepEqual(response.json.errorParams, { feat: "Skilled", skill: "not-a-skill" });
   assert.deepEqual(sheet(), before);
 });
+await test("spell-grant refusals carry structured spell and list details", async () => {
+  const { sheet, patch } = await table({ ...FIGHTER, level: 3 }, { xp: XP[4] });
+  const before = sheet();
+  const response = await patch({
+    level: 4,
+    asiChoices: [{ mode: "feat", feat: "Magic Initiate" }],
+    featChoices: { "Magic Initiate": { list: "dragon", ability: "cha", cantrips: ["mage hand", "minor illusion"], spells: ["shield"] } },
+  });
+  assert.equal(response.status, 400);
+  assert.equal(response.json.errorCode, "FEAT_SPELL_LIST_NOT_OFFERED");
+  assert.deepEqual(response.json.errorParams, { feat: "Magic Initiate", list: "dragon", offered: "bard,cleric,druid,sorcerer,warlock,wizard" });
+  assert.deepEqual(sheet(), before);
+});
 await test("an earned level is taken, and the stored sheet is the levelled one", async () => {
   const { sheet, patch } = await table(FIGHTER, { xp: XP[2] });
   const before = sheet();

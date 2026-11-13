@@ -568,7 +568,8 @@ export function buildLevelUp(
     strict: true,
   });
   if (taught.problems.length) {
-    return refuse(taught.problems[0]);
+    const detail = taught.problemDetails[0];
+    return refuse(taught.problems[0], 400, detail?.code, detail?.params);
   }
   if (request.expertise) {
     const held = proficiencies.expertise ?? [];

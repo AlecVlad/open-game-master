@@ -3,6 +3,24 @@ import { gearProblemText } from "./gearProblemText";
 
 type MessageParams = Record<string, string | number>;
 
+const SPELL_SCHOOL_MESSAGE_KEYS: Record<string, MessageKey> = {
+  abjuration: "charSheet.levelUp.spellSchool.abjuration",
+  conjuration: "charSheet.levelUp.spellSchool.conjuration",
+  divination: "charSheet.levelUp.spellSchool.divination",
+  enchantment: "charSheet.levelUp.spellSchool.enchantment",
+  evocation: "charSheet.levelUp.spellSchool.evocation",
+  illusion: "charSheet.levelUp.spellSchool.illusion",
+  necromancy: "charSheet.levelUp.spellSchool.necromancy",
+  transmutation: "charSheet.levelUp.spellSchool.transmutation",
+};
+
+const SPELL_PICK_KIND_MESSAGE_KEYS: Record<string, MessageKey> = {
+  "attack cantrip": "charSheet.levelUp.spellPickKind.attackCantrip",
+  cantrip: "charSheet.levelUp.spellPickKind.cantrip",
+  "ritual spell": "charSheet.levelUp.spellPickKind.ritualSpell",
+  spell: "charSheet.levelUp.spellPickKind.spell",
+};
+
 const MULTICLASS_CLASS_MESSAGE_KEYS: Record<string, MessageKey> = {
   barbarian: "charSheet.class.barbarian",
   bard: "charSheet.class.bard",
@@ -117,6 +135,13 @@ const REFUSAL_MESSAGE_KEYS = {
   LEVEL_UP_EXPERTISE_REQUIRES_PROFICIENCY: "charSheet.levelUp.error.expertiseProficiency",
   LEVEL_UP_FIGHTING_STYLE_NOT_OFFERED: "charSheet.levelUp.error.fightingStyleNotOffered",
   FEAT_ABILITY_CHOICE_REQUIRED: "charSheet.levelUp.error.featAbilityChoice",
+  FEAT_SPELL_CHOICES_OWED: "charSheet.levelUp.error.spellChoicesOwed",
+  FEAT_SPELL_LIST_NOT_OFFERED: "charSheet.levelUp.error.spellListNotOffered",
+  FEAT_SPELL_UNKNOWN: "charSheet.levelUp.error.spellUnknown",
+  FEAT_SPELL_WRONG_LEVEL: "charSheet.levelUp.error.spellWrongLevel",
+  FEAT_SPELL_WRONG_CLASS_LIST: "charSheet.levelUp.error.spellWrongClassList",
+  FEAT_SPELL_WRONG_SCHOOL: "charSheet.levelUp.error.spellWrongSchool",
+  FEAT_SPELL_NOT_RITUAL: "charSheet.levelUp.error.spellNotRitual",
   FEAT_GRANT_DAMAGE_TYPE_NOT_OFFERED: "charSheet.levelUp.error.grantDamageTypeNotOffered",
   FEAT_GRANT_SKILL_INVALID: "charSheet.levelUp.error.grantSkillInvalid",
   FEAT_GRANT_SKILL_NOT_OFFERED: "charSheet.levelUp.error.grantSkillNotOffered",
@@ -193,6 +218,50 @@ export function refusalText(
       if (typeof classId === "string" && MULTICLASS_CLASS_MESSAGE_KEYS[classId]) {
         messageParams.className = t(MULTICLASS_CLASS_MESSAGE_KEYS[classId]);
       }
+    }
+    if (code === "FEAT_SPELL_CHOICES_OWED") {
+      const parts: string[] = [];
+      if (messageParams?.listChoice === 1) parts.push(t("charSheet.levelUp.spellOwed.classList"));
+      if (messageParams?.abilityChoice === 1) parts.push(t("charSheet.levelUp.spellOwed.ability"));
+      const cantrips = Number(messageParams?.cantrips ?? 0);
+      if (cantrips > 0) {
+        const attack = messageParams?.attackCantrip === 1;
+        const key = attack
+          ? (cantrips === 1 ? "charSheet.levelUp.spellOwed.attackCantrip.one" : "charSheet.levelUp.spellOwed.attackCantrip.many")
+          : (cantrips === 1 ? "charSheet.levelUp.spellOwed.cantrip.one" : "charSheet.levelUp.spellOwed.cantrip.many");
+        parts.push(t(key, { count: cantrips }));
+      }
+      const spells = Number(messageParams?.spells ?? 0);
+      if (spells > 0) {
+        const schools = typeof messageParams?.schools === "string" && messageParams.schools
+          ? messageParams.schools.split(",").map((school) => SPELL_SCHOOL_MESSAGE_KEYS[school] ? t(SPELL_SCHOOL_MESSAGE_KEYS[school]) : school).join(t("builder.block.feat.requirement.or"))
+          : t("charSheet.levelUp.spellOwed.anySchool");
+        const kind = messageParams?.ritualBook === 1
+          ? t("charSheet.levelUp.spellPickKind.ritualSpell")
+          : t("charSheet.levelUp.spellPickKind.spell");
+        const key = spells === 1 ? "charSheet.levelUp.spellOwed.spell.one" : "charSheet.levelUp.spellOwed.spell.many";
+        parts.push(t(key, { count: spells, level: messageParams?.spellLevel ?? 1, schools, kind }));
+      }
+      return t("charSheet.levelUp.error.spellChoicesOwed", { feat: messageParams?.feat ?? "", choices: parts.join(t("builder.block.feat.requirement.and")) });
+    }
+    if (code === "FEAT_SPELL_LIST_NOT_OFFERED" || code === "FEAT_SPELL_WRONG_CLASS_LIST") {
+      for (const field of code === "FEAT_SPELL_LIST_NOT_OFFERED" ? ["list", "offered"] : ["allowedLists"]) {
+        const raw = messageParams?.[field];
+        if (typeof raw === "string") {
+          messageParams[field] = raw.split(",").map((entry) => MULTICLASS_CLASS_MESSAGE_KEYS[entry] ? t(MULTICLASS_CLASS_MESSAGE_KEYS[entry]) : entry).join(t("builder.block.feat.requirement.or"));
+        }
+      }
+    }
+    if (code === "FEAT_SPELL_WRONG_SCHOOL") {
+      for (const field of ["school", "schools"]) {
+        const raw = messageParams?.[field];
+        if (typeof raw === "string") {
+          messageParams[field] = raw.split(",").map((entry) => SPELL_SCHOOL_MESSAGE_KEYS[entry] ? t(SPELL_SCHOOL_MESSAGE_KEYS[entry]) : entry).join(t("builder.block.feat.requirement.or"));
+        }
+      }
+    }
+    if (typeof code === "string" && code.startsWith("FEAT_SPELL_") && typeof messageParams?.kind === "string" && SPELL_PICK_KIND_MESSAGE_KEYS[messageParams.kind]) {
+      messageParams.kind = t(SPELL_PICK_KIND_MESSAGE_KEYS[messageParams.kind]);
     }
     if (typeof code === "string" && code in REFUSAL_MESSAGE_KEYS) {
       return t(REFUSAL_MESSAGE_KEYS[code as keyof typeof REFUSAL_MESSAGE_KEYS], messageParams);

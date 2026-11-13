@@ -286,6 +286,31 @@ for (const [code, key, params, expected] of featGrantRefusalCases) {
   assert.equal(actual, expected, `feat-grant refusal ${code} did not localize`);
 }
 
+const featSpellRefusalCases = [
+  ["FEAT_SPELL_LIST_NOT_OFFERED", "charSheet.levelUp.error.spellListNotOffered", {"feat":"Magic Initiate","list":"wizard","offered":"bard,cleric,druid,sorcerer,warlock,wizard"}, "Черта «Magic Initiate» не предлагает список заклинаний «волшебник». Доступные списки: бард или жрец или друид или чародей или колдун или волшебник."],
+  ["FEAT_SPELL_UNKNOWN", "charSheet.levelUp.error.spellUnknown", {"feat":"Magic Initiate","spell":"Misty Spell","kind":"spell"}, "Заклинание «Misty Spell» не найдено и не может быть выбрано для черты «Magic Initiate»."],
+  ["FEAT_SPELL_WRONG_LEVEL", "charSheet.levelUp.error.spellWrongLevel", {"feat":"Fey Touched","spell":"Shield","actualLevel":1,"requiredLevel":2,"kind":"spell"}, "Заклинание «Shield» имеет 1-й уровень, но для черты «Fey Touched» требуется 2-й уровень."],
+  ["FEAT_SPELL_WRONG_CLASS_LIST", "charSheet.levelUp.error.spellWrongClassList", {"feat":"Magic Initiate","spell":"Shield","allowedLists":"wizard","kind":"spell"}, "Заклинание «Shield» отсутствует в списке «волшебник», который требуется для черты «Magic Initiate»."],
+  ["FEAT_SPELL_WRONG_SCHOOL", "charSheet.levelUp.error.spellWrongSchool", {"feat":"Fey Touched","spell":"Shield","school":"abjuration","schools":"divination,enchantment"}, "Заклинание «Shield» относится к школе «Ограждение», а черта «Fey Touched» допускает: Прорицание или Очарование."],
+  ["FEAT_SPELL_NOT_RITUAL", "charSheet.levelUp.error.spellNotRitual", {"feat":"Ritual Caster","spell":"Magic Missile"}, "У заклинания «Magic Missile» нет признака ритуала. В книге черты «Ritual Caster» могут быть только ритуальные заклинания."],
+];
+for (const [code, key, params, expected] of featSpellRefusalCases) {
+  assert.ok(key in DICTIONARIES.en, `English feat-spell refusal missing: ${key}`);
+  assert.ok(key in DICTIONARIES.ru, `Russian feat-spell refusal missing: ${key}`);
+  const actual = refusalText(
+    { error: "legacy English text", errorCode: code, errorParams: params },
+    "fallback",
+    (messageKey, messageParams) => translate(DICTIONARIES, "ru", messageKey, messageParams),
+  );
+  assert.equal(actual, expected, `feat-spell refusal ${code} did not localize`);
+}
+const owedSpellText = refusalText(
+  { error: "legacy English text", errorCode: "FEAT_SPELL_CHOICES_OWED", errorParams: { feat: "Magic Initiate", listChoice: 1, abilityChoice: 0, cantrips: 2, attackCantrip: 0, spells: 1, spellLevel: 1, schools: "divination,enchantment", ritualBook: 0 } },
+  "fallback",
+  (messageKey, messageParams) => translate(DICTIONARIES, "ru", messageKey, messageParams),
+);
+assert.equal(owedSpellText, "Для черты «Magic Initiate» осталось выбрать: список заклинаний класса; заговоров: 2; одно заклинание 1-го уровня из школы «Прорицание или Очарование».");
+
 const tableViewMessages = [
   "campaign.tableView.error.memberOnly",
   "campaign.tableView.backToCampaigns",
