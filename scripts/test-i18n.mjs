@@ -15,6 +15,7 @@ import { DICTIONARIES } from "../src/lib/i18n/messages/index.ts";
 import { localizeStoryboardError } from "../src/lib/workshop/storyboard-api-i18n.ts";
 import { gearProblemText } from "../src/app/characters/builder/gearProblemText.ts";
 import { featOwedText } from "../src/app/characters/builder/featOwedText.ts";
+import { featPrerequisiteText } from "../src/app/characters/builder/featPrereqText.ts";
 
 // Language choice: the cookie wins, then Accept-Language, then English.
 assert.equal(pickLang("ru", "en-US,en;q=0.9"), "ru");
@@ -1550,6 +1551,46 @@ const armorOwed = featOwedText({
   weapons: 0, tools: 0, shared: 1, sharedKinds: "armor", damageType: "no",
 }, featT);
 assert.match(armorOwed, /доспехи и щиты/);
+
+const featPrerequisiteKeys = [
+  "builder.block.feat.prerequisite",
+  "builder.block.feat.requirement.abilityScore",
+  "builder.block.feat.requirement.armor",
+  "builder.block.feat.requirement.spellcasting",
+  "builder.block.feat.requirement.race",
+  "builder.block.feat.requirement.level",
+  "builder.block.feat.requirement.skills",
+  "builder.block.feat.requirement.vehicle",
+  "builder.block.feat.requirement.weapon",
+  "builder.block.feat.requirement.and",
+  "builder.block.feat.requirement.or",
+  "builder.block.feat.ability.str",
+  "builder.block.feat.ability.dex",
+  "builder.block.feat.ability.con",
+  "builder.block.feat.ability.int",
+  "builder.block.feat.ability.wis",
+  "builder.block.feat.ability.cha",
+  "builder.block.feat.armor.light",
+  "builder.block.feat.armor.medium",
+  "builder.block.feat.armor.heavy",
+  "builder.block.feat.weapon.simple",
+  "builder.block.feat.weapon.martial",
+  "builder.block.feat.weapon.ranged",
+  "builder.block.feat.weapon.melee"
+];
+for (const key of featPrerequisiteKeys) {
+  assert.ok(key in DICTIONARIES.en, `English feat prerequisite missing: ${key}`);
+  assert.ok(key in DICTIONARIES.ru, `Russian feat prerequisite missing: ${key}`);
+}
+const featPrereqT = (key, params) => translate(DICTIONARIES, "ru", key, params);
+const prereqText = featPrerequisiteText({
+  feat: "Resilient",
+  requirements: JSON.stringify([{ code: "abilityScore", abilities: ["str"], minimum: 13, actual: [10] }]),
+}, featPrereqT);
+assert.match(prereqText, /Resilient/);
+assert.match(prereqText, /Сила/);
+assert.match(prereqText, /13/);
+assert.match(prereqText, /10/);
 
 // Report (not fail on) what Russian still lacks, so progress is visible.
 const missing = Object.keys(DICTIONARIES.en).filter((key) => !(key in DICTIONARIES.ru));
