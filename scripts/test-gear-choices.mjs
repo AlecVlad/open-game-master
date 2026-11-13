@@ -111,6 +111,7 @@ test("an either-or line takes the sheet's pick, the book's first until then, and
   assert.deepEqual(wrong.names.slice(0, 2), ["Brewer's Supplies", "Dagger"]);
   assert.equal(wrong.problems.length, 1);
   assert.match(wrong.problems[0], /brewer's supplies or cook's utensils/);
+  assert.deepEqual(wrong.problemDetails, [{ code: "invalidBackgroundChoice", params: { options: "Brewer's Supplies, Cook's Utensils", choice: "Greatsword" } }]);
 });
 
 test("an alternative that is a kind of tool opens on the tools of that kind (Guildmember, Entertainer)", () => {
