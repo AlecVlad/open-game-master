@@ -41,4 +41,9 @@ export const enSocial = {
   "notifications.message.cancelledUntitled": "A session for {campaignTitle} on {when} was called off.",
   "notifications.message.rsvpNo": "{username} can’t make the session “{sessionTitle}” in {campaignTitle}.",
   "notifications.message.rsvpNoUntitled": "{username} can’t make a session in {campaignTitle}.",
+  "notifications.message.reminder": "Reminder: “{sessionTitle}” for {campaignTitle} starts soon, at {when}. See you at the table.",
+  "notifications.message.reminderUntitled": "Reminder: a session for {campaignTitle} starts soon, at {when}. See you at the table.",
+  "notifications.message.starting": "The “{sessionTitle}” session for {campaignTitle} is starting now. To the table!",
+  "notifications.message.startingUntitled": "A session for {campaignTitle} is starting now. To the table!",
+  "notifications.message.campaignIdle": "The table misses you: {campaignTitle} has been quiet for a few days.",
 } satisfies Record<string, string>;
