@@ -456,20 +456,20 @@ function deskBlocks(desk: DeskCounts, who: string): StepBlock[] {
   const cantripsLeft = Math.min(derived.cantripAdvice ?? 0, supply?.cantrips ?? Infinity) - derived.chosenCantrips.length;
   const cantripsOver = derived.chosenCantrips.length - (derived.cantripAdvice ?? 0);
   if (cantripsLeft > 0) {
-    owed.push(block("spells", `Pick ${cantripsLeft} more ${cantripsLeft === 1 ? "simple spell" : "simple spells"} you can cast at will (${cantripsLeft === 1 ? "cantrip" : "cantrips"}).`, { key: "builder.block.spells.cantripsMissing", params: { count: cantripsLeft } }));
+    owed.push(block("spells", `Pick ${cantripsLeft} more ${cantripsLeft === 1 ? "simple spell" : "simple spells"} you can cast at will (${cantripsLeft === 1 ? "cantrip" : "cantrips"}).`, undefined, { key: "builder.block.spells.cantripsMissing", params: { count: cantripsLeft } }));
   }
   if (derived.cantripAdvice !== null && cantripsOver > 0) {
-    owed.push(block("spells", `Remove ${cantripsOver} ${cantripsOver === 1 ? "cantrip" : "cantrips"}: a ${klass.name.toLowerCase()} knows ${derived.cantripAdvice ?? 0} at this level.`, { key: "builder.block.spells.cantripsOver", params: { count: cantripsOver, className: klass.name, limit: derived.cantripAdvice ?? 0 } }));
+    owed.push(block("spells", `Remove ${cantripsOver} ${cantripsOver === 1 ? "cantrip" : "cantrips"}: a ${klass.name.toLowerCase()} knows ${derived.cantripAdvice ?? 0} at this level.`, undefined, { key: "builder.block.spells.cantripsOver", params: { count: cantripsOver, className: klass.name, limit: derived.cantripAdvice ?? 0 } }));
   }
   if (derived.spellbookAdvice !== null) {
     // A wizard fills the book first, then prepares from it.
     const bookLeft = Math.min(derived.spellbookAdvice, supply?.spells ?? Infinity) - derived.chosenSpells.length;
     if (bookLeft > 0) {
-      owed.push(block("spells", `Write ${bookLeft} more ${bookLeft === 1 ? "spell" : "spells"} in your spellbook.`, { key: "builder.block.spells.bookMissing", params: { count: bookLeft } }));
+      owed.push(block("spells", `Write ${bookLeft} more ${bookLeft === 1 ? "spell" : "spells"} in your spellbook.`, undefined, { key: "builder.block.spells.bookMissing", params: { count: bookLeft } }));
     }
     const bookOver = derived.chosenSpells.length - derived.spellbookAdvice;
     if (bookOver > 0) {
-      owed.push(block("spells", `Remove ${bookOver} ${bookOver === 1 ? "spell" : "spells"} from your spellbook: a level ${casterLevel} wizard starts with ${derived.spellbookAdvice}.`, { key: "builder.block.spells.bookOver", params: { count: bookOver, level: casterLevel, limit: derived.spellbookAdvice } }));
+      owed.push(block("spells", `Remove ${bookOver} ${bookOver === 1 ? "spell" : "spells"} from your spellbook: a level ${casterLevel} wizard starts with ${derived.spellbookAdvice}.`, undefined, { key: "builder.block.spells.bookOver", params: { count: bookOver, level: casterLevel, limit: derived.spellbookAdvice } }));
     }
   }
   if (derived.spellAdvice) {
@@ -494,7 +494,7 @@ function deskBlocks(desk: DeskCounts, who: string): StepBlock[] {
       ));
     }
     if (spellsOver > 0) {
-      owed.push(block("spells", `Remove ${spellsOver} ${spellsOver === 1 ? "spell" : "spells"}: the limit is ${derived.spellAdvice.count} ${derived.spellAdvice.label}.`, { key: "builder.block.spells.preparedOver", params: { count: spellsOver, limit: derived.spellAdvice.count, label: derived.spellAdvice.label } }));
+      owed.push(block("spells", `Remove ${spellsOver} ${spellsOver === 1 ? "spell" : "spells"}: the limit is ${derived.spellAdvice.count} ${derived.spellAdvice.label}.`, undefined, { key: "builder.block.spells.preparedOver", params: { count: spellsOver, limit: derived.spellAdvice.count, label: derived.spellAdvice.label } }));
     }
   }
   return owed;
