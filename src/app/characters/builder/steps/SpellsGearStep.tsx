@@ -56,6 +56,7 @@ export function SpellsGearStep({
   table: TableRulesState;
   pack: WorldPack | null;
 }) {
+  const { t } = useI18n();
   const purse = purseViewFor({
     purse: derived.purse,
     keepsStoredGear: state.keepsStoredGear,
@@ -64,7 +65,7 @@ export function SpellsGearStep({
     classId: klass?.id ?? "",
     className: klass?.name ?? "character",
     table,
-  });
+  }, { t });
   return (
     <div className="space-y-4">
       {/* The classes that cast: one desk, or a tab for each (backlog F9). */}
