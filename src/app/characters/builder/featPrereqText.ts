@@ -31,7 +31,15 @@ export function featPrerequisiteText(params: Params | undefined, t: Translator):
       case "level":
         return t("builder.block.feat.requirement.level", { minimum: Number(entry.minimum ?? 1), actual: Number(entry.actual ?? 1) });
       case "skills": {
-        const skills = Array.isArray(entry.skills) ? entry.skills.join(", ") : "";
+        const skills = Array.isArray(entry.skills)
+          ? entry.skills.map((id) => {
+              const skill = String(id);
+              const camel = skill.replace(/_([a-z])/g, (_match, letter) => letter.toUpperCase());
+              const key = ("builder.multi.skill." + camel) as MessageKey;
+              const translated = t(key);
+              return translated === key ? skill : translated;
+            }).join(", ")
+          : "";
         return t("builder.block.feat.requirement.skills", { skills });
       }
       case "vehicle":
