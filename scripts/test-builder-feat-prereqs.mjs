@@ -263,6 +263,15 @@ test("the server's check is the same evaluator, so the two agree", () => {
     const check = checkPrerequisite(prerequisite, who);
     assert.equal(unmetPrerequisite(prerequisite, who) !== null, check.state === "unmet", prerequisite);
     assert.notEqual(check.state, "waiting", "the server never waits");
+    if (prerequisite === "Dexterity 13 or higher") {
+      assert.deepEqual(check.requirements[0].detail, { code: "abilityScore", abilities: ["dex"], minimum: 13, actual: [12] });
+    }
+    if (prerequisite === "Proficiency with heavy armor") {
+      assert.deepEqual(check.requirements[0].detail, { code: "armor", armorType: "heavy" });
+    }
+    if (prerequisite === "8th level or higher") {
+      assert.deepEqual(check.requirements[0].detail, { code: "level", minimum: 8, actual: 4 });
+    }
   }
   assert.equal(unmetPrerequisite("Requires Dexterity 13 or higher.", who), "Dexterity 13 or higher");
 });
