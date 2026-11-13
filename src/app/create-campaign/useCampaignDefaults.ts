@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { CAMPAIGN_DEFAULTS_VERSION, type CampaignDefaults, type CampaignDefaultSettings } from "@/lib/campaign-defaults";
 import { useI18n } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages/index";
 
 // The signed-in person's saved campaign defaults, read when the dialog opens
 // and written only when they press save or remove. A failure is reported and
@@ -15,7 +16,7 @@ export type DefaultsState =
 
 type Outcome = { ok: true } | { ok: false; error: string };
 
-async function reason(response: Response, fallback: string, t: (key: string) => string): Promise<string> {
+async function reason(response: Response, fallback: string, t: (key: MessageKey) => string): Promise<string> {
   const data = (await response.json().catch(() => null)) as { error?: unknown; errorCode?: unknown } | null;
   if (data?.errorCode === "INVALID_CAMPAIGN_DEFAULTS") {
     return t("createCampaign.defaults.error.invalid");
