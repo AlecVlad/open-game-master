@@ -118,7 +118,7 @@ export function CompanionBuilderDialog({
       onCreated?.();
       onClose();
     } catch {
-      setError("Could not reach the server.");
+      setError(t("campaign.companionBuilder.error.server"));
     } finally {
       setBusy(false);
     }
