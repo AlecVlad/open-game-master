@@ -14,7 +14,7 @@ import { SectionHead } from "@/components/ui/SectionHead";
 import { Select } from "@/components/ui/Select";
 import type { Quest, QuestStatus } from "@/lib/dm/quest-logic";
 import type { MessageKey } from "@/lib/i18n/messages/index";
-import { GlyphChip, KitButton, LoadFailed, panelField, PanelLoading, panelRow, Tick, TickMark } from "./PanelKit";
+import { GlyphChip, KitButton, LoadFailed, panelField, PanelError, PanelLoading, panelRow, Tick, TickMark } from "./PanelKit";
 import { DictateField } from "@/components/DictateField";
 import { appendDictation } from "@/lib/dictation";
 
@@ -49,6 +49,7 @@ export function QuestsPanel({ campaignId, steersStory, refreshKey }: { campaignI
   const [title, setTitle] = useState("");
   const [lines, setLines] = useState("");
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
 
   const [reload, setReload] = useState(0);
   const load = useCallback(() => setReload((current) => current + 1), []);
@@ -74,15 +75,24 @@ export function QuestsPanel({ campaignId, steersStory, refreshKey }: { campaignI
   }, [campaignId, refreshKey, reload, settle, t]);
 
   async function patch(questId: string, body: Record<string, unknown>) {
-    const response = await fetch(`/api/campaigns/${campaignId}/quests/${questId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-    const data = (await response.json().catch(() => ({}))) as { quest?: Quest };
-    if (data.quest) {
-      const next = data.quest;
-      setQuests((current) => (current ?? []).map((quest) => (quest.id === next.id ? next : quest)));
+    setError("");
+    try {
+      const response = await fetch(`/api/campaigns/${campaignId}/quests/${questId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = (await response.json().catch(() => ({}))) as { quest?: Quest; error?: unknown; errorCode?: unknown };
+      if (!response.ok) {
+        setError(campaignApiErrorText(data, t("campaign.quest.error.update"), t));
+        return;
+      }
+      if (data.quest) {
+        const next = data.quest;
+        setQuests((current) => (current ?? []).map((quest) => (quest.id === next.id ? next : quest)));
+      }
+    } catch {
+      setError(t("campaign.quest.error.server"));
     }
   }
 
