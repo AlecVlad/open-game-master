@@ -16,6 +16,7 @@ import { localizeStoryboardError } from "../src/lib/workshop/storyboard-api-i18n
 import { gearProblemText } from "../src/app/characters/builder/gearProblemText.ts";
 import { featOwedText } from "../src/app/characters/builder/featOwedText.ts";
 import { featPrerequisiteText } from "../src/app/characters/builder/featPrereqText.ts";
+import { multiclassPrerequisiteText } from "../src/app/characters/builder/multiclassPrereqText.ts";
 
 // Language choice: the cookie wins, then Accept-Language, then English.
 assert.equal(pickLang("ru", "en-US,en;q=0.9"), "ru");
@@ -1576,7 +1577,8 @@ const featPrerequisiteKeys = [
   "builder.block.feat.weapon.simple",
   "builder.block.feat.weapon.martial",
   "builder.block.feat.weapon.ranged",
-  "builder.block.feat.weapon.melee"
+  "builder.block.feat.weapon.melee",
+  "builder.block.abilities.multiclassPrerequisite"
 ];
 for (const key of featPrerequisiteKeys) {
   assert.ok(key in DICTIONARIES.en, `English feat prerequisite missing: ${key}`);
@@ -1591,6 +1593,23 @@ assert.match(prereqText, /Resilient/);
 assert.match(prereqText, /Сила/);
 assert.match(prereqText, /13/);
 assert.match(prereqText, /10/);
+const multiclassPrereqT = (key, params) => translate(DICTIONARIES, "ru", key, params);
+const fighterPrereqText = multiclassPrerequisiteText({
+  className: "Воин",
+  alternatives: JSON.stringify([["str"], ["dex"]]),
+  minimum: 13,
+}, multiclassPrereqT);
+assert.match(fighterPrereqText, /Сила/);
+assert.match(fighterPrereqText, /Ловкость/);
+assert.match(fighterPrereqText, /или/);
+const monkPrereqText = multiclassPrerequisiteText({
+  className: "Монах",
+  alternatives: JSON.stringify([["dex", "wis"]]),
+  minimum: 13,
+}, multiclassPrereqT);
+assert.match(monkPrereqText, /Ловкость/);
+assert.match(monkPrereqText, /Мудрость/);
+
 
 // Report (not fail on) what Russian still lacks, so progress is visible.
 const missing = Object.keys(DICTIONARIES.en).filter((key) => !(key in DICTIONARIES.ru));
