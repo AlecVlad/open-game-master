@@ -5,6 +5,7 @@ import { returnFocus } from "@/components/ui/return-focus";
 import { Pencil, Trash2, X, Check } from "lucide-react";
 import { useState } from "react";
 import { useI18n } from "@/lib/i18n/provider";
+import { campaignApiErrorText } from "@/lib/i18n/campaignApiError";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui";
 import { EmptyState } from "@/components/EmptyState";
@@ -40,12 +41,23 @@ function CharacterNoteRow({
   const [editing, setEditing] = useState(false);
   const [body, setBody] = useState(note.body);
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
 
-  async function run(request: () => Promise<Response>) {
+  async function run(request: () => Promise<Response>, fallback: string): Promise<boolean> {
     setBusy(true);
+    setError("");
     try {
-      await request();
+      const response = await request();
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        setError(campaignApiErrorText(data, fallback, t));
+        return false;
+      }
       await refreshNotes();
+      return true;
+    } catch {
+      setError(t("campaign.notes.error.server"));
+      return false;
     } finally {
       setBusy(false);
     }
@@ -53,6 +65,7 @@ function CharacterNoteRow({
 
   return (
     <li className={panelRow}>
+      {error ? <p role="alert" className="mb-2 text-[11px] text-red-400">{error}</p> : null}
       {editing ? (
         <div className="reveal space-y-1.5">
           <DictateField label={t("campaign.session.characterNotes.note")} onTranscript={(text) => setBody((current) => appendDictation(current, text, 2000))}>
@@ -71,14 +84,17 @@ function CharacterNoteRow({
               disabled={busy || !body.trim()}
               busy={busy}
               onClick={async () => {
-                await run(() =>
-                  fetch(`/api/campaigns/${campaignId}/notes/${note.id}`, {
-                    method: "PATCH",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ body: body.trim() }),
-                  }),
-                );
-                setEditing(false);
+                if (await run(
+                  () =>
+                    fetch(`/api/campaigns/${campaignId}/notes/${note.id}`, {
+                      method: "PATCH",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ body: body.trim() }),
+                    }),
+                  t("campaign.notes.error.update"),
+                )) {
+                  setEditing(false);
+                }
               }}
             >
               {busy ? null : <Check className="size-3.5" />}
@@ -113,10 +129,12 @@ function CharacterNoteRow({
                   busy={busy}
                   aria-label={t("campaign.session.characterNotes.delete")}
                   onClick={() =>
-                    run(() =>
-                      fetch(`/api/campaigns/${campaignId}/notes/${note.id}`, {
-                        method: "DELETE",
-                      }),
+                    run(
+                      () =>
+                        fetch(`/api/campaigns/${campaignId}/notes/${note.id}`, {
+                          method: "DELETE",
+                        }),
+                      t("campaign.notes.error.remove"),
                     )
                   }
                   title={t("campaign.session.characterNotes.delete")}
