@@ -1617,6 +1617,7 @@ const campaignEntryRefusals = [
   ["COMPANION_LEFT_PARTY", { name: "Элла" }, /Элла/],
   ["COMPANION_NOT_IN_LIBRARY", {}, /нет в вашей библиотеке/],
   ["INVALID_COMPANION_SHEET", {}, /прочитать лист спутника/],
+  ["PORTRAIT_NO_IMAGE_MODEL", {}, /нет модели для генерации изображений/],
   ["MULTICLASS_NOT_ALLOWED_FOR_CHARACTER", { name: "Илвана" }, /Илвана/],
   ["CAMPAIGN_NOT_FOUND", {}, /Кампания не найдена/],
   ["STORY_GAME_MASTER_REQUIRED", {}, /только ведущий/],
