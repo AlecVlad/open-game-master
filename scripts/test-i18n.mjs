@@ -1837,6 +1837,23 @@ assert.match(monkPrereqText, /Ловкость/);
 assert.match(monkPrereqText, /Мудрость/);
 
 
+// Campaign creator defaults keep their validation and network errors in the interface language.
+for (const key of [
+  "createCampaign.defaults.error.invalid",
+  "createCampaign.defaults.error.read",
+  "createCampaign.defaults.error.readNetwork",
+  "createCampaign.defaults.error.saveNetwork",
+  "createCampaign.defaults.error.removeNetwork",
+  "createCampaign.defaults.error.remove",
+]) {
+  assert.ok(key in DICTIONARIES.en, `English saved-default error missing: ${key}`);
+  assert.ok(key in DICTIONARIES.ru, `Russian saved-default error missing: ${key}`);
+  assert.notEqual(translate(DICTIONARIES, "ru", key), key);
+}
+assert.match(translate(DICTIONARIES, "ru", "createCampaign.defaults.error.invalid"), /формат/);
+assert.match(translate(DICTIONARIES, "ru", "createCampaign.defaults.error.saveNetwork"), /не сохранены/);
+assert.match(translate(DICTIONARIES, "ru", "createCampaign.defaults.error.removeNetwork"), /не удалены/);
+
 // Report (not fail on) what Russian still lacks, so progress is visible.
 const missing = Object.keys(DICTIONARIES.en).filter((key) => !(key in DICTIONARIES.ru));
 console.log(`i18n: ${Object.keys(DICTIONARIES.en).length} messages, ${missing.length} not yet in Russian`);
