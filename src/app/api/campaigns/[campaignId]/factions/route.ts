@@ -55,10 +55,10 @@ export async function POST(
   const raw = (await request.json().catch(() => ({}))) as Record<string, unknown>;
   const name = typeof raw.name === "string" ? raw.name.trim() : "";
   if (!name) {
-    return Response.json({ error: "A faction needs a name." }, { status: 400 });
+    return Response.json({ error: "A faction needs a name.", errorCode: "FACTION_NAME_REQUIRED" }, { status: 400 });
   }
   if (raw.portraitPath && !isUploadedImagePath(raw.portraitPath)) {
-    return Response.json({ error: "Not an uploaded file." }, { status: 400 });
+    return Response.json({ error: "Not an uploaded file.", errorCode: "FACTION_IMAGE_NOT_UPLOADED" }, { status: 400 });
   }
   const faction = insertFaction(campaignId, {
     name,
