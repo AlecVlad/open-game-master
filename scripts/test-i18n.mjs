@@ -1395,6 +1395,34 @@ for (const count of [1, 2, 5]) {
   assert.ok(!translatePlural(DICTIONARIES, "ru", "schedule.duration.session", count).includes("{count}"));
 }
 
+// Starting equipment diagnostics are structured and translated in the builder.
+const gearDiagnosticKeys = [
+  "builder.gear.source.stored",
+  "builder.gear.source.rolledTable",
+  "builder.gear.source.rolledPrompt",
+  "builder.gear.source.background",
+  "builder.gear.source.spent",
+  "builder.gear.problem.homebrew",
+  "builder.gear.problem.magic",
+  "builder.gear.problem.unpriced",
+  "builder.gear.problem.insufficientFunds",
+  "builder.gear.problem.invalidOption",
+  "builder.gear.problem.notProficient",
+  "builder.gear.problem.invalidSlot",
+  "builder.gear.problem.invalidBackgroundChoice",
+  "builder.gear.wealth.error.campaignNotAccessible",
+  "builder.gear.wealth.error.notRolled",
+  "builder.gear.wealth.error.invalidRequest",
+  "builder.gear.wealth.error.network"
+];
+for (const key of gearDiagnosticKeys) {
+  assert.ok(key in DICTIONARIES.en, `English gear diagnostic missing: ${key}`);
+  assert.ok(key in DICTIONARIES.ru, `Russian gear diagnostic missing: ${key}`);
+  assert.notEqual(translate(DICTIONARIES, "ru", key), key, `Russian gear diagnostic fell back to its key: ${key}`);
+}
+assert.ok(translate(DICTIONARIES, "ru", "builder.gear.problem.magic", { name: "Мешок хранения" }).includes("Мешок хранения"));
+assert.ok(translate(DICTIONARIES, "ru", "builder.gear.problem.insufficientFunds", { cost: "20 зм", available: "5 зм", shortfall: "15 зм" }).includes("15 зм"));
+
 // Report (not fail on) what Russian still lacks, so progress is visible.
 const missing = Object.keys(DICTIONARIES.en).filter((key) => !(key in DICTIONARIES.ru));
 console.log(`i18n: ${Object.keys(DICTIONARIES.en).length} messages, ${missing.length} not yet in Russian`);
