@@ -193,11 +193,18 @@ export function StoryAiPanel({
       });
       const data = (await response.json().catch(() => ({}))) as {
         error?: string;
+        errorCode?: string;
         settings?: MaskedStorySettings;
         harness?: HarnessOffer;
       };
       if (!response.ok) {
-        setError(data.error ?? t("campaign.storyAi.error.notSaved"));
+        const errorKey = {
+          INVALID_STORY_SETTINGS: "campaign.storyAi.error.invalid",
+          STORY_AGENT_NOT_AVAILABLE: "campaign.storyAi.error.agentUnavailable",
+          STORY_AGENT_IMAGES_NOT_ALLOWED: "campaign.storyAi.error.agentImagesUnavailable",
+          CAMPAIGN_NOT_FOUND: "campaign.storyAi.error.campaignMissing",
+        }[data.errorCode ?? ""];
+        setError(errorKey ? t(errorKey) : data.error ?? t("campaign.storyAi.error.notSaved"));
         return;
       }
       if (data.settings) {
