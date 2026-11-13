@@ -21,6 +21,7 @@ import { ui } from "@/lib/ui";
 import { navigateTo } from "@/lib/navigation";
 import { useI18n } from "@/lib/i18n/provider";
 import { refusalText } from "@/app/characters/builder/refusal";
+import { refusalText } from "@/app/characters/builder/refusal";
 import { characterBackgroundName, characterClassName, characterRaceName, characterSubclassName } from "@/lib/i18n/character-names";
 import { prefersReducedMotion, useLowEffects } from "@/lib/effects-mode";
 import { PortraitToast, RosterPortraitSlot, RosterPortraitStatus } from "@/app/characters/RosterPortrait";
@@ -172,7 +173,7 @@ export default function CharactersPage() {
       const response = await fetch(`/api/characters/${id}/portrait`, { method: "POST" });
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        setRetryErrors((current) => ({ ...current, [id]: data.error || t("characters.err.queue") }));
+        setRetryErrors((current) => ({ ...current, [id]: refusalText(data, t("characters.err.queue"), t) }));
         return;
       }
       phases.current = { ...phases.current, [id]: "painting" };
