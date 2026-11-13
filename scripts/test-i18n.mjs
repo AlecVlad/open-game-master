@@ -1625,7 +1625,7 @@ const campaignEntryRefusals = [
   ["AUTH_REQUIRED", {}, /в систему/],
   ["PASSWORD_CHANGE_REQUIRED", {}, /пароль/],
   ["JOIN_INVALID_INVITE_CODE", {}, /корректный код приглашения/],
-  ["JOIN_INVITE_NOT_FOUND", {}, /такому коду приглашения не найдена/],
+  ["JOIN_INVITE_NOT_FOUND", {}, /таким кодом приглашения не найдена/],
   ["JOIN_CAMPAIGN_ENDED", {}, /уже завершена/],
   ["JOIN_CAMPAIGN_STARTED", {}, /присоединение закрыто/],
   ["JOIN_CAMPAIGN_FULL", {}, /нет свободных мест/],
