@@ -139,7 +139,7 @@ export async function POST(
     return Response.json({ error: "Invalid companion sheet." }, { status: 400 });
   }
   if (!admitted.ok) {
-    return refusal(admitted.problems);
+    return refusal(admitted.problems, 400, admitted.problemDetails);
   }
   const input = admitted.sheet;
   // A test fight is played on copies (src/lib/workshop/test-fight.ts):
