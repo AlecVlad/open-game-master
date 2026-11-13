@@ -1607,6 +1607,28 @@ for (const [code, params, expected] of gearRefusalCases) {
   assert.notEqual(message, "Legacy diagnostic", `refusal code ${code} was not translated`);
   assert.match(message, expected, `refusal code ${code} lost its parameters`);
 }
+
+const campaignEntryRefusals = [
+  ["COMPANION_SETTING_OFF", {}, /отключены спутники/],
+  ["COMPANION_GUESTS_ONLY", {}, /только временные гости/],
+  ["COMPANION_AUTO_GUESTS", {}, /режиме «Авто»/],
+  ["COMPANION_ROSTER_FULL", {}, /максимальное число постоянных спутников/],
+  ["COMPANION_ALREADY_HERE", { name: "Брин" }, /Брин/],
+  ["COMPANION_LEFT_PARTY", { name: "Элла" }, /Элла/],
+  ["COMPANION_NOT_IN_LIBRARY", {}, /нет в вашей библиотеке/],
+  ["INVALID_COMPANION_SHEET", {}, /прочитать лист спутника/],
+  ["CAMPAIGN_NOT_FOUND", {}, /Кампания не найдена/],
+  ["STORY_GAME_MASTER_REQUIRED", {}, /Только ведущий игры/],
+];
+for (const [code, params, expected] of campaignEntryRefusals) {
+  const message = refusalText({
+    error: "Legacy diagnostic",
+    errorCode: code,
+    errorParams: params,
+  }, "fallback", gearT);
+  assert.notEqual(message, "Legacy diagnostic", `campaign-entry code ${code} was not translated`);
+  assert.match(message, expected, `campaign-entry code ${code} lost its translation or parameters`);
+}
 assert.match(gearProblemText({ code: "magic", params: { name: "Меч" } }, gearT), /Меч/);
 assert.match(gearProblemText({ code: "invalidOption", params: { className: "жрец", options: "булава, молот" } }, gearT), /жрец/);
 assert.match(gearProblemText({ code: "notProficient", params: { className: "жрец", option: "боевой молот", alternatives: "булава" } }, gearT), /боевой молот/);
