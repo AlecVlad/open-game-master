@@ -1594,7 +1594,7 @@ const gearRefusalCases = [
   ["STARTING_GEAR_INSUFFICIENT_FUNDS", { cost: "20 зм", available: "5 зм", shortfall: "15 зм" }, /15 зм/],
   ["STARTING_GEAR_INVALID_OPTION", { className: "жрец", options: "булава или молот" }, /жрец/],
   ["STARTING_GEAR_NOT_PROFICIENT", { className: "жрец", option: "боевой молот", alternatives: "булава" }, /боевой молот/],
-  ["STARTING_GEAR_INVALID_SLOT", { name: "Дубина", slot: "воинское оружие ближнего боя", className: "варвар", option: "оружие" }, /Дубина/],
+  ["STARTING_GEAR_INVALID_SLOT", { name: "Дубина", slotFilter: "martial-melee", className: "варвар", option: "оружие" }, /воинское оружие ближнего боя/],
   ["STARTING_GEAR_INVALID_BACKGROUND_CHOICE", { options: "кинжал или молот", choice: "двуручный меч" }, /двуручный меч/],
 ];
 for (const [code, params, expected] of gearRefusalCases) {
