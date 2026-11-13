@@ -1422,6 +1422,16 @@ for (const key of gearDiagnosticKeys) {
 }
 assert.ok(translate(DICTIONARIES, "ru", "builder.gear.problem.magic", { name: "Мешок хранения" }).includes("Мешок хранения"));
 assert.ok(translate(DICTIONARIES, "ru", "builder.gear.problem.insufficientFunds", { cost: "20 зм", available: "5 зм", shortfall: "15 зм" }).includes("15 зм"));
+for (const suffix of ["one", "other"]) {
+  assert.ok(`builder.gear.problem.more.${suffix}` in DICTIONARIES.en, `English gear problem plural missing: ${suffix}`);
+}
+for (const suffix of ["one", "few", "many", "other"]) {
+  assert.ok(`builder.gear.problem.more.${suffix}` in DICTIONARIES.ru, `Russian gear problem plural missing: ${suffix}`);
+}
+for (const count of [1, 2, 5]) {
+  assert.ok(!translatePlural(DICTIONARIES, "ru", "builder.gear.problem.more", count).includes("{count}"));
+}
+
 
 // Report (not fail on) what Russian still lacks, so progress is visible.
 const missing = Object.keys(DICTIONARIES.en).filter((key) => !(key in DICTIONARIES.ru));
