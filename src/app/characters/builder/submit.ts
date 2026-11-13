@@ -611,7 +611,7 @@ export function validateBuilder(
       "spells",
       `${state.name.trim() || "This character"} has no ${derived.castingLabel.toLowerCase()} selected and will start unable to cast. Press again to continue anyway.`,
       undefined,
-      { key: "builder.block.spells.noSpells", params: { characterName: state.name.trim() || "This character" } },
+      { key: "builder.block.spells.noSpells" },
     );
     return {
       kind: "spellWarning",
