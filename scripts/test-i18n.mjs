@@ -1413,6 +1413,11 @@ const notificationKeys = [
   "notifications.message.cancelledUntitled",
   "notifications.message.rsvpNo",
   "notifications.message.rsvpNoUntitled",
+  "notifications.message.reminder",
+  "notifications.message.reminderUntitled",
+  "notifications.message.starting",
+  "notifications.message.startingUntitled",
+  "notifications.message.campaignIdle",
 ];
 for (const key of notificationKeys) {
   assert.ok(key in DICTIONARIES.en, `English notification message missing: ${key}`);
@@ -1430,6 +1435,21 @@ const localizedUntitledRsvp = notificationText("rsvp", {
 }, "Legacy English notification.", "ru", notificationT);
 assert.match(localizedUntitledRsvp, /Artem/);
 assert.match(localizedUntitledRsvp, /не сможет прийти/);
+const localizedReminder = notificationText("session_reminder", {
+  campaignTitle: "Тихая гавань", sessionTitle: "Врата", startsAt: "2026-09-05T19:00:00.000Z",
+}, "Legacy English reminder.", "ru", notificationT);
+assert.match(localizedReminder, /Напоминание/);
+assert.match(localizedReminder, /Врата/);
+const localizedStarting = notificationText("session_starting", {
+  campaignTitle: "Тихая гавань", sessionTitle: "Врата", startsAt: "2026-09-05T19:00:00.000Z",
+}, "Legacy English starting message.", "ru", notificationT);
+assert.match(localizedStarting, /начинается/);
+assert.match(localizedStarting, /За стол/);
+const localizedIdle = notificationText("campaign_idle", {
+  campaignTitle: "Тихая гавань",
+}, "Legacy English idle message.", "ru", notificationT);
+assert.match(localizedIdle, /давно тихо/);
+assert.match(localizedIdle, /Тихая гавань/);
 assert.equal(notificationText("session_scheduled", undefined, "Old saved notification.", "ru", notificationT), "Old saved notification.");
 assert.equal(notificationText("future_kind", { campaignTitle: "Table" }, "Unknown event body.", "ru", notificationT), "Unknown event body.");
 // Shared campaign membership and story-authority refusals carry stable codes.
