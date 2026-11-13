@@ -121,7 +121,7 @@ export const enBuilderRemaining = {
   "builder.block.feat.requirement.level": "requires level {minimum} (current: {actual})",
   "builder.block.feat.requirement.skills": "requires proficiency in one of these skills: {skills}",
   "builder.block.feat.requirement.vehicle": "requires proficiency with a type of vehicle",
-  "builder.block.feat.requirement.weapon": "requires proficiency with {weapon}{subtype}",
+  "builder.block.feat.requirement.weapon": "requires proficiency with {weapon} weapons",
   "builder.block.feat.requirement.and": "; ",
   "builder.block.feat.requirement.or": " or ",
   "builder.block.feat.ability.str": "Strength",
