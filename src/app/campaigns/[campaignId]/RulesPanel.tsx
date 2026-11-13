@@ -1,10 +1,11 @@
 "use client";
 
-import { readLoad, useLoadStatus } from "@/lib/load-state";
+import { readLoad, UNREADABLE, UNREACHABLE, useLoadStatus } from "@/lib/load-state";
 import { EmptyState } from "@/components/EmptyState";
 import { Pin, Save } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useI18n } from "@/lib/i18n/provider";
+import { campaignApiErrorText } from "@/lib/i18n/campaignApiError";
 import type { MessageKey } from "@/lib/i18n/messages/index";
 import { cn } from "@/lib/cn";
 import { SectionHead } from "@/components/ui/SectionHead";
@@ -169,7 +170,16 @@ export function RulesPanel({
 
   useEffect(() => {
     let cancelled = false;
-    readLoad<{ text?: unknown; chunks?: unknown }>(fetch(`/api/campaigns/${campaignId}/rules`), t("campaign.session.rules.houseRules")).then((outcome) => {
+    readLoad<{ text?: unknown; chunks?: unknown }>(
+      fetch(`/api/campaigns/${campaignId}/rules`),
+      t("campaign.session.rules.houseRules"),
+      (body, status) => campaignApiErrorText(body, `The server answered ${status}.`, t),
+      (_what, reason) => reason === UNREACHABLE
+        ? t("campaign.session.rules.network")
+        : reason === UNREADABLE
+          ? t("campaign.session.rules.loadFailed")
+          : t("campaign.session.rules.loadFailed") + " " + reason,
+    ).then((outcome) => {
       if (cancelled) {
         return;
       }
@@ -201,7 +211,8 @@ export function RulesPanel({
         setSavedText(String(data.text ?? text));
         setChunks(Array.isArray(data.chunks) ? data.chunks : []);
       } else {
-        setSettingsError(t("campaign.session.rules.saveFailed"));
+        const data = await response.json().catch(() => ({}));
+        setSettingsError(campaignApiErrorText(data, t("campaign.session.rules.saveFailed"), t));
       }
     } catch {
       setSettingsError(t("campaign.session.rules.network"));
@@ -222,7 +233,8 @@ export function RulesPanel({
         current.map((chunk) => (chunk.id === chunkId ? { ...chunk, ...data.chunk } : chunk)),
       );
     } else {
-      setSettingsError(t("campaign.session.rules.changeFailed"));
+      const data = await response.json().catch(() => ({}));
+      setSettingsError(campaignApiErrorText(data, t("campaign.session.rules.changeFailed"), t));
     }
   }
 
@@ -237,11 +249,7 @@ export function RulesPanel({
       });
       if (!response.ok) {
         const data = (await response.json().catch(() => ({}))) as { error?: string; errorCode?: string };
-        setSettingsError(
-          data.errorCode === "INVALID_GAME_SETTINGS"
-            ? t("campaign.session.rules.invalidSettings")
-            : t("campaign.session.rules.changeFailed"),
-        );
+        setSettingsError(campaignApiErrorText(data, t("campaign.session.rules.changeFailed"), t));
       }
     } catch {
       setSettingsError(t("campaign.session.rules.network"));
