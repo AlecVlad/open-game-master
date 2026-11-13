@@ -1509,6 +1509,7 @@ const campaignApiCases = [
   ["PIN_MESSAGE_NOT_FOUND", "campaign.pins.error.messageNotFound"],
   ["INVALID_UNPIN", "campaign.pins.error.invalidUnpin"],
   ["PIN_REMOVE_FORBIDDEN", "campaign.pins.error.removeForbidden"],
+  ["INVITE_REGENERATE_FAILED", "invite.error.regenerate"],
 ];
 for (const [code, key] of campaignApiCases) {
   assert.ok(key in DICTIONARIES.en, `English campaign API message missing: ${key}`);
