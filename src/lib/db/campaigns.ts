@@ -602,14 +602,14 @@ export function campaignAdmits(inviteCode: string): { campaign: Campaign } | { e
 export function joinByInviteCode(
   userId: string,
   inviteCode: string,
-): { campaign: Campaign } | { error: string } {
+): { campaign: Campaign } | { error: string; errorCode: string } {
   const db = getDatabase();
   const row = db
     .prepare(`${CAMPAIGN_SELECT} WHERE c.invite_code = ?`)
     .get(inviteCode) as CampaignRow | undefined;
 
   if (!row) {
-    return { error: "No campaign with that invite code." };
+    return { error: "No campaign with that invite code.", errorCode: "JOIN_INVITE_NOT_FOUND" };
   }
 
   const existing = getCampaignForUser(row.id, userId);
@@ -619,7 +619,14 @@ export function joinByInviteCode(
 
   const refused = admitsByRow(row);
   if (refused) {
-    return { error: refused };
+    const errorCode = refused === "That campaign has ended."
+      ? "JOIN_CAMPAIGN_ENDED"
+      : refused === "That campaign has already started."
+        ? "JOIN_CAMPAIGN_STARTED"
+        : refused === "That campaign is full."
+          ? "JOIN_CAMPAIGN_FULL"
+          : "JOIN_INVITE_NOT_FOUND";
+    return { error: refused, errorCode };
   }
 
   db.prepare(
@@ -628,7 +635,7 @@ export function joinByInviteCode(
   touchCampaign(row.id);
 
   const campaign = getCampaignForUser(row.id, userId);
-  return campaign ? { campaign } : { error: "Failed to join campaign." };
+  return campaign ? { campaign } : { error: "Failed to join campaign.", errorCode: "JOIN_FAILED" };
 }
 
 export function setMemberReady(campaignId: string, userId: string, ready: boolean) {
