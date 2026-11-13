@@ -403,7 +403,7 @@ type DeskCounts = Pick<
 function deskBlocks(desk: DeskCounts, who: string): StepBlock[] {
   const derived = desk;
   const { klass, casterLevel } = desk;
-  const block = (target: BlockerTarget, message: string) => blockOf(target, `${who}${message}`);
+  const block = (target: BlockerTarget, message: string, detail?: BuilderBlockDetail) => blockOf(target, `${who}${message}`, undefined, detail);
   const owed: StepBlock[] = [];
   // A pick the bundled list cannot supply is not asked for (spellSupply.ts):
   // the server holds a caster to at most its count, never to at least it.
@@ -411,20 +411,20 @@ function deskBlocks(desk: DeskCounts, who: string): StepBlock[] {
   const cantripsLeft = Math.min(derived.cantripAdvice ?? 0, supply?.cantrips ?? Infinity) - derived.chosenCantrips.length;
   const cantripsOver = derived.chosenCantrips.length - (derived.cantripAdvice ?? 0);
   if (cantripsLeft > 0) {
-    owed.push(block("spells", `Pick ${cantripsLeft} more ${cantripsLeft === 1 ? "simple spell" : "simple spells"} you can cast at will (${cantripsLeft === 1 ? "cantrip" : "cantrips"}).`));
+    owed.push(block("spells", `Pick ${cantripsLeft} more ${cantripsLeft === 1 ? "simple spell" : "simple spells"} you can cast at will (${cantripsLeft === 1 ? "cantrip" : "cantrips"}).`, { key: "builder.block.spells.cantripsMissing", params: { count: cantripsLeft } }));
   }
   if (derived.cantripAdvice !== null && cantripsOver > 0) {
-    owed.push(block("spells", `Remove ${cantripsOver} ${cantripsOver === 1 ? "cantrip" : "cantrips"}: a ${klass.name.toLowerCase()} knows ${derived.cantripAdvice ?? 0} at this level.`));
+    owed.push(block("spells", `Remove ${cantripsOver} ${cantripsOver === 1 ? "cantrip" : "cantrips"}: a ${klass.name.toLowerCase()} knows ${derived.cantripAdvice ?? 0} at this level.`, { key: "builder.block.spells.cantripsOver", params: { count: cantripsOver, className: klass.name, limit: derived.cantripAdvice ?? 0 } }));
   }
   if (derived.spellbookAdvice !== null) {
     // A wizard fills the book first, then prepares from it.
     const bookLeft = Math.min(derived.spellbookAdvice, supply?.spells ?? Infinity) - derived.chosenSpells.length;
     if (bookLeft > 0) {
-      owed.push(block("spells", `Write ${bookLeft} more ${bookLeft === 1 ? "spell" : "spells"} in your spellbook.`));
+      owed.push(block("spells", `Write ${bookLeft} more ${bookLeft === 1 ? "spell" : "spells"} in your spellbook.`, { key: "builder.block.spells.bookMissing", params: { count: bookLeft } }));
     }
     const bookOver = derived.chosenSpells.length - derived.spellbookAdvice;
     if (bookOver > 0) {
-      owed.push(block("spells", `Remove ${bookOver} ${bookOver === 1 ? "spell" : "spells"} from your spellbook: a level ${casterLevel} wizard starts with ${derived.spellbookAdvice}.`));
+      owed.push(block("spells", `Remove ${bookOver} ${bookOver === 1 ? "spell" : "spells"} from your spellbook: a level ${casterLevel} wizard starts with ${derived.spellbookAdvice}.`, { key: "builder.block.spells.bookOver", params: { count: bookOver, level: casterLevel, limit: derived.spellbookAdvice } }));
     }
   }
   if (derived.spellAdvice) {
@@ -444,7 +444,7 @@ function deskBlocks(desk: DeskCounts, who: string): StepBlock[] {
       ));
     }
     if (spellsOver > 0) {
-      owed.push(block("spells", `Remove ${spellsOver} ${spellsOver === 1 ? "spell" : "spells"}: the limit is ${derived.spellAdvice.count} ${derived.spellAdvice.label}.`));
+      owed.push(block("spells", `Remove ${spellsOver} ${spellsOver === 1 ? "spell" : "spells"}: the limit is ${derived.spellAdvice.count} ${derived.spellAdvice.label}.`, { key: "builder.block.spells.preparedOver", params: { count: spellsOver, limit: derived.spellAdvice.count, label: derived.spellAdvice.label } }));
     }
   }
   return owed;
@@ -471,27 +471,27 @@ export function abilitiesBlocks(
   featJudge?: FeatJudge,
 ): StepBlock[] {
   if (!derived.abilities) {
-    return [block("scores", "Give each of the six abilities a score (ability scores).")];
+    return [block("scores", "Give each of the six abilities a score (ability scores).", undefined, { key: "builder.block.abilities.missing" })];
   }
   const owed: StepBlock[] = [];
   const placed = state ? Object.values(state.scores).map((score) => score ?? POINT_BUY_MIN) : [];
   if (state?.method === "standard" && !sameNumbers(placed, STANDARD_ARRAY)) {
-    owed.push(block("scores", `The standard array is ${STANDARD_ARRAY.join(", ")}, each used once. Place each number on one ability.`));
+    owed.push(block("scores", `The standard array is ${STANDARD_ARRAY.join(", ")}, each used once. Place each number on one ability.`, undefined, { key: "builder.block.abilities.standardArray", params: { values: STANDARD_ARRAY.join(", ") } }));
   }
   if (state?.method === "pointbuy") {
     const outside = placed.find((score) => score < POINT_BUY_MIN || score > POINT_BUY_MAX);
     if (outside !== undefined) {
-      owed.push(block("scores", `A point buy score runs from ${POINT_BUY_MIN} to ${POINT_BUY_MAX}; ${outside} is outside it.`));
+      owed.push(block("scores", `A point buy score runs from ${POINT_BUY_MIN} to ${POINT_BUY_MAX}; ${outside} is outside it.`, undefined, { key: "builder.block.abilities.pointBuyRange", params: { minimum: POINT_BUY_MIN, maximum: POINT_BUY_MAX, score: outside } }));
     }
     const over = -pointBuyRemaining(placed);
     if (over > 0) {
-      owed.push(block("scores", `Point buy is ${over} ${over === 1 ? "point" : "points"} over its ${POINT_BUY_BUDGET}. Lower a score first.`));
+      owed.push(block("scores", `Point buy is ${over} ${over === 1 ? "point" : "points"} over its ${POINT_BUY_BUDGET}. Lower a score first.`, undefined, { key: "builder.block.abilities.pointBuyOver", params: { count: over, budget: POINT_BUY_BUDGET } }));
     }
   }
   if (state?.method === "roll") {
     const thrown = (state.rollPool ?? []).map((entry) => entry.total);
     if (!sameNumbers(placed, thrown)) {
-      owed.push(block("scores", "Rolled scores are the six totals thrown, each placed on one ability. Roll the dice, then place all six."));
+      owed.push(block("scores", "Rolled scores are the six totals thrown, each placed on one ability. Roll the dice, then place all six.", undefined, { key: "builder.block.abilities.rollMismatch" }));
     }
   }
   // Each class's prerequisite, on the final scores as the server reads
@@ -504,7 +504,7 @@ export function abilitiesBlocks(
     (choice, index) => choice === null && !derived.asiTakenInPlay[index],
   );
   if (unresolvedSlot !== -1) {
-    owed.push(block("asi", `Choose what your hero gains at level ${derived.asiSlotLevels[unresolvedSlot]}: higher scores or a feat (ability score improvement).`));
+    owed.push(block("asi", `Choose what your hero gains at level ${derived.asiSlotLevels[unresolvedSlot]}: higher scores or a feat (ability score improvement).`, undefined, { key: "builder.block.abilities.asi", params: { level: derived.asiSlotLevels[unresolvedSlot] } }));
   }
   // A feat taken with an improvement names what it leaves open (issue #125).
   const asiFeats = derived.activeAsiChoices.flatMap((choice) => (choice?.mode === "feat" ? [choice.feat] : []));
