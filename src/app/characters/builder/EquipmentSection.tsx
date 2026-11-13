@@ -14,6 +14,7 @@ import GearReceipt, { type ReceiptView } from "./GearReceipt";
 import { Chip } from "./steps/shared";
 import { textKey } from "@/lib/language/text-logic";
 import { useI18n } from "@/lib/i18n/provider";
+import type { GearProblemDetail } from "@/lib/srd/gear-problems";
 
 // What a catalog row brings into the pack beside its name: a homebrew row
 // its mechanics (so the live AC and attack lines read it before it is
@@ -69,6 +70,7 @@ export type PurseView = {
   // Everything the purse cannot pay for, in the rules' words; empty when
   // the pack is fine.
   problems: string[];
+  problemDetails: GearProblemDetail[];
   // The pack line by line, with its quantity setter (receiptMath.ts). The
   // builder always sends one; without it the pack shows as chips.
   receipt?: ReceiptView;
@@ -79,9 +81,67 @@ export type PurseView = {
     rolled: { faces: number[]; gold: number } | null;
     busy: boolean;
     error: string;
+    errorCode?: string;
     onRoll: () => void;
   } | null;
 };
+
+function gearProblemText(detail: GearProblemDetail, t: ReturnType<typeof useI18n>["t"]): string {
+  const p = detail.params;
+  const name = String(p.name ?? "");
+  switch (detail.code) {
+    case "homebrew":
+      return t("builder.gear.problem.homebrew", { name });
+    case "magic":
+      return t("builder.gear.problem.magic", { name });
+    case "unpriced":
+      return t("builder.gear.problem.unpriced", { name });
+    case "insufficientFunds":
+      return t("builder.gear.problem.insufficientFunds", {
+        cost: String(p.cost ?? ""),
+        available: String(p.available ?? ""),
+        shortfall: String(p.shortfall ?? ""),
+      });
+    case "invalidOption":
+      return t("builder.gear.problem.invalidOption", {
+        className: String(p.className ?? ""),
+        options: String(p.options ?? ""),
+      });
+    case "notProficient":
+      return t("builder.gear.problem.notProficient", {
+        className: String(p.className ?? ""),
+        option: String(p.option ?? ""),
+        alternatives: String(p.alternatives ?? ""),
+      });
+    case "invalidSlot": {
+      const slotKeys: Record<string, string> = {
+        simple: "simple",
+        "simple-melee": "simpleMelee",
+        martial: "martial",
+        "martial-melee": "martialMelee",
+        instrument: "instrument",
+      };
+      const suffix = slotKeys[String(p.slotFilter ?? "")];
+      const slot = suffix ? t(("builder.extra.classKit.slot." + suffix) as never) : String(p.slotFilter ?? "");
+      const described = p.except
+        ? t("builder.extra.classKit.slot.except", { slot, except: String(p.except) })
+        : slot;
+      return t("builder.gear.problem.invalidSlot", {
+        name,
+        slot: described,
+        className: String(p.className ?? ""),
+        option: String(p.option ?? ""),
+      });
+    }
+    case "invalidBackgroundChoice":
+      return t("builder.gear.problem.invalidBackgroundChoice", {
+        options: String(p.options ?? ""),
+        choice: String(p.choice ?? ""),
+      });
+    default:
+      return detail.code;
+  }
+}
 
 // Equipment block of the character builder: the class's starting equipment
 // arrives pre-added (removable), its either-or choices picked in `kit`,
@@ -177,8 +237,8 @@ export default function EquipmentSection({
           sat under the whole inventory and out of view (issue #111). */}
       {purse.problems.length ? (
         <ul role="alert" className="reveal mb-2 space-y-1 rounded-lg border border-amber-500/40 bg-amber-400/10 px-3 py-2 text-xs text-amber-200">
-          {purse.problems.map((problem) => (
-            <li key={problem}>{problem}</li>
+          {purse.problems.map((problem, index) => (
+            <li key={problem}>{purse.problemDetails[index] ? gearProblemText(purse.problemDetails[index], t) : problem}</li>
           ))}
         </ul>
       ) : null}
@@ -269,7 +329,7 @@ export default function EquipmentSection({
         </p>
         {purse.wealth?.error ? (
           <p role="alert" className="reveal motion-shake text-sm text-red-400">
-            {purse.wealth.error}
+            {purse.wealth.errorCode ? t(("builder.gear.wealth.error." + purse.wealth.errorCode) as never) : purse.wealth.error}
           </p>
         ) : null}
         {purse.problems.length ? (
