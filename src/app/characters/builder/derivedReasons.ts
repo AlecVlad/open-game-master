@@ -100,7 +100,7 @@ export function purseViewFor(input: {
   classId: string;
   className: string;
   table: TableRulesState;
-}): PurseView {
+}, messages?: BuildMathMessages): PurseView {
   const { purse, table } = input;
   const t = (key: MessageKey, params?: Params) => messages?.t?.(key, params);
   const spent = purse.spentCopper
