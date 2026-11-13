@@ -84,6 +84,8 @@ export const enBuilderRemaining = {
   "builder.gear.problem.notProficient": "The {className}'s starting equipment gives {option} only to a character trained for it; choose {alternatives}.",
   "builder.gear.problem.invalidSlot": "{name} is not a valid choice for the {slot} slot in the {className}'s {option} kit; choose an item from the weapon table.",
   "builder.gear.problem.invalidBackgroundChoice": "The background's kit offers {options}; \"{choice}\" is not one of them.",
+  "builder.gear.problem.more.one": "{count} more issue is listed under Equipment.",
+  "builder.gear.problem.more.other": "{count} more issues are listed under Equipment.",
   "builder.gear.wealth.error.campaignNotAccessible": "That campaign is not one of yours.",
   "builder.gear.wealth.error.notRolled": "This table uses class equipment and background coin instead of rolling starting wealth.",
   "builder.gear.wealth.error.invalidRequest": "The starting-wealth roll request is invalid.",
