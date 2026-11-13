@@ -38,6 +38,11 @@ export async function POST(
       body: `${context.user.username} can't make ${
         session.title || "the session"
       } in ${context.campaign.title}.`,
+      params: {
+        username: context.user.username,
+        campaignTitle: context.campaign.title,
+        sessionTitle: session.title,
+      },
     });
   }
   publishEphemeral(campaignId, "schedule_updated", {});
