@@ -110,6 +110,23 @@ test("the purse still refuses a magic item", () => {
     priceOf: () => ({ copper: null, magic: true }),
   });
   assert.ok(verdict.problems.some((problem) => problem.includes("magic item")), JSON.stringify(verdict));
+  assert.deepEqual(verdict.problemDetails, [{ code: "magic", params: { name: "Bag of Holding" } }]);
+
+  const homebrew = judgeStartingGear({
+    equipment: [{ name: "Moonblade", qty: 1, slug: "homebrew:moonblade" }],
+    freeKit: [],
+    coinCopper: 1000,
+    priceOf: () => ({ copper: 100, magic: false }),
+  });
+  assert.equal(homebrew.problemDetails[0]?.code, "homebrew");
+  const overBudget = judgeStartingGear({
+    equipment: [{ name: "Rope", qty: 2 }],
+    freeKit: [],
+    coinCopper: 1,
+    priceOf: () => ({ copper: 100, magic: false }),
+  });
+  assert.equal(overBudget.problemDetails[0]?.code, "insufficientFunds");
+  assert.ok(String(overBudget.problemDetails[0]?.params.shortfall).length > 0);
 });
 
 console.log(`\n${passed} passed`);
