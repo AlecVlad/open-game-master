@@ -40,6 +40,7 @@ export const ruCreateCampaign: Partial<Record<keyof typeof enCreateCampaign, str
   "createCampaign.defaults.error.read": "Не удалось прочитать сохранённые настройки.",
   "createCampaign.defaults.error.readNetwork": "Не удалось связаться с сервером и прочитать сохранённые настройки.",
   "createCampaign.defaults.error.saveNetwork": "Не удалось связаться с сервером. Настройки не сохранены.",
+  "createCampaign.defaults.error.remove": "Не удалось удалить сохранённые настройки.",
   "createCampaign.defaults.error.removeNetwork": "Не удалось связаться с сервером. Настройки не удалены.",
   "createCampaign.defaults.saveError": "{error} Изменения не сохранены, но кампанию всё ещё можно создать.",
   "createCampaign.defaults.useMine": "Теперь эта кампания использует ваши настройки по умолчанию.",
