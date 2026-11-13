@@ -9,6 +9,7 @@ export const enCharUse = {
   "charUse.err.companion.leftParty": "{name} has left this party. Only the story can bring them back.",
   "charUse.err.companion.notInLibrary": "That companion is not in your library.",
   "charUse.err.companion.invalidSheet": "The companion sheet could not be read.",
+  "charUse.err.multiclass": "The character {name} has levels in more than one class, and this campaign does not allow multiclassing. Bring a single-class character instead.",
   "charUse.err.net": "Could not reach the server.",
   "charUse.title.ally": "Bring {name} to a campaign as an ally",
   "charUse.title.use": "Use {name} in a campaign",
