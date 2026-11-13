@@ -1,16 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages/index.ts";
 import { cn } from "@/lib/cn";
-import type { ModelRole, ModelVerdict } from "@/lib/model-registry/catalog-logic";
+import type { ModelDiagnostic, ModelRole, ModelSummaryPart, ModelVerdict } from "@/lib/model-registry/catalog-logic";
 
-// One quiet line under a campaign's model field: what the model catalog
-// says of the model named (GET /api/models), and a warning when it is
-// deprecated or cannot do the role's work. Catalog only, so it costs no
-// backend call and needs no key; the admin's pickers do the live listing.
+// A translated note under a model field: catalog abilities and any warning
+// about whether the selected model can do the role this campaign needs.
 export function ModelNote({ role, baseUrl, model }: { role: ModelRole; baseUrl: string; model: string }) {
-  // The answer is kept with the question it answers, so a changed model
-  // shows nothing (not the old model's note) until its own answer lands.
+  const { t } = useI18n();
   const [answer, setAnswer] = useState<{ key: string; verdict: ModelVerdict | null } | null>(null);
   const name = model.trim();
   const key = `${role}|${baseUrl}|${name}`;
@@ -35,5 +34,11 @@ export function ModelNote({ role, baseUrl, model }: { role: ModelRole; baseUrl: 
   const verdict = answer?.key === key ? answer.verdict : null;
   if (!verdict) return null;
   const tone = verdict.fit === "unfit" ? "text-red-400" : verdict.fit === "warn" ? "text-amber-300" : "text-stone-500";
-  return <p className={cn("text-[11px] leading-4", tone)}>{[...verdict.warnings, verdict.summary].join(" ")}</p>;
+  const warnings = verdict.warningDetails?.length
+    ? verdict.warningDetails.map((detail: ModelDiagnostic) => t(("modelNote.warning." + detail.code) as MessageKey, detail.params))
+    : verdict.warnings;
+  const summary = verdict.summaryParts?.length
+    ? verdict.summaryParts.map((part: ModelSummaryPart) => t(("modelNote.summary." + part.code) as MessageKey, part.params)).join(" · ")
+    : verdict.summary;
+  return <p className={cn("text-[11px] leading-4", tone)}>{[...warnings, summary].join(" ")}</p>;
 }
