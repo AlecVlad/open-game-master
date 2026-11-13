@@ -83,7 +83,7 @@ export const enBuilderRemaining = {
   "builder.gear.problem.invalidOption": "The {className}'s starting equipment offers {options}; choose one of them.",
   "builder.gear.problem.notProficient": "The {className}'s starting equipment gives {option} only to a character trained for it; choose {alternatives}.",
   "builder.gear.problem.invalidSlot": "{name} is not a valid choice for the {slot} slot in the {className}'s {option} kit; choose an item from the weapon table.",
-  "builder.gear.problem.invalidBackgroundChoice": "The background's kit offers {options}; \"{choice}\" is not one of them.",
+  "builder.gear.problem.invalidBackgroundChoice": "The background's kit offers {options}, but \"{choice}\" is not one of them.",
   "builder.gear.problem.more.one": "{count} more issue is listed under Equipment.",
   "builder.block.spells.noSpells": "No spells are selected. This character will start unable to cast. Press again to continue anyway.",
   "builder.block.feat.choices": "{feat}: complete these remaining choices: {details}.",
