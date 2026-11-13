@@ -67,6 +67,7 @@ const CAMPAIGN_ERROR_KEYS = {
   HUMAN_MODE_REQUIRES_GM: "campaign.lobby.error.humanGameNeedsGm",
   SEAT_UPDATE_FAILED: "campaign.lobby.error.seatMoveFailed",
   NO_CHARACTER_TO_REMOVE: "campaign.lobby.error.noCharacterToRemove",
+  INVITE_REGENERATE_FAILED: "invite.error.regenerate",
 } satisfies Record<string, MessageKey>;
 
 // The server keeps its English message for old clients and logs. The UI uses
