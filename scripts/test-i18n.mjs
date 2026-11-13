@@ -88,6 +88,21 @@ for (const prefix of fullyLocalizedAreas) {
   assert.deepEqual(missing, [], `Russian messages are missing for ${prefix}: ${missing.join(", ")}`);
 }
 
+// Campaign record panels audited in block 3 must not silently fall back to English.
+const campaignPanelAreas = [
+  "campaign.fact.",
+  "campaign.factions.",
+  "campaign.pins.",
+  "campaign.quest.",
+  "campaign.timeline.",
+  "campaign.notes.",
+  "campaign.relationship.",
+];
+for (const prefix of campaignPanelAreas) {
+  const missing = Object.keys(DICTIONARIES.en).filter((key) => key.startsWith(prefix) && !(key in DICTIONARIES.ru));
+  assert.deepEqual(missing, [], `Russian campaign-panel messages are missing for ${prefix}: ${missing.join(", ")}`);
+}
+
 const tableViewMessages = [
   "campaign.tableView.error.memberOnly",
   "campaign.tableView.backToCampaigns",
