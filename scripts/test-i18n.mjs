@@ -14,6 +14,7 @@ import {
 import { DICTIONARIES } from "../src/lib/i18n/messages/index.ts";
 import { localizeStoryboardError } from "../src/lib/workshop/storyboard-api-i18n.ts";
 import { gearProblemText } from "../src/app/characters/builder/gearProblemText.ts";
+import { featOwedText } from "../src/app/characters/builder/featOwedText.ts";
 
 // Language choice: the cookie wins, then Accept-Language, then English.
 assert.equal(pickLang("ru", "en-US,en;q=0.9"), "ru");
@@ -1490,6 +1491,45 @@ for (const key of builderBlockKeys) {
 }
 assert.ok(translate(DICTIONARIES, "ru", "builder.block.background.skills", { backgroundName: "Аколит" }).includes("Аколит"));
 assert.ok(translate(DICTIONARIES, "ru", "builder.block.spells.bookOver", { count: 2, level: 3, limit: 10 }).includes("10"));
+
+// Feat requirements are formatted from structured counts, not parsed English sentences.
+const featBlockKeys = [
+  "builder.block.feat.choices",
+  "builder.block.feat.pickCount",
+  "builder.block.feat.shared",
+  "builder.block.feat.kind.languages",
+  "builder.block.feat.kind.skills",
+  "builder.block.feat.kind.expertise",
+  "builder.block.feat.kind.weapons",
+  "builder.block.feat.kind.tools",
+  "builder.block.feat.kind.damageType",
+  "builder.block.feat.kind.classList",
+  "builder.block.feat.kind.spellAbility",
+  "builder.block.feat.kind.attackCantrip",
+  "builder.block.feat.kind.cantrip",
+  "builder.block.feat.kind.ritualSpell",
+  "builder.block.feat.kind.spell",
+  "builder.block.feat.spellLevel",
+  "builder.block.feat.schools"
+];
+for (const key of featBlockKeys) {
+  assert.ok(key in DICTIONARIES.en, `English feat blocker missing: ${key}`);
+  assert.ok(key in DICTIONARIES.ru, `Russian feat blocker missing: ${key}`);
+}
+const featT = (key, params) => translate(DICTIONARIES, "ru", key, params);
+const linguistOwed = featOwedText({
+  kind: "picks", feat: "Linguist", languages: 3, skills: 0, expertise: 0,
+  weapons: 0, tools: 0, shared: 0, sharedKinds: "", damageType: "no",
+}, featT);
+assert.match(linguistOwed, /языки/);
+assert.match(linguistOwed, /3/);
+const mysticOwed = featOwedText({
+  kind: "spells", feat: "Mystical Talent", listChoice: "yes", abilityChoice: "no",
+  cantrips: 2, attackCantrip: "no", spells: 1, spellLevel: 1, schools: "", ritualBook: "no",
+}, featT);
+assert.match(mysticOwed, /список заклинаний класса/);
+assert.match(mysticOwed, /заговоры/);
+assert.match(mysticOwed, /заклинания/);
 
 // Report (not fail on) what Russian still lacks, so progress is visible.
 const missing = Object.keys(DICTIONARIES.en).filter((key) => !(key in DICTIONARIES.ru));
