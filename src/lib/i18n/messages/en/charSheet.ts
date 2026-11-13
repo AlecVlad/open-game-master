@@ -150,6 +150,7 @@ export const enCharSheet = {
   "charSheet.spellSlot.spendTitle": "Mark one slot as spent",
   "charSheet.spellSlot.spendAria": "Spend a {label} slot",
   "charSheet.spellSlot.recoverTitle": "Correction: give one slot back",
+  "charSheet.spellSlot.recoverAria": "Restore a {label} spell slot",
   "charSheet.resource.spendTitle": "Spend a use",
   "charSheet.resource.recoverTitle": "Correction: give a use back",
   "charSheet.resource.nextDc": "next DC {dc}",
