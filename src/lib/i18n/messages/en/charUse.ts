@@ -1,6 +1,14 @@
 // English, the source language: use a library character in a campaign dialog and new character page.
 export const enCharUse = {
   "charUse.err.bring": "Could not bring the character to that table.",
+  "charUse.err.companion.off": "This table has turned AI companions off. Change the Allies setting to allow party companions.",
+  "charUse.err.companion.guestsOnly": "This table allows temporary guests only, not lasting party companions. Change the Allies setting to allow party companions.",
+  "charUse.err.companion.autoGuests": "Auto allows temporary guests only at a multiplayer AI-run table. Change the Allies setting to allow lasting party companions.",
+  "charUse.err.companion.rosterFull": "This party already has the maximum number of lasting companions. Raise the limit in the Allies settings or dismiss a companion first.",
+  "charUse.err.companion.alreadyHere": "{name} is already at this table.",
+  "charUse.err.companion.leftParty": "{name} has left this party. Only the story can bring them back.",
+  "charUse.err.companion.notInLibrary": "That companion is not in your library.",
+  "charUse.err.companion.invalidSheet": "The companion sheet could not be read.",
   "charUse.err.net": "Could not reach the server.",
   "charUse.title.ally": "Bring {name} to a campaign as an ally",
   "charUse.title.use": "Use {name} in a campaign",
