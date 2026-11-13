@@ -1405,6 +1405,7 @@ for (const count of [1, 2, 5]) {
 const campaignApiT = (key) => translate(DICTIONARIES, "ru", key);
 const campaignApiCases = [
   ["PASSWORD_CHANGE_REQUIRED", "createCampaign.dialog.error.passwordChange"],
+  ["AUTH_REQUIRED", "auth.err.notLoggedIn"],
   ["CAMPAIGN_NOT_FOUND", "campaign.session.rules.error.campaignNotFound"],
   ["STORY_GAME_MASTER_REQUIRED", "campaign.session.rules.error.gameMasterRequired"],
   ["STORY_PARTY_LEAD_REQUIRED", "campaign.session.rules.error.partyLeadRequired"],
