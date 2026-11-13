@@ -93,6 +93,7 @@ export const ruCampaignPanels: Partial<Record<keyof typeof enCampaignPanels, str
   "campaign.fact.error.save": "Не удалось сохранить факт.",
   "campaign.fact.error.update": "Не удалось изменить факт.",
   "campaign.fact.error.server": "Не удалось связаться с сервером.",
+  "campaign.fact.error.secretsLoad": "Не удалось загрузить скрытые факты. Попробуйте ещё раз.",
 
   "campaign.quest.status.active": "Активно",
   "campaign.quest.status.done": "Выполнено",
