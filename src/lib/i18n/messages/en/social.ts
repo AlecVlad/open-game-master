@@ -33,4 +33,12 @@ export const enSocial = {
   "notifications.panel.title": "News from your tables",
   "notifications.empty.title": "Nothing yet",
   "notifications.empty.hint": "Quiet week. Session plans and reminders land here.",
+  "notifications.message.scheduled": "A session “{sessionTitle}” for {campaignTitle} is planned for {when}.",
+  "notifications.message.scheduledUntitled": "A session for {campaignTitle} is planned for {when}.",
+  "notifications.message.updated": "The “{sessionTitle}” session for {campaignTitle} moved to {when}.",
+  "notifications.message.updatedUntitled": "A session for {campaignTitle} moved to {when}.",
+  "notifications.message.cancelled": "The “{sessionTitle}” session for {campaignTitle} on {when} was called off.",
+  "notifications.message.cancelledUntitled": "A session for {campaignTitle} on {when} was called off.",
+  "notifications.message.rsvpNo": "{username} can’t make the session “{sessionTitle}” in {campaignTitle}.",
+  "notifications.message.rsvpNoUntitled": "{username} can’t make a session in {campaignTitle}.",
 } satisfies Record<string, string>;
