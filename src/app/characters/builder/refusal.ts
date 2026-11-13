@@ -1,4 +1,5 @@
 import type { MessageKey } from "@/lib/i18n/messages";
+import { gearProblemText } from "./gearProblemText";
 
 type MessageParams = Record<string, string | number>;
 
@@ -71,6 +72,9 @@ export function refusalText(
           ),
         )
       : undefined;
+    if (code === "STARTING_GEAR_INVALID_SLOT") {
+      return gearProblemText({ code: "invalidSlot", params: messageParams ?? {} }, t);
+    }
     if (typeof code === "string" && code in REFUSAL_MESSAGE_KEYS) {
       return t(REFUSAL_MESSAGE_KEYS[code as keyof typeof REFUSAL_MESSAGE_KEYS], messageParams);
     }
