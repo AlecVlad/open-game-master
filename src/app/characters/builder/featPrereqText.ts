@@ -36,8 +36,10 @@ export function featPrerequisiteText(params: Params | undefined, t: Translator):
       }
       case "vehicle":
         return t("builder.block.feat.requirement.vehicle");
-      case "weapon":
-        return t("builder.block.feat.requirement.weapon", { weapon: t(("builder.block.feat.weapon." + String(entry.weaponType)) as MessageKey), subtype: entry.subtype ? t(("builder.block.feat.weapon." + String(entry.subtype)) as MessageKey) : "" });
+      case "weapon": {
+        const parts = [entry.weaponType, entry.subtype].filter(Boolean).map((name) => t(("builder.block.feat.weapon." + String(name)) as MessageKey));
+        return t("builder.block.feat.requirement.weapon", { weapon: parts.join(" ") });
+      }
       default:
         return "";
     }
