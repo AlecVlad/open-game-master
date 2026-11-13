@@ -56,16 +56,27 @@ function NoteCard({
   const [title, setTitle] = useState(note.title);
   const [body, setBody] = useState(note.body);
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
 
-  async function patch(payload: Record<string, unknown>) {
+  async function patch(payload: Record<string, unknown>): Promise<boolean> {
     setBusy(true);
+    setError("");
     try {
-      await fetch(`/api/campaigns/${campaignId}/notes/${note.id}`, {
+      const response = await fetch(`/api/campaigns/${campaignId}/notes/${note.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        setError(campaignApiErrorText(data, t("campaign.notes.error.update"), t));
+        return false;
+      }
       await refreshNotes();
+      return true;
+    } catch {
+      setError(t("campaign.notes.error.server"));
+      return false;
     } finally {
       setBusy(false);
     }
@@ -73,9 +84,17 @@ function NoteCard({
 
   async function remove() {
     setBusy(true);
+    setError("");
     try {
-      await fetch(`/api/campaigns/${campaignId}/notes/${note.id}`, { method: "DELETE" });
+      const response = await fetch(`/api/campaigns/${campaignId}/notes/${note.id}`, { method: "DELETE" });
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        setError(campaignApiErrorText(data, t("campaign.notes.error.remove"), t));
+        return;
+      }
       await refreshNotes();
+    } catch {
+      setError(t("campaign.notes.error.server"));
     } finally {
       setBusy(false);
     }
@@ -83,6 +102,7 @@ function NoteCard({
 
   return (
     <li className="rounded-lg border border-stone-800 bg-stone-950/40 p-2.5">
+      {error ? <p role="alert" className="mb-2 text-[11px] text-red-400">{error}</p> : null}
       {editing ? (
         <div className="reveal space-y-1.5">
           <input
@@ -106,8 +126,7 @@ function NoteCard({
               type="button"
               disabled={busy || !body.trim()}
               onClick={async () => {
-                await patch({ title: title.trim(), body: body.trim() });
-                setEditing(false);
+                if (await patch({ title: title.trim(), body: body.trim() })) setEditing(false);
               }}
               className="flex items-center gap-1 rounded border border-stone-700 px-2 py-0.5 text-[11px] text-stone-300 hover:bg-stone-900 disabled:opacity-50"
             >
