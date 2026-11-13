@@ -338,7 +338,7 @@ export async function PUT(
     if (hasSeatPicks(picked.picks)) {
       const judged = admitLibraryForSeat(character, context.campaign, context.user.id, Math.max(1, Math.min(20, context.campaign.startingLevel)), picked.picks);
       if (!judged.ok) {
-        return refusal(judged.problems);
+        return refusal(judged.problems, 400, judged.problemDetails);
       }
     }
     // A pregen someone else holds here is refused before the old sheet goes
