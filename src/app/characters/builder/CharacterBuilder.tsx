@@ -42,6 +42,7 @@ import {
   type BuilderResult,
   type StepBlock,
   type GearProblemFormatter,
+  type BuilderBlockFormatter,
 } from "./submit";
 import { clearBuilderDraft, readBuilderDraft, writeBuilderDraft, type BuilderDraft } from "./builderDraft";
 import { builderActions, extraClassRows, useBuilderDerived } from "./useBuilderDerived";
@@ -268,6 +269,8 @@ function CharacterBuilderForm({
     const first = detail ? gearProblemText(detail, t) : fallback;
     return more > 0 ? first + " " + tp("builder.gear.problem.more", more, { count: more }) : first;
   };
+  const formatStepBlock: BuilderBlockFormatter = (entry) =>
+    entry.detail ? t(entry.detail.key, entry.detail.params) : entry.message;
   // creator.css stills its loops under <html data-effects="low">, which only
   // the table's session view set; the library and join pages build
   // characters outside it.
@@ -523,7 +526,7 @@ function CharacterBuilderForm({
   }
   const gate = (blocked: StepBlock | null) => ({
     canContinue: !blocked,
-    blocker: blocked?.message ?? null,
+    blocker: blocked ? formatStepBlock(blocked) : null,
     onBlocked: blocked ? () => locate(blocked.target) : undefined,
   });
 
@@ -544,7 +547,7 @@ function CharacterBuilderForm({
       return;
     }
     const input = { state, derived, race, klass, background, initial, featJudge };
-    const problem = validateBuilder(input, formatGearProblem);
+    const problem = validateBuilder(input, formatGearProblem, formatStepBlock);
     if (problem) {
       if (problem.kind === "spellWarning") {
         state.setSpellWarningAck(true);
@@ -834,7 +837,7 @@ function CharacterBuilderForm({
       title: t("builder.step.finish.title"),
       blurb: t("builder.step.finish.blurb"),
       canContinue: !busy && !firstOwed,
-      blocker: firstOwed?.message ?? null,
+      blocker: firstOwed ? formatStepBlock(firstOwed) : null,
       onBlocked: firstOwed ? () => changePick(firstOwed.target) : undefined,
       content: (
         <FinishStep
