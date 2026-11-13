@@ -541,6 +541,7 @@ export function abilitiesBlocker(
 
 // The pack: what it costs against the coin the character starts with.
 export type GearProblemFormatter = (detail: GearProblemDetail | undefined, fallback: string, more: number) => string;
+export type BuilderBlockFormatter = (entry: StepBlock) => string;
 
 export function gearBlocker(derived: BuilderDerived, formatProblem?: GearProblemFormatter): StepBlock | null {
   const problems = [...new Set(derived.purse?.problems ?? [])];
@@ -559,22 +560,27 @@ export function gearBlocker(derived: BuilderDerived, formatProblem?: GearProblem
 export function validateBuilder(
   input: SubmitInput,
   formatGearProblem?: GearProblemFormatter,
+  formatBlock?: BuilderBlockFormatter,
 ): { kind: "error" | "spellWarning"; message: string; target?: BlockerTarget } | null {
   const { derived, klass, background } = input;
   const race = input.race && withSpeciesVariant(input.race, input.state.racialVariant);
   // Each missing piece by its own name and step: this used to say "Assign
   // all six ability scores first." whatever was missing.
   if (!race) {
-    return { kind: "error", message: "Choose where your hero comes from (race).", target: "race" };
+    const missing = block("race", "Choose where your hero comes from (race).", undefined, { key: "builder.block.ancestry.missing" });
+    return { kind: "error", message: formatBlock?.(missing) ?? missing.message, target: "race" };
   }
   if (!klass) {
-    return { kind: "error", message: "Choose how you fight or use magic (class).", target: "class" };
+    const missing = block("class", "Choose how you fight or use magic (class).", undefined, { key: "builder.block.calling.missing" });
+    return { kind: "error", message: formatBlock?.(missing) ?? missing.message, target: "class" };
   }
   if (!background) {
-    return { kind: "error", message: "Choose what your hero did before adventuring (background).", target: "background" };
+    const missing = block("background", "Choose what your hero did before adventuring (background).", undefined, { key: "builder.block.background.missing" });
+    return { kind: "error", message: formatBlock?.(missing) ?? missing.message, target: "background" };
   }
   if (!derived.abilities || !derived.preview) {
-    return { kind: "error", message: "Give each of the six abilities a score (ability scores).", target: "scores" };
+    const missing = block("scores", "Give each of the six abilities a score (ability scores).", undefined, { key: "builder.block.abilities.missing" });
+    return { kind: "error", message: formatBlock?.(missing) ?? missing.message, target: "scores" };
   }
   // The gates read the picks as the sheet will carry them, not as they were
   // typed: buildBuilderResult reconciles once more, and a pick that step
@@ -596,7 +602,7 @@ export function validateBuilder(
     gearBlocker(derived, formatGearProblem) ??
     identityBlocker(state);
   if (blocked) {
-    return { kind: "error", message: blocked.message, target: blocked.target };
+    return { kind: "error", message: blocked.target === "gear" ? blocked.message : (formatBlock?.(blocked) ?? blocked.message), target: blocked.target };
   }
   // Casters with no spells at all can still be submitted (homebrew varies),
   // but not by accident: one confirmation makes it a deliberate choice.
