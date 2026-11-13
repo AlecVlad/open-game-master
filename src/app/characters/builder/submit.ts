@@ -29,6 +29,8 @@ import { subclassPickFeatures } from "@/lib/srd/subclass-choice-picks";
 import { featChoice } from "@/lib/schemas/sheet";
 import { normalizeAttraction } from "@/lib/attraction";
 import type { GearProblemDetail } from "@/lib/srd/gear-problems";
+import type { Params } from "@/lib/i18n/core";
+import type { MessageKey } from "@/lib/i18n/messages";
 
 export type BuilderResult = { level: number; sheet: CreateSheetInput };
 
@@ -66,9 +68,10 @@ export type BlockerTarget =
 
 // `label`: the pick's own name where the race names it (a workshop
 // species' "Bloodline"), for the line of choices left (owed.ts).
-export type StepBlock = { message: string; target: BlockerTarget; label?: string };
+export type BuilderBlockDetail = { key: MessageKey; params?: Params };
+export type StepBlock = { message: string; target: BlockerTarget; label?: string; detail?: BuilderBlockDetail };
 
-const block = (target: BlockerTarget, message: string, label?: string): StepBlock => ({ target, message, ...(label ? { label } : {}) });
+const block = (target: BlockerTarget, message: string, label?: string, detail?: BuilderBlockDetail): StepBlock => ({ target, message, ...(label ? { label } : {}), ...(detail ? { detail } : {}) });
 const blockOf = block;
 
 type SubmitInput = {
