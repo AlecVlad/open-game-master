@@ -277,7 +277,7 @@ export function callingBlocks(
   derived?: BuilderDerived,
 ): StepBlock[] {
   if (!klass) {
-    return [block("class", "Choose how you fight or use magic (class).")];
+    return [block("class", "Choose how you fight or use magic (class).", undefined, { key: "builder.block.calling.missing" })];
   }
   if (!state || !derived) {
     return [];
@@ -286,14 +286,14 @@ export function callingBlocks(
   const strict = srdClass(klass);
   const skillsLeft = klass.skillChoices.count - state.chosenSkills.length;
   if (strict && skillsLeft > 0) {
-    owed.push(block("classSkills", `Pick ${skillsLeft} more ${skillsLeft === 1 ? "skill" : "skills"} your training taught you (class skills).`));
+    owed.push(block("classSkills", `Pick ${skillsLeft} more ${skillsLeft === 1 ? "skill" : "skills"} your training taught you (class skills).`, undefined, { key: "builder.block.calling.skills", params: { count: skillsLeft } }));
   }
   // Open tool grants are asked with the background (backgroundBlocks).
   // The first class's subclass comes at its own level, not the character's.
   const primaryLevel = derived.primaryLevel ?? derived.effectiveLevel;
   const pickLevel = subclassLevelFor(klass.id);
   if (pickLevel !== null && primaryLevel >= pickLevel && !state.subclass.trim()) {
-    owed.push(block("subclass", `Choose your ${klass.name.toLowerCase()}'s path (subclass): a ${klass.name.toLowerCase()} chooses one at level ${pickLevel}.`));
+    owed.push(block("subclass", `Choose your ${klass.name.toLowerCase()}'s path (subclass): a ${klass.name.toLowerCase()} chooses one at level ${pickLevel}.`, undefined, { key: "builder.block.calling.subclass", params: { className: klass.name, level: pickLevel } }));
   }
   owed.push(...multiclassBlocks(state, derived));
   // What the subclass's training leaves to the player: a Lore bard's three
@@ -309,7 +309,7 @@ export function callingBlocks(
   }
   const stylesLeft = derived.styleSlots - state.stylePicks.slice(0, derived.styleSlots).length;
   if (stylesLeft > 0) {
-    owed.push(block("styles", `Pick how you like to fight (${stylesLeft === 1 ? "fighting style" : `${stylesLeft} fighting styles`}).`));
+    owed.push(block("styles", `Pick how you like to fight (${stylesLeft === 1 ? "fighting style" : `${stylesLeft} fighting styles`}).`, undefined, { key: "builder.block.calling.styles", params: { count: stylesLeft } }));
   }
   // Each class's own, at its own level (a rogue taken second brings two).
   const expertiseSlots = derived.expertiseSlots ?? expertiseSlotsFor(klass.id, derived.effectiveLevel);
@@ -320,16 +320,16 @@ export function callingBlocks(
     expertiseSlots -
     state.expertisePicks.filter((skillId) => expertiseAllowed(skillId, derived.proficientSkills, classIds)).length;
   if (expertiseLeft > 0) {
-    owed.push(block("expertise", `Pick ${expertiseLeft} more ${expertiseLeft === 1 ? "skill" : "skills"} you are especially good at (expertise).`));
+    owed.push(block("expertise", `Pick ${expertiseLeft} more ${expertiseLeft === 1 ? "skill" : "skills"} you are especially good at (expertise).`, undefined, { key: "builder.block.calling.expertise", params: { count: expertiseLeft } }));
   }
   const slot = derived.optionSlots.find((entry) => entry.remaining > 0);
   if (slot) {
-    owed.push(block("options", `Pick ${slot.remaining} more ${slot.label.toLowerCase()}.`));
+    owed.push(block("options", `Pick ${slot.remaining} more ${slot.label.toLowerCase()}.`, undefined, { key: "builder.block.calling.options", params: { count: slot.remaining, label: slot.label } }));
   }
   // A workshop subclass's own choice, as a pick-list's (issue #833).
   const choice = (derived.subclassChoiceSlots ?? []).find((entry) => !entry.chosen);
   if (choice) {
-    owed.push(block("options", `Pick your ${choice.label} (${choice.subclass}).`));
+    owed.push(block("options", `Pick your ${choice.label} (${choice.subclass}).`, undefined, { key: "builder.block.calling.subclassOption", params: { label: choice.label, subclass: choice.subclass } }));
   }
   return owed;
 }
@@ -357,18 +357,18 @@ function multiclassBlocks(state: BuilderState, derived: BuilderDerived): StepBlo
   const held = new Set(state.storedClassIds ?? []);
   const keepsHeld = held.size > 1 && derived.classList.every((entry) => held.has(entry.id));
   if (derived.multiclassAllowed === false && !keepsHeld) {
-    owed.push(block("multiclass", "This table turns multiclassing off: remove the second class to make the character here."));
+    owed.push(block("multiclass", "This table turns multiclassing off: remove the second class to make the character here.", undefined, { key: "builder.block.multiclass.disabled" }));
   }
   for (const entry of extras) {
     const name = entry.klass.name.toLowerCase();
     const pickLevel = subclassLevelFor(entry.klass.id);
     if (pickLevel !== null && entry.level >= pickLevel && !entry.subclass.trim()) {
-      owed.push(block("multiclass", `Choose your ${name}'s path (subclass): a ${name} chooses one at its level ${pickLevel}.`));
+      owed.push(block("multiclass", `Choose your ${name}'s path (subclass): a ${name} chooses one at its level ${pickLevel}.`, undefined, { key: "builder.block.multiclass.subclass", params: { className: entry.klass.name, level: pickLevel } }));
     }
     const grant = multiclassGrantsFor(entry.klass.id).skillChoice;
     const left = grant ? grant.count - entry.skills.filter(Boolean).length : 0;
     if (left > 0) {
-      owed.push(block("multiclass", `Pick the ${left === 1 ? "skill" : `${left} skills`} your ${name} levels taught you (skill proficiency).`));
+      owed.push(block("multiclass", `Pick the ${left === 1 ? "skill" : `${left} skills`} your ${name} levels taught you (skill proficiency).`, undefined, { key: "builder.block.multiclass.skills", params: { count: left, className: entry.klass.name } }));
     }
   }
   return owed;
