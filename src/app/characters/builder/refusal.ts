@@ -145,6 +145,10 @@ const REFUSAL_MESSAGE_KEYS = {
   LEVEL_UP_SUBCLASS_CHOICE_OPTION_NOT_OFFERED: "charSheet.levelUp.error.subclassChoiceOptionNotOffered",
   LEVEL_UP_SUBCLASS_CHOICE_TOO_EARLY: "charSheet.levelUp.error.subclassChoiceTooEarly",
   LEVEL_UP_SUBCLASS_CHOICE_MULTIPLE: "charSheet.levelUp.error.subclassChoiceMultiple",
+  LEVEL_UP_OPTION_REQUIRES_CLASS_LEVEL: "charSheet.levelUp.error.optionClassLevel",
+  LEVEL_UP_OPTION_REQUIRES_PACT_BOON: "charSheet.levelUp.error.optionPact",
+  LEVEL_UP_OPTION_REQUIRES_CANTRIP: "charSheet.levelUp.error.optionCantrip",
+  LEVEL_UP_OPTION_SPELLBOOK_REQUIRED: "charSheet.levelUp.error.optionSpellbook",
   FEAT_GRANT_DAMAGE_TYPE_NOT_OFFERED: "charSheet.levelUp.error.grantDamageTypeNotOffered",
   FEAT_GRANT_SKILL_INVALID: "charSheet.levelUp.error.grantSkillInvalid",
   FEAT_GRANT_SKILL_NOT_OFFERED: "charSheet.levelUp.error.grantSkillNotOffered",
@@ -215,11 +219,14 @@ export function refusalText(
     }
     if (
       code === "LEVEL_UP_MULTICLASS_CANDIDATE_PREREQUISITE" ||
-      code === "LEVEL_UP_MULTICLASS_HELD_PREREQUISITE"
+      code === "LEVEL_UP_MULTICLASS_HELD_PREREQUISITE" ||
+      code === "LEVEL_UP_OPTION_REQUIRES_CLASS_LEVEL"
     ) {
       const classId = messageParams?.classId;
-      if (typeof classId === "string" && MULTICLASS_CLASS_MESSAGE_KEYS[classId]) {
-        messageParams.className = t(MULTICLASS_CLASS_MESSAGE_KEYS[classId]);
+      if (typeof classId === "string") {
+        messageParams.className = MULTICLASS_CLASS_MESSAGE_KEYS[classId]
+          ? t(MULTICLASS_CLASS_MESSAGE_KEYS[classId])
+          : classId.replace(/[_-]+/g, " ");
       }
     }
     if (code === "FEAT_SPELL_CHOICES_OWED") {

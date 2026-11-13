@@ -480,33 +480,77 @@ export function picksFromSpellbook(kind: OptionKind): boolean {
 // invocation, so Eldritch Adept takes none with a level). A requirement the
 // table judges ("hex or a curse feature") is met here. The owed picks and the
 // level-up both ask (issue #833 review).
-export function optionReqProblem(
+export type OptionReqProblemDetail = {
+  code:
+    | "LEVEL_UP_OPTION_REQUIRES_CLASS_LEVEL"
+    | "LEVEL_UP_OPTION_REQUIRES_PACT_BOON"
+    | "LEVEL_UP_OPTION_REQUIRES_CANTRIP";
+  params: Record<string, string | number>;
+};
+
+export type OptionReqVerdict = {
+  problem: string | null;
+  problemDetail: OptionReqProblemDetail | null;
+};
+
+// Structured counterpart for the level-up path. The original text remains
+// available below for older callers and diagnostics.
+export function optionReqVerdict(
   option: Pick<OptionDef, "k" | "n" | "req">,
   facts: { classLevel: (classId: string) => number; features: Array<{ name: string }>; cantrips: readonly string[] },
-): string | null {
+): OptionReqVerdict {
   const req = (option.req ?? "").trim();
   if (!req) {
-    return null;
+    return { problem: null, problemDetail: null };
   }
   const classId = GRANTS.find((grant) => grant.kind === option.k)?.classId ?? "";
   for (const part of req.split(",").map((piece) => piece.trim()).filter(Boolean)) {
-    const level = /^level (\d+)$/i.exec(part);
+    const level = /^level (\\d+)$/i.exec(part);
     if (level) {
-      if (facts.classLevel(classId) < Number(level[1])) {
-        return `${option.n} needs ${classId} level ${level[1]}.`;
+      const requiredLevel = Number(level[1]);
+      const classLevel = facts.classLevel(classId);
+      if (classLevel < requiredLevel) {
+        return {
+          problem: `${option.n} needs ${classId} level ${requiredLevel}.`,
+          problemDetail: {
+            code: "LEVEL_UP_OPTION_REQUIRES_CLASS_LEVEL",
+            params: { option: option.n, classId, requiredLevel, classLevel },
+          },
+        };
       }
       continue;
     }
     if (/^pact of the /i.test(part)) {
       if (!chosenOptions(facts.features, "pact_boon").some((boon) => textKey(boon) === textKey(part))) {
-        return `${option.n} needs the ${part}.`;
+        return {
+          problem: `${option.n} needs the ${part}.`,
+          problemDetail: {
+            code: "LEVEL_UP_OPTION_REQUIRES_PACT_BOON",
+            params: { option: option.n, pact: part },
+          },
+        };
       }
       continue;
     }
     const cantrip = /^(.+) cantrip$/i.exec(part);
     if (cantrip && !facts.cantrips.some((name) => textKey(name) === textKey(cantrip[1]))) {
-      return `${option.n} needs the ${cantrip[1]} cantrip.`;
+      return {
+        problem: `${option.n} needs the ${cantrip[1]} cantrip.`,
+        problemDetail: {
+          code: "LEVEL_UP_OPTION_REQUIRES_CANTRIP",
+          params: { option: option.n, cantrip: cantrip[1] },
+        },
+      };
     }
   }
-  return null;
+  return { problem: null, problemDetail: null };
+}
+
+// Legacy string-only API. Keep its exact return format for callers that have
+// not adopted structured refusals yet.
+export function optionReqProblem(
+  option: Pick<OptionDef, "k" | "n" | "req">,
+  facts: { classLevel: (classId: string) => number; features: Array<{ name: string }>; cantrips: readonly string[] },
+): string | null {
+  return optionReqVerdict(option, facts).problem;
 }

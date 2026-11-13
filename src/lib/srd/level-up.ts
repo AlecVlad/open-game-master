@@ -66,7 +66,7 @@ import { casterViewsOf, dedupeNames, withCasterViews, type CasterView } from "@/
 import { isThirdCaster } from "@/lib/srd/third-caster";
 import { featureHitPoints, holdsFeature, withPrimalChampion } from "@/lib/srd/trait-rules";
 import { isChoiceFeature, unmetPrerequisite } from "@/lib/srd/legality/features";
-import { findOptionByFeatureName, optionReqProblem, pickInSpellbook } from "@/lib/srd/options";
+import { findOptionByFeatureName, optionReqVerdict, pickInSpellbook } from "@/lib/srd/options";
 import { sheetCantrips, sheetSpellbook } from "@/lib/srd/owed-picks-logic";
 import { subclassChoicePickVerdict } from "@/lib/srd/subclass-choice-picks";
 import { castingClassesOf } from "@/lib/srd/legality/spells";
@@ -643,19 +643,24 @@ export function buildLevelUp(
   for (const pick of picked) {
     const option = findOptionByFeatureName(pick.name);
     if (option && !pickInSpellbook(option, book)) {
-      return refuse(`${option.n} is not in ${sheet.name}'s spellbook; ${pick.name.split(":")[0]} names a spell written there.`);
+      return refuse(
+        `${option.n} is not in ${sheet.name}'s spellbook; ${pick.name.split(":")[0]} names a spell written there.`,
+        400,
+        "LEVEL_UP_OPTION_SPELLBOOK_REQUIRED",
+        { spell: option.n, name: sheet.name },
+      );
     }
-    // An invocation's level, pact boon or cantrip (options.ts optionReqProblem),
+    // An invocation's level, pact boon or cantrip (options.ts optionReqVerdict),
     // by the class levels after this one.
     const unmet = option
-      ? optionReqProblem(option, {
+      ? optionReqVerdict(option, {
           classLevel: (id) => classes.find((entry) => textKey(entry.id) === textKey(id))?.level ?? 0,
           features: featuresWithPicks,
           cantrips,
         })
       : null;
-    if (unmet) {
-      return refuse(unmet);
+    if (unmet?.problem) {
+      return refuse(unmet.problem, 400, unmet.problemDetail?.code, unmet.problemDetail?.params);
     }
     // A new fighting style is one the slot's class offers (a paladin's four);
     // one the sheet holds stays (features.ts pruneChoiceFeatures).

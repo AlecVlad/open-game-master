@@ -21,6 +21,7 @@ import { readLoad, readWrite, UNREACHABLE, UNREADABLE } from "../src/lib/load-st
 import { featOwedText } from "../src/app/characters/builder/featOwedText.ts";
 import { featPrerequisiteText } from "../src/app/characters/builder/featPrereqText.ts";
 import { multiclassPrerequisiteText } from "../src/app/characters/builder/multiclassPrereqText.ts";
+import { findOptionByFeatureName, optionReqProblem, optionReqVerdict, pickInSpellbook } from "../src/lib/srd/options.ts";
 
 // Language choice: the cookie wins, then Accept-Language, then English.
 assert.equal(pickLang("ru", "en-US,en;q=0.9"), "ru");
@@ -71,6 +72,42 @@ for (const lang of LANGS) {
     assert.deepEqual(placeholders(text), placeholders(DICTIONARIES.en[base]), `${lang} "${key}" placeholders differ`);
   }
 }
+
+// Class-feature option names resolve to their canonical records, and the
+// structured prerequisite helper keeps the old text API intact.
+const repellingBlast = findOptionByFeatureName("Invocation: Repelling Blast");
+assert.equal(repellingBlast?.n, "Repelling Blast");
+assert.equal(repellingBlast?.k, "invocation");
+const prerequisiteFacts = { classLevel: () => 8, features: [], cantrips: [] };
+const cantripVerdict = optionReqVerdict(repellingBlast, prerequisiteFacts);
+assert.equal(cantripVerdict.problem, "Repelling Blast needs the Eldritch Blast cantrip.");
+assert.deepEqual(cantripVerdict.problemDetail, {
+  code: "LEVEL_UP_OPTION_REQUIRES_CANTRIP",
+  params: { option: "Repelling Blast", cantrip: "Eldritch Blast" },
+});
+assert.equal(optionReqProblem(repellingBlast, prerequisiteFacts), cantripVerdict.problem);
+assert.equal(optionReqVerdict(repellingBlast, { ...prerequisiteFacts, cantrips: ["Eldritch Blast"] }).problem, null);
+
+const ascendantStep = findOptionByFeatureName("Invocation: Ascendant Step");
+const levelVerdict = optionReqVerdict(ascendantStep, prerequisiteFacts);
+assert.equal(levelVerdict.problem, "Ascendant Step needs warlock level 9.");
+assert.deepEqual(levelVerdict.problemDetail, {
+  code: "LEVEL_UP_OPTION_REQUIRES_CLASS_LEVEL",
+  params: { option: "Ascendant Step", classId: "warlock", requiredLevel: 9, classLevel: 8 },
+});
+
+const ancientSecrets = findOptionByFeatureName("Invocation: Book of Ancient Secrets");
+const pactVerdict = optionReqVerdict(ancientSecrets, prerequisiteFacts);
+assert.equal(pactVerdict.problem, "Book of Ancient Secrets needs the Pact of the Tome.");
+assert.deepEqual(pactVerdict.problemDetail, {
+  code: "LEVEL_UP_OPTION_REQUIRES_PACT_BOON",
+  params: { option: "Book of Ancient Secrets", pact: "Pact of the Tome" },
+});
+
+const featherFallMastery = findOptionByFeatureName("Spell Mastery: Feather Fall");
+assert.equal(featherFallMastery?.n, "Feather Fall");
+assert.equal(pickInSpellbook(featherFallMastery, ["Shield"]), false);
+assert.equal(pickInSpellbook(featherFallMastery, ["Feather Fall"]), true);
 
 // The admin/account/social block is audited as complete: unlike optional
 // content areas, these core screens must not silently fall back to English.
@@ -325,6 +362,23 @@ for (const [code, key, params, expected] of subclassChoiceRefusalCases) {
     (messageKey, messageParams) => translate(DICTIONARIES, "ru", messageKey, messageParams),
   );
   assert.equal(actual, expected, `subclass-choice refusal ${code} did not localize`);
+}
+
+const optionRefusalCases = [
+  ["LEVEL_UP_OPTION_REQUIRES_CLASS_LEVEL", "charSheet.levelUp.error.optionClassLevel", { option: "Ascendant Step", classId: "warlock", requiredLevel: 9, classLevel: 8 }, "Для выбора «Ascendant Step» требуется 9-й уровень класса «Колдун». Сейчас уровень этого класса — 8."],
+  ["LEVEL_UP_OPTION_REQUIRES_PACT_BOON", "charSheet.levelUp.error.optionPact", { option: "Book of Ancient Secrets", pact: "Pact of the Tome" }, "Для выбора «Book of Ancient Secrets» нужен «Pact of the Tome»."],
+  ["LEVEL_UP_OPTION_REQUIRES_CANTRIP", "charSheet.levelUp.error.optionCantrip", { option: "Repelling Blast", cantrip: "Eldritch Blast" }, "Для выбора «Repelling Blast» нужен заговор «Eldritch Blast»."],
+  ["LEVEL_UP_OPTION_SPELLBOOK_REQUIRED", "charSheet.levelUp.error.optionSpellbook", { spell: "Feather Fall", name: "Ilvane" }, "Заклинание «Feather Fall» отсутствует в книге заклинаний персонажа Ilvane. Этот выбор доступен только для заклинаний, записанных в книге."],
+];
+for (const [code, key, params, expected] of optionRefusalCases) {
+  assert.ok(key in DICTIONARIES.en, `English option refusal missing: ${key}`);
+  assert.ok(key in DICTIONARIES.ru, `Russian option refusal missing: ${key}`);
+  const actual = refusalText(
+    { error: "legacy English text", errorCode: code, errorParams: params },
+    "fallback",
+    (messageKey, messageParams) => translate(DICTIONARIES, "ru", messageKey, messageParams),
+  );
+  assert.equal(actual, expected, `option refusal ${code} did not localize`);
 }
 
 const tableViewMessages = [

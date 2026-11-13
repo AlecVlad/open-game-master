@@ -166,6 +166,68 @@ await test("spell-grant refusals carry structured spell and list details", async
   assert.deepEqual(response.json.errorParams, { feat: "Magic Initiate", list: "dragon", offered: "bard,cleric,druid,sorcerer,warlock,wizard" });
   assert.deepEqual(sheet(), before);
 });
+await test("a class-feature option refusal carries a stable cantrip prerequisite code", async () => {
+  const { sheet, patch } = await table({
+    name: "Mira",
+    class: "warlock",
+    level: 1,
+    maxHp: 10,
+    currentHp: 10,
+    abilities: { str: 8, dex: 14, con: 14, int: 10, wis: 12, cha: 16 },
+    features: [],
+    spellcasting: {
+      ability: "cha",
+      slots: { 1: { max: 1, used: 0 } },
+      prepared: [],
+      known: ["Armor of Agathys", "Hex"],
+      cantrips: ["Mage Hand", "Minor Illusion"],
+      spellbook: [],
+    },
+  }, { xp: 300 });
+  const before = sheet();
+  const refused = await patch({
+    level: 2,
+    features: [{ name: "Invocation: Repelling Blast", source: "choice" }],
+  });
+  assert.equal(refused.status, 400, JSON.stringify(refused.json));
+  assert.equal(refused.json.errorCode, "LEVEL_UP_OPTION_REQUIRES_CANTRIP");
+  assert.deepEqual(refused.json.errorParams, { option: "Repelling Blast", cantrip: "Eldritch Blast" });
+  assert.match(refused.json.error, /Repelling Blast needs the Eldritch Blast cantrip/);
+  assert.deepEqual(sheet(), before, "a refused invocation changed the character");
+});
+
+await test("a Spell Mastery choice must already be written in the wizard's spellbook", async () => {
+  const { sheet, patch } = await table({
+    name: "Ilvane",
+    class: "wizard",
+    subclass: "School of Evocation",
+    level: 17,
+    maxHp: 100,
+    currentHp: 100,
+    abilities: { str: 8, dex: 14, con: 14, int: 18, wis: 12, cha: 10 },
+    hitDice: { die: "d6", total: 17, spent: 0 },
+    features: [],
+    spellcasting: {
+      ability: "int",
+      slots: { 1: { max: 4, used: 0 } },
+      prepared: ["Shield"],
+      known: [],
+      cantrips: ["Fire Bolt"],
+      spellbook: ["Shield", "Magic Missile", "Mage Armor", "Detect Magic"],
+    },
+  }, { xp: 225000 });
+  const before = sheet();
+  const refused = await patch({
+    level: 18,
+    features: [{ name: "Spell Mastery: Feather Fall", source: "choice" }],
+  });
+  assert.equal(refused.status, 400, JSON.stringify(refused.json));
+  assert.equal(refused.json.errorCode, "LEVEL_UP_OPTION_SPELLBOOK_REQUIRED");
+  assert.deepEqual(refused.json.errorParams, { spell: "Feather Fall", name: "Ilvane" });
+  assert.match(refused.json.error, /Feather Fall is not in Ilvane's spellbook/);
+  assert.deepEqual(sheet(), before, "a refused Spell Mastery choice changed the character");
+});
+
 await test("an earned level is taken, and the stored sheet is the levelled one", async () => {
   const { sheet, patch } = await table(FIGHTER, { xp: XP[2] });
   const before = sheet();
