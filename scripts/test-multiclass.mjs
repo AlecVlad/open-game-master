@@ -37,7 +37,7 @@ test("builder prerequisite diagnostics retain OR and AND ability requirements", 
   ];
   const details = unmetPrereqDetails(
     classList,
-    scores({ str: 12, dex: 12, wis: 10 }),
+    { str: 12, dex: 12, con: 10, int: 10, wis: 10, cha: 10 },
     (id) => id.toUpperCase(),
   );
   assert.deepEqual(details, [
