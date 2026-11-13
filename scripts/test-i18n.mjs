@@ -261,19 +261,19 @@ assert.equal(
 );
 
 const featGrantRefusalCases = [
-  ["FEAT_GRANT_DAMAGE_TYPE_NOT_OFFERED", "charSheet.levelUp.error.grantGrantDamageTypeNotOffered", {"feat":"Elemental Adept","damageType":"cold","offered":"fire, lightning, thunder"}, "Тип урона «{damageType}» не предлагается чертой «{feat}». Доступные варианты: {offered}."],
-  ["FEAT_GRANT_SKILL_INVALID", "charSheet.levelUp.error.grantGrantSkillInvalid", {"feat":"Skilled","skill":"not-a-skill"}, "Значение «{skill}» не является допустимым навыком для черты «{feat}»."],
-  ["FEAT_GRANT_SKILL_NOT_OFFERED", "charSheet.levelUp.error.grantGrantSkillNotOffered", {"feat":"Skill Expert","skill":"arcana","offered":"athletics, perception"}, "Черта «{feat}» не предлагает навык «{skill}». Доступные варианты: {offered}."],
-  ["FEAT_GRANT_SKILL_ALREADY_HELD", "charSheet.levelUp.error.grantGrantSkillAlreadyHeld", {"feat":"Skilled","skill":"athletics"}, "Черта «{feat}» даёт новое владение навыком, но персонаж уже владеет навыком «{skill}»."],
-  ["FEAT_GRANT_LANGUAGE_ALREADY_HELD", "charSheet.levelUp.error.grantGrantLanguageAlreadyHeld", {"feat":"Linguist","language":"elvish"}, "Черта «{feat}» даёт новый язык, но персонаж уже знает язык «{language}»."],
-  ["FEAT_GRANT_EXPERTISE_NOT_PROFICIENT", "charSheet.levelUp.error.grantGrantExpertiseNotProficient", {"feat":"Skill Expert","skill":"arcana"}, "Черта «{feat}» даёт компетентность, но персонаж не владеет навыком «{skill}»."],
-  ["FEAT_GRANT_EXPERTISE_ALREADY_HELD", "charSheet.levelUp.error.grantGrantExpertiseAlreadyHeld", {"feat":"Skill Expert","skill":"athletics"}, "Персонаж уже обладает компетентностью в навыке «{skill}». Для черты «{feat}» нужно выбрать другой навык."],
-  ["FEAT_GRANT_TOOL_NOT_OFFERED", "charSheet.levelUp.error.grantGrantToolNotOffered", {"feat":"Artificer Initiate","tool":"thieves' tools"}, "Черта «{feat}» не предлагает владение инструментом «{tool}»."],
-  ["FEAT_GRANT_TOOL_ALREADY_HELD", "charSheet.levelUp.error.grantGrantToolAlreadyHeld", {"feat":"Skilled","tool":"herbalism kit"}, "Черта «{feat}» даёт новое владение инструментом, но персонаж уже владеет инструментом «{tool}»."],
-  ["FEAT_GRANT_WEAPON_INVALID", "charSheet.levelUp.error.grantGrantWeaponInvalid", {"feat":"Weapon Master","weapon":"not-a-weapon"}, "«{weapon}» не является допустимым вариантом оружия для черты «{feat}»."],
-  ["FEAT_GRANT_WEAPON_NOT_OFFERED", "charSheet.levelUp.error.grantGrantWeaponNotOffered", {"feat":"Weapon Master","weapon":"longsword"}, "Черта «{feat}» не предлагает оружие «{weapon}»."],
-  ["FEAT_GRANT_ARMOR_NOT_OFFERED", "charSheet.levelUp.error.grantGrantArmorNotOffered", {"feat":"Heavily Armored","armor":"heavy"}, "Черта «{feat}» не предлагает владение типом доспехов «{armor}»."],
-  ["FEAT_GRANT_ARMOR_ALREADY_HELD", "charSheet.levelUp.error.grantGrantArmorAlreadyHeld", {"feat":"Heavily Armored","armor":"heavy"}, "Персонаж уже владеет типом доспехов «{armor}». Для черты «{feat}» нужно выбрать другой вариант."],
+  ["FEAT_GRANT_DAMAGE_TYPE_NOT_OFFERED", "charSheet.levelUp.error.grantDamageTypeNotOffered", {"feat":"Elemental Adept","damageType":"cold","offered":"fire, lightning, thunder"}, "Тип урона «{damageType}» не предлагается чертой «{feat}». Доступные варианты: {offered}."],
+  ["FEAT_GRANT_SKILL_INVALID", "charSheet.levelUp.error.grantSkillInvalid", {"feat":"Skilled","skill":"not-a-skill"}, "Значение «{skill}» не является допустимым навыком для черты «{feat}»."],
+  ["FEAT_GRANT_SKILL_NOT_OFFERED", "charSheet.levelUp.error.grantSkillNotOffered", {"feat":"Skill Expert","skill":"arcana","offered":"athletics, perception"}, "Черта «{feat}» не предлагает навык «{skill}». Доступные варианты: {offered}."],
+  ["FEAT_GRANT_SKILL_ALREADY_HELD", "charSheet.levelUp.error.grantSkillAlreadyHeld", {"feat":"Skilled","skill":"athletics"}, "Черта «{feat}» даёт новое владение навыком, но персонаж уже владеет навыком «{skill}»."],
+  ["FEAT_GRANT_LANGUAGE_ALREADY_HELD", "charSheet.levelUp.error.grantLanguageAlreadyHeld", {"feat":"Linguist","language":"elvish"}, "Черта «{feat}» даёт новый язык, но персонаж уже знает язык «{language}»."],
+  ["FEAT_GRANT_EXPERTISE_NOT_PROFICIENT", "charSheet.levelUp.error.grantExpertiseNotProficient", {"feat":"Skill Expert","skill":"arcana"}, "Черта «{feat}» даёт компетентность, но персонаж не владеет навыком «{skill}»."],
+  ["FEAT_GRANT_EXPERTISE_ALREADY_HELD", "charSheet.levelUp.error.grantExpertiseAlreadyHeld", {"feat":"Skill Expert","skill":"athletics"}, "Персонаж уже обладает компетентностью в навыке «{skill}». Для черты «{feat}» нужно выбрать другой навык."],
+  ["FEAT_GRANT_TOOL_NOT_OFFERED", "charSheet.levelUp.error.grantToolNotOffered", {"feat":"Artificer Initiate","tool":"thieves' tools"}, "Черта «{feat}» не предлагает владение инструментом «{tool}»."],
+  ["FEAT_GRANT_TOOL_ALREADY_HELD", "charSheet.levelUp.error.grantToolAlreadyHeld", {"feat":"Skilled","tool":"herbalism kit"}, "Черта «{feat}» даёт новое владение инструментом, но персонаж уже владеет инструментом «{tool}»."],
+  ["FEAT_GRANT_WEAPON_INVALID", "charSheet.levelUp.error.grantWeaponInvalid", {"feat":"Weapon Master","weapon":"not-a-weapon"}, "«{weapon}» не является допустимым вариантом оружия для черты «{feat}»."],
+  ["FEAT_GRANT_WEAPON_NOT_OFFERED", "charSheet.levelUp.error.grantWeaponNotOffered", {"feat":"Weapon Master","weapon":"longsword"}, "Черта «{feat}» не предлагает оружие «{weapon}»."],
+  ["FEAT_GRANT_ARMOR_NOT_OFFERED", "charSheet.levelUp.error.grantArmorNotOffered", {"feat":"Heavily Armored","armor":"heavy"}, "Черта «{feat}» не предлагает владение типом доспехов «{armor}»."],
+  ["FEAT_GRANT_ARMOR_ALREADY_HELD", "charSheet.levelUp.error.grantArmorAlreadyHeld", {"feat":"Heavily Armored","armor":"heavy"}, "Персонаж уже владеет типом доспехов «{armor}». Для черты «{feat}» нужно выбрать другой вариант."],
 ];
 for (const [code, key, params, expected] of featGrantRefusalCases) {
   assert.ok(key in DICTIONARIES.en, `English feat-grant refusal missing: ${key}`);
