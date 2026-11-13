@@ -13,6 +13,7 @@ import {
 } from "../src/lib/i18n/core.ts";
 import { DICTIONARIES } from "../src/lib/i18n/messages/index.ts";
 import { localizeStoryboardError } from "../src/lib/workshop/storyboard-api-i18n.ts";
+import { gearProblemText } from "../src/app/characters/builder/gearProblemText.ts";
 
 // Language choice: the cookie wins, then Accept-Language, then English.
 assert.equal(pickLang("ru", "en-US,en;q=0.9"), "ru");
@@ -1422,6 +1423,13 @@ for (const key of gearDiagnosticKeys) {
 }
 assert.ok(translate(DICTIONARIES, "ru", "builder.gear.problem.magic", { name: "Мешок хранения" }).includes("Мешок хранения"));
 assert.ok(translate(DICTIONARIES, "ru", "builder.gear.problem.insufficientFunds", { cost: "20 зм", available: "5 зм", shortfall: "15 зм" }).includes("15 зм"));
+const gearT = (key, params) => translate(DICTIONARIES, "ru", key, params);
+assert.match(gearProblemText({ code: "magic", params: { name: "Меч" } }, gearT), /Меч/);
+assert.match(gearProblemText({ code: "invalidOption", params: { className: "жрец", options: "булава, молот" } }, gearT), /жрец/);
+assert.match(gearProblemText({ code: "notProficient", params: { className: "жрец", option: "боевой молот", alternatives: "булава" } }, gearT), /боевой молот/);
+assert.match(gearProblemText({ code: "invalidSlot", params: { name: "Дубина", slotFilter: "martial-melee", className: "варвар", option: "оружие" } }, gearT), /ячейке/);
+assert.match(gearProblemText({ code: "invalidBackgroundChoice", params: { options: "кинжал, молот", choice: "двуручный меч" } }, gearT), /двуручный меч/);
+
 for (const suffix of ["one", "other"]) {
   assert.ok(`builder.gear.problem.more.${suffix}` in DICTIONARIES.en, `English gear problem plural missing: ${suffix}`);
 }
