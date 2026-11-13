@@ -3,6 +3,7 @@ import type { MessageKey } from "@/lib/i18n/messages";
 const CAMPAIGN_ERROR_KEYS = {
   CAMPAIGN_CREATION_ADMIN_ONLY: "createCampaign.dialog.error.adminOnly",
   PASSWORD_CHANGE_REQUIRED: "createCampaign.dialog.error.passwordChange",
+  AUTH_REQUIRED: "auth.err.notLoggedIn",
   CAMPAIGN_NOT_FOUND: "campaign.session.rules.error.campaignNotFound",
   STORY_GAME_MASTER_REQUIRED: "campaign.session.rules.error.gameMasterRequired",
   STORY_PARTY_LEAD_REQUIRED: "campaign.session.rules.error.partyLeadRequired",
