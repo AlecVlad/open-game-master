@@ -268,7 +268,7 @@ export function ancestryBlocks(
   // Expert's skill and expertise (issue #125).
   const featPicks = featPicksBlock((state.feats ?? []).slice(0, racialFeatCount(race.id)), state.featChoices, derived?.featSpecOf);
   if (featPicks) {
-    owed.push(block("racialFeat", featPicks));
+    owed.push(block("racialFeat", featPicks.message, undefined, featPicks.detail));
   }
   // A feat whose prerequisite a later choice broke: flagged, never dropped.
   const racialUnmet = unmetFeatMessage(featJudge, (state.feats ?? []).slice(0, racialFeatCount(race.id)));
@@ -336,9 +336,10 @@ export function callingBlocks(
   // A pick that may wait (a ranger's Favored Enemy language) is asked on the
   // class step and owed when left, never a block (subclass-training.ts).
   for (const grant of (derived.subclassTraining ?? []).filter((entry) => !entry.optional)) {
-    const left = featOwed(grant.name, grant.spec, featChoice(state.featChoices, grant.name));
+    const picks = featChoice(state.featChoices, grant.name);
+    const left = featOwed(grant.name, grant.spec, picks);
     if (left) {
-      owed.push(block("subclass", left));
+      owed.push(block("subclass", left, undefined, featOwedBlockDetail(grant.name, grant.spec, picks)));
       break;
     }
   }
@@ -549,7 +550,7 @@ export function abilitiesBlocks(
   const asiFeats = derived.activeAsiChoices.flatMap((choice) => (choice?.mode === "feat" ? [choice.feat] : []));
   const featPicks = featPicksBlock(asiFeats, state?.featChoices, derived.featSpecOf);
   if (featPicks) {
-    owed.push(block("asi", featPicks));
+    owed.push(block("asi", featPicks.message, undefined, featPicks.detail));
   }
   // A feat whose prerequisite a later choice broke: flagged, never dropped.
   const asiUnmet = unmetFeatMessage(featJudge, asiFeats);
