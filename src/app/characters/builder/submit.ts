@@ -441,6 +441,10 @@ function deskBlocks(desk: DeskCounts, who: string): StepBlock[] {
         derived.spellbookAdvice !== null
           ? `Prepare ${spellsLeft} more ${spellsLeft === 1 ? "spell" : "spells"} from your spellbook.`
           : `Pick ${spellsLeft} more ${spellsLeft === 1 ? "spell" : "spells"} (${derived.spellAdvice.label}).`,
+        {
+          key: derived.spellbookAdvice !== null ? "builder.block.spells.preparedBookMissing" : "builder.block.spells.preparedMissing",
+          params: { count: spellsLeft, label: derived.spellAdvice.label },
+        },
       ));
     }
     if (spellsOver > 0) {
