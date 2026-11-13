@@ -54,10 +54,10 @@ export function isMagicRow(entry: PickerEntry) {
   return entry.kind === "magic_item" || Boolean(entry.price?.magic);
 }
 
-export const GEAR_SHELF: CatalogSection[] = [
-  { key: "items:weapon", label: "Weapons", params: { kind: "weapon" } },
-  { key: "items:armor", label: "Armor and shields", params: { kind: "armor" } },
-  { key: "items:gear", label: "Adventuring gear", params: { kind: "gear" } },
+export const GEAR_SHELF: Array<Pick<CatalogSection, "key" | "params">> = [
+  { key: "items:weapon", params: { kind: "weapon" } },
+  { key: "items:armor", params: { kind: "armor" } },
+  { key: "items:gear", params: { kind: "gear" } },
 ];
 
 // The coin the character starts with, as the server will work it out: never
@@ -205,7 +205,7 @@ export default function EquipmentSection({
                 note: t("builder.gear.suggested.note"),
                 entries: [
                   ...suggestions.map((entry) => ({ name: entry.name, note: entry.note })),
-                  ...STARTER_PACK.map((entry) => ({ name: entry.name, note: "kit" })),
+                  ...STARTER_PACK.map((entry) => ({ name: entry.name, note: t("builder.gear.starter.kitTag") })),
                 ],
               }
             : undefined
