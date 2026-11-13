@@ -43,4 +43,9 @@ export const ruSocial: Partial<Record<keyof typeof enSocial, string>> = {
   "notifications.message.cancelledUntitled": "Сессия в кампании «{campaignTitle}» на {when} отменена.",
   "notifications.message.rsvpNo": "{username} не сможет прийти на сессию «{sessionTitle}» в кампании «{campaignTitle}».",
   "notifications.message.rsvpNoUntitled": "{username} не сможет прийти на сессию в кампании «{campaignTitle}».",
+  "notifications.message.reminder": "Напоминание: сессия «{sessionTitle}» в кампании «{campaignTitle}» скоро начнётся — {when}. До встречи за столом!",
+  "notifications.message.reminderUntitled": "Напоминание: сессия в кампании «{campaignTitle}» скоро начнётся — {when}. До встречи за столом!",
+  "notifications.message.starting": "Сессия «{sessionTitle}» в кампании «{campaignTitle}» начинается. За стол!",
+  "notifications.message.startingUntitled": "Сессия в кампании «{campaignTitle}» начинается. За стол!",
+  "notifications.message.campaignIdle": "За столом давно тихо: в кампании «{campaignTitle}» несколько дней ничего не происходило.",
 };
