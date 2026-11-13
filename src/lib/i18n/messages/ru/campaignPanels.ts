@@ -2744,6 +2744,7 @@ export const ruCampaignPanels: Partial<Record<keyof typeof enCampaignPanels, str
   "campaign.pins.error.messageNotFound": "Сообщение не найдено в этой кампании.",
   "campaign.pins.error.invalidUnpin": "Запрос на снятие метки содержит неверные данные.",
   "campaign.pins.error.removeForbidden": "Вы можете снять только собственную метку. Чужие метки может удалять лидер группы.",
+  "campaign.pins.error.server": "Не удалось связаться с сервером.",
 
   "campaign.lore.category.geography": "География",
   "campaign.lore.category.factions": "Фракции",
