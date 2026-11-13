@@ -99,7 +99,7 @@ type SubmitInput = {
 // the hero is once they exist), so nothing before the identity step waits
 // on it.
 export function identityBlocks(state: Pick<BuilderState, "name">): StepBlock[] {
-  return state.name.trim() ? [] : [block("name", "Give your character a name.")];
+  return state.name.trim() ? [] : [block("name", "Give your character a name.", undefined, { key: "builder.block.identity.name" })];
 }
 
 export function identityBlocker(state: Pick<BuilderState, "name">): StepBlock | null {
@@ -120,10 +120,10 @@ export function backgroundBlocks(
   // No background stands in until one is picked: the first row used to,
   // and an Acolyte nobody chose owed two languages.
   if (!background) {
-    owed.push(block("background", "Choose what your hero did before adventuring (background)."));
+    owed.push(block("background", "Choose what your hero did before adventuring (background).", undefined, { key: "builder.block.background.missing" }));
   }
   if (background?.skillChoice && state.backgroundSkills.filter(Boolean).length < background.skillChoice.count) {
-    owed.push(block("backgroundSkills", `Pick the skills your ${background.name} past trained (skill proficiencies).`));
+    owed.push(block("backgroundSkills", `Pick the skills your ${background.name} past trained (skill proficiencies).`, undefined, { key: "builder.block.background.skills", params: { backgroundName: background.name } }));
   }
   // An open tool grant ("three musical instruments") waits for its pick.
   const grants = derived?.toolGrants;
@@ -131,7 +131,7 @@ export function backgroundBlocks(
   if (grants && toolsOwed >= 0) {
     const left = grants.left[toolsOwed];
     const choice = grants.choices[toolsOwed];
-    owed.push(block("tools", `Pick ${left} more ${choice.label}${left === 1 ? "" : "s"} you know how to use (tool proficiency).`));
+    owed.push(block("tools", `Pick ${left} more ${choice.label}${left === 1 ? "" : "s"} you know how to use (tool proficiency).`, undefined, { key: "builder.block.background.tools", params: { count: left, choice: choice.label } }));
   }
   return owed;
 }
@@ -180,31 +180,31 @@ export function ancestryBlocks(
   featJudge?: FeatJudge,
 ): StepBlock[] {
   if (!race) {
-    return [block("race", "Choose where your hero comes from (race).")];
+    return [block("race", "Choose where your hero comes from (race).", undefined, { key: "builder.block.ancestry.missing" })];
   }
   const owed: StepBlock[] = [];
   const { bonusLanguages, racialAsi, racialSkills, racialTool, racialCantrips } = state;
   // The species' own choice comes first: it changes what the picks below
   // offer (a +1 it gives cannot take a pick of the player's choice too).
   if (race.variants && !race.variants.options.some((option) => option.id === state.racialVariant)) {
-    owed.push(block("variant", `Pick your ${race.name}'s ${race.variants.label.toLowerCase()}.`, race.variants.label));
+    owed.push(block("variant", `Pick your ${race.name}'s ${race.variants.label.toLowerCase()}.`, race.variants.label, { key: "builder.block.ancestry.variant", params: { raceName: race.name, label: race.variants.label } }));
   }
   const languageCount = bonusLanguageCount(race, background);
   if (languageCount > 0 && bonusLanguages.filter(Boolean).length < languageCount) {
     const left = languageCount - bonusLanguages.filter(Boolean).length;
-    owed.push(block("languages", `Pick ${left} more ${left === 1 ? "language" : "languages"} your hero can speak.`));
+    owed.push(block("languages", `Pick ${left} more ${left === 1 ? "language" : "languages"} your hero can speak.`, undefined, { key: "builder.block.ancestry.languages", params: { count: left } }));
   }
   if (race.asiChoice && racialAsi.filter(Boolean).length < race.asiChoice.count) {
-    owed.push(block("racialAsi", `Pick which abilities your ${race.name} heritage makes stronger (ability score increase).`));
+    owed.push(block("racialAsi", `Pick which abilities your ${race.name} heritage makes stronger (ability score increase).`, undefined, { key: "builder.block.ancestry.asi", params: { raceName: race.name } }));
   }
   const racialFrom = race.skillChoice?.from ?? [];
   if (race.skillChoice && racialSkills.filter(Boolean).length < race.skillChoice.count) {
-    owed.push(block("racialSkills", `Pick the skills your ${race.name} heritage trained (skill proficiencies).`));
+    owed.push(block("racialSkills", `Pick the skills your ${race.name} heritage trained (skill proficiencies).`, undefined, { key: "builder.block.ancestry.skills", params: { raceName: race.name } }));
   } else if (racialFrom.length && racialSkills.some((skill) => skill && !racialFrom.includes(skill))) {
-    owed.push(block("racialSkills", `Your ${race.name} heritage trains only some skills: pick its skill proficiencies from its list.`));
+    owed.push(block("racialSkills", `Your ${race.name} heritage trains only some skills: pick its skill proficiencies from its list.`, undefined, { key: "builder.block.ancestry.skillsFromList", params: { raceName: race.name } }));
   }
   if (race.toolChoice && !racialTool) {
-    owed.push(block("racialTool", `Pick a tool your ${race.name} knows how to use (tool proficiency).`));
+    owed.push(block("racialTool", `Pick a tool your ${race.name} knows how to use (tool proficiency).`, undefined, { key: "builder.block.ancestry.tool", params: { raceName: race.name } }));
   }
   // Every cantrip the race offers (a homebrew species may offer three),
   // each a different spell.
@@ -225,7 +225,7 @@ export function ancestryBlocks(
   // to be the one no gate asked for (issue #124).
   const featsOwed = racialFeatCount(race.id) - (state.feats ?? []).length;
   if (featsOwed > 0) {
-    owed.push(block("racialFeat", `Pick your ${race.name}'s special talent (feat).`));
+    owed.push(block("racialFeat", `Pick your ${race.name}'s special talent (feat).`, undefined, { key: "builder.block.ancestry.feat", params: { raceName: race.name } }));
   }
   // What the feat itself leaves open: Linguist's three languages, Skill
   // Expert's skill and expertise (issue #125).
@@ -239,11 +239,11 @@ export function ancestryBlocks(
     owed.push(block("racialFeat", racialUnmet));
   }
   if (takesDraconicAncestry(race.id) && !findDraconicAncestry(state.racialAncestry ?? "")) {
-    owed.push(block("ancestry", `Pick the kind of dragon your ${race.name} descends from (draconic ancestry).`));
+    owed.push(block("ancestry", `Pick the kind of dragon your ${race.name} descends from (draconic ancestry).`, undefined, { key: "builder.block.ancestry.dragon", params: { raceName: race.name } }));
   }
   const repeats = repeatedGrants(background?.skills, race.skills).length;
   if (repeats && (state.repeatSkills ?? []).filter(Boolean).length < repeats) {
-    owed.push(block("repeatSkills", `Your race and background both give the same skill; pick ${repeats === 1 ? "another skill" : `${repeats} other skills`} in its place.`));
+    owed.push(block("repeatSkills", `Your race and background both give the same skill; pick ${repeats === 1 ? "another skill" : `${repeats} other skills`} in its place.`, undefined, { key: "builder.block.ancestry.repeatSkills", params: { count: repeats } }));
   }
   return owed;
 }
