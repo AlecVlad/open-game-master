@@ -11,6 +11,7 @@ import { GameIcon } from "@/components/ui/GameIcon";
 import { navigateTo } from "@/lib/navigation";
 import { ui } from "@/lib/ui";
 import { useI18n } from "@/lib/i18n/provider";
+import { refusalText } from "@/app/characters/builder/refusal";
 
 // The detail page's one primary action (docs/visual-overhaul-plan.md 8c.2):
 // take this library character to a table. It lists the campaigns the player
@@ -91,7 +92,7 @@ export function UseInCampaignDialog({
       if (!response.ok) {
         setError({
           campaignId: campaign.id,
-          text: data.error || t("charUse.err.bring"),
+          text: refusalText(data, t("charUse.err.bring"), t),
           // A seat already taken has a lobby to swap in; a companion refusal
           // (authority, the table's setting, its cap) has not.
           taken: !companion && response.status === 409,
