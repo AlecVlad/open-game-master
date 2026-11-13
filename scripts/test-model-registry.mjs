@@ -152,22 +152,33 @@ try {
     const story = (id, hint) => logic.assessModel({ role: "story", id, catalog: logic.findCatalogModel(providers, id, hint), listed: true });
     assert.equal(story("gpt-5.6", "openai").fit, "ok");
     assert.match(story("gpt-5.6", "openai").summary, /1\.1M context · tool calls · reasoning · sees pictures · \$4 in \/ \$20 out per M tokens/);
+    assert.deepEqual(story("gpt-5.6", "openai").summaryParts.map((part) => part.code), ["context", "toolCalls", "reasoning", "seesPictures", "price"]);
     const old = story("gpt-4", "openai");
     assert.equal(old.fit, "unfit", "an 8K window cannot hold the DM's instructions");
     assert.match(old.warnings[0], /Deprecated/);
     assert.match(old.warnings[1], /8K window is too small to narrate.*16K tokens to narrate and 24K to run fights/);
+    assert.deepEqual(old.warningDetails.map((detail) => detail.code), ["deprecated", "storyWindow.short"]);
+
     const picture = story("gpt-image-1", "openai");
     assert.equal(picture.fit, "unfit");
     assert.match(picture.warnings.join(" "), /Does not write text/);
+    assert.ok(picture.warningDetails.some((detail) => detail.code === "notText"));
+
     const noTools = story("sao10k/l3-lunaris-8b", "openrouter");
     assert.equal(noTools.fit, "unfit");
     assert.match(noTools.warnings[0], /Takes no tool calls/);
+    assert.equal(noTools.warningDetails[0]?.code, "noTools.story.catalog");
+
     const utility = logic.assessModel({ role: "utility", id: "sao10k/l3-lunaris-8b", catalog: providers.openrouter.models["sao10k/l3-lunaris-8b"], listed: true });
     assert.equal(utility.fit, "warn", "the utility role only warns about tools");
+    assert.equal(utility.warningDetails[0]?.code, "noTools.utility.catalog");
+
     const local = logic.assessModel({ role: "story", id: "gpt-4", catalog: providers.openai.models["gpt-4"], listed: true, local: true });
     assert.equal(local.fit, "warn", "a local row is a loose match for the weights, so a short window only warns");
     assert.equal(local.warnings.length, 1, "weights on the admin's disk are nobody's to retire");
     assert.match(local.warnings[0], /^An 8K window is too small to narrate/);
+    assert.equal(local.warningDetails[0]?.code, "storyWindow.short");
+
     assert.equal(local.summary, "8K context · tool calls", "and carry no hosting price");
     const doubt = logic.assessModel({ role: "story", id: "x", catalog: providers.openrouter.models["sao10k/l3-lunaris-8b"], listed: true, local: true });
     assert.equal(doubt.fit, "warn", "a loosely matched row without tools is a doubt for local weights");
@@ -180,6 +191,8 @@ try {
     const unlisted = logic.assessModel({ role: "story", id: "gpt-5.6", catalog: providers.openai.models["gpt-5.6"], listed: false });
     assert.equal(unlisted.fit, "warn");
     assert.match(unlisted.warnings[0], /Not listed by the server/);
+    assert.equal(unlisted.warningDetails[0]?.code, "notListed");
+
     const image = (id) => logic.assessModel({ role: "image", id, catalog: logic.findCatalogModel(providers, id, "openai"), listed: null });
     assert.equal(image("gpt-image-2").fit, "ok");
     assert.equal(image("gpt-5.6").fit, "unfit");
@@ -576,6 +589,8 @@ try {
     assert.equal(hardware.memoryBudgetGb({ ramGb: 64, gpu: null, unified: false }), 64, "no card known: only weights beyond the memory are too big");
     const verdict = logic.assessModel({ role: "story", id: "x", catalog: null, listed: true, local: true, memory: { sizeGb: 60, budgetGb: 40 } });
     assert.equal(verdict.fit, "unfit");
+    assert.equal(verdict.warningDetails[0]?.code, "tooBig");
+    assert.deepEqual(verdict.warningDetails[0]?.params, { sizeGb: 60, budgetGb: 40 });
   });
 
   await test("the local storyteller a machine runs follows the 16 GB minimum, and the card is read from its driver", () => {
