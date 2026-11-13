@@ -49,7 +49,7 @@ export function useCampaignDefaults(open: boolean, onLoaded: (defaults: Campaign
           return;
         }
         if (!response.ok) {
-          setState({ status: "unavailable", error: await reason(response, t("createCampaign.defaults.error.remove"), t) });
+          setState({ status: "unavailable", error: await reason(response, t("createCampaign.defaults.error.read"), t) });
           return;
         }
         const data = (await response.json().catch(() => null)) as { defaults?: CampaignDefaults | null } | null;
@@ -92,7 +92,7 @@ export function useCampaignDefaults(open: boolean, onLoaded: (defaults: Campaign
     try {
       const response = await fetch("/api/profile/campaign-defaults", { method: "DELETE" });
       if (!response.ok) {
-        return { ok: false, error: await reason(response, t("createCampaign.defaults.error.read"), t) };
+        return { ok: false, error: await reason(response, t("createCampaign.defaults.error.remove"), t) };
       }
       setState({ status: "none" });
       return { ok: true };
