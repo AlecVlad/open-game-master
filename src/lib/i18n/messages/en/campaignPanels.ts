@@ -4496,6 +4496,7 @@ export const enCampaignPanels = {
   "campaign.pins.error.messageNotFound": "The message could not be found in this campaign.",
   "campaign.pins.error.invalidUnpin": "The unpin request is not valid.",
   "campaign.pins.error.removeForbidden": "You can only remove your own pin unless you are the party lead.",
+  "campaign.pins.error.server": "Could not reach the server.",
 
   "campaign.lore.category.geography": "Geography",
   "campaign.lore.category.factions": "Factions",
