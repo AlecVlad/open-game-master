@@ -10,7 +10,7 @@ import { register } from "node:module";
 register("./lib/register-alias.mjs", import.meta.url);
 
 const {
-  featSpellGrants, featSpellSpec, featSpellsAnything, featSpellsOwed, freeCastFeatureName, freeCastFeatures,
+  featSpellGrants, featSpellSpec, featSpellsAnything, featSpellsOwed, featSpellsOwedDetail, freeCastFeatureName, freeCastFeatures,
   freeCastOf, freeCastResourceId, freeCastSpellOf, withFeatSpells, withoutFeatSpells, listAbility,
 } = await import("../src/lib/srd/feat-spells.ts");
 const { authoredFeatDesc } = await import("../src/lib/srd/feat-effects.ts");
@@ -227,6 +227,16 @@ test("Level Up's Mystical Talent reads as Magic Initiate: a list, two of its can
   assert.equal(talent.freeCast, true);
   assert.equal(talent.ability, "list");
   assert.equal(featSpellsOwed("Mystical Talent", talent, undefined), "Mystical Talent: pick a class list, 2 cantrips, 1 1st-level spell.");
+  assert.deepEqual(featSpellsOwedDetail(talent, undefined), {
+    listChoice: true,
+    abilityChoice: false,
+    cantrips: 2,
+    attackCantrip: false,
+    spells: 1,
+    spellLevel: 1,
+    schools: [],
+    ritualBook: false,
+  });
 });
 
 test("Level Up's Power Caster teaches one attack cantrip from any list, and Rite Master fills a ritual book from a chosen list", () => {
