@@ -493,7 +493,10 @@ export const enCharSheet = {
   "charSheet.levelUp.error.spellWrongLevel": "{spell} is level {actualLevel}, but the {feat} feat requires level {requiredLevel} for this choice.",
   "charSheet.levelUp.error.spellWrongClassList": "{spell} is not on the {allowedLists} list required by the {feat} feat.",
   "charSheet.levelUp.error.spellWrongSchool": "{spell} belongs to the {school} school; the {feat} feat requires {schools}.",
-  "charSheet.levelUp.error.spellNotRitual": "{spell} has no ritual tag; the {feat} feat's book accepts ritual spells only."
+  "charSheet.levelUp.error.spellNotRitual": "{spell} has no ritual tag; the {feat} feat's book accepts ritual spells only.",
+  "charSheet.levelUp.error.subclassChoiceOptionNotOffered": "{option} is not an option for {choice} in {subclass}. Available options: {offered}.",
+  "charSheet.levelUp.error.subclassChoiceTooEarly": "{choice} for {subclass} is chosen at class level {requiredLevel}; this character is level {classLevel} in that class.",
+  "charSheet.levelUp.error.subclassChoiceMultiple": "{choice} for {subclass} allows one option, but both {firstOption} and {secondOption} were chosen.",
   "charSheet.levelUp.error.grantDamageTypeNotOffered": "The damage type “{damageType}” is not offered by the “{feat}” feat. Available choices: {offered}.",
   "charSheet.levelUp.error.grantSkillInvalid": "The selected value “{skill}” is not a valid skill for the “{feat}” feat.",
   "charSheet.levelUp.error.grantSkillNotOffered": "The “{feat}” feat does not offer the skill “{skill}”. Available choices: {offered}.",

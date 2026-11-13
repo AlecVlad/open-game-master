@@ -311,6 +311,22 @@ const owedSpellText = refusalText(
 );
 assert.equal(owedSpellText, "Для черты «Magic Initiate» осталось выбрать: список заклинаний класса; заговоров: 2; одно заклинание 1-го уровня из школы «Прорицание или Очарование».");
 
+const subclassChoiceRefusalCases = [
+  ["LEVEL_UP_SUBCLASS_CHOICE_OPTION_NOT_OFFERED", "charSheet.levelUp.error.subclassChoiceOptionNotOffered", { subclass: "College of Embers", choice: "Bloodline", option: "Frost", offered: "Storm, Flame" }, "Вариант «Frost» не входит в выбор «Bloodline» подкласса «College of Embers». Доступные варианты: Storm, Flame."],
+  ["LEVEL_UP_SUBCLASS_CHOICE_TOO_EARLY", "charSheet.levelUp.error.subclassChoiceTooEarly", { subclass: "College of Embers", choice: "Bloodline", requiredLevel: 3, classLevel: 2 }, "Выбор «Bloodline» подкласса «College of Embers» доступен на 3-м уровне класса. Сейчас уровень этого класса — 2."],
+  ["LEVEL_UP_SUBCLASS_CHOICE_MULTIPLE", "charSheet.levelUp.error.subclassChoiceMultiple", { subclass: "College of Embers", choice: "Bloodline", firstOption: "Storm", secondOption: "Flame" }, "Для выбора «Bloodline» подкласса «College of Embers» можно выбрать только один вариант, но указаны оба: «Storm» и «Flame»."],
+];
+for (const [code, key, params, expected] of subclassChoiceRefusalCases) {
+  assert.ok(key in DICTIONARIES.en, `English subclass-choice refusal missing: ${key}`);
+  assert.ok(key in DICTIONARIES.ru, `Russian subclass-choice refusal missing: ${key}`);
+  const actual = refusalText(
+    { error: "legacy English text", errorCode: code, errorParams: params },
+    "fallback",
+    (messageKey, messageParams) => translate(DICTIONARIES, "ru", messageKey, messageParams),
+  );
+  assert.equal(actual, expected, `subclass-choice refusal ${code} did not localize`);
+}
+
 const tableViewMessages = [
   "campaign.tableView.error.memberOnly",
   "campaign.tableView.backToCampaigns",

@@ -68,7 +68,7 @@ import { featureHitPoints, holdsFeature, withPrimalChampion } from "@/lib/srd/tr
 import { isChoiceFeature, unmetPrerequisite } from "@/lib/srd/legality/features";
 import { findOptionByFeatureName, optionReqProblem, pickInSpellbook } from "@/lib/srd/options";
 import { sheetCantrips, sheetSpellbook } from "@/lib/srd/owed-picks-logic";
-import { subclassChoicePickProblems } from "@/lib/srd/subclass-choice-picks";
+import { subclassChoicePickVerdict } from "@/lib/srd/subclass-choice-picks";
 import { castingClassesOf } from "@/lib/srd/legality/spells";
 import {
   ABILITY_NAMES,
@@ -620,13 +620,14 @@ export function buildLevelUp(
   // Only what this level makes: a stored pick gone stale (its option since
   // deleted) is the regrant's to drop and never refuses a level.
   const heldPickNames = new Set(sheet.features.filter((feature) => feature.source === "choice").map((feature) => textKey(feature.name)));
-  const choiceProblem = subclassChoicePickProblems(
+  const choiceProblems = subclassChoicePickVerdict(
     (request.features ?? []).filter((feature) => feature.source === "choice" && !heldPickNames.has(textKey(feature.name))),
     classes,
     context.subclassExtras,
-  )[0];
-  if (choiceProblem) {
-    return refuse(choiceProblem);
+  );
+  if (choiceProblems.problems.length) {
+    const detail = choiceProblems.problemDetails[0];
+    return refuse(choiceProblems.problems[0], 400, detail?.code, detail?.params);
   }
   // Spell Mastery and Signature Spells name spells in the spellbook (SRD
   // 5.1): one written there before, or with this level.

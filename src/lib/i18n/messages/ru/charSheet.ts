@@ -495,7 +495,10 @@ export const ruCharSheet: Partial<Record<keyof typeof enCharSheet, string>> & Re
   "charSheet.levelUp.error.spellWrongLevel": "Заклинание «{spell}» имеет {actualLevel}-й уровень, но для черты «{feat}» требуется {requiredLevel}-й уровень.",
   "charSheet.levelUp.error.spellWrongClassList": "Заклинание «{spell}» отсутствует в списке «{allowedLists}», который требуется для черты «{feat}».",
   "charSheet.levelUp.error.spellWrongSchool": "Заклинание «{spell}» относится к школе «{school}», а черта «{feat}» допускает: {schools}.",
-  "charSheet.levelUp.error.spellNotRitual": "У заклинания «{spell}» нет признака ритуала. В книге черты «{feat}» могут быть только ритуальные заклинания."
+  "charSheet.levelUp.error.spellNotRitual": "У заклинания «{spell}» нет признака ритуала. В книге черты «{feat}» могут быть только ритуальные заклинания.",
+  "charSheet.levelUp.error.subclassChoiceOptionNotOffered": "Вариант «{option}» не входит в выбор «{choice}» подкласса «{subclass}». Доступные варианты: {offered}.",
+  "charSheet.levelUp.error.subclassChoiceTooEarly": "Выбор «{choice}» подкласса «{subclass}» доступен на {requiredLevel}-м уровне класса. Сейчас уровень этого класса — {classLevel}.",
+  "charSheet.levelUp.error.subclassChoiceMultiple": "Для выбора «{choice}» подкласса «{subclass}» можно выбрать только один вариант, но указаны оба: «{firstOption}» и «{secondOption}».",
   "charSheet.levelUp.error.grantDamageTypeNotOffered": "Тип урона «{damageType}» не предлагается чертой «{feat}». Доступные варианты: {offered}.",
   "charSheet.levelUp.error.grantSkillInvalid": "Значение «{skill}» не является допустимым навыком для черты «{feat}».",
   "charSheet.levelUp.error.grantSkillNotOffered": "Черта «{feat}» не предлагает навык «{skill}». Доступные варианты: {offered}.",
