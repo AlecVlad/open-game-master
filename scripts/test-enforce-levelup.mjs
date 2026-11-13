@@ -79,7 +79,7 @@ const fighterLevel = (sheet, extra = {}) => ({
 
 // ---- enforced today ----
 
-await test("an earned level is taken, and the stored sheet is the levelled one", async () => {await test("level-up builder refusals expose locale-neutral codes and parameters", async () => {
+await test("level-up builder refusals expose locale-neutral codes and parameters", async () => {
   const { sheet, patch } = await table(FIGHTER, { xp: XP[3] });
   const before = sheet();
   const skipped = await patch({ level: 3 });
@@ -110,7 +110,7 @@ await test("an unearned level identifies the missing experience in a structured 
   assert.deepEqual(sheet(), before);
 });
 
-
+await test("an earned level is taken, and the stored sheet is the levelled one", async () => {
   const { sheet, patch } = await table(FIGHTER, { xp: XP[2] });
   const before = sheet();
   const response = await patch(fighterLevel(before));
