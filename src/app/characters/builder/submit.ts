@@ -28,6 +28,7 @@ import { textKey } from "@/lib/language/text-logic";
 import { subclassPickFeatures } from "@/lib/srd/subclass-choice-picks";
 import { featChoice } from "@/lib/schemas/sheet";
 import { normalizeAttraction } from "@/lib/attraction";
+import type { GearProblemDetail } from "@/lib/srd/gear-problems";
 
 export type BuilderResult = { level: number; sheet: CreateSheetInput };
 
@@ -530,25 +531,25 @@ export function abilitiesBlocker(
 }
 
 // The pack: what it costs against the coin the character starts with.
-export function gearBlocker(derived: BuilderDerived): StepBlock | null {
-  const problems = [...new Set(derived.purse?.problems ?? [])];
-  if (!problems.length) {
-    return null;
-  }
-  // The equipment block lists every problem beside the items; the footer
-  // says the first and how many more.
-  return block(
-    "gear",
-    problems.length === 1 ? problems[0] : `${problems[0]} (${problems.length - 1} more listed under Equipment.)`,
-  );
-}
+export type GearProblemFormatter = (detail: GearProblemDetail | undefined, fallback: string, more: number) => string;
 
+export function gearBlocker(derived: BuilderDerived, formatProblem?: GearProblemFormatter): StepBlock | null {
+  const problems = [...new Set(derived.purse?.problems ?? [])];
+  if (!problems.length) return null;
+  const more = problems.length - 1;
+  const fallback = more === 0 ? problems[0] : problems[0] + " (" + more + " more listed under Equipment.)";
+  const message = formatProblem
+    ? formatProblem(derived.purse?.problemDetails?.[0], problems[0], more)
+    : fallback;
+  return block("gear", message);
+}
 // The final check before the payload is built. The same rules as the step
 // gates, re-run in case a later choice invalidated an earlier step (a level
 // change adds an ASI slot, a class change empties the spell list), plus the
 // one soft rule: a caster with no spells needs a second press to confirm.
 export function validateBuilder(
   input: SubmitInput,
+  formatGearProblem?: GearProblemFormatter,
 ): { kind: "error" | "spellWarning"; message: string; target?: BlockerTarget } | null {
   const { derived, klass, background } = input;
   const race = input.race && withSpeciesVariant(input.race, input.state.racialVariant);
@@ -583,7 +584,7 @@ export function validateBuilder(
     backgroundBlocker(state, background, derived) ??
     abilitiesBlocker(derived, state, input.featJudge) ??
     spellsBlocker(derived, klass) ??
-    gearBlocker(derived) ??
+    gearBlocker(derived, formatGearProblem) ??
     identityBlocker(state);
   if (blocked) {
     return { kind: "error", message: blocked.message, target: blocked.target };
