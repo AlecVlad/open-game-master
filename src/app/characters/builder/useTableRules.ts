@@ -205,6 +205,7 @@ export function useTableRules(
         if (!cancelled) {
           setWealth(data?.wealth ?? null);
           setWealthError("");
+          setWealthErrorCode("");
         }
       })
       .catch(() => {
