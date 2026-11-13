@@ -31,6 +31,7 @@ import { pickContinue, type HomeCampaign } from "@/app/home/types";
 import { currentPathname, currentQuery, navigateTo, replaceAddress } from "@/lib/navigation";
 import { shellHost } from "@/lib/shell-host";
 import { useI18n } from "@/lib/i18n/provider";
+import { refusalText } from "@/app/characters/builder/refusal";
 import type { MessageKey } from "@/lib/i18n/messages/index";
 
 // The desktop and Android shells' quick tiles land here with ?new=1,
@@ -169,7 +170,7 @@ export function Dashboard({ user, onLogout }: { user: SessionUser; onLogout: () 
       setCampaigns((current) => current.filter((entry) => entry.id !== campaign.id));
     } else {
       const data = await response?.json().catch(() => ({}));
-      setActionError(data?.error || t("home.dash.del.err", { title: campaign.title }));
+      setActionError(refusalText(data, t("home.dash.del.err", { title: campaign.title }), t));
     }
   }
 
@@ -185,7 +186,7 @@ export function Dashboard({ user, onLogout }: { user: SessionUser; onLogout: () 
       );
       if (!response?.ok) {
         const data = await response?.json().catch(() => ({}));
-        setActionError(data?.error || t("home.dash.clone.err"));
+        setActionError(refusalText(data, t("home.dash.clone.err"), t));
         return;
       }
       const data = await response.json().catch(() => ({}));
