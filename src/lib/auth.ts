@@ -199,5 +199,5 @@ export async function currentUser(scope: UsageScope = openUsageScope()): Promise
 }
 
 export function unauthorized() {
-  return Response.json({ error: "Not logged in." }, { status: 401 });
+  return Response.json({ error: "Not logged in.", errorCode: "AUTH_REQUIRED" }, { status: 401 });
 }
