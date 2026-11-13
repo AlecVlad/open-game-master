@@ -1441,6 +1441,55 @@ for (const count of [1, 2, 5]) {
 }
 
 
+// Character-builder step blockers use stable keys and parameters, not raw English text.
+const builderBlockKeys = [
+  "builder.block.identity.name",
+  "builder.block.background.missing",
+  "builder.block.background.skills",
+  "builder.block.background.tools",
+  "builder.block.ancestry.missing",
+  "builder.block.ancestry.variant",
+  "builder.block.ancestry.languages",
+  "builder.block.ancestry.asi",
+  "builder.block.ancestry.skills",
+  "builder.block.ancestry.skillsFromList",
+  "builder.block.ancestry.tool",
+  "builder.block.ancestry.cantrip",
+  "builder.block.ancestry.feat",
+  "builder.block.ancestry.dragon",
+  "builder.block.ancestry.repeatSkills",
+  "builder.block.calling.missing",
+  "builder.block.calling.skills",
+  "builder.block.calling.subclass",
+  "builder.block.calling.styles",
+  "builder.block.calling.expertise",
+  "builder.block.calling.options",
+  "builder.block.calling.subclassOption",
+  "builder.block.multiclass.disabled",
+  "builder.block.multiclass.subclass",
+  "builder.block.multiclass.skills",
+  "builder.block.spells.cantripsMissing",
+  "builder.block.spells.cantripsOver",
+  "builder.block.spells.bookMissing",
+  "builder.block.spells.bookOver",
+  "builder.block.spells.preparedBookMissing",
+  "builder.block.spells.preparedMissing",
+  "builder.block.spells.preparedOver",
+  "builder.block.abilities.missing",
+  "builder.block.abilities.standardArray",
+  "builder.block.abilities.pointBuyRange",
+  "builder.block.abilities.pointBuyOver",
+  "builder.block.abilities.rollMismatch",
+  "builder.block.abilities.asi"
+];
+for (const key of builderBlockKeys) {
+  assert.ok(key in DICTIONARIES.en, `English builder blocker missing: ${key}`);
+  assert.ok(key in DICTIONARIES.ru, `Russian builder blocker missing: ${key}`);
+  assert.notEqual(translate(DICTIONARIES, "ru", key), key, `Russian builder blocker fell back to its key: ${key}`);
+}
+assert.ok(translate(DICTIONARIES, "ru", "builder.block.background.skills", { backgroundName: "Аколит" }).includes("Аколит"));
+assert.ok(translate(DICTIONARIES, "ru", "builder.block.spells.bookOver", { count: 2, level: 3, limit: 10 }).includes("10"));
+
 // Report (not fail on) what Russian still lacks, so progress is visible.
 const missing = Object.keys(DICTIONARIES.en).filter((key) => !(key in DICTIONARIES.ru));
 console.log(`i18n: ${Object.keys(DICTIONARIES.en).length} messages, ${missing.length} not yet in Russian`);
