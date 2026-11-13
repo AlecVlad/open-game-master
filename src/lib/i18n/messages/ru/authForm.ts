@@ -13,6 +13,7 @@ export const ruAuthForm: Partial<Record<keyof typeof enAuthForm, string>> & Reco
   "auth.mode.aria": "Войти или создать учётную запись",
   "auth.err.taken": "Это имя за этим столом уже занято. Выберите другое или попросите ведущего убрать старое место.",
   "auth.err.generic": "Что-то пошло не так.",
+  "auth.err.notLoggedIn": "Вы не вошли в систему.",
   "auth.err.network": "Не удалось связаться с сервером.",
   "auth.reset.body": "Администратор сбросил ваш пароль. Выберите новый, чтобы продолжить.",
   "auth.reset.submit": "Задать новый пароль",
