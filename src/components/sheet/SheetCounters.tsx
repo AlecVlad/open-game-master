@@ -73,7 +73,7 @@ export function SlotRow({
           className={STEP_BUTTON}
           disabled={busy || left >= max}
           title={t("charSheet.spellSlot.recoverTitle")}
-          aria-label={`Give back a ${label} slot`}
+          aria-label={t("charSheet.spellSlot.recoverAria", { label })}
           onClick={onRecover}
         >
           <Plus className="size-3" />
