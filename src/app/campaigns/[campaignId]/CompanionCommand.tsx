@@ -2,6 +2,7 @@
 
 import { useState, type CSSProperties } from "react";
 import { useI18n } from "@/lib/i18n/provider";
+import { campaignApiErrorText } from "@/lib/i18n/campaignApiError";
 import type { CampaignMember } from "@/lib/campaign-types";
 import { cn } from "@/lib/cn";
 import type { CharacterSheet } from "@/lib/schemas/sheet";
@@ -59,8 +60,8 @@ export function CompanionCommand({
         body: JSON.stringify({ commandedBy: next }),
       });
       if (!response.ok) {
-        const data = (await response.json().catch(() => ({}))) as { error?: string };
-        setError(data.error || t("campaign.companionCommand.error.change"));
+        const data = await response.json().catch(() => ({}));
+        setError(campaignApiErrorText(data, t("campaign.companionCommand.error.change"), t));
       }
     } catch {
       setError(t("campaign.companionCommand.error.server"));
