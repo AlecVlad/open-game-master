@@ -85,6 +85,7 @@ import {
   type Legalized,
 } from "@/lib/srd/legality/types";
 import { textKey } from "@/lib/language/text-logic";
+import type { GearProblemDetail } from "@/lib/srd/gear-problems";
 import { featChoice } from "@/lib/schemas/sheet";
 
 export type { LegalityContext, Legalized } from "@/lib/srd/legality/types";
@@ -293,12 +294,23 @@ function freeKitOf(
   return {
     names: [...kitNames(kit.items), ...backgroundKit.names],
     problems: [...kit.problems, ...backgroundKit.problems],
+    problemDetails: [...kit.problemDetails, ...backgroundKit.problemDetails],
     choices: kit.tabled ? kit.choices : undefined,
   };
 }
 
 export function legalizeSheet(input: CreateSheetInput, context: LegalityContext): Legalized {
   const problems: string[] = [];
+  const problemDetailByMessage = new Map<string, GearProblemDetail>();
+  const addDiagnosedProblems = (messages: string[], details: GearProblemDetail[]) => {
+    messages.forEach((message, index) => {
+      const detail = details[index];
+      if (detail && !problemDetailByMessage.has(message)) {
+        problemDetailByMessage.set(message, detail);
+      }
+    });
+    problems.push(...messages);
+  };
   const policy = policyFor(context);
   const level = Math.max(1, Math.min(20, Math.floor(context.level)));
   const klass = context.classOf(input.class);
@@ -801,7 +813,8 @@ export function legalizeSheet(input: CreateSheetInput, context: LegalityContext)
       coinCopper,
       priceOf: context.priceOf,
     });
-    problems.push(...(kit?.problems ?? []), ...verdict.problems);
+    if (kit) addDiagnosedProblems(kit.problems, kit.problemDetails);
+    addDiagnosedProblems(verdict.problems, verdict.problemDetails);
     const left = Math.max(0, coinCopper - verdict.spentCopper);
     gold = Math.floor(left / 100);
     copper = left % 100;
@@ -831,7 +844,8 @@ export function legalizeSheet(input: CreateSheetInput, context: LegalityContext)
       coinCopper: beforeCopper,
       priceOf: context.priceOf,
     });
-    problems.push(...(kit?.problems ?? []), ...verdict.problems);
+    if (kit) addDiagnosedProblems(kit.problems, kit.problemDetails);
+    addDiagnosedProblems(verdict.problems, verdict.problemDetails);
     const left = Math.max(0, beforeCopper - verdict.spentCopper);
     gold = Math.floor(left / 100);
     copper = left % 100;
@@ -909,8 +923,11 @@ export function legalizeSheet(input: CreateSheetInput, context: LegalityContext)
     copper,
     ...(kitChoices ? { kitChoices } : {}),
   };
+  const uniqueProblems = [...new Set(problems)];
+  const problemDetails = uniqueProblems.map((problem) => problemDetailByMessage.get(problem) ?? null);
   return {
-    problems: [...new Set(problems)],
+    problems: uniqueProblems,
+    ...(problemDetails.some((detail) => detail !== null) ? { problemDetails } : {}),
     sheet,
     ...(rolledHp ? { rolled: { hp: rolledHp } } : {}),
     ...(owed.length ? { owed: [...new Set(owed)] } : {}),
