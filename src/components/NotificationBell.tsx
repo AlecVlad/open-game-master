@@ -6,6 +6,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { GameIcon } from "@/components/ui/GameIcon";
 import { cn } from "@/lib/cn";
 import { useI18n, useT } from "@/lib/i18n/provider";
+import { notificationText } from "@/lib/i18n/notificationText";
 
 // The bell: out-of-game news (sessions planned, moved, called off; someone
 // can't make it; reminders and the idle-table nudge). Live over the
@@ -19,6 +20,7 @@ type BellNotification = {
   campaignId: string;
   kind: string;
   body: string;
+  params?: Record<string, string | number>;
   createdAt: string;
   readAt: string | null;
 };
@@ -91,12 +93,12 @@ export function NotificationBell() {
     }
     for (const item of fresh.slice(0, 3)) {
       try {
-        new Notification("Open Game Master", { body: item.body, tag: item.id });
+        new Notification("Open Game Master", { body: notificationText(item.kind, item.params, item.body, lang, t), tag: item.id });
       } catch {
         // No notification daemon on this platform; the badge still shows.
       }
     }
-  }, []);
+  }, [lang, t]);
 
   const load = useCallback(async () => {
     try {
@@ -230,7 +232,7 @@ export function NotificationBell() {
                 >
                   <GameIcon icon={{ kind: "glyph", key: glyphFor(item.kind) }} size="size-8" className="shrink-0" />
                   <span className="min-w-0">
-                    <span className="block">{item.body}</span>
+                    <span className="block">{notificationText(item.kind, item.params, item.body, lang, t)}</span>
                     <span className="block text-xs text-stone-600">{ago(item.createdAt, lang)}</span>
                   </span>
                 </li>
