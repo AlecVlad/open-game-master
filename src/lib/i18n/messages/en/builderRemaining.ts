@@ -113,6 +113,7 @@ export const enBuilderRemaining = {
   "builder.block.feat.school.necromancy": "Necromancy",
   "builder.block.feat.school.transmutation": "Transmutation",
   "builder.block.feat.prerequisite": "Feat {feat} has unmet prerequisites: {requirements}. Choose another feat or change what it depends on.",
+  "builder.block.abilities.multiclassPrerequisite": "Multiclassing with {className} requires one of these ability score combinations: {requirements}.",
   "builder.block.feat.requirement.abilityScore": "requires {abilities} {minimum} or higher (current: {actual})",
   "builder.block.feat.requirement.armor": "requires proficiency with {armor} armor",
   "builder.block.feat.requirement.spellcasting": "requires the ability to cast spells",
