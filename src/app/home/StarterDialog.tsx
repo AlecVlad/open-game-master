@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { ui } from "@/lib/ui";
 import { Dialog } from "@/components/ui/Dialog";
 import { useI18n } from "@/lib/i18n/provider";
+import { refusalText } from "@/app/characters/builder/refusal";
 
 type Starter = {
   oneShot: { id: string; title: string; tagline: string; description: string };
@@ -60,7 +61,7 @@ export function StarterDialog({
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError(data.error || t("home.starter.err"));
+        setError(refusalText(data, t("home.starter.err"), t));
         return;
       }
       onOpenChange(false);
