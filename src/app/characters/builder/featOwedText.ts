@@ -22,7 +22,6 @@ export function featOwedText(params: Params | undefined, t: Translator): string 
       const kinds = String(p.sharedKinds ?? "").split(",").filter(Boolean).map(kind).join(" / ");
       details.push(t("builder.block.feat.shared", { count: shared, kinds }));
     }
-    if (p.sharedKinds && String(p.sharedKinds).split(",").includes("armor")) kind("armor");
     if (p.damageType === "yes") details.push(kind("damageType"));
   } else if (p.kind === "spells") {
     if (p.listChoice === "yes") details.push(kind("classList"));
@@ -36,9 +35,12 @@ export function featOwedText(params: Params | undefined, t: Translator): string 
       const label = t("builder.block.feat.spellLevel", { kind: kind(spellKind), level });
       details.push(countLine(t, label, spells));
       if (p.schools) {
-        const schools = String(p.schools).split(",").map((school) =>
-          t(("builder.block.feat.school." + school.trim()) as MessageKey),
-        );
+        const schools = String(p.schools).split(",").map((school) => {
+          const name = school.trim();
+          const key = ("builder.block.feat.school." + name) as MessageKey;
+          const translated = t(key);
+          return translated === key ? name : translated;
+        });
         details.push(t("builder.block.feat.schools", { schools: schools.join(", ") }));
       }
     }
