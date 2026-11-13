@@ -70,6 +70,7 @@ export const enBuilderRemaining = {
   "builder.gear.starter.item.one": "item",
   "builder.gear.starter.item.other": "items",
   "builder.gear.starter.already": "Starter pack already in the kit",
+  "builder.gear.starter.kitTag": "kit",
   "builder.gear.starter.tooltip.adds": "Adds {items}.",
   "builder.gear.starter.tooltip.already": "Your kit already carries the basics: a backpack, bedroll, rations, rope, torches and a waterskin.",
   "builder.gear.search": "Search items (e.g. longsword, chain mail, rope)",
