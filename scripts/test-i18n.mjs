@@ -97,6 +97,7 @@ const campaignPanelAreas = [
   "campaign.timeline.",
   "campaign.notes.",
   "campaign.relationship.",
+  "campaign.overworld.",
 ];
 for (const prefix of campaignPanelAreas) {
   const missing = Object.keys(DICTIONARIES.en).filter((key) => key.startsWith(prefix) && !(key in DICTIONARIES.ru));
@@ -1479,6 +1480,23 @@ const campaignApiCases = [
   ["INVALID_RULE_CHUNK_UPDATE", "campaign.session.rules.error.invalidChunkUpdate"],
   ["RULE_CHUNK_NOT_FOUND", "campaign.session.rules.error.chunkNotFound"],
   ["INVALID_GAME_SETTINGS", "campaign.session.rules.invalidSettings"],
+  ["FACTS_ADD_LEAD_REQUIRED", "campaign.fact.error.addLead"],
+  ["FACTS_EDIT_LEAD_REQUIRED", "campaign.fact.error.editLead"],
+  ["INVALID_FACT", "campaign.fact.error.invalid"],
+  ["INVALID_FACT_PATCH", "campaign.fact.error.invalidPatch"],
+  ["FACT_NOT_FOUND", "campaign.fact.error.notFound"],
+  ["FACTION_NAME_REQUIRED", "campaign.factions.error.nameRequired"],
+  ["FACTION_IMAGE_NOT_UPLOADED", "campaign.factions.error.imageNotUploaded"],
+  ["FACTION_NOT_FOUND", "campaign.factions.error.notFound"],
+  ["WORKSHOP_NO_FACTION_STANDING", "campaign.factions.error.noWorkshopStanding"],
+  ["INVALID_NOTE", "campaign.notes.error.invalid"],
+  ["NOTE_CHARACTER_NOT_FOUND", "campaign.notes.error.characterNotFound"],
+  ["NOTE_NOT_FOUND", "campaign.notes.error.notFound"],
+  ["INVALID_NOTE_UPDATE", "campaign.notes.error.invalidUpdate"],
+  ["NOTE_AUTHOR_REQUIRED", "campaign.notes.error.authorRequired"],
+  ["NOTE_PIN_LEAD_REQUIRED", "campaign.notes.error.pinLeadRequired"],
+  ["NOTE_APPROVE_LEAD_REQUIRED", "campaign.notes.error.approveLeadRequired"],
+  ["NOTE_DELETE_FORBIDDEN", "campaign.notes.error.deleteForbidden"],
 ];
 for (const [code, key] of campaignApiCases) {
   assert.ok(key in DICTIONARIES.en, `English campaign API message missing: ${key}`);
