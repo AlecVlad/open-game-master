@@ -4,6 +4,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { BookMarked, Check, Eye, EyeOff, Pin, PinOff, X } from "lucide-react";
 import { useState } from "react";
 import { useI18n } from "@/lib/i18n/provider";
+import { campaignApiErrorText } from "@/lib/i18n/campaignApiError";
 import { ContextMenu, type ContextMenuItem } from "@/components/ui/ContextMenu";
 import { SectionHead } from "@/components/ui/SectionHead";
 import { cn } from "@/lib/cn";
@@ -185,7 +186,7 @@ function FactComposer({
       });
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        setError(data.error || t("campaign.fact.error.save"));
+        setError(campaignApiErrorText(data, t("campaign.fact.error.save"), t));
         return;
       }
       setSubject("");
