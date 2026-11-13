@@ -25,6 +25,7 @@ import { registerBrowserSpecies } from "@/lib/srd/race-id";
 import { classWordsAfterLevel } from "@/lib/characters/class-words";
 import type { WorkshopClass } from "@/lib/homebrew/class-data";
 import { useI18n } from "@/lib/i18n/provider";
+import { refusalText } from "@/app/characters/builder/refusal";
 import { characterBackgroundName, characterClassName, characterRaceName, characterSubclassName } from "@/lib/i18n/character-names";
 
 // Where this character is playing; see src/lib/db/characters.ts.
@@ -177,8 +178,8 @@ export default function CharacterDetailPage({
     try {
       const response = await fetch(`/api/characters/${characterId}/portrait`, { method: "POST" });
       if (!response.ok) {
-        const data = (await response.json().catch(() => ({}))) as { error?: string };
-        setPortraitError(data.error ?? t("charDetail.err.queue"));
+        const data = await response.json().catch(() => ({}));
+        setPortraitError(refusalText(data, t("charDetail.err.queue"), t));
         return;
       }
       setCharacter((current) =>
