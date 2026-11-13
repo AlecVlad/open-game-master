@@ -5,10 +5,11 @@ import { EmptyState } from "@/components/EmptyState";
 import { Pin, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useI18n } from "@/lib/i18n/provider";
+import { campaignApiErrorText } from "@/lib/i18n/campaignApiError";
 import { ContextMenu, type ContextMenuItem } from "@/components/ui/ContextMenu";
 import { SectionHead } from "@/components/ui/SectionHead";
 import { cn } from "@/lib/cn";
-import { KitButton, LoadFailed, panelRow, RowMenu } from "./PanelKit";
+import { KitButton, LoadFailed, panelRow, PanelError, RowMenu } from "./PanelKit";
 import { PIN_TOKEN_CAP, pinTokens, totalPinTokens } from "@/lib/dm/pin-logic";
 
 // Pinned memories: excerpts that ride in every prompt, unconditionally.
@@ -83,6 +84,7 @@ export function PinsPanel({ campaignId, version }: { campaignId: string; version
   const { loaded, loadError, settle } = useLoadStatus();
 
   const [reload, setReload] = useState(0);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -102,14 +104,24 @@ export function PinsPanel({ campaignId, version }: { campaignId: string; version
 
   const unpin = useCallback(
     async (pinId: string) => {
-      await fetch(`/api/campaigns/${campaignId}/pins`, {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pinId }),
-      });
-      setReload((count) => count + 1);
+      setError("");
+      try {
+        const response = await fetch(`/api/campaigns/${campaignId}/pins`, {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ pinId }),
+        });
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({}));
+          setError(campaignApiErrorText(data, t("campaign.pins.error.invalidUnpin"), t));
+          return;
+        }
+        setReload((count) => count + 1);
+      } catch {
+        setError(t("campaign.pins.error.server"));
+      }
     },
-    [campaignId],
+    [campaignId, t],
   );
 
   const used = totalPinTokens(pins);
@@ -131,6 +143,7 @@ export function PinsPanel({ campaignId, version }: { campaignId: string; version
           </span>
         }
       />
+      {error ? <PanelError>{error}</PanelError> : null}
       <div className="h-1.5 overflow-hidden rounded-full bg-stone-800" role="meter" aria-label={t("campaign.pins.budget.aria")} aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct}>
         <div
           className={cn(
