@@ -65,7 +65,11 @@ export type WriteOutcome<T> =
   | { payload: T; error: null; unanswered: false }
   | { payload: null; error: string; unanswered: boolean };
 
-export async function readWrite<T = Record<string, unknown>>(request: Promise<Response>, failed: string): Promise<WriteOutcome<T>> {
+export async function readWrite<T = Record<string, unknown>>(
+  request: Promise<Response>,
+  failed: string,
+  formatError?: LoadErrorFormatter,
+): Promise<WriteOutcome<T>> {
   let response: Response;
   try {
     response = await request;
@@ -78,7 +82,9 @@ export async function readWrite<T = Record<string, unknown>>(request: Promise<Re
   if (response.ok) {
     return { payload: body as T, error: null, unanswered: false };
   }
-  const reason = typeof body.error === "string" && body.error.trim() ? body.error.trim() : `${failed} The server answered ${response.status}.`;
+  const reason = formatError
+    ? formatError(body, response.status)
+    : typeof body.error === "string" && body.error.trim() ? body.error.trim() : `${failed} The server answered ${response.status}.`;
   return { payload: null, error: reason, unanswered: false };
 }
 
