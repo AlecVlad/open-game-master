@@ -128,8 +128,18 @@ export function QuestsPanel({ campaignId, steersStory, refreshKey }: { campaignI
     if (!(await appConfirm(t("campaign.quest.confirm.remove", { title: quest.title }), { actionLabel: t("campaign.quest.action.remove"), tone: "danger" }))) {
       return;
     }
-    await fetch(`/api/campaigns/${campaignId}/quests/${quest.id}`, { method: "DELETE" });
-    setQuests((current) => (current ?? []).filter((entry) => entry.id !== quest.id));
+    setError("");
+    try {
+      const response = await fetch(`/api/campaigns/${campaignId}/quests/${quest.id}`, { method: "DELETE" });
+      if (!response.ok) {
+        const data = (await response.json().catch(() => ({}))) as { error?: unknown; errorCode?: unknown };
+        setError(campaignApiErrorText(data, t("campaign.quest.error.remove"), t));
+        return;
+      }
+      setQuests((current) => (current ?? []).filter((entry) => entry.id !== quest.id));
+    } catch {
+      setError(t("campaign.quest.error.server"));
+    }
   }
 
   if (quests === null && loadError) {
@@ -158,6 +168,7 @@ export function QuestsPanel({ campaignId, steersStory, refreshKey }: { campaignI
           ) : null
         }
       />
+      {error ? <PanelError>{error}</PanelError> : null}
       {adding ? (
         <div className="panel reveal space-y-1.5 rounded-lg p-2.5">
           <input
