@@ -222,7 +222,7 @@ export const MessageItem = memo(function MessageItem({
     if (message.rollIds?.length) {
       return <RolledNote content={message.content} rollIds={message.rollIds} glyph={message.glyph} rollsById={rollsById} sheetsById={sheetsById} />;
     }
-    return <SystemMessage content={message.content} glyph={message.glyph} />;
+    return <SystemMessage content={message.content} glyph={message.glyph} fightSetup={message.fightSetup} />;
   }
   if (message.authorType === "dm" && isOocAnswer(message.content)) {
     // The DM's out-of-character answer to table talk put to it

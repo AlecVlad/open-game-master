@@ -25,6 +25,8 @@ import type { SystemGlyph } from "@/lib/system-glyphs";
 import { PACT_REVEAL_PREFIX } from "@/lib/dm/pact-logic";
 import { kitButtonClass } from "@/app/campaigns/[campaignId]/PanelKit";
 import { CardReturnedNote } from "@/app/campaigns/[campaignId]/CardReturnedNote";
+import { FightSetupReadout } from "@/components/FightSetupReadout";
+import type { FightSetupNotice } from "@/lib/workshop/fight-setup-logic";
 
 // The transcript's smaller voices: the table's own notices and what the
 // players say. The DM's passage, the hero of the screen, is MessageItem.tsx.
@@ -75,8 +77,18 @@ export function reportAction(message: CampaignMessage, onReport: (message: Campa
 // A notice that is not a halted turn: the lead's public direction as a card,
 // a joiner, or a plain line with the painting its writer stored (a line
 // written before the icon was stored draws the neutral bell).
-export function SystemMessage({ content, glyph }: { content: string; glyph?: SystemGlyph }) {
+export function SystemMessage({ content, glyph, fightSetup }: { content: string; glyph?: SystemGlyph; fightSetup?: FightSetupNotice }) {
   const { t } = useI18n();
+  if (fightSetup) {
+    return (
+      <div className="session-sysline">
+        <GameIcon icon={{ kind: "glyph", key: glyph ?? "cue-battle" }} size="size-6" />
+        <div className="min-w-0 space-y-1">
+          <FightSetupReadout readout={fightSetup.readout} notice={fightSetup} className="space-y-1 text-sm" />
+        </div>
+      </div>
+    );
+  }
   if (content.startsWith(LEAD_NOTE_PREFIX)) {
     return (
       <div data-tone="ember" className="panel session-banner-card rounded-xl border-ember-500/40">

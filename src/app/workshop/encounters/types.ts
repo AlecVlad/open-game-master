@@ -30,6 +30,8 @@ export type TemplateReadout = {
   names?: Record<string, string>;
 };
 
+import type { FightSetupReadout } from "@/lib/workshop/fight-setup-logic";
+
 export type PreparedEncounter = {
   id: string;
   name: string;
@@ -45,6 +47,7 @@ export type PreparedEncounter = {
   // with (issue 685, src/lib/workshop/fight-setup-logic.ts). Null for none;
   // absent from an older host's answer.
   setup?: string[] | null;
+  setupReadout?: FightSetupReadout | null;
   setupParty?: { kind: "stand-ins"; size: number; level: number; allyIds?: string[] } | { kind: "characters"; characterIds: string[]; allyIds?: string[] } | null;
 };
 

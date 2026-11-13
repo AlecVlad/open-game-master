@@ -11,6 +11,7 @@ import { ListHead, useListHead } from "@/app/workshop/ListHead";
 import { GlyphPlate, RowMenu } from "@/app/workshop/kit";
 import type { MapOption, PreparedEncounter, TemplateReadout } from "@/app/workshop/encounters/types";
 import { useI18n } from "@/lib/i18n/provider";
+import { FightSetupReadout } from "@/components/FightSetupReadout";
 
 // The workshop's encounter list: one full-width row per prepared fight with
 // what matters at a glance (the roster, where it happens, which map, and how
@@ -193,7 +194,7 @@ export function EncounterRows({
             { id: "open", label: t("campaign.session.encounterRows.open"), glyph: "system-encounters", onSelect: () => onOpen(encounter) },
             { id: "deploy", label: deploy, glyph: "tab-battle", disabled: busy, onSelect: () => onDeploy(encounter) },
             { id: "duplicate", label: t("campaign.session.encounterRows.duplicate"), glyph: "ui-duplicate", disabled: busy, onSelect: () => onDuplicate(encounter) },
-            ...(encounter.setup && onRemoveSetup
+            ...((encounter.setup || encounter.setupReadout) && onRemoveSetup
               ? [{ id: "remove-setup", label: t("campaign.session.encounterRows.removeSetup"), glyph: "ui-delete", disabled: busy, onSelect: () => onRemoveSetup(encounter) } satisfies ContextMenuItem]
               : []),
             { id: "delete", label: t("campaign.session.encounterRows.delete"), glyph: "ui-delete", tone: "danger", separated: true, onSelect: () => onDelete(encounter) },
@@ -225,9 +226,7 @@ export function EncounterRows({
                 <RowMenu items={items} label={encounter.name} />
               </div>
               <BudgetBar readout={encounter.readout} thresholds={thresholds} />
-              {encounter.setup?.length ? (
-                // The moment a test saved (issue 685): what the next test,
-                // and a live table's foes, start from.
+              {encounter.setupReadout || encounter.setup?.length ? (
                 <details className="reveal group rounded-md border border-amber-500/25 bg-amber-500/5 px-2.5" data-encounter-setup={encounter.id}>
                   <summary className="flex min-h-10 cursor-pointer list-none items-center gap-1.5 text-xs text-amber-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/40">
                     <GameIcon icon={{ kind: "glyph", key: "tab-battle" }} size="size-4" />
@@ -235,11 +234,13 @@ export function EncounterRows({
                     <span className="ml-auto text-[10px] text-amber-200/70 group-open:hidden">{t("campaign.session.encounterRows.show")}</span>
                     <span className="ml-auto hidden text-[10px] text-amber-200/70 group-open:inline">{t("campaign.session.encounterRows.hide")}</span>
                   </summary>
-                  <ul className="space-y-0.5 pb-2 text-[11px] text-stone-300">
-                    {encounter.setup.map((line) => (
-                      <li key={line}>{line}</li>
-                    ))}
-                  </ul>
+                  {encounter.setupReadout ? (
+                    <FightSetupReadout readout={encounter.setupReadout} className="space-y-0.5 pb-2 text-[11px] text-stone-300" />
+                  ) : (
+                    <ul className="space-y-0.5 pb-2 text-[11px] text-stone-300">
+                      {encounter.setup?.map((line) => <li key={line}>{line}</li>)}
+                    </ul>
+                  )}
                 </details>
               ) : null}
               <div className="flex flex-wrap items-center gap-1.5">

@@ -105,6 +105,50 @@ for (const prefix of campaignPanelAreas) {
   assert.deepEqual(missing, [], `Russian campaign-panel messages are missing for ${prefix}: ${missing.join(", ")}`);
 }
 
+const fightSetupReadoutMessages = [
+  "workshop.testFight.setup.readout.saved",
+  "workshop.testFight.setup.readout.party.standIns",
+  "workshop.testFight.setup.readout.party.characters",
+  "workshop.testFight.setup.readout.party.elsewhere",
+  "workshop.testFight.setup.readout.foes.summary",
+  "workshop.testFight.setup.readout.foes.unchanged",
+  "workshop.testFight.setup.readout.foe.dead",
+  "workshop.testFight.setup.readout.foe.fled",
+  "workshop.testFight.setup.readout.foe.hp",
+  "workshop.testFight.setup.readout.foe.hidden",
+  "workshop.testFight.setup.readout.foe.detail",
+  "workshop.testFight.setup.readout.party.summary",
+  "workshop.testFight.setup.readout.hero.dying",
+  "workshop.testFight.setup.readout.hero.zeroHp",
+  "workshop.testFight.setup.readout.hero.slotsSpent",
+  "workshop.testFight.setup.readout.hero.detail",
+  "workshop.testFight.setup.readout.initiative",
+  "workshop.testFight.setup.readout.dice.summary",
+  "workshop.testFight.setup.readout.dice.seed",
+  "workshop.testFight.setup.readout.dice.forced",
+  "workshop.testFight.setup.readout.dice.forcedNamed",
+  "workshop.testFight.setup.readout.dice.forcedRoller",
+  "workshop.testFight.setup.readout.dice.kind.any",
+  "workshop.testFight.setup.readout.dice.kind.attack",
+  "workshop.testFight.setup.readout.dice.kind.damage",
+  "workshop.testFight.setup.readout.dice.kind.save",
+  "workshop.testFight.setup.readout.dice.kind.deathSave",
+  "workshop.testFight.setup.readout.dice.kind.initiative",
+  "workshop.testFight.setup.readout.dice.kind.check",
+  "workshop.testFight.setup.readout.dice.roller.next",
+  "workshop.testFight.setup.readout.dice.roller.enemy",
+  "workshop.testFight.setup.readout.dice.roller.hero",
+  "workshop.testFight.setup.readout.notice.opened",
+  "workshop.testFight.setup.readout.notice.initiativeReplaced",
+  "workshop.testFight.setup.readout.notice.partyStartsFresh",
+  "workshop.homebrew.item.condition.invisible",
+  "workshop.homebrew.item.condition.unconscious",
+];
+for (const key of fightSetupReadoutMessages) {
+  assert.ok(key in DICTIONARIES.en, `English saved-fight readout message missing: ${key}`);
+  assert.ok(key in DICTIONARIES.ru, `Russian saved-fight readout message missing: ${key}`);
+  assert.notEqual(translate(DICTIONARIES, "ru", key), key, `Russian saved-fight readout fell back to its key: ${key}`);
+}
 const tableViewMessages = [
   "campaign.tableView.error.memberOnly",
   "campaign.tableView.backToCampaigns",
