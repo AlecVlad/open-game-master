@@ -56,8 +56,12 @@ export function CreateCampaignDialog({
   onCreated: (campaignId: string) => void;
   solo?: boolean;
 }) {
-  const { t } = useI18n();
+  const { t, tp } = useI18n();
   const key = (value: string) => value as MessageKey;
+  const importMessages = {
+    t: (messageKey: string, params?: Record<string, string | number>) => t(key(messageKey), params),
+    tp: (messageKey: string, count: number, params?: Record<string, string | number>) => tp(messageKey, count, params),
+  };
   // The default genre's preset writes the first theme, exactly as picking any
   // other portal would; typing in the field takes it over for good.
   const [draft, setDraft] = useState<CampaignDraft>(() => presetTheme(DEFAULT_DRAFT));
@@ -361,7 +365,7 @@ export function CreateCampaignDialog({
       // brought is kept by the campaign, so asking again after a failure
       // brings only what is still missing.
       if (!importDone) {
-        const imported = await submitContentImport(campaignId, latest.current.contentImport);
+        const imported = await submitContentImport(campaignId, latest.current.contentImport, importMessages);
         importDone = !imported || imported.ok;
         if (imported && !imported.ok) {
           problems.push(t("createCampaign.dialog.error.import", { title: prep?.title ?? t("createCampaign.dialog.prep.chosen"), error: imported.error }));
