@@ -66,6 +66,16 @@ const REFUSAL_MESSAGE_KEYS = {
   LEVEL_UP_ALREADY_TAKEN: "charSheet.levelUp.error.alreadyTaken",
   LEVEL_UP_ALREADY_AT_MAX: "charSheet.levelUp.error.alreadyAtMax",
   LEVEL_UP_COSMETIC_FIELDS_ONLY: "charSheet.levelUp.error.cosmeticFieldsOnly",
+  LEVEL_UP_CHARACTER_DEAD: "charSheet.levelUp.block.dead",
+  LEVEL_UP_CHARACTER_ZERO_HP: "charSheet.levelUp.block.zeroHp",
+  LEVEL_UP_MAX_LEVEL: "charSheet.levelUp.block.maxLevel",
+  LEVEL_UP_WRONG_SEQUENCE: "charSheet.levelUp.error.wrongSequence",
+  LEVEL_UP_XP_REQUIRED: "charSheet.levelUp.block.xp",
+  LEVEL_UP_UNKNOWN_CLASS: "charSheet.levelUp.error.unknownClass",
+  LEVEL_UP_MULTICLASS_DISABLED: "charSheet.levelUp.error.multiclassDisabled",
+  LEVEL_UP_SUBCLASS_ALREADY_SET: "charSheet.levelUp.error.subclassAlreadySet",
+  LEVEL_UP_SUBCLASS_TOO_EARLY: "charSheet.levelUp.error.subclassTooEarly",
+  LEVEL_UP_SUBCLASS_NOT_OFFERED: "charSheet.levelUp.error.subclassNotOffered",
 } satisfies Record<string, MessageKey>;
 
 // Refusals retain their original prose for older clients and unknown

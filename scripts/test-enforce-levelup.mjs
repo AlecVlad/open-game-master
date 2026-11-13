@@ -79,7 +79,38 @@ const fighterLevel = (sheet, extra = {}) => ({
 
 // ---- enforced today ----
 
-await test("an earned level is taken, and the stored sheet is the levelled one", async () => {
+await test("an earned level is taken, and the stored sheet is the levelled one", async () => {await test("level-up builder refusals expose locale-neutral codes and parameters", async () => {
+  const { sheet, patch } = await table(FIGHTER, { xp: XP[3] });
+  const before = sheet();
+  const skipped = await patch({ level: 3 });
+  assert.equal(skipped.status, 400);
+  assert.equal(skipped.json.errorCode, "LEVEL_UP_WRONG_SEQUENCE");
+  assert.deepEqual(skipped.json.errorParams, { name: before.name, level: 1, nextLevel: 2 });
+  assert.deepEqual(sheet(), before);
+
+  const earlySubclass = await patch({ level: 2, subclass: "Champion" });
+  assert.equal(earlySubclass.status, 400);
+  assert.equal(earlySubclass.json.errorCode, "LEVEL_UP_SUBCLASS_TOO_EARLY");
+  assert.deepEqual(earlySubclass.json.errorParams, { className: "Fighter", classLevel: 2, requiredLevel: 3 });
+  assert.deepEqual(sheet(), before);
+
+  const unavailableClass = await patch({ level: 2, levelUpClass: "not-a-class" });
+  assert.equal(unavailableClass.status, 400);
+  assert.equal(unavailableClass.json.errorCode, "LEVEL_UP_UNKNOWN_CLASS");
+  assert.deepEqual(sheet(), before);
+});
+
+await test("an unearned level identifies the missing experience in a structured refusal", async () => {
+  const { sheet, patch } = await table(FIGHTER);
+  const before = sheet();
+  const response = await patch({ level: 2 });
+  assert.equal(response.status, 403);
+  assert.equal(response.json.errorCode, "LEVEL_UP_XP_REQUIRED");
+  assert.deepEqual(response.json.errorParams, { name: before.name, level: 2, required: 300, current: 0 });
+  assert.deepEqual(sheet(), before);
+});
+
+
   const { sheet, patch } = await table(FIGHTER, { xp: XP[2] });
   const before = sheet();
   const response = await patch(fighterLevel(before));
@@ -149,7 +180,7 @@ await test("outside a level-up only portrait, notes and backstory can be written
   assert.equal(sheet().level, 3);
 });
 
-await test("no sheet passes level 20, and a level is a whole number from 1", async () => {await test("a repeated request at level 20 uses the maximum-level refusal code", async () => {
+await test("a repeated request at level 20 uses the maximum-level refusal code", async () => {
   const { sheet, patch } = await table({ ...FIGHTER, level: 20 });
   const before = sheet();
   const response = await patch({ level: 20 });
@@ -159,7 +190,7 @@ await test("no sheet passes level 20, and a level is a whole number from 1", asy
   assert.deepEqual(sheet(), before);
 });
 
-
+await test("no sheet passes level 20, and a level is a whole number from 1", async () => {
   const { sheet, patch } = await table({ ...FIGHTER, level: 19 }, { xp: 20000 });
   const before = sheet();
   for (const level of [21, 25, 0, -1, 19.5, "20"]) {

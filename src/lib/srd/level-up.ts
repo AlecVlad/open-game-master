@@ -111,9 +111,24 @@ export type LevelUpResult =
       rolled?: { hp: number };
       hpGained: number;
     }
-  | { error: string; status?: number };
+  | {
+      error: string;
+      status?: number;
+      errorCode?: string;
+      errorParams?: Record<string, string | number>;
+    };
 
-const refuse = (error: string, status = 400): LevelUpResult => ({ error, status });
+const refuse = (
+  error: string,
+  status = 400,
+  errorCode?: string,
+  errorParams?: Record<string, string | number>,
+): LevelUpResult => ({
+  error,
+  status,
+  ...(errorCode ? { errorCode } : {}),
+  ...(errorParams ? { errorParams } : {}),
+});
 
 type AbilityScoresKey = keyof AbilityScores;
 
@@ -207,21 +222,26 @@ export function buildLevelUp(
 ): LevelUpResult {
   // ---- may this character level at all, and to this level ----
   if (sheet.deathSaves?.dead) {
-    return refuse(`${sheet.name} is dead, and the dead gain no levels.`, 409);
+    return refuse(`${sheet.name} is dead, and the dead gain no levels.`, 409, "LEVEL_UP_CHARACTER_DEAD", { name: sheet.name });
   }
   if (sheet.currentHp <= 0) {
     return refuse(
       `${sheet.name} is at 0 hit points. A character levels up once they are back on their feet.`,
       409,
+      "LEVEL_UP_CHARACTER_ZERO_HP",
+      { name: sheet.name },
     );
   }
   const target = request.level ?? sheet.level + 1;
   if (target > 20) {
-    return refuse("No character passes level 20.");
+    return refuse("No character passes level 20.", 400, "LEVEL_UP_MAX_LEVEL");
   }
   if (target !== sheet.level + 1) {
     return refuse(
       `A character gains one level at a time: ${sheet.name} is level ${sheet.level}, so the next level is ${sheet.level + 1}. Take the levels one after another.`,
+      400,
+      "LEVEL_UP_WRONG_SEQUENCE",
+      { name: sheet.name, level: sheet.level, nextLevel: sheet.level + 1 },
     );
   }
   const reached = levelForXp(sheet.xp);
@@ -229,6 +249,8 @@ export function buildLevelUp(
     return refuse(
       `Level ${target} takes ${XP_THRESHOLDS[target - 1]} experience points and ${sheet.name} has ${sheet.xp}. A level is earned in play, or granted by whoever runs the table.`,
       403,
+      "LEVEL_UP_XP_REQUIRED",
+      { name: sheet.name, level: target, required: XP_THRESHOLDS[target - 1], current: sheet.xp },
     );
   }
 
@@ -237,7 +259,7 @@ export function buildLevelUp(
   const classId = (request.levelUpClass ?? "").trim().toLowerCase() || before[0].id.toLowerCase();
   const klass = context.classOf(classId);
   if (!klass) {
-    return refuse(`Unknown class "${classId}".`);
+    return refuse(`Unknown class "${classId}".`, 400, "LEVEL_UP_UNKNOWN_CLASS");
   }
   const classes = before.map((entry) => ({ ...entry }));
   let leveled = classes.find((entry) => entry.id.toLowerCase() === classId);
@@ -247,6 +269,7 @@ export function buildLevelUp(
       return refuse(
         "Multiclassing is turned off for this campaign (a lobby setting the owner controls).",
         403,
+        "LEVEL_UP_MULTICLASS_DISABLED",
       );
     }
     const check = canMulticlassInto(sheet, classId);
@@ -265,16 +288,27 @@ export function buildLevelUp(
     if (leveled.subclass) {
       return refuse(
         `${sheet.name} is a ${leveled.subclass}; a subclass is chosen once and later levels build on it.`,
+        400,
+        "LEVEL_UP_SUBCLASS_ALREADY_SET",
+        { name: sheet.name, subclass: leveled.subclass },
       );
     }
     const pickLevel = subclassLevelFor(klass.id);
     if (pickLevel !== null && leveled.level < pickLevel) {
       return refuse(
         `A ${klass.name} chooses a subclass at ${klass.name} level ${pickLevel}; this is level ${leveled.level}.`,
+        400,
+        "LEVEL_UP_SUBCLASS_TOO_EARLY",
+        { className: klass.name, classLevel: leveled.level, requiredLevel: pickLevel },
       );
     }
     if (!context.subclassOffered(klass.id, wantedSubclass)) {
-      return refuse(`${wantedSubclass} is not a subclass of the ${klass.name}; pick one from that class's list.`);
+      return refuse(
+        `${wantedSubclass} is not a subclass of the ${klass.name}; pick one from that class's list.`,
+        400,
+        "LEVEL_UP_SUBCLASS_NOT_OFFERED",
+        { subclass: wantedSubclass, className: klass.name },
+      );
     }
     leveled.subclass = bundledSubclassName(klass.id, wantedSubclass) ?? wantedSubclass;
   }

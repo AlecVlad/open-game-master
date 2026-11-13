@@ -682,7 +682,14 @@ export async function PATCH(
         ).total,
     });
     if ("error" in built) {
-      return Response.json({ error: built.error }, { status: built.status ?? 400 });
+      return Response.json(
+        {
+          error: built.error,
+          ...(built.errorCode ? { errorCode: built.errorCode } : {}),
+          ...(built.errorParams ? { errorParams: built.errorParams } : {}),
+        },
+        { status: built.status ?? 400 },
+      );
     }
     const leveled = patchSheet(sheet.id, built.patch);
     publishPersisted(campaignId, "sheet_updated", { sheet: leveled });

@@ -164,6 +164,28 @@ for (const [code, key, params, expected] of levelUpRefusalCases) {
   );
   assert.equal(actual, expected, `refusal ${code} did not localize`);
 }
+const levelUpBuilderRefusalCases = [
+  ["LEVEL_UP_CHARACTER_DEAD", "charSheet.levelUp.block.dead", { name: "Corin" }, "Corin мёртв. Мёртвые персонажи не получают уровни."],
+  ["LEVEL_UP_CHARACTER_ZERO_HP", "charSheet.levelUp.block.zeroHp", { name: "Corin" }, "У Corin 0 хитов. Повысить уровень можно, когда персонаж снова сможет действовать."],
+  ["LEVEL_UP_MAX_LEVEL", "charSheet.levelUp.block.maxLevel", {}, "Уровень персонажа не может превышать 20."],
+  ["LEVEL_UP_WRONG_SEQUENCE", "charSheet.levelUp.error.wrongSequence", { name: "Corin", level: 3, nextLevel: 4 }, "Corin сейчас на 3-м уровне; следующий — 4-й. Повышать уровень можно только по одному."],
+  ["LEVEL_UP_XP_REQUIRED", "charSheet.levelUp.block.xp", { name: "Corin", level: 2, required: 300, current: 0 }, "Для 2-го уровня требуется 300 опыта, а у Corin сейчас 0. Уровень получают за игру или по решению ведущего."],
+  ["LEVEL_UP_UNKNOWN_CLASS", "charSheet.levelUp.error.unknownClass", {}, "Запрошенный класс недоступен."],
+  ["LEVEL_UP_MULTICLASS_DISABLED", "charSheet.levelUp.error.multiclassDisabled", {}, "Мультиклассирование отключено в настройках этой кампании."],
+  ["LEVEL_UP_SUBCLASS_ALREADY_SET", "charSheet.levelUp.error.subclassAlreadySet", { name: "Corin", subclass: "Champion" }, "У персонажа Corin уже выбран подкласс «Champion». Подкласс выбирают только один раз."],
+  ["LEVEL_UP_SUBCLASS_TOO_EARLY", "charSheet.levelUp.error.subclassTooEarly", { className: "Fighter", classLevel: 2, requiredLevel: 3 }, "Класс «Fighter» получает подкласс на 3-м уровне класса. Сейчас уровень класса — 2."],
+  ["LEVEL_UP_SUBCLASS_NOT_OFFERED", "charSheet.levelUp.error.subclassNotOffered", { subclass: "Storm", className: "Wizard" }, "Подкласс «Storm» недоступен для класса «Wizard»."],
+];
+for (const [code, key, params, expected] of levelUpBuilderRefusalCases) {
+  assert.ok(key in DICTIONARIES.en, `English level-up builder refusal missing: ${key}`);
+  assert.ok(key in DICTIONARIES.ru, `Russian level-up builder refusal missing: ${key}`);
+  const actual = refusalText(
+    { error: "legacy English text", errorCode: code, errorParams: params },
+    "fallback",
+    (messageKey, messageParams) => translate(DICTIONARIES, "ru", messageKey, messageParams),
+  );
+  assert.equal(actual, expected, `level-up builder refusal ${code} did not localize`);
+}
 const tableViewMessages = [
   "campaign.tableView.error.memberOnly",
   "campaign.tableView.backToCampaigns",
