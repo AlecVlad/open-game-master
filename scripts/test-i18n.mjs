@@ -905,6 +905,10 @@ for (const key of characterRefusalMessages) {
   assert.ok(key in DICTIONARIES.ru, `Russian character-refusal message missing: ${key}`);
 }
 
+// Companion-builder network failures use the existing translated fallback.
+assert.ok("campaign.companionBuilder.error.server" in DICTIONARIES.en, "English companion-builder network error missing");
+assert.ok("campaign.companionBuilder.error.server" in DICTIONARIES.ru, "Russian companion-builder network error missing");
+
 // Companion relationship labels must follow the selected interface language.
 for (const key of ["campaign.relationship.romance.with", "campaign.relationship.romance.title"]) {
   assert.ok(key in DICTIONARIES.en, `English relationship message missing: ${key}`);
