@@ -101,18 +101,24 @@ export function QuestsPanel({ campaignId, steersStory, refreshKey }: { campaignI
       return;
     }
     setBusy(true);
+    setError("");
     try {
       const response = await fetch(`/api/campaigns/${campaignId}/quests`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, objectives: lines.split("\n").map((line) => line.trim()).filter(Boolean) }),
+        body: JSON.stringify({ title, objectives: lines.split("\\n").map((line) => line.trim()).filter(Boolean) }),
       });
-      if (response.ok) {
-        setTitle("");
-        setLines("");
-        setAdding(false);
-        load();
+      if (!response.ok) {
+        const data = (await response.json().catch(() => ({}))) as { error?: unknown; errorCode?: unknown };
+        setError(campaignApiErrorText(data, t("campaign.quest.error.create"), t));
+        return;
       }
+      setTitle("");
+      setLines("");
+      setAdding(false);
+      load();
+    } catch {
+      setError(t("campaign.quest.error.server"));
     } finally {
       setBusy(false);
     }
