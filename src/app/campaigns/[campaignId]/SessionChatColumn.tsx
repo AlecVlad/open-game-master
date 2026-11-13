@@ -1,6 +1,8 @@
 "use client";
 
 import { useMemo, useState, type ReactNode } from "react";
+import { useT } from "@/lib/i18n/provider";
+import { campaignApiErrorText } from "@/lib/i18n/campaignApiError";
 import { cn } from "@/lib/cn";
 import { offerCorrectionReason } from "@/lib/correction-offer";
 import { MessageList } from "@/app/campaigns/[campaignId]/MessageList";
@@ -74,6 +76,7 @@ export function SessionChatColumn({
   showTranscript?: boolean;
   children: ReactNode;
 }) {
+  const t = useT();
   const { campaign, messages, rolls, sheets, locations, dmStatus, utilityCalls } = state;
   const [reportTarget, setReportTarget] = useState<ReportTarget | null>(null);
   // The passage a player is objecting to (DisputeDialog.tsx); only a table
@@ -233,7 +236,7 @@ export function SessionChatColumn({
           });
           if (!response.ok) {
             const data = await response.json().catch(() => ({}));
-            onError(data.error || "Could not pin that.");
+            onError(campaignApiErrorText(data, t("campaign.pins.error.invalid"), t));
             return;
           }
           onPinned();
