@@ -1517,6 +1517,10 @@ const campaignApiCases = [
   ["INVALID_UNPIN", "campaign.pins.error.invalidUnpin"],
   ["PIN_REMOVE_FORBIDDEN", "campaign.pins.error.removeForbidden"],
   ["INVITE_REGENERATE_FAILED", "invite.error.regenerate"],
+  ["NARRATION_MESSAGE_NOT_FOUND", "campaign.narrationFailure.error.messageNotFound"],
+  ["NARRATION_GM_ONLY", "campaign.narrationFailure.error.gmOnly"],
+  ["NARRATION_DISABLED", "campaign.narrationFailure.error.disabled"],
+  ["NARRATION_RENDER_FAILED", "campaign.narrationFailure.error.render"],
 ];
 for (const [code, key] of campaignApiCases) {
   assert.ok(key in DICTIONARIES.en, `English campaign API message missing: ${key}`);
