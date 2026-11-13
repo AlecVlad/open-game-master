@@ -106,7 +106,7 @@ export function QuestsPanel({ campaignId, steersStory, refreshKey }: { campaignI
       const response = await fetch(`/api/campaigns/${campaignId}/quests`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, objectives: lines.split("\\n").map((line) => line.trim()).filter(Boolean) }),
+        body: JSON.stringify({ title, objectives: lines.split("\n").map((line) => line.trim()).filter(Boolean) }),
       });
       if (!response.ok) {
         const data = (await response.json().catch(() => ({}))) as { error?: unknown; errorCode?: unknown };
