@@ -19,7 +19,7 @@ const { useBuilderDerived } = await import("../src/app/characters/builder/useBui
 const { srdRaceOptions, srdClassOptions, srdBackgroundOptions } = await import(
   "../src/app/characters/builder/useBuilderOptions.ts"
 );
-const { builderFeatCandidate, builderFeatJudge, judgeEntry, unmetFeatMessage } = await import(
+const { builderFeatCandidate, builderFeatJudge, judgeEntry, unmetFeatDetail, unmetFeatMessage } = await import(
   "../src/app/characters/builder/featPrereqs.ts"
 );
 const { abilitiesBlocker, ancestryBlocker } = await import("../src/app/characters/builder/submit.ts");
@@ -164,6 +164,10 @@ test("a picked feat is rechecked when a score it depends on changes, flagged and
   const blocked = ancestryBlocker(after.state, after.race, after.background, after.derived, after.judge);
   assert.equal(blocked?.target, "racialFeat");
   assert.equal(blocked?.message, "Skulker: Needs Dexterity 13, you have 10. Pick another feat, or change what it depends on.");
+  assert.deepEqual(unmetFeatDetail(after.judge, ["Skulker"]), {
+    feat: "Skulker",
+    requirements: [{ code: "abilityScore", abilities: ["dex"], minimum: 13, actual: [10] }],
+  });
   assert.equal(unmetFeatMessage(after.judge, ["Alert"]), null, "a feat with no prerequisite is never flagged");
   // An edit does not judge a feat the stored character already held, as
   // the server does not.
