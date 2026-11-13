@@ -44,6 +44,8 @@ export const ruCampaignPanels: Partial<Record<keyof typeof enCampaignPanels, str
   "campaign.notes.author.you": "Вы",
   "campaign.notes.author.onlyYou": "Только вы можете это видеть",
   "campaign.notes.error.save": "Не удалось сохранить заметку.",
+  "campaign.notes.error.update": "Не удалось изменить заметку.",
+  "campaign.notes.error.remove": "Не удалось удалить заметку.",
   "campaign.notes.error.server": "Не удалось связаться с сервером.",
   "campaign.fact.error.addLead": "Добавлять факты может только лидер группы.",
   "campaign.fact.error.editLead": "Изменять и удалять факты может только лидер группы.",
@@ -89,6 +91,7 @@ export const ruCampaignPanels: Partial<Record<keyof typeof enCampaignPanels, str
   "campaign.fact.empty.lead": "Фактов пока нет. Ведущий записывает их сюда после закрытия глав или может закрепить факт вручную выше.",
   "campaign.fact.empty.player": "Фактов пока нет. Ведущий записывает их сюда после закрытия глав.",
   "campaign.fact.error.save": "Не удалось сохранить факт.",
+  "campaign.fact.error.update": "Не удалось изменить факт.",
   "campaign.fact.error.server": "Не удалось связаться с сервером.",
 
   "campaign.quest.status.active": "Активно",
