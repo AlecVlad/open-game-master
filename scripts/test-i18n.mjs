@@ -1500,6 +1500,14 @@ const campaignApiCases = [
   ["QUEST_TITLE_REQUIRED", "campaign.quest.error.titleRequired"],
   ["QUEST_NOT_FOUND", "campaign.quest.error.notFound"],
   ["QUEST_FROM_STORY", "campaign.quest.error.fromStory"],
+  ["PIN_TEXT_REQUIRED", "campaign.pins.error.textRequired"],
+  ["PIN_TOO_LONG", "campaign.pins.error.tooLong"],
+  ["PIN_ALREADY_PINNED", "campaign.pins.error.alreadyPinned"],
+  ["PIN_BUDGET_FULL", "campaign.pins.error.budgetFull"],
+  ["INVALID_PIN", "campaign.pins.error.invalid"],
+  ["PIN_MESSAGE_NOT_FOUND", "campaign.pins.error.messageNotFound"],
+  ["INVALID_UNPIN", "campaign.pins.error.invalidUnpin"],
+  ["PIN_REMOVE_FORBIDDEN", "campaign.pins.error.removeForbidden"],
 ];
 for (const [code, key] of campaignApiCases) {
   assert.ok(key in DICTIONARIES.en, `English campaign API message missing: ${key}`);
