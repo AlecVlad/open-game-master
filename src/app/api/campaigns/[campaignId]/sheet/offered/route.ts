@@ -70,7 +70,7 @@ export async function POST(
   const level = door.level;
   const admitted = admitLibraryForSeat(offer.character, door.campaign, context.user.id, level, parsed.data.picks);
   if (!admitted.ok) {
-    return refusal(admitted.problems);
+    return refusal(admitted.problems, 400, admitted.problemDetails);
   }
   const libraryCharacter = createCharacter(context.user.id, level, admitted.sheet);
   // The copy is the pregen's wherever it goes: seated again, edited in the
