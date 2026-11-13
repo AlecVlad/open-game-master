@@ -49,6 +49,7 @@ import { builderActions, extraClassRows, useBuilderDerived } from "./useBuilderD
 import { classSplitWords } from "./multiclassBuild";
 import { BuildMathPanel } from "./BuildMathPanel";
 import { gearProblemText } from "./gearProblemText";
+import { featOwedText } from "./featOwedText";
 import { useArchetypeOptions, useBuilderOptions, useWorldPack, type OptionListKind } from "./useBuilderOptions";
 import { TableScopeNote } from "./TableScopeNote";
 import { UndoChangeBar } from "./UndoChangeBar";
@@ -269,8 +270,12 @@ function CharacterBuilderForm({
     const first = detail ? gearProblemText(detail, t) : fallback;
     return more > 0 ? first + " " + tp("builder.gear.problem.more", more, { count: more }) : first;
   };
-  const formatStepBlock: BuilderBlockFormatter = (entry) =>
-    entry.detail ? t(entry.detail.key, entry.detail.params) : entry.message;
+  const formatStepBlock: BuilderBlockFormatter = (entry) => {
+    if (!entry.detail) return entry.message;
+    return entry.detail.key === "builder.block.feat.choices"
+      ? featOwedText(entry.detail.params, t)
+      : t(entry.detail.key, entry.detail.params);
+  };
   // creator.css stills its loops under <html data-effects="low">, which only
   // the table's session view set; the library and join pages build
   // characters outside it.
