@@ -110,6 +110,26 @@ await test("an unearned level identifies the missing experience in a structured 
   assert.deepEqual(sheet(), before);
 });
 
+await test("level-up choice refusals carry stable codes", async () => {
+  const { sheet, patch } = await table(FIGHTER, { xp: XP[2] });
+  const before = sheet();
+  const lowered = await patch({ level: 2, abilities: { ...before.abilities, str: before.abilities.str - 1 } });
+  assert.equal(lowered.status, 400);
+  assert.equal(lowered.json.errorCode, "LEVEL_UP_ABILITY_LOWERED");
+  assert.deepEqual(lowered.json.errorParams, { ability: "str", current: before.abilities.str, requested: before.abilities.str - 1 });
+  assert.deepEqual(sheet(), before);
+
+  const asi = await patch({ level: 2, asiChoices: [{ mode: "plus2", ability: "str" }] });
+  assert.equal(asi.status, 400);
+  assert.equal(asi.json.errorCode, "LEVEL_UP_ASI_NOT_GRANTED");
+  assert.deepEqual(asi.json.errorParams, { classLevel: 2 });
+  assert.deepEqual(sheet(), before);
+
+  const expertise = await patch({ level: 2, expertise: ["perception"] });
+  assert.equal(expertise.status, 400);
+  assert.equal(expertise.json.errorCode, "LEVEL_UP_EXPERTISE_NOT_AVAILABLE");
+  assert.deepEqual(sheet(), before);
+});
 await test("an earned level is taken, and the stored sheet is the levelled one", async () => {
   const { sheet, patch } = await table(FIGHTER, { xp: XP[2] });
   const before = sheet();

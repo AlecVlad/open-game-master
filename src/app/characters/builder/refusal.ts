@@ -3,6 +3,15 @@ import { gearProblemText } from "./gearProblemText";
 
 type MessageParams = Record<string, string | number>;
 
+const ABILITY_MESSAGE_KEYS: Record<string, MessageKey> = {
+  str: "charSheet.ability.str",
+  dex: "charSheet.ability.dex",
+  con: "charSheet.ability.con",
+  int: "charSheet.ability.int",
+  wis: "charSheet.ability.wis",
+  cha: "charSheet.ability.cha",
+};
+
 const REFUSAL_MESSAGE_KEYS = {
   MULTICLASS_DISABLED: "builder.refusal.multiclass.disabled",
   DUPLICATE_CLASS: "builder.refusal.multiclass.duplicate",
@@ -76,6 +85,17 @@ const REFUSAL_MESSAGE_KEYS = {
   LEVEL_UP_SUBCLASS_ALREADY_SET: "charSheet.levelUp.error.subclassAlreadySet",
   LEVEL_UP_SUBCLASS_TOO_EARLY: "charSheet.levelUp.error.subclassTooEarly",
   LEVEL_UP_SUBCLASS_NOT_OFFERED: "charSheet.levelUp.error.subclassNotOffered",
+  LEVEL_UP_ABILITY_LOWERED: "charSheet.levelUp.error.abilityLowered",
+  LEVEL_UP_ABILITY_CAP: "charSheet.levelUp.error.abilityCap",
+  LEVEL_UP_ASI_TOO_MANY: "charSheet.levelUp.error.asiTooMany",
+  LEVEL_UP_ASI_NOT_GRANTED: "charSheet.levelUp.error.asiNotGranted",
+  LEVEL_UP_FEAT_ALREADY_TAKEN: "charSheet.levelUp.error.featAlreadyTaken",
+  LEVEL_UP_FEAT_NOT_OFFERED: "charSheet.levelUp.error.featNotOffered",
+  LEVEL_UP_FEAT_PREREQUISITE: "charSheet.levelUp.error.featPrerequisite",
+  LEVEL_UP_EXPERTISE_TOO_MANY: "charSheet.levelUp.error.expertiseTooMany",
+  LEVEL_UP_EXPERTISE_NOT_AVAILABLE: "charSheet.levelUp.error.expertiseNotAvailable",
+  LEVEL_UP_EXPERTISE_REQUIRES_PROFICIENCY: "charSheet.levelUp.error.expertiseProficiency",
+  LEVEL_UP_FIGHTING_STYLE_NOT_OFFERED: "charSheet.levelUp.error.fightingStyleNotOffered",
 } satisfies Record<string, MessageKey>;
 
 // Refusals retain their original prose for older clients and unknown
@@ -115,6 +135,12 @@ export function refusalText(
       : undefined;
     if (code === "STARTING_GEAR_INVALID_SLOT") {
       return gearProblemText({ code: "invalidSlot", params: messageParams ?? {} }, t);
+    }
+    if (code === "LEVEL_UP_ABILITY_LOWERED" || code === "LEVEL_UP_ABILITY_CAP") {
+      const ability = messageParams?.ability;
+      if (typeof ability === "string" && ABILITY_MESSAGE_KEYS[ability]) {
+        messageParams.ability = t(ABILITY_MESSAGE_KEYS[ability]);
+      }
     }
     if (typeof code === "string" && code in REFUSAL_MESSAGE_KEYS) {
       return t(REFUSAL_MESSAGE_KEYS[code as keyof typeof REFUSAL_MESSAGE_KEYS], messageParams);

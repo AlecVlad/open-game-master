@@ -138,7 +138,13 @@ type AbilityScoresKey = keyof AbilityScores;
 function improvementsAsked(
   sheet: CharacterSheet,
   request: LevelUpRequest,
-): { choices: AsiChoice[] } | { error: string } {
+): {
+  choices: AsiChoice[];
+} | {
+  error: string;
+  errorCode?: string;
+  errorParams?: Record<string, string | number>;
+} {
   if (request.asiChoices?.length) {
     return { choices: request.asiChoices };
   }
@@ -156,11 +162,15 @@ function improvementsAsked(
       if (delta < 0) {
         return {
           error: `An Ability Score Improvement raises scores; it cannot lower ${ABILITY_NAMES[ability]} from ${sheet.abilities[ability]} to ${request.abilities[ability]}.`,
+          errorCode: "LEVEL_UP_ABILITY_LOWERED",
+          errorParams: { ability, current: sheet.abilities[ability], requested: request.abilities[ability] },
         };
       }
       if (request.abilities[ability] > ABILITY_SCORE_CAP && delta > 0) {
         return {
           error: `An Ability Score Improvement cannot raise ${ABILITY_NAMES[ability]} above ${ABILITY_SCORE_CAP}.`,
+          errorCode: "LEVEL_UP_ABILITY_CAP",
+          errorParams: { ability, maximum: ABILITY_SCORE_CAP },
         };
       }
       for (let point = 0; point < delta; point += 1) {
@@ -316,16 +326,24 @@ export function buildLevelUp(
   // ---- improvements and feats ----
   const asked = improvementsAsked(sheet, request);
   if ("error" in asked) {
-    return refuse(asked.error);
+    return refuse(asked.error, 400, asked.errorCode, asked.errorParams);
   }
   const taken = asiTaken(sheet);
   const owed = Math.max(0, earnedAsiCountFor(classes) - taken);
   if (asked.choices.length > owed) {
-    return refuse(
-      owed
-        ? `This level gives ${sheet.name} ${owed} Ability Score Improvement${owed === 1 ? "" : "s"}: two points, or one feat, each. The request asks for ${asked.choices.length}.`
-        : `${klass.name} level ${leveled.level} gives no Ability Score Improvement, so ability scores and feats stay as they are. Improvements come at the class's own levels.`,
-    );
+    return owed
+      ? refuse(
+          `This level gives ${sheet.name} ${owed} Ability Score Improvement${owed === 1 ? "" : "s"}: two points, or one feat, each. The request asks for ${asked.choices.length}.`,
+          400,
+          "LEVEL_UP_ASI_TOO_MANY",
+          { name: sheet.name, owed, requested: asked.choices.length },
+        )
+      : refuse(
+          `Class level ${leveled.level} does not grant an Ability Score Improvement; ability scores and feats stay as they are.`,
+          400,
+          "LEVEL_UP_ASI_NOT_GRANTED",
+          { classLevel: leveled.level },
+        );
   }
   let abilities = applyChoices(sheet.abilities, asked.choices);
   const feats = [...sheet.feats];
@@ -338,11 +356,21 @@ export function buildLevelUp(
       continue;
     }
     if (feats.some((feat) => textKey(feat) === textKey(choice.feat))) {
-      return refuse(`${sheet.name} already has ${choice.feat}; a feat is taken once.`);
+      return refuse(
+        `${sheet.name} already has ${choice.feat}; a feat is taken once.`,
+        400,
+        "LEVEL_UP_FEAT_ALREADY_TAKEN",
+        { name: sheet.name, feat: choice.feat },
+      );
     }
     const facts = context.featOf(choice.feat);
     if (!facts) {
-      return refuse(`"${choice.feat}" is not a feat this table offers; pick one from the feat list.`);
+      return refuse(
+        `"${choice.feat}" is not a feat this table offers; pick one from the feat list.`,
+        400,
+        "LEVEL_UP_FEAT_NOT_OFFERED",
+        { feat: choice.feat },
+      );
     }
     const unmet = unmetPrerequisite(facts.prerequisite, {
       abilities,
@@ -356,7 +384,12 @@ export function buildLevelUp(
       level: target,
     });
     if (unmet) {
-      return refuse(`${facts.name} requires ${unmet}, which ${sheet.name} does not have.`);
+      return refuse(
+        `${facts.name} requires ${unmet}, which ${sheet.name} does not have.`,
+        400,
+        "LEVEL_UP_FEAT_PREREQUISITE",
+        { name: sheet.name, feat: facts.name },
+      );
     }
     feats.push(facts.name);
     const raised = applyFeatIncrease(abilities, facts.name, choice.ability ?? null, facts.desc);
@@ -513,16 +546,26 @@ export function buildLevelUp(
     const picks = dedupeNames(request.expertise.map(lower)).filter((skill) => !held.includes(skill));
     const slots = classes.reduce((sum, entry) => sum + expertiseSlotsFor(entry.id, entry.level), 0);
     if (picks.length > Math.max(0, slots - held.length)) {
-      return refuse(
-        slots
-          ? `${sheet.name} has earned expertise in ${slots} skills and holds ${held.length}; ${picks.length} more cannot be picked.`
-          : "Expertise is a rogue's feature (1st and 6th level) and a bard's (3rd and 10th); this character has none to pick.",
-      );
+      return slots
+        ? refuse(
+            `${sheet.name} has earned expertise in ${slots} skills and holds ${held.length}; ${picks.length} more cannot be picked.`,
+            400,
+            "LEVEL_UP_EXPERTISE_TOO_MANY",
+            { name: sheet.name, slots, held: held.length, requested: picks.length },
+          )
+        : refuse(
+            "This character has no expertise choice available at their current class levels.",
+            400,
+            "LEVEL_UP_EXPERTISE_NOT_AVAILABLE",
+          );
     }
     const unproficient = picks.filter((skill) => !expertiseAllowed(skill, proficiencies.skills, classes.map((entry) => entry.id)));
     if (unproficient.length) {
       return refuse(
         `Expertise doubles a proficiency the character has; ${unproficient.join(", ")} ${unproficient.length === 1 ? "is" : "are"} not among ${sheet.name}'s skills.`,
+        400,
+        "LEVEL_UP_EXPERTISE_REQUIRES_PROFICIENCY",
+        { name: sheet.name, skills: unproficient.join(", ") },
       );
     }
     proficiencies = { ...proficiencies, expertise: [...held, ...picks] };
@@ -593,7 +636,12 @@ export function buildLevelUp(
       const heldStyles = chosenFightingStyles(featuresWithPicks.filter((feature) => feature.name !== pick.name));
       if (!newStyleFits(heldStyles, style, after)) {
         const open = fightingStyleChoices(after).filter((entry) => newStyleFits(heldStyles, entry.name, after));
-        return refuse(`${style} is not a fighting style ${sheet.name}'s classes offer; pick one of ${open.map((entry) => entry.name).join(", ") || "none"}.`);
+        return refuse(
+          `${style} is not a fighting style ${sheet.name}'s classes offer; pick one of ${open.map((entry) => entry.name).join(", ") || "none"}.`,
+          400,
+          "LEVEL_UP_FIGHTING_STYLE_NOT_OFFERED",
+          { name: sheet.name, style },
+        );
       }
     }
   }

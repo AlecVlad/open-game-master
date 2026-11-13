@@ -186,6 +186,30 @@ for (const [code, key, params, expected] of levelUpBuilderRefusalCases) {
   );
   assert.equal(actual, expected, `level-up builder refusal ${code} did not localize`);
 }
+const levelUpChoiceRefusalCases = [
+  ["LEVEL_UP_ABILITY_LOWERED", "charSheet.levelUp.error.abilityLowered", { ability: "Сила", current: 16, requested: 15 }, "Улучшение характеристик не может уменьшать значение Сила с 16 до 15. Оно позволяет только повышать характеристики."],
+  ["LEVEL_UP_ABILITY_CAP", "charSheet.levelUp.error.abilityCap", { ability: "Сила", maximum: 20 }, "Улучшение характеристик не позволяет повысить Сила выше 20."],
+  ["LEVEL_UP_ASI_TOO_MANY", "charSheet.levelUp.error.asiTooMany", { name: "Corin", owed: 1, requested: 2 }, "На этом уровне персонажу Corin положено вариантов улучшения характеристик: 1. Получено вариантов: 2."],
+  ["LEVEL_UP_ASI_NOT_GRANTED", "charSheet.levelUp.error.asiNotGranted", { classLevel: 2 }, "2-й уровень класса не даёт улучшения характеристик."],
+  ["LEVEL_UP_FEAT_ALREADY_TAKEN", "charSheet.levelUp.error.featAlreadyTaken", { name: "Corin", feat: "Lucky" }, "У персонажа Corin уже есть черта «Lucky». Каждую черту можно выбрать только один раз."],
+  ["LEVEL_UP_FEAT_NOT_OFFERED", "charSheet.levelUp.error.featNotOffered", { feat: "Lucky" }, "Черта «Lucky» недоступна в этой кампании."],
+  ["LEVEL_UP_FEAT_PREREQUISITE", "charSheet.levelUp.error.featPrerequisite", { name: "Corin", feat: "Lucky" }, "Персонаж Corin не выполняет предварительные условия для черты «Lucky»."],
+  ["LEVEL_UP_EXPERTISE_TOO_MANY", "charSheet.levelUp.error.expertiseTooMany", { name: "Corin", slots: 1, held: 1, requested: 1 }, "Персонажу Corin положено вариантов экспертизы: 1; уже выбрано: 1. Нельзя добавить ещё 1."],
+  ["LEVEL_UP_EXPERTISE_NOT_AVAILABLE", "charSheet.levelUp.error.expertiseNotAvailable", {}, "На текущих уровнях классов персонажу не положен выбор экспертизы."],
+  ["LEVEL_UP_EXPERTISE_REQUIRES_PROFICIENCY", "charSheet.levelUp.error.expertiseProficiency", { name: "Corin", skills: "perception" }, "Экспертиза требует владения навыком. У персонажа Corin нет владения: perception."],
+  ["LEVEL_UP_FIGHTING_STYLE_NOT_OFFERED", "charSheet.levelUp.error.fightingStyleNotOffered", { name: "Corin", style: "Great Weapon Fighting" }, "Классы персонажа Corin не предлагают боевой стиль «Great Weapon Fighting»."],
+];
+for (const [code, key, params, expected] of levelUpChoiceRefusalCases) {
+  assert.ok(key in DICTIONARIES.en, `English level-up choice refusal missing: ${key}`);
+  assert.ok(key in DICTIONARIES.ru, `Russian level-up choice refusal missing: ${key}`);
+  const actual = refusalText(
+    { error: "legacy English text", errorCode: code, errorParams: params },
+    "fallback",
+    (messageKey, messageParams) => translate(DICTIONARIES, "ru", messageKey, messageParams),
+  );
+  assert.equal(actual, expected, `level-up choice refusal ${code} did not localize`);
+}
+
 const tableViewMessages = [
   "campaign.tableView.error.memberOnly",
   "campaign.tableView.backToCampaigns",
