@@ -11,6 +11,7 @@ import { SectionHead } from "@/components/ui/SectionHead";
 import { KitButton, LoadFailed, PanelError, panelField, PanelLoading, RowMenu } from "./PanelKit";
 import { Fragment, useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/cn";
+import { useT } from "@/lib/i18n/provider";
 import { offerCorrectionReason } from "@/lib/correction-offer";
 import { ui } from "@/lib/ui";
 import type { Chapter } from "@/lib/db/chapters";
@@ -39,6 +40,7 @@ function ConfirmRewindDialog({
   onConfirm: () => void;
   onCancel: () => void;
 }) {
+  const t = useT();
   return (
     <AlertDialog.Root open onOpenChange={(open) => !open && onCancel()}>
       <AlertDialog.Portal>
@@ -50,11 +52,10 @@ function ConfirmRewindDialog({
           )}
         >
           <AlertDialog.Title className="gold-title font-display text-lg tracking-wide">
-            Rewind to Chapter {chapterIndex}?
+            {t("campaign.storyPanel.rewind.title", { chapter: chapterIndex })}
           </AlertDialog.Title>
           <AlertDialog.Description className="mt-2 text-xs text-stone-400">
-            The story returns to the start of Chapter {chapterIndex}. Sheets, NPCs, facts, and the
-            world roll back with it. This cannot be undone.
+            {t("campaign.storyPanel.rewind.description", { chapter: chapterIndex })}
           </AlertDialog.Description>
           <ul className="stagger mt-2 space-y-1">
             {warnings.slice(0, 8).map((warning, index) => (
@@ -64,9 +65,9 @@ function ConfirmRewindDialog({
             ))}
           </ul>
           <div className="mt-4 flex justify-end gap-2">
-            <AlertDialog.Cancel className={ui.btnSmall}>Cancel</AlertDialog.Cancel>
+            <AlertDialog.Cancel className={ui.btnSmall}>{t("campaign.storyPanel.action.cancel")}</AlertDialog.Cancel>
             <button type="button" onClick={onConfirm} disabled={busy} aria-busy={busy} className={ui.btnPrimary}>
-              {busy ? <Loader2 className="size-4 animate-spin" /> : null} Rewind
+              {busy ? <Loader2 className="size-4 animate-spin" /> : null} {t("campaign.storyPanel.action.rewind")}
             </button>
           </div>
         </AlertDialog.Content>
@@ -79,12 +80,13 @@ function ConfirmRewindDialog({
 // caps on a gold hairline, its name, and the recap the table heard when
 // it ended. Reveals with the list's stagger.
 function ActHeading({ act, title, recap }: { act: number; title: string; recap: string }) {
+  const t = useT();
   return (
     <li className="reveal pt-2">
       <div className="flex items-center gap-2">
         <span className="h-px flex-1 bg-gradient-to-r from-transparent to-amber-500/60" aria-hidden="true" />
         <span className="font-display text-[11px] uppercase tracking-[0.14em] text-amber-300">
-          Act {romanNumeral(act)}
+          {t("campaign.storyPanel.label.act", { act: romanNumeral(act) })}
         </span>
         <span className="h-px flex-1 bg-gradient-to-l from-transparent to-amber-500/60" aria-hidden="true" />
       </div>
@@ -108,6 +110,7 @@ function ChapterCard({
   steersStory: boolean;
   onRewind?: () => void;
 }) {
+  const t = useT();
   const [expanded, setExpanded] = useState(false);
   const [editing, setEditing] = useState(false);
   const [title, setTitle] = useState(chapter.title);
@@ -161,13 +164,13 @@ function ChapterCard({
       {expanded && !editing ? (
         <div className="reveal mt-2 space-y-1.5 pl-5">
           {chapter.abridged ? (
-            <div className="skeleton-block h-10 rounded-md" role="status" aria-label="Reading the summary" />
+            <div className="skeleton-block h-10 rounded-md" role="status" aria-label={t("campaign.storyPanel.summary.reading")} />
           ) : chapter.summary ? (
             <p className="reveal whitespace-pre-wrap font-serif text-xs leading-5 text-stone-300">
               {chapter.summary}
             </p>
           ) : (
-            <p className="text-xs italic text-stone-500">No summary recorded.</p>
+            <p className="text-xs italic text-stone-500">{t("campaign.storyPanel.summary.none")}</p>
           )}
           {steersStory ? (
             <div className="reveal flex flex-wrap items-center gap-1.5">
@@ -182,13 +185,13 @@ function ChapterCard({
                   setEditing(true);
                 }}
                 disabled={chapter.abridged}
-                title={chapter.abridged ? "Reading this chapter's summary…" : undefined}
+                title={chapter.abridged ? t("campaign.storyPanel.summary.reading") : undefined}
               >
-                <Pencil className="size-3" /> Edit
+                <Pencil className="size-3" /> {t("campaign.storyPanel.action.edit")}
               </KitButton>
               {onRewind ? (
-                <KitButton tone="danger" onClick={onRewind} title="Rewind the whole campaign to the start of this chapter">
-                  <Rewind className="size-3" /> Rewind to start
+                <KitButton tone="danger" onClick={onRewind} title={t("campaign.storyPanel.chapter.restart")}>
+                  <Rewind className="size-3" /> {t("campaign.storyPanel.action.rewindToStart")}
                 </KitButton>
               ) : null}
             </div>
@@ -201,23 +204,23 @@ function ChapterCard({
             value={title}
             onChange={(event) => setTitle(event.target.value)}
             maxLength={80}
-            aria-label="Chapter title"
+            aria-label={t("campaign.storyPanel.label.chapterTitle")}
             className={panelField}
           />
-          <DictateField label="Chapter summary" onTranscript={(text) => setSummary((current) => appendDictation(current, text, 4000))}>
+          <DictateField label={t("campaign.storyPanel.label.chapterSummary")} onTranscript={(text) => setSummary((current) => appendDictation(current, text, 4000))}>
             <textarea
               value={summary}
               onChange={(event) => setSummary(event.target.value)}
               rows={6}
               maxLength={4000}
-              aria-label="Chapter summary"
+              aria-label={t("campaign.storyPanel.label.chapterSummary")}
               className={cn(panelField, "leading-5")}
             />
           </DictateField>
           <div className="flex gap-1.5">
             <KitButton tone="primary" onClick={save} disabled={busy} busy={busy}>
               {busy ? null : <Check className="size-3.5" />}
-              Save
+              {t("campaign.storyPanel.action.save")}
             </KitButton>
             <KitButton
               onClick={() => {
@@ -226,7 +229,7 @@ function ChapterCard({
                 setSummary(chapter.summary);
               }}
             >
-              <X className="size-3.5" /> Cancel
+              <X className="size-3.5" /> {t("campaign.storyPanel.action.cancel")}
             </KitButton>
           </div>
         </div>
@@ -239,6 +242,7 @@ function ChapterCard({
 // Lead-only NPC roster hygiene, collapsed by default so it costs nothing
 // until asked for: the panel fetches the roster the moment it mounts.
 function NpcReviewCard({ campaignId }: { campaignId: string }) {
+  const t = useT();
   const [expanded, setExpanded] = useState(false);
   return (
     <div className="panel rounded-lg p-2.5">
@@ -255,7 +259,7 @@ function NpcReviewCard({ campaignId }: { campaignId: string }) {
         )}
         <span className="flex items-center gap-1.5">
           <GameIcon icon={{ kind: "glyph", key: "system-cast" }} size="size-6" />
-          <span className="section-head-title">NPC roster</span>
+          <span className="section-head-title">{t("campaign.storyPanel.label.npcRoster")}</span>
         </span>
       </button>
       {expanded ? (
@@ -275,6 +279,7 @@ function NpcReviewCard({ campaignId }: { campaignId: string }) {
 // of what happened at the table rather than a plan, and the server refuses
 // those edits regardless; the UI just does not offer them.
 function ArcCard({ campaignId }: { campaignId: string }) {
+  const t = useT();
   const [expanded, setExpanded] = useState(false);
   const [loadingRequest, setLoadingRequest] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
@@ -336,13 +341,13 @@ function ArcCard({ campaignId }: { campaignId: string }) {
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setBeatError(data.error ?? "That edit did not go through.");
+        setBeatError(data.error ?? t("campaign.storyPanel.error.edit"));
         return false;
       }
       setLoadedArc({ campaignId, arc: data.arc, dmOutline: outline });
       return true;
     } catch {
-      setBeatError("That edit did not go through.");
+      setBeatError(t("campaign.storyPanel.error.edit"));
       return false;
     } finally {
       setBeatBusy(false);
@@ -421,13 +426,13 @@ function ArcCard({ campaignId }: { campaignId: string }) {
         )}
         <span className="flex items-center gap-1.5">
           <GameIcon icon={{ kind: "glyph", key: "system-storyboard" }} size="size-6" />
-          <span className="section-head-title">GM story arc (secret)</span>
+          <span className="section-head-title">{t("campaign.storyPanel.label.storyArc")}</span>
         </span>
       </button>
       {expanded ? (
         <div className="reveal mt-2 space-y-2 pl-5">
           {loading ? (
-            <PanelLoading label="Loading..." rows={2} />
+            <PanelLoading label={t("campaign.storyPanel.loading")} rows={2} />
           ) : arc ? (
             <>
               {arc.saga ? (
@@ -814,6 +819,7 @@ export function StoryPanel({
   chapters: Chapter[];
   steersStory: boolean;
 }) {
+  const t = useT();
   const [closing, setClosing] = useState(false);
   const [rewindable, setRewindable] = useState<number[]>([]);
   // A refused or failed read is shown in the server's words with a way to
