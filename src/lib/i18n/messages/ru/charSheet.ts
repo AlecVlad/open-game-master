@@ -605,6 +605,9 @@ export const ruCharSheet: Partial<Record<keyof typeof enCharSheet, string>> & Re
   "charSheet.gear.weaponFirstFree": "Пока не указано, какое оружие находится в руке, первое переключение бесплатно.",
   "charSheet.gear.weaponFreeInteraction": "Достать или убрать оружие можно как бесплатное взаимодействие с предметом в свой ход.",
   "charSheet.gear.weaponToggleAria": "{item}: {status}. {action}.",
+  "charSheet.hitDice": "Кости хитов",
+  "charSheet.spellSlots": "Ячейки заклинаний",
+  "charSheet.personality": "Личность",
 };
   "charSheet.levelUp.class.advance": "{name} достигает {level}-го уровня{classLine}.",
   "charSheet.levelUp.multiclass.grants": "Даёт: {grant}",
