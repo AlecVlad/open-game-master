@@ -38,7 +38,7 @@ const GLYPH: Record<StateTag["id"], string> = {
 
 export function StateTags({ sheet, className }: { sheet: CharacterSheet; className?: string }) {
   const t = useT();
-  const tags = stateTags(sheet);
+  const tags = stateTags(sheet, (key, params) => t(key as never, params as never));
   if (!tags.length) return null;
   return (
     <div className={cn("stagger-pop flex flex-wrap gap-1.5", className)} aria-label={t("charSheet.state.aria")}>
