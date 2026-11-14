@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useT } from "@/lib/i18n/provider";
 import { MapPinned, Play, Square, Upload } from "lucide-react";
 import { HotkeyOverlay } from "@/components/ui/HotkeyOverlay";
 import { useMapSelection } from "@/app/campaigns/[campaignId]/useMapSelection";
@@ -95,7 +96,8 @@ function settingsBody(roll: ForgeRoll | null): Record<string, unknown> {
   };
 }
 
-export function DmMapStudioPanel({ campaignId }: { campaignId: string }) {
+export function DmMapStudioPanel({
+  const t = useT(); campaignId }: { campaignId: string }) {
   const [state, setState] = useState<StudioState>({ board: null, enemyCount: 0, map: null });
   const [tools, setTools] = useState<MapTools>(DEFAULT_MAP_TOOLS);
   const [busy, setBusy] = useState(false);
@@ -464,7 +466,7 @@ export function DmMapStudioPanel({ campaignId }: { campaignId: string }) {
                 extra={
                   board.seed ? (
                     <span className="flex shrink-0 items-baseline gap-1.5">
-                      <span className="font-display text-[8px] uppercase tracking-[0.16em] text-stone-600">Seed</span>
+                      <span className="font-display text-[8px] uppercase tracking-[0.16em] text-stone-600">{t("campaign.mapStudio.seed")}</span>
                       <span className="font-code text-[10px] text-stone-300">{board.seed}</span>
                     </span>
                   ) : null
