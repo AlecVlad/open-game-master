@@ -19,9 +19,22 @@ import { PdfMatches, type MatchChoice } from "./PdfMatches";
 // Nothing here is final: the workshop's own editors change any of it
 // afterwards.
 
+type PdfTranslate = ReturnType<typeof useI18n>["t"];
+
 function kindLabel(kind: RecordKind, count: number, tp: (key: string, count: number) => string): string {
   const key = `pdfImport.kind.${kind}`;
   return tp(key, count);
+}
+
+function modelNoteText(note: string, t: PdfTranslate): string {
+  const whole = note.match(/^The model could not read the book \\((.*)\\)\\. The import kept what the book's layout gives\\.$/);
+  if (whole) return t("pdfImport.model.note.unreadable", { reason: whole[1] });
+  const partial = note.match(/^The model could not read (\\d+) of the book's (\\d+) pieces(?: \\((.*)\\))?; what they hold is still in the GM's lore\\.$/);
+  if (partial) {
+    const params = { failed: Number(partial[1]), total: Number(partial[2]), reason: partial[3] ?? "" };
+    return partial[3] ? t("pdfImport.model.note.partial", params) : t("pdfImport.model.note.partialNoReason", params);
+  }
+  return note;
 }
 
 const ORDER: RecordKind[] = ["beat", "location", "npc", "faction", "monster", "encounter", "item", "spell", "table", "map", "art", "lore"];
@@ -97,7 +110,7 @@ export function PdfReview({
         </p>
       ) : null}
 
-      {review.modelNote ? <p className="motion-pop mt-2 text-xs text-amber-200/90">{review.modelNote}</p> : null}
+      {review.modelNote ? <p className="motion-pop mt-2 text-xs text-amber-200/90">{modelNoteText(review.modelNote, t)}</p> : null}
       {review.modelFailed ? (
         <div className="motion-pop mt-1 flex flex-wrap items-center gap-2">
           <button type="button" disabled={busy} onClick={onReread} className={cn(ui.btnSmall, "pointer-coarse:min-h-10")}>

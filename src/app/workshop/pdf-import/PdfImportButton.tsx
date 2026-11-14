@@ -76,6 +76,17 @@ function importText(value: string, t: Translate): string {
   };
   if (fixed[value]) return fixed[value];
   if (value === "Confirm the SRD 5.1 match for one creature first.") return t("pdfImport.error.confirmOne");
+  if (value === "That import is gone. Pick the PDF again.") return t("pdfImport.error.gone");
+  if (value === "This import is not waiting for review.") return t("pdfImport.error.notWaiting");
+  if (value === "Those choices could not be read.") return t("pdfImport.error.choicesUnreadable");
+  if (value === "This import lost its draft. Read the book again.") return t("pdfImport.error.draftLost");
+  if (value === "That is not something an import can do.") return t("pdfImport.error.invalidAction");
+  if (value === "This import cannot be read again.") return t("pdfImport.error.cannotRestart");
+  if (value === "The WorldForge this import was begun in is gone. Bring it in as a new workshop instead.") return t("pdfImport.error.worldGone");
+  const pages = value.match(/^Only (\d+) of the book's (\d+) pages arrived\. Pick the PDF again to send the rest\.$/);
+  if (pages) return t("pdfImport.error.pagesIncomplete", { received: Number(pages[1]), total: Number(pages[2]) });
+  const stranger = value.match(/^"(.+)" is not an SRD 5\.1 creature\. Pick one from the list\.$/);
+  if (stranger) return t("pdfImport.error.notSrdCreature", { name: stranger[1] });
   const several = value.match(/^Confirm the SRD 5\.1 matches? for (\d+) creatures? first\.$/);
   return several ? t("pdfImport.error.confirmMany", { count: Number(several[1]) }) : value;
 }
