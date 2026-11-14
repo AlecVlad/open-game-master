@@ -64,4 +64,6 @@ export const ruBuilderChoices: Partial<Record<keyof typeof enBuilderChoices, str
   "builder.refusal.multiclass.disabled": "За этим игровым столом мультиклассирование отключено: созданный здесь персонаж может иметь только один класс.",
   "builder.refusal.multiclass.duplicate": "Персонаж может иметь уровни в каждом классе только один раз: в списке один и тот же класс указан дважды.",
   "builder.refusal.spellcasting.thirdCaster": "Для этого подкласса не настроено развитие заклинаний по схеме «одна треть уровня заклинателя».",
+  "builder.cc.left": "Ещё выбрать: {n}. ",
+  "builder.cc.exp.term2": "бонус мастерства",
 };

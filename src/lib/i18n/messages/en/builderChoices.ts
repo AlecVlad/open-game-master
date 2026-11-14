@@ -59,4 +59,6 @@ export const enBuilderChoices = {
   "builder.refusal.multiclass.disabled": "This table turns multiclassing off; a character made here holds one class.",
   "builder.refusal.multiclass.duplicate": "A character holds each class once; the class list names one twice.",
   "builder.refusal.spellcasting.thirdCaster": "This subclass is not configured to use the third-caster spellcasting progression.",
+  "builder.cc.left": "{n} still to choose. ",
+  "builder.cc.exp.term2": "proficiency bonus",
 } satisfies Record<string, string>;
