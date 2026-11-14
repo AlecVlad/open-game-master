@@ -646,4 +646,6 @@ export const enCommon = {
   "common.unit.mbValue": "{value} MB",
   "common.label.optional": "optional",
 
+  "common.status.checking": "Asking…",
+
 } satisfies Record<string, string>;

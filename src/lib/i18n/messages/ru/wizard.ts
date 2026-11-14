@@ -10,5 +10,4 @@ export const ruWizard: Partial<Record<keyof typeof enWizard, string>> & Record<s
   "wizard.progress": "Шаг {n} / {total}",
   "wizard.show": "Показать",
   "wizard.dismiss": "Закрыть",
-  "wizard.continue": "Продолжить",
 };

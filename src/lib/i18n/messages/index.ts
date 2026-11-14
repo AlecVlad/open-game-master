@@ -442,6 +442,19 @@ export const MESSAGE_ALIASES = {
   "diceLook.reset": "common.action.reset",
   "invite.online.tryAgain": "common.action.retry",
   "pdfImport.action.retry": "common.action.retry",
+  "workshop.plugin.panel.saving": "common.status.saving",
+  "setup.wizard.saving": "common.status.saving",
+  "setup.wizard.continue": "common.action.continue",
+  "wizard.continue": "common.action.continue",
+  "setup.ready.pictures.asking": "common.status.checking",
+  "setup.ready.narration.asking": "common.status.checking",
+  "setup.ready.dictation.asking": "common.status.checking",
+  "setup.media.narrationKey": "setup.media.pictureKey",
+  "setup.ready.narration.off": "setup.media.textOnly",
+  "setup.agent.serverError": "setup.media.testCouldNotReach",
+  "setup.story.scan.keyNeeded": "setup.story.needsKey",
+  "setup.media.voiceScan": "setup.media.noWhisper",
+  "setup.players.signupAria": "setup.players.signupTitle",
 } as const satisfies Record<string, keyof typeof en>;
 export type MessageKey = keyof typeof en | keyof typeof MESSAGE_ALIASES;
 

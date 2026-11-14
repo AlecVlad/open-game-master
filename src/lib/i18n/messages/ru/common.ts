@@ -654,4 +654,6 @@ export const ruCommon: Partial<Record<keyof typeof enCommon, string>> = {
   "common.unit.mbValue": "{value} МБ",
   "common.label.optional": "необязательно",
 
+  "common.status.checking": "Проверяем…",
+
 };

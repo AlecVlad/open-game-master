@@ -7,5 +7,4 @@ export const enWizard = {
   "wizard.progress": "Step {n} / {total}",
   "wizard.show": "Show me",
   "wizard.dismiss": "Dismiss",
-  "wizard.continue": "Continue",
 } satisfies Record<string, string>;

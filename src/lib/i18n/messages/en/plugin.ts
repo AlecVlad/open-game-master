@@ -15,7 +15,6 @@ export const enPlugin = {
   "workshop.plugin.panel.pullBusy": "Pulling from this workshop",
   "workshop.plugin.panel.publish": "Check & publish",
   "workshop.plugin.panel.saved": "Saved",
-  "workshop.plugin.panel.saving": "Saving",
   "workshop.plugin.panel.unsaved": "Unsaved",
   "workshop.plugin.panel.notSaved": "Not saved",
   "workshop.plugin.panel.savedChangesKept": "{error} Your changes are kept here.",

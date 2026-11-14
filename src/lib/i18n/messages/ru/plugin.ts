@@ -17,7 +17,6 @@ export const ruPlugin: Partial<Record<keyof typeof enPlugin, string>> = {
   "workshop.plugin.panel.pullBusy": "Переносим материалы мастерской",
   "workshop.plugin.panel.publish": "Проверить и опубликовать",
   "workshop.plugin.panel.saved": "Сохранено",
-  "workshop.plugin.panel.saving": "Сохранение",
   "workshop.plugin.panel.unsaved": "Не сохранено",
   "workshop.plugin.panel.notSaved": "Ошибка сохранения",
   "workshop.plugin.panel.savedChangesKept": "{error} Изменения сохранены в текущем черновике.",
