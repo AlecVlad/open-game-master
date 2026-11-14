@@ -247,7 +247,7 @@ export function CharacterSheetDialog({
                   {sheet.name}
                 </Dialog.Title>
                 <p className="text-xs text-stone-400">
-                  Level {sheet.level} {sheet.raceLabel ?? titleCase(sheet.race)}{" "}
+                  {t("charSheet.level", { level: sheet.level })} {sheet.raceLabel ?? titleCase(sheet.race)}{" "}
                   {isSplit(sheet)
                     ? classWordsAfterLevel(sheet, (id) => workshopClassName(id) ?? titleCase(id))
                     : `${workshopClassName(sheet.class) ?? titleCase(sheet.class)}${sheet.subclass ? ` (${titleCase(sheet.subclass)})` : ""}`}
@@ -258,7 +258,7 @@ export function CharacterSheetDialog({
             </div>
             {/* The kit's own close button: a 40px target on phones. */}
             <Dialog.Close
-              aria-label="Close"
+              aria-label={t("charSheet.close")}
               className="pk-tap -m-1 flex shrink-0 items-center justify-center rounded-md p-2 text-stone-500 transition-colors hover:bg-stone-800 hover:text-stone-300"
             >
               <X className="size-4" />
@@ -277,7 +277,7 @@ export function CharacterSheetDialog({
                 },
                 {
                   glyph: "rest-speed",
-                  label: "Speed",
+                  label: t("charSheet.speed"),
                   value: `${speed} ft`,
                   title: [speedNote, ...otherSpeedsLine(derived.speeds)].join(" "),
                   tone: speed < speedState.base ? "warn" : "plain",
@@ -294,9 +294,9 @@ export function CharacterSheetDialog({
                   value: derived.passivePerception,
                   title: explainParts(derived.parts.passivePerception),
                 },
-                { glyph: "rest-proficiency", label: "Proficiency", value: formatModifier(derived.proficiencyBonus) },
-                { glyph: "coin-gp", label: "Coin", value: formatPrice(purseCopper(sheet)) },
-                { glyph: "rest-xp", label: "Experience", value: `${sheet.xp} XP` },
+                { glyph: "rest-proficiency", label: t("charSheet.prof"), value: formatModifier(derived.proficiencyBonus) },
+                { glyph: "coin-gp", label: t("charSheet.coin"), value: formatPrice(purseCopper(sheet)) },
+                { glyph: "rest-xp", label: t("charSheet.experience"), value: `${sheet.xp} ${t("charSheet.experience.short")}` },
                 {
                   glyph: `die-${sheet.hitDice.die}`,
                   label: <GameTerm id="hit_dice">Hit dice</GameTerm>,
@@ -305,7 +305,7 @@ export function CharacterSheetDialog({
                 },
                 {
                   glyph: "coin-purse",
-                  label: "Carried",
+                  label: t("charSheet.carried"),
                   value: `${load.carriedLb}${load.unweighed ? "+" : ""}/${load.capacityLb} lb`,
                   tone: load.overCapacity || (encumbranceRule && load.tier !== "unencumbered") ? "warn" : "plain",
                   // Past the capacity (Strength x 15) the load can only be
@@ -319,7 +319,7 @@ export function CharacterSheetDialog({
                         : `Carrying capacity ${load.capacityLb} lb. Encumbrance is off for this table, so weight up to the capacity costs nothing.`
                   }${load.unweighed ? ` ${load.unweighed} item${load.unweighed === 1 ? "" : "s"} of unknown weight are not counted.` : ""}`,
                   onOpen: () => setLoadOpen(true),
-                  opens: "Show what makes up this load",
+                  opens: t("charSheet.load.showBreakdown"),
                 },
               ]}
             />
@@ -365,10 +365,10 @@ export function CharacterSheetDialog({
 
           <SheetBlock
             className="mt-4"
-            title="Abilities"
+            title={t("charSheet.abilities")}
             aside={
               <>
-                <GameTerm id="saving_throw">Saving throws</GameTerm> ride each tile
+                <GameTerm id="saving_throw">{t("charSheet.savingThrowsHint")}</GameTerm>
               </>
             }
           >
@@ -381,7 +381,7 @@ export function CharacterSheetDialog({
             />
           </SheetBlock>
 
-          <SheetBlock className="mt-4" title={<GameTerm id="skill">Skills</GameTerm>}>
+          <SheetBlock className="mt-4" title={t("charSheet.skills")}>
             <SkillRows
               skills={derived.skills}
               proficient={sheet.proficiencies.skills}
@@ -389,14 +389,14 @@ export function CharacterSheetDialog({
             />
           </SheetBlock>
 
-          <SheetBlock className="mt-4" title="Languages and training">
+          <SheetBlock className="mt-4" title={t("charSheet.training")}>
             <TrainingLines proficiencies={sheet.proficiencies} conditional={derived.conditionalTraining} />
           </SheetBlock>
 
           {sheet.spellcasting ? (
             <SheetBlock
               className="mt-4"
-              title="Spellcasting"
+              title={t("charSheet.spellcasting")}
               hint={
                 derived.parts.spellSaveDc.length
                   ? `Save DC: ${explainParts(derived.parts.spellSaveDc)}. To hit: ${explainParts(derived.parts.spellAttack)}`
@@ -415,13 +415,13 @@ export function CharacterSheetDialog({
                   <p className="flex items-center gap-1 text-stone-400">
                     <GameIcon icon={{ kind: "glyph", key: "rest-spell-slot" }} size="size-5" />
                     <GameTerm id="spell_slot">Spell slots</GameTerm>
-                    <span className="text-stone-500">: the magic left today</span>
+                    <span className="text-stone-500">: {t("charSheet.spellSlots.remaining")}</span>
                   </p>
                   <div className="flex flex-wrap gap-1.5">
                     {Object.entries(sheet.spellcasting.slots).map(([slotLevel, slot]) => (
                       <SlotRow
                         key={slotLevel}
-                        label={`Level ${ROMAN[Number(slotLevel)] ?? slotLevel}`}
+                        label={t("charSheet.spellSlots.level", { level: ROMAN[Number(slotLevel)] ?? slotLevel })}
                         left={slot.max - slot.used}
                         max={slot.max}
                         spends={spends}
@@ -433,7 +433,7 @@ export function CharacterSheetDialog({
                     ))}
                     {sheet.spellcasting.pact ? (
                       <SlotRow
-                        label={`Pact, level ${ROMAN[sheet.spellcasting.pact.level] ?? sheet.spellcasting.pact.level}`}
+                        label={t("charSheet.spellSlots.pact", { level: ROMAN[sheet.spellcasting.pact.level] ?? sheet.spellcasting.pact.level })}
                         left={sheet.spellcasting.pact.max - sheet.spellcasting.pact.used}
                         max={sheet.spellcasting.pact.max}
                         spends={spends}
@@ -468,7 +468,7 @@ export function CharacterSheetDialog({
           {/* A character with no Spellcasting may still cast its species'
               spells (issue #833): a tiefling fighter's hellish rebuke. */}
           {!sheet.spellcasting && speciesSpellsShown(sheet).length ? (
-            <SheetBlock className="mt-4" title="Spells">
+            <SheetBlock className="mt-4" title={t("charSheet.spells")}>
               <div className="reveal">
                 <SheetSpells sheet={sheet} editable={mine} />
               </div>
@@ -476,7 +476,7 @@ export function CharacterSheetDialog({
           ) : null}
 
           {spends || Object.keys(sheet.resources).length ? (
-            <SheetBlock className="mt-4" title="Hit dice and resources">
+            <SheetBlock className="mt-4" title={t("charSheet.hitDiceAndResources")}>
               <div className="space-y-1.5 text-xs text-stone-300">
                 <div className="flex items-start gap-2">
                   <span className="w-36 shrink-0 pt-1 text-stone-400">
@@ -492,7 +492,7 @@ export function CharacterSheetDialog({
                       type="button"
                       className={STEP_BUTTON}
                       disabled={busy || sheet.hitDice.spent >= sheet.hitDice.total}
-                      title="Correction: mark a hit die as spent"
+                      title={t("charSheet.hitDice.correctSpend")}
                       onClick={() => adjustUsage({ hitDiceSpent: sheet.hitDice.spent + 1 })}
                     >
                       <Minus className="size-3" />
@@ -503,7 +503,7 @@ export function CharacterSheetDialog({
                       type="button"
                       className={STEP_BUTTON}
                       disabled={busy || sheet.hitDice.spent <= 0}
-                      title="Correction: give a hit die back"
+                      title={t("charSheet.hitDice.correctRecover")}
                       onClick={() => adjustUsage({ hitDiceSpent: sheet.hitDice.spent - 1 })}
                     >
                       <Plus className="size-3" />
@@ -526,7 +526,7 @@ export function CharacterSheetDialog({
                   />
                 ))}
                 {foretoldLeft(sheet).length ? (
-                  <p className="text-xs">Foretold rolls: {foretoldLeft(sheet).join(", ")}</p>
+                  <p className="text-xs">{t("charSheet.foretoldRolls", { rolls: foretoldLeft(sheet).join(", ") })}</p>
                 ) : null}
               </div>
               {spends ? (
@@ -546,7 +546,7 @@ export function CharacterSheetDialog({
           ) : null}
 
           {sheet.equipment.length ? (
-            <SheetBlock className="mt-4" title="Equipment" aside={`Attuned ${attunedCount}/${attunementSlotsFor(sheet)}`}>
+            <SheetBlock className="mt-4" title={t("charSheet.equip")} aside={t("charSheet.equipment.attuned", { count: attunedCount, max: attunementSlotsFor(sheet) })}>
               <EquipmentChips
                 equipment={sheet.equipment}
                 extra={(index) => {
@@ -604,25 +604,25 @@ export function CharacterSheetDialog({
           ) : null}
 
           {owedChoices(sheet).length ? (
-            <SheetBlock className="mt-4" title="Choices owed">
+            <SheetBlock className="mt-4" title={t("charSheet.choicesOwed")}>
               <OwedPicks sheet={sheet} mine={mine} />
             </SheetBlock>
           ) : null}
           {sheet.features.length ? (
-            <SheetBlock className="mt-4" title="Features and traits">
+            <SheetBlock className="mt-4" title={t("charSheet.features")}>
               <FeatureChips features={sheet.features} classId={sheet.class} subclass={sheet.subclass} background={sheet.background} />
               <FeatureChoicePicker sheet={sheet} mine={mine} inCombat={inCombat} />
             </SheetBlock>
           ) : null}
 
           {sheet.feats.length ? (
-            <SheetBlock className="mt-4" title="Feats">
+            <SheetBlock className="mt-4" title={t("charSheet.feats")}>
               <FeatChips feats={sheet.feats} classId={sheet.class} subclass={sheet.subclass} />
             </SheetBlock>
           ) : null}
 
           {sheet.backstory ? (
-            <SheetBlock className="mt-4" title="Backstory">
+            <SheetBlock className="mt-4" title={t("charSheet.backstory")}>
               <p className="whitespace-pre-wrap font-serif text-sm leading-relaxed text-stone-300">{sheet.backstory}</p>
             </SheetBlock>
           ) : null}
@@ -632,7 +632,7 @@ export function CharacterSheetDialog({
           {sheet.isCompanion ? null : <StoryHopes sheet={sheet} mine={mine} />}
 
           {mine && sheet.notes ? (
-            <SheetBlock className="mt-4" title="Notes" aside="only you see these">
+            <SheetBlock className="mt-4" title={t("charSheet.notes")} aside={t("charSheet.notesPrivate")}>
               <p className="whitespace-pre-wrap text-xs text-stone-300">{sheet.notes}</p>
             </SheetBlock>
           ) : null}
@@ -643,18 +643,18 @@ export function CharacterSheetDialog({
               onClick={handleDownloadPdf}
               disabled={pdfBusy}
               className={ui.btnSmall}
-              title={t("charDetail.pdf.hint")}
+              title={t("charSheet.pdf.title")}
             >
-              <FileDown className="size-3.5" /> {pdfBusy ? t("charDetail.pdf.busy") : t("charDetail.pdf")}
+              <FileDown className="size-3.5" /> {pdfBusy ? t("charSheet.pdf.preparing") : t("charSheet.pdf.download")}
             </button>
             {steersStory && onAdjust ? (
               <button
                 type="button"
                 onClick={onAdjust}
                 className={ui.btnSmall}
-                title="Party lead: correct this character's stats, items, and spells"
+                title={t("charSheet.adjust.title")}
               >
-                <Wrench className="size-3.5" /> Adjust
+                <Wrench className="size-3.5" /> {t("charSheet.adjust.label")}
               </button>
             ) : null}
           </div>
