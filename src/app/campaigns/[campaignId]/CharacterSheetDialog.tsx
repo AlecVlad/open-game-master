@@ -174,7 +174,7 @@ export function CharacterSheetDialog({
   async function handleDownloadPdf() {
     setPdfBusy(true);
     try {
-      await downloadCharacterSheetPdf(sheet);
+      await downloadCharacterSheetPdf(sheet, (key, params) => t(key as never, params as never));
     } finally {
       setPdfBusy(false);
     }
