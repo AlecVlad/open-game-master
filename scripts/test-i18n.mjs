@@ -11,7 +11,7 @@ import {
   translate,
   translatePlural,
 } from "../src/lib/i18n/core.ts";
-import { DICTIONARIES } from "../src/lib/i18n/messages/index.ts";
+import { DICTIONARIES, MESSAGE_ALIASES } from "../src/lib/i18n/messages/index.ts";
 import { localizeStoryboardError } from "../src/lib/workshop/storyboard-api-i18n.ts";
 import { gearProblemText } from "../src/app/characters/builder/gearProblemText.ts";
 import { refusalText } from "../src/app/characters/builder/refusal.ts";
@@ -22,6 +22,13 @@ import { featOwedText } from "../src/app/characters/builder/featOwedText.ts";
 import { featPrerequisiteText } from "../src/app/characters/builder/featPrereqText.ts";
 import { multiclassPrerequisiteText } from "../src/app/characters/builder/multiclassPrereqText.ts";
 import { findOptionByFeatureName, optionReqProblem, optionReqVerdict, pickInSpellbook } from "../src/lib/srd/options.ts";
+
+// Aliased UI strings share one canonical translation in every language.
+for (const [alias, canonical] of Object.entries(MESSAGE_ALIASES)) {
+  for (const lang of LANGS) {
+    assert.equal(DICTIONARIES[lang][alias], DICTIONARIES[lang][canonical], `i18n alias ${alias} does not match ${canonical} in ${lang}`);
+  }
+}
 
 // Language choice: the cookie wins, then Accept-Language, then English.
 assert.equal(pickLang("ru", "en-US,en;q=0.9"), "ru");
