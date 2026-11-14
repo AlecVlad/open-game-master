@@ -27,9 +27,9 @@ function kindLabel(kind: RecordKind, count: number, tp: (key: string, count: num
 }
 
 function modelNoteText(note: string, t: PdfTranslate): string {
-  const whole = note.match(/^The model could not read the book \\((.*)\\)\\. The import kept what the book's layout gives\\.$/);
+  const whole = note.match(/^The model could not read the book \((.*)\)\. The import kept what the book's layout gives\.$/);
   if (whole) return t("pdfImport.model.note.unreadable", { reason: whole[1] });
-  const partial = note.match(/^The model could not read (\\d+) of the book's (\\d+) pieces(?: \\((.*)\\))?; what they hold is still in the GM's lore\\.$/);
+  const partial = note.match(/^The model could not read (\d+) of the book's (\d+) pieces(?: \((.*)\))?; what they hold is still in the GM's lore\.$/);
   if (partial) {
     const params = { failed: Number(partial[1]), total: Number(partial[2]), reason: partial[3] ?? "" };
     return partial[3] ? t("pdfImport.model.note.partial", params) : t("pdfImport.model.note.partialNoReason", params);
