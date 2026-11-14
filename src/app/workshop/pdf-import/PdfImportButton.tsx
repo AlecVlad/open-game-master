@@ -82,6 +82,9 @@ function importText(value: string, t: Translate): string {
     "That picture is not a PNG, JPEG or WebP.": t("pdfImport.error.pictureType"),
     "Could not reach the server. Your progress is kept; pick the PDF again to carry on.": t("pdfImport.error.networkContinue"),
     "The server would not take that. Try again.": t("pdfImport.error.serverRefused"),
+    "On this server an administrator starts campaigns and workshops; ask them for a room code to join one.": t("pdfImport.error.campaignAdminOnly"),
+    "The server is low on storage space and is not accepting uploads right now.": t("pdfImport.error.storageLow"),
+
     "The import stopped on an error. Try again, or import without the model.": t("pdfImport.error.stopped"),
     "No pages arrived from this book. Pick the PDF again.": t("pdfImport.error.noPages"),
     "This import is not ready to bring in yet.": t("pdfImport.error.notReady"),
