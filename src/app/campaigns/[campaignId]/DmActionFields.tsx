@@ -428,7 +428,7 @@ export function FieldInput({
           onChange={onChange}
           options={[{ value: "", label: t("campaign.dmAction.field.notSet") }, ...options]}
           label={field.label}
-          placeholder="Not set"
+          placeholder={t("campaign.dmAction.field.notSet")}
         />
       );
     }
