@@ -5760,4 +5760,5 @@ export const ruCampaignPanels: Partial<Record<keyof typeof enCampaignPanels, str
   "campaign.storyPanel.event.deadline": "Крайний срок",
   "campaign.storyPanel.event.discovery": "Открытие",
   "campaign.storyPanel.event.setpiece": "Ключевая сцена",
+  "campaign.storyPanel.label.chapters": "Главы",
 };
