@@ -28,14 +28,6 @@ import { matchWeapon } from "@/lib/srd/weapons";
 
 type Ability = (typeof ABILITIES)[number];
 
-const ABILITY_NAMES: Record<Ability, string> = {
-  str: "Strength",
-  dex: "Dexterity",
-  con: "Constitution",
-  int: "Intelligence",
-  wis: "Wisdom",
-  cha: "Charisma",
-};
 
 // How a score reads at a glance: a weakness is dim, an ordinary score plain,
 // a strength gold, and an exceptional one lit.
