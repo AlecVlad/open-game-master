@@ -200,7 +200,6 @@ export const enCommon = {
   "about.build.basedOn": "Based on the {tag} release.",
   "about.build.development": "A development build, not a published release.",
   "about.build.localChanges": "Built with local changes that are in no commit.",
-  "about.copy.copied": "Copied",
   "about.copy.bugReport": "Copy details for a bug report",
   "about.copy.details": "Copy these details",
   "about.checkAgain": "Check again",
@@ -220,7 +219,6 @@ export const enCommon = {
   "report.checkFirst.title": "Check these first",
   "report.checkFirst.hint": "These cause most reported problems and are not bugs. Fix them and try again; if the problem stays, save the report. They go in it too.",
   "report.file.contents": "What goes in the file",
-  "report.loading": "Loading",
   "report.save": "Save the report",
   "report.part.setup.label": "Version and setup",
   "report.part.setup.hint": "Versions, how the server and app were installed, the server's machine, GM mode and AI models. No addresses or keys. Also fills in the form's Your setup box.",
@@ -261,7 +259,6 @@ export const enCommon = {
   "report.checkFirst.unknown": "{detail}",
   "commandPalette.title": "Commands",
   "commandPalette.placeholder": "Type a command",
-  "commandPalette.chip": "Commands",
   "commandPalette.open": "Open {title} command palette",
   "commandPalette.shortcut": "Press / or Ctrl K",
   "commandPalette.empty": "Nothing here answers to that.",
@@ -334,11 +331,9 @@ export const enCommon = {
   "handout.takeDown": "Take it down",
   "handout.foldAway": "Fold away",
   "pageSkeleton.loadingTable": "Loading the table",
-  "pageSkeleton.loading": "Loading",
   "serverAddress.dialog.aria": "This server's address",
   "serverAddress.eyebrow": "This server",
   "serverAddress.preparing": "Preparing the code...",
-  "serverAddress.copied": "Copied",
   "serverAddress.copy": "Copy",
   "serverAddress.share": "Share",
   "serverAddress.description": "Scan with the Open Game Master app to add this server, or with a phone camera to open it in a browser.",
@@ -377,7 +372,6 @@ export const enCommon = {
   "diceLook.button.title": "Choose the colours, pattern and finish of your virtual dice.",
   "diceLook.button.customize": "Customise my dice",
   "diceLook.summary.ownColours": "Your own colours",
-  "diceLook.summary.presetDice": "{name} dice",
   "diceLook.summary.pattern": "{name} pattern",
   "diceLook.summary.finish": "{name} finish",
   "diceLook.summary.done": "Done",
@@ -520,7 +514,6 @@ export const enCommon = {
   "voicePreview.error.narrationOff": "Narration is switched off on this server.",
   "voicePreview.error.limit": "Too many new voice previews. Try again in a few minutes.",
   "worldPackGallery.places": "Places",
-  "worldPackGallery.factions": "Factions",
   "confirmDialog.areYouSure": "Are you sure?",
   "confirmDialog.yes": "Yes",
   "confirmDialog.cancel": "Cancel",
@@ -622,7 +615,6 @@ export const enCommon = {
   "modelNote.summary.status.beta": "beta",
   "modelNote.summary.status.alpha": "alpha",
   "modelNote.summary.modelName": "{name}",
-  "modelNote.status.beta": "beta",
   "modelNote.status.alpha": "alpha",
 
   "common.ability.strength": "Strength",
@@ -647,5 +639,8 @@ export const enCommon = {
   "common.label.optional": "optional",
 
   "common.status.checking": "Asking…",
+
+  "common.status.copied": "Copied",
+  "common.status.loading": "Loading",
 
 } satisfies Record<string, string>;

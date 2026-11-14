@@ -476,6 +476,14 @@ export const MESSAGE_ALIASES = {
   "builder.sum.calling.label": "builder.step.calling.label",
   "builder.sum.gear.label": "builder.step.gear.label",
   "builder.sum.title": "builder.yourHero",
+  "worldPackGallery.factions": "worldSetup.loreCategory.factions",
+  "modelNote.status.beta": "about.update.kind.beta",
+  "serverAddress.copied": "common.status.copied",
+  "about.copy.copied": "common.status.copied",
+  "report.loading": "common.status.loading",
+  "pageSkeleton.loading": "common.status.loading",
+  "commandPalette.chip": "commandPalette.title",
+  "diceLook.summary.presetDice": "diceLook.preset.aria",
 } as const satisfies Record<string, keyof typeof en>;
 export type MessageKey = keyof typeof en | keyof typeof MESSAGE_ALIASES;
 

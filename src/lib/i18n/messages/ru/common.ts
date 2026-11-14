@@ -204,7 +204,6 @@ export const ruCommon: Partial<Record<keyof typeof enCommon, string>> = {
   "about.build.basedOn": "Основана на выпуске {tag}.",
   "about.build.development": "Разрабатываемая сборка, ещё не опубликованный выпуск.",
   "about.build.localChanges": "Сборка содержит локальные изменения, не записанные ни в один коммит.",
-  "about.copy.copied": "Скопировано",
   "about.copy.bugReport": "Скопировать сведения для отчёта об ошибке",
   "about.copy.details": "Скопировать сведения",
   "about.checkAgain": "Проверить ещё раз",
@@ -224,7 +223,6 @@ export const ruCommon: Partial<Record<keyof typeof enCommon, string>> = {
   "report.checkFirst.title": "Сначала проверьте это",
   "report.checkFirst.hint": "Эти причины часто вызывают проблемы, но сами по себе не являются ошибками приложения. Исправьте их и попробуйте снова. Если проблема останется, сохраните отчёт — эти сведения тоже войдут в него.",
   "report.file.contents": "Что войдёт в файл",
-  "report.loading": "Загрузка",
   "report.save": "Сохранить отчёт",
   "report.part.setup.label": "Версия и настройки",
   "report.part.setup.hint": "Версии, способ установки сервера и приложения, компьютер сервера, режим ведущего и модели ИИ. Без адресов и ключей. Также заполняет поле «Сведения о вашей системе» в форме.",
@@ -265,7 +263,6 @@ export const ruCommon: Partial<Record<keyof typeof enCommon, string>> = {
   "report.checkFirst.unknown": "{detail}",
   "commandPalette.title": "Команды",
   "commandPalette.placeholder": "Введите команду",
-  "commandPalette.chip": "Команды",
   "commandPalette.open": "Открыть палитру команд: {title}",
   "commandPalette.shortcut": "Нажмите / или Ctrl K",
   "commandPalette.empty": "Ничего не найдено.",
@@ -338,11 +335,9 @@ export const ruCommon: Partial<Record<keyof typeof enCommon, string>> = {
   "handout.takeDown": "Убрать раздаточный материал",
   "handout.foldAway": "Свернуть",
   "pageSkeleton.loadingTable": "Загрузка игрового стола",
-  "pageSkeleton.loading": "Загрузка",
   "serverAddress.dialog.aria": "Адрес этого сервера",
   "serverAddress.eyebrow": "Этот сервер",
   "serverAddress.preparing": "Подготавливаем QR-код...",
-  "serverAddress.copied": "Скопировано",
   "serverAddress.copy": "Копировать",
   "serverAddress.share": "Поделиться",
   "serverAddress.description": "Отсканируйте код приложением Open Game Master, чтобы добавить сервер, или камерой телефона, чтобы открыть его в браузере.",
@@ -381,7 +376,6 @@ export const ruCommon: Partial<Record<keyof typeof enCommon, string>> = {
   "diceLook.button.title": "Выбрать цвет, текстуру и материал виртуальных костей.",
   "diceLook.button.customize": "Настроить кости",
   "diceLook.summary.ownColours": "Свои цвета",
-  "diceLook.summary.presetDice": "Кости в стиле «{name}»",
   "diceLook.summary.pattern": "Текстура: {name}",
   "diceLook.summary.finish": "Материал: {name}",
   "diceLook.summary.done": "Готово",
@@ -528,7 +522,6 @@ export const ruCommon: Partial<Record<keyof typeof enCommon, string>> = {
   "voicePreview.error.narrationOff": "На этом сервере озвучивание отключено.",
   "voicePreview.error.limit": "Слишком много новых прослушиваний подряд. Попробуйте ещё раз через несколько минут.",
   "worldPackGallery.places": "Места",
-  "worldPackGallery.factions": "Фракции",
   "confirmDialog.areYouSure": "Вы уверены?",
   "confirmDialog.yes": "Да",
   "confirmDialog.cancel": "Отмена",
@@ -630,7 +623,6 @@ export const ruCommon: Partial<Record<keyof typeof enCommon, string>> = {
   "modelNote.summary.status.beta": "бета",
   "modelNote.summary.status.alpha": "альфа",
   "modelNote.summary.modelName": "{name}",
-  "modelNote.status.beta": "бета-версия",
   "modelNote.status.alpha": "альфа-версия",
 
   "common.ability.strength": "Сила",
@@ -655,5 +647,8 @@ export const ruCommon: Partial<Record<keyof typeof enCommon, string>> = {
   "common.label.optional": "необязательно",
 
   "common.status.checking": "Проверяем…",
+
+  "common.status.copied": "Скопировано",
+  "common.status.loading": "Загрузка",
 
 };
