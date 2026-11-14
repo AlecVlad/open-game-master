@@ -2,7 +2,6 @@
 export const enAuth = {
 "door.forced.title": "Set a new password",
   "door.forced.body": "An admin reset your password. Enter the temporary password you were given and pick a new one.",
-  "door.forced.submit": "Set new password",
   "door.w.high-fantasy": "High fantasy",
   "door.w.dark-fantasy": "Dark fantasy",
   "door.w.horror": "Horror",
@@ -13,7 +12,6 @@ export const enAuth = {
   "door.behind": "Behind the door tonight",
   "door.sevenKinds": "One of seven kinds of world your table can play.",
   "door.tagline": "Gather your party. An AI Game Master runs the table; the dice are honest and the story is yours.",
-  "door.howto": "How to play",
   "door.licenses": "Licenses",
   "door.privacy": "Privacy",
   "door.terms": "Terms",
@@ -56,7 +54,6 @@ export const enAuth = {
   "auth.switch.newHere": "New here? ",
   "auth.switch.have": "Have an account? ",
   "auth.switch.create": "Create an account",
-  "auth.switch.login": "Log in",
   "auth.closed": "This server is not accepting new accounts.",
 "password.mismatch": "New passwords don't match.",
   "password.err": "Could not change the password.",

@@ -4,7 +4,6 @@ import type { enAuth } from "../en/auth.ts";
 export const ruAuth: Partial<Record<keyof typeof enAuth, string>> & Record<string, string> = {
 "door.forced.title": "Задайте новый пароль",
   "door.forced.body": "Администратор сбросил ваш пароль. Введите выданный вам временный пароль и выберите новый.",
-  "door.forced.submit": "Задать новый пароль",
   "door.w.high-fantasy": "Высокое фэнтези",
   "door.w.dark-fantasy": "Тёмное фэнтези",
   "door.w.horror": "Хоррор",
@@ -15,7 +14,6 @@ export const ruAuth: Partial<Record<keyof typeof enAuth, string>> & Record<strin
   "door.behind": "Сегодня за дверью",
   "door.sevenKinds": "Один из семи видов мира, в которые может играть ваш стол.",
   "door.tagline": "Соберите отряд. Стол ведёт ИИ-мастер; кубики честны, а история принадлежит вам.",
-  "door.howto": "Как играть",
   "door.licenses": "Лицензии",
   "door.privacy": "Конфиденциальность",
   "door.terms": "Условия",
@@ -58,7 +56,6 @@ export const ruAuth: Partial<Record<keyof typeof enAuth, string>> & Record<strin
   "auth.switch.newHere": "Впервые здесь? ",
   "auth.switch.have": "Уже есть учётная запись? ",
   "auth.switch.create": "Создать учётную запись",
-  "auth.switch.login": "Войти",
   "auth.closed": "Этот сервер не принимает новые учётные записи.",
 "password.mismatch": "Новые пароли не совпадают.",
   "password.err": "Не удалось сменить пароль.",
