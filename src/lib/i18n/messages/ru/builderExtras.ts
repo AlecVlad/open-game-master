@@ -433,4 +433,7 @@ export const ruBuilderExtras: Partial<Record<keyof typeof enBuilderExtras, strin
   "builder.extra.undo.noun.race": "происхождение",
   "builder.extra.undo.noun.subclass": "подкласс",
   "builder.extra.undo.noun.level": "уровень",
+  "builder.extra.buildMath.working.abilityJoin": "и",
+  "builder.extra.buildMath.working.ancestryOwedAmounts": "Осталось распределить повышения характеристик: {amounts}",
+  "builder.extra.lineage.choice.abilityAmounts": "Повышения характеристик на выбор: {amounts}",
 };

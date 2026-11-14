@@ -1,5 +1,6 @@
 "use client";
 
+import { asiPickAmount, asiPickWords } from "@/lib/srd/race-asi";
 import { useId } from "react";
 import { useI18n } from "@/lib/i18n/provider";
 import type { MessageKey } from "@/lib/i18n/messages/index";
@@ -10,7 +11,9 @@ import { GameTerm } from "@/components/ui/GameTerm";
 import { InfoButton } from "@/components/ui/InfoDialog";
 import { Select } from "@/components/ui/Select";
 import { ALL_SKILLS } from "@/lib/content/mechanics";
-import { contentSlug, describeSkill } from "@/lib/help";
+import { KNOWN_TOOLS } from "@/lib/srd/feat-grant-text";
+import { toolLabel, toolPickOptions } from "@/lib/srd/tool-choices";
+import { contentSlug, describeSkill, glossaryTerm } from "@/lib/help";
 import { SRD_SKILLS } from "@/lib/srd";
 import { ABILITIES, type Ability } from "@/lib/schemas/sheet";
 import { featAbilityIncrease } from "@/lib/srd/feat-effects";
@@ -20,7 +23,7 @@ import { SelectedPrerequisite } from "./AsiFeatEditor";
 import { judgeEntry, useFeatJudge } from "./featPrereqs";
 import { racialFeatCount } from "@/lib/srd/race-id";
 import { DRACONIC_ANCESTRIES, takesDraconicAncestry } from "@/lib/srd/racial-grants";
-import { variantShort, variantSummary } from "@/lib/content/species-variants";
+import { variantGivesAnything, variantShort, variantSummary } from "@/lib/content/species-variants";
 import { Chip } from "./steps/shared";
 import { RacialCantripPicker } from "./RacialCantripPicker";
 import { featChoice } from "@/lib/schemas/sheet";
@@ -53,6 +56,12 @@ export function RacialChoicesSection({
   onCantripsChange,
   tool,
   onToolChange,
+  weapons = [],
+  onWeaponsChange,
+  training = [],
+  onTrainingChange,
+  expertise = "",
+  onExpertiseChange,
   ancestry = "",
   onAncestryChange,
   variant = "",
@@ -82,6 +91,16 @@ export function RacialChoicesSection({
   onCantripsChange: (cantrips: string[]) => void;
   tool: string;
   onToolChange: (tool: string) => void;
+  // The weapons the race lets the player name (a hobgoblin's two martial
+  // weapons), slot by slot.
+  weapons?: string[];
+  onWeaponsChange?: (index: number, weapon: string) => void;
+  // Skills or tools in any mix (a human chassis's Adaptable Acumen), slot by
+  // slot, and the skill its expertise doubles.
+  training?: string[];
+  onTrainingChange?: (index: number, pick: string) => void;
+  expertise?: string;
+  onExpertiseChange?: (skill: string) => void;
   // A dragonborn's draconic ancestry, by id.
   ancestry?: string;
   onAncestryChange?: (ancestry: string) => void;
@@ -116,7 +135,7 @@ export function RacialChoicesSection({
   const draconic = takesDraconicAncestry(race.id);
   const racialFeats = onFeatsChange ? racialFeatCount(race.id) : 0;
   const hasChoices = Boolean(
-    race.asiChoice || race.skillChoice || race.cantripChoice || race.toolChoice || draconic || race.variants || repeated.length || racialFeats,
+    race.asiChoice || race.skillChoice || race.cantripChoice || race.toolChoice || race.weaponChoice || race.trainingChoice || race.expertiseChoice || draconic || race.variants || repeated.length || racialFeats,
   );
   const chosen = race.variants?.options.find((option) => option.id === variant) ?? null;
   // The half-feat's choice of score, offered once the feat is picked.
@@ -160,14 +179,19 @@ export function RacialChoicesSection({
               placeholder={t("builder.race.variant.choose")}
               options={[
                 { value: "", label: t("builder.race.variant.choose") },
-                ...race.variants.options.map((option) => ({ value: option.id, label: `${option.name} (${variantShort(option)})` })),
+                ...race.variants.options.map((option) => ({
+                  value: option.id,
+                  label: variantGivesAnything(option) ? `${option.name} (${variantShort(option)})` : option.name,
+                })),
               ]}
             />
           </label>
-          {chosen ? (
+          {/* What the pick gives, when its own fields give anything: a pick
+              the species' rules read from itself (a size, an ability) says
+              nothing more than its name. */}
+          {chosen && (variantGivesAnything(chosen) || chosen.description) ? (
             <p className="live-in mt-1 whitespace-pre-line text-xs text-stone-400" data-variant-summary>
-              {variantSummary(chosen)}
-              {chosen.description ? `\n${chosen.description}` : ""}
+              {[variantGivesAnything(chosen) ? variantSummary(chosen) : "", chosen.description ?? ""].filter(Boolean).join("\n")}
             </p>
           ) : null}
         </div>
@@ -175,8 +199,14 @@ export function RacialChoicesSection({
 
       {race.asiChoice ? (
         <div data-builder-target="racialAsi">
-          <span className="mb-1 flex flex-wrap items-center gap-1 text-stone-400">
-            <GameTerm id="ability_score">{t("builder.race.ability.term")}</GameTerm> (+{race.asiChoice.amount} к{" "}
+          <span className="mb-1 block text-stone-400">
+            {race.asiChoice.amounts
+              ? t("builder.race.ability.amounts", { amounts: asiPickWords(race.asiChoice) })
+              : t("builder.race.abilityIncrease", { count: race.asiChoice.amount })}
+            {asiFrom
+              ? ` ${asiFrom.map(abilityName).join(t("builder.feat.choice.spellSlot.schoolJoin"))}`
+              : ` ${tp("builder.race.ability.ofChoice", race.asiChoice.count, { count: race.asiChoice.count })}`}
+          </span>
             {asiFrom
               ? asiFrom.map(abilityName).join(t("builder.feat.choice.spellSlot.schoolJoin"))
               : tp("builder.race.ability.ofChoice", race.asiChoice.count, { count: race.asiChoice.count })}
@@ -189,8 +219,7 @@ export function RacialChoicesSection({
                   value={asi[index] ?? ""}
                   onChange={(next) => onAsiChange(index, next)}
                   className="min-w-0 grow"
-                  label={t("builder.race.ability.label", { index: index + 1 })}
-                  placeholder={t("builder.race.ability.placeholder")}
+                  label={race.asiChoice!.amounts ? t("builder.race.ability.labelAmount", { index: index + 1, amount: asiPickAmount(race.asiChoice!, index) }) : t("builder.race.ability.label", { index: index + 1 })}
                   options={[
                     // Still a row of its own, so a pick can be taken back.
                     { value: "" as const, label: t("builder.race.ability.placeholder") },
@@ -202,9 +231,10 @@ export function RacialChoicesSection({
                     ).map((ability) => ({ value: ability, label: abilityName(ability) })),
                   ]}
                 />
-                {asi[index] ? (
-                  <GameTerm id={asi[index] as Ability} className="shrink-0 text-xs text-stone-500">{abilityName(asi[index] as Ability)}</GameTerm>
-                ) : null}
+                {/* The ability's glossary entry as the skills' ⓘ: the words
+                    "what is this?" squeezed the pick beside them to two
+                    letters on a phone. */}
+                {asi[index] ? <AbilityInfo ability={asi[index] as Ability} /> : null}
               </span>
             ))}
           </div>
@@ -213,7 +243,7 @@ export function RacialChoicesSection({
 
       {race.skillChoice ? (
         <div data-builder-target="racialSkills">
-          <span className="mb-1 flex flex-wrap items-center gap-1 text-stone-400">
+          <span className="mb-1 block text-stone-400">
             <GameTerm id="skill">{t("builder.race.skill.term")}</GameTerm> {tp("builder.race.skill.proficiencies", race.skillChoice.count, { count: race.skillChoice.count })}
           </span>
           <div className="grid grid-cols-2 gap-2">
@@ -380,7 +410,87 @@ export function RacialChoicesSection({
             className="w-full"
             label={t("builder.race.tool.label")}
             placeholder={t("builder.race.tool.placeholder")}
-            options={[{ value: "", label: t("builder.race.tool.placeholder") }, ...race.toolChoice.from.map((entry) => ({ value: entry, label: entry }))]}
+            options={[{ value: "", label: t("builder.race.tool.placeholder") }, ...toolPickOptions(race.toolChoice.from)]}
+          />
+        </label>
+      ) : null}
+
+      {race.weaponChoice && onWeaponsChange ? (
+        <div data-builder-target="racialWeapons">
+          <span className="mb-1 block text-stone-400">
+            {t("builder.race.weapon.title", { count: race.weaponChoice.count })}
+          </span>
+          <div className="grid grid-cols-2 gap-2">
+            {Array.from({ length: race.weaponChoice.count }, (_, index) => (
+              <Select<string>
+                key={index}
+                value={weapons[index] ?? ""}
+                onChange={(next) => onWeaponsChange(index, next)}
+                className="min-w-0"
+                label={t("builder.race.weapon.label", { index: index + 1 })}
+                placeholder={t("builder.race.weapon.placeholder")}
+                options={[
+                  { value: "", label: t("builder.race.weapon.placeholder") },
+                  ...race.weaponChoice!.from
+                    .filter((weapon) => weapons[index] === weapon || !weapons.includes(weapon))
+                    .map((weapon) => ({ value: weapon, label: weapon })),
+                ]}
+              />
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      {race.trainingChoice && onTrainingChange ? (
+        <div data-builder-target="racialTraining">
+          <span className="mb-1 block text-stone-400">
+            {t("builder.race.training.title", { count: race.trainingChoice.count })}
+          </span>
+          <div className="grid grid-cols-2 gap-2">
+            {Array.from({ length: race.trainingChoice.count }, (_, index) => (
+              <Select<string>
+                key={index}
+                value={training[index] ?? ""}
+                onChange={(next) => onTrainingChange(index, next)}
+                className="min-w-0"
+                label={t("builder.race.training.label", { index: index + 1 })}
+                placeholder={t("builder.race.training.placeholder")}
+                options={[
+                  { value: "", label: t("builder.race.training.placeholder") },
+                  ...ALL_SKILLS.filter((skill) => training[index] === skill || (!training.includes(skill) && !grantedSkills.includes(skill) && !skills.includes(skill))).map(
+                    (skill) => ({ value: skill as string, label: skillName(skill) }),
+                  ),
+                  ...toolPickOptions(KNOWN_TOOLS.filter((tool) => training[index] === tool || !training.includes(tool))),
+                ]}
+              />
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      {race.expertiseChoice && onExpertiseChange ? (
+        <label className="block" data-builder-target="racialExpertise">
+          <span className="mb-1 block text-stone-400">
+            {t("builder.race.expertise.help")}
+          </span>
+          <Select<string>
+            value={expertise}
+            onChange={onExpertiseChange}
+            className="w-full"
+            label={t("builder.race.expertise.label")}
+            placeholder={t("builder.race.expertise.placeholder")}
+            options={[
+              { value: "", label: "Choose a skill or tool..." },
+              ...[...new Set([...grantedSkills, ...skills.filter(Boolean), ...training.filter((pick) => (ALL_SKILLS as readonly string[]).includes(pick))])].map((skill) => ({
+                value: skill,
+                label: skillName(skill),
+              })),
+              // The tools the lineage trains (Adaptable Acumen's picks, its own list).
+              ...[...new Set([...(race.tools ?? []), ...(tool ? [tool] : []), ...training.filter((pick) => KNOWN_TOOLS.includes(pick))])].map((held) => ({
+                value: held,
+                label: toolLabel(held),
+              })),
+            ]}
           />
         </label>
       ) : null}
@@ -388,4 +498,10 @@ export function RacialChoicesSection({
       <RacialCantripPicker race={race} cantrips={cantrips} onChange={onCantripsChange} />
     </div>
   );
+}
+
+// An ability's glossary entry behind an ⓘ, as a skill pick's is.
+function AbilityInfo({ ability }: { ability: Ability }) {
+  const entry = glossaryTerm(ability);
+  return entry ? <InfoButton label={entry.term} text={[entry.short, entry.long].filter(Boolean).join("\n\n")} /> : null;
 }

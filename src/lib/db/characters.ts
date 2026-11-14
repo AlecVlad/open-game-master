@@ -586,6 +586,8 @@ export function syncProgressToLibrary(sheetId: string): LibraryCharacter | null 
       portrait: sheet.portrait,
       notes: sheet.notes,
       backstory: sheet.backstory,
+      // Who they are, grown in play, comes home with the backstory.
+      ...(sheet.persona ? { persona: sheet.persona } : {}),
     };
     getDatabase()
       .prepare(`UPDATE library_characters SET sheet_json = ?, updated_at = ? WHERE id = ?`)
@@ -632,6 +634,7 @@ export function syncProgressToLibrary(sheetId: string): LibraryCharacter | null 
     portrait: sheet.portrait,
     notes: sheet.notes,
     backstory: sheet.backstory,
+    ...(sheet.persona ? { persona: sheet.persona } : {}),
   };
   getDatabase()
     .prepare(

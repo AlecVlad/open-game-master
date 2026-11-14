@@ -142,7 +142,10 @@ export const enBuilderSpells = {
   "builder.spells.shortage.spell.other": "cantrips",
   "builder.spells.shortage.take.one": " Take it;",
   "builder.spells.shortage.take.many": " Take all {count};",
-  "builder.spells.shortage.take.other": " Take all {count};",
+  "builder.spells.shortage.take.other": " Take all {count
+  "builder.spells.requiredCantripFirst": "Choose {name} first",
+  "builder.spells.arcanumChosen": "Arcanum chosen",
+};",
   "builder.spells.shortage.missing.one": " The missing one",
   "builder.spells.shortage.missing.other": " The {count} missing ones",
   "builder.spells.shortage.server": "Whoever runs this server can add more by installing the content pack.",

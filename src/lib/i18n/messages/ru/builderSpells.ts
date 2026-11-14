@@ -148,4 +148,6 @@ export const ruBuilderSpells: Partial<Record<keyof typeof enBuilderSpells, strin
   "builder.spells.shortage.missing.one": " Отсутствующее заклинание",
   "builder.spells.shortage.missing.other": " Отсутствующие заклинания ({count})",
   "builder.spells.shortage.server": "Администратор сервера может добавить недостающие заклинания, установив пакет контента.",
+  "builder.spells.requiredCantripFirst": "Сначала выберите {name}",
+  "builder.spells.arcanumChosen": "Мистический арканум выбран",
 };

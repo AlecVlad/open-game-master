@@ -20,6 +20,7 @@ import { CUSTOM_BACKGROUNDS } from "@/lib/backgrounds";
 import { MAX_PACK_ART_BYTES, packArtSlots } from "@/lib/worlds/art";
 import { finishDraft, type WorldPackDraft } from "@/lib/worlds/draft";
 import { textKey } from "@/lib/language/text-logic";
+import { srdRaceId } from "@/lib/srd/race-id";
 
 export type DraftCheckMessage = {
   key: string;
@@ -73,6 +74,56 @@ function walkStrings(value: unknown, trail: string, visit: (text: string, at: st
   }
 }
 
+// The ids a pack renames, each of which must be an option the character
+// creator offers: applyIdReskins renames only what exists, so an unknown id
+// is dropped without a word and the world promises a people or a calling no
+// player can find. Shared by the workshop's export (below) and the server's
+// install (./install.ts), which also passes the content pack's race slugs so
+// a pack may rename a people the pack brings. A race is matched on its one
+// spelling (srdRaceId), as the creator matches it.
+type ReskinIds = {
+  races: Array<{ id: string }>;
+  classes: Array<{ id: string; castingLabel?: string | null }>;
+  backgrounds: Array<{ id: string }>;
+  companionRaces: string[];
+};
+
+// The renamed ids the creator does not offer, one line each. The server's
+// install refuses a file holding any (./install.ts) and reads this list,
+// never the wording of the problems below.
+export function unknownReskinIds(pack: ReskinIds, extraRaceKeys: ReadonlySet<string> = new Set()): string[] {
+  const unknown: string[] = [];
+  const knownRace = (id: string) => Boolean(findRace(srdRaceId(id))) || extraRaceKeys.has(srdRaceId(id));
+  for (const entry of pack.races) {
+    if (!knownRace(entry.id)) unknown.push(`Race "${entry.id}" is not in the catalog.`);
+  }
+  for (const entry of pack.classes) {
+    if (!findClass(entry.id)) unknown.push(`Class "${entry.id}" is not in the catalog.`);
+  }
+  const backgroundIds = new Set([
+    ...SRD_BACKGROUNDS.map((entry) => entry.id),
+    ...CUSTOM_BACKGROUNDS.map((entry) => entry.id),
+  ]);
+  for (const entry of pack.backgrounds) {
+    if (!backgroundIds.has(entry.id)) unknown.push(`Background "${entry.id}" is not in the catalog.`);
+  }
+  for (const id of pack.companionRaces) {
+    if (!knownRace(id)) unknown.push(`Companion race "${id}" is not in the catalog.`);
+  }
+  return unknown;
+}
+
+export function reskinIdProblems(pack: ReskinIds, extraRaceKeys: ReadonlySet<string> = new Set()): string[] {
+  const problems = unknownReskinIds(pack, extraRaceKeys);
+  for (const entry of pack.classes) {
+    const klass = findClass(entry.id);
+    if (klass && klass.spellAbility === null && entry.castingLabel) {
+      problems.push(`${klass.name} does not cast, so its casting label must stay empty.`);
+    }
+  }
+  return problems;
+}
+
 export function checkDraft(draft: WorldPackDraft): DraftCheck {
   const problems: string[] = [];
   const advice: string[] = [];
@@ -115,26 +166,18 @@ export function checkDraft(draft: WorldPackDraft): DraftCheck {
   }
 
   // ---- reskins by id ----
-  for (const entry of pack.races) {
-    if (!findRace(entry.id)) addProblem(`Race "${entry.id}" is not in the catalog.`, "workshop.plugin.check.raceUnknown", { id: entry.id });
-  }
-  for (const entry of pack.classes) {
-    const klass = findClass(entry.id);
-    if (!klass) {
-      addProblem(`Class "${entry.id}" is not in the catalog.`, "workshop.plugin.check.classUnknown", { id: entry.id });
-    } else if (klass.spellAbility === null && entry.castingLabel) {
-      addProblem(`${klass.name} does not cast, so its casting label must stay empty.`, "workshop.plugin.check.classNoCasting", { name: entry.id });
-    }
-  }
-  const backgroundIds = new Set([
-    ...SRD_BACKGROUNDS.map((entry) => entry.id),
-    ...CUSTOM_BACKGROUNDS.map((entry) => entry.id),
-  ]);
-  for (const entry of pack.backgrounds) {
-    if (!backgroundIds.has(entry.id)) addProblem(`Background "${entry.id}" is not in the catalog.`, "workshop.plugin.check.backgroundUnknown", { id: entry.id });
-  }
-  for (const id of pack.companionRaces) {
-    if (!findRace(id)) addProblem(`Companion race "${id}" is not in the catalog.`, "workshop.plugin.check.companionRaceUnknown", { id });
+  for (const message of reskinIdProblems(pack)) {
+    const race = /^Race "(.+)" is not in the catalog\.$/.exec(message);
+    const klass = /^Class "(.+)" is not in the catalog\.$/.exec(message);
+    const background = /^Background "(.+)" is not in the catalog\.$/.exec(message);
+    const companion = /^Companion race "(.+)" is not in the catalog\.$/.exec(message);
+    const casting = /^(.+) does not cast, so its casting label must stay empty\.$/.exec(message);
+    if (race) addProblem(message, "workshop.plugin.check.raceUnknown", { id: race[1] });
+    else if (klass) addProblem(message, "workshop.plugin.check.classUnknown", { id: klass[1] });
+    else if (background) addProblem(message, "workshop.plugin.check.backgroundUnknown", { id: background[1] });
+    else if (companion) addProblem(message, "workshop.plugin.check.companionRaceUnknown", { id: companion[1] });
+    else if (casting) addProblem(message, "workshop.plugin.check.classNoCasting", { name: casting[1] });
+    else problems.push(message);
   }
   for (const [key, list] of [
     ["races", pack.races],

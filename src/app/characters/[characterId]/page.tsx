@@ -22,6 +22,7 @@ import { UseInCampaignDialog } from "./UseInCampaignDialog";
 import { slugOf } from "@/lib/language/text-logic";
 import { useT } from "@/lib/i18n/provider";
 import { registerWorkshopClasses, workshopClassName } from "@/lib/classes/workshop-registry";
+import { registerPackClasses, type PackClassTable } from "@/lib/classes/pack-class-registry";
 import { registerBrowserSpecies } from "@/lib/srd/race-id";
 import { classWordsAfterLevel } from "@/lib/characters/class-words";
 import type { WorkshopClass } from "@/lib/homebrew/class-data";
@@ -217,6 +218,7 @@ export default function CharacterDetailPage({
         if (data?.character) {
           // The workshop classes it holds, before anything reads its class.
           registerWorkshopClasses((data.workshopClasses ?? []) as WorkshopClass[]);
+          registerPackClasses((data.packClasses ?? []) as PackClassTable[]);
           // And its species' rules: a workshop species' spells (issue #833).
           registerBrowserSpecies(data.species);
           setCharacter(data.character);
