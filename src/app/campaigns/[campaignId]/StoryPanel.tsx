@@ -642,7 +642,7 @@ function ArcCard({ campaignId }: { campaignId: string }) {
                   </ol>
                   {addingToAct === act ? (
                     <div className="reveal mt-1">
-                      <DictateField single label="Beat" onTranscript={(text) => setDraft((current) => appendDictation(current, text, MAX_BEAT_TEXT))}>
+                      <DictateField single label={t("campaign.storyPanel.label.beat")} onTranscript={(text) => setDraft((current) => appendDictation(current, text, MAX_BEAT_TEXT))}>
                         <input
                           value={draft}
                           autoFocus
@@ -673,7 +673,7 @@ function ArcCard({ campaignId }: { campaignId: string }) {
                           onClick={closeEditor}
                           className={cn(ui.btnSmall, "pk-tap px-2.5 py-1 text-xs")}
                         >
-                          Cancel
+                          {t("campaign.storyPanel.action.cancel")}
                         </button>
                       </div>
                     </div>
@@ -967,7 +967,7 @@ export function StoryPanel({
         ) : null}
         {steersStory && open && rewindable.includes(open.index) ? (
           <KitButton tone="danger" onClick={() => void postRewind(open.index, false)} disabled={rewindBusy} busy={rewindBusy} title={t("campaign.storyPanel.chapter.restart")} className="mt-1.5 w-full justify-center">
-            {rewindBusy ? null : <Rewind className="size-3" />} Restart this chapter
+            {rewindBusy ? null : <Rewind className="size-3" />} {t("campaign.storyPanel.action.restartChapter")}
           </KitButton>
         ) : null}
       </div>
