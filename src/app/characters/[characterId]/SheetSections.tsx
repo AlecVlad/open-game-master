@@ -169,7 +169,7 @@ export function SheetSections({ sheet, level = 1 }: { sheet: CreateSheetInput; l
       ) : null}
 
       {sheet.persona && personaOrNothing(sheet.persona) ? (
-        <SheetPanel title="Personality">
+        <SheetPanel title={t("charSheet.personality")}>
           <PersonaLines persona={sheet.persona} />
         </SheetPanel>
       ) : null}
