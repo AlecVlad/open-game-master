@@ -13,7 +13,6 @@
 //   - a magic item's charges, a pending attunement, a curse.
 // Pure (no React, no database): scripts/test-hand-engine.mjs drives it.
 import {
-  describeExhaustion,
   effectiveMaxHp,
   effectiveSpeed,
   exhaustionSpeed,
@@ -88,37 +87,45 @@ export type StateTag = {
   note: string;
 };
 
-export function stateTags(sheet: CharacterSheet): StateTag[] {
+export function stateTags(sheet: CharacterSheet, translate?: (key: string, params?: Record<string, string | number>) => string): StateTag[] {
   const tags: StateTag[] = [];
+  const say = (key: string, params: Record<string, string | number> | undefined, fallback: string) => translate ? translate(key, params) : fallback;
   const saves = sheet.deathSaves;
   if (saves?.dead) {
-    tags.push({ id: "dead", label: "Dead", tone: "harm", note: "Only magic that raises the dead brings them back." });
+    tags.push({ id: "dead", label: say("charSheet.state.dead.label", undefined, "Dead"), tone: "harm", note: say("charSheet.state.dead.note", undefined, "Only magic that raises the dead brings them back.") });
   } else if (saves && sheet.currentHp <= 0) {
     tags.push(
       saves.stable
-        ? { id: "stable", label: "Stable", tone: "neutral", note: "Unconscious at 0 hit points, no longer rolling death saves." }
+        ? { id: "stable", label: say("charSheet.state.stable.label", undefined, "Stable"), tone: "neutral", note: say("charSheet.state.stable.note", undefined, "Unconscious at 0 hit points, no longer rolling death saves.") }
         : {
             id: "dying",
-            label: `Dying ${saves.successes}/${saves.failures}`,
+            label: say("charSheet.state.dying.label", { successes: saves.successes, failures: saves.failures }, `Dying ${saves.successes}/${saves.failures}`),
             tone: "harm",
-            note: `Death saves: ${saves.successes} success${saves.successes === 1 ? "" : "es"}, ${saves.failures} failure${saves.failures === 1 ? "" : "s"}. Three successes stabilize, three failures kill.`,
+            note: say("charSheet.state.dying.note", { successes: saves.successes, failures: saves.failures }, `Death saves: ${saves.successes} successes, ${saves.failures} failures. Three successes stabilize; three failures kill.`),
           },
     );
   }
   const stopped = incapacitatedBy(sheet.conditions);
   if (stopped && sheet.currentHp > 0) {
-    tags.push({ id: "incapacitated", label: `Cannot act (${stopped})`, tone: "harm", note: `${sheet.name} can take no actions or reactions while ${stopped}.` });
+    tags.push({ id: "incapacitated", label: say("charSheet.state.incapacitated.label", { condition: stopped }, `Cannot act (${stopped})`), tone: "harm", note: say("charSheet.state.incapacitated.note", { name: sheet.name, condition: stopped }, `${sheet.name} can take no actions or reactions while ${stopped}.`) });
   }
   const exhaustion = sheet.exhaustion ?? 0;
   if (exhaustion > 0) {
-    tags.push({ id: "exhaustion", label: `Exhaustion ${exhaustion}`, tone: "harm", note: `${describeExhaustion(exhaustion)}. A long rest lowers it by one.` });
+    const effects = [
+      exhaustion >= 1 ? say("charSheet.state.exhaustion.effect.checks", undefined, " (disadvantage on ability checks)") : "",
+      exhaustion >= 2 ? say("charSheet.state.exhaustion.effect.speedHalf", undefined, " (speed halved)") : "",
+      exhaustion >= 3 ? say("charSheet.state.exhaustion.effect.attacks", undefined, " (disadvantage on attacks and saves)") : "",
+      exhaustion >= 4 ? say("charSheet.state.exhaustion.effect.hp", undefined, " (hit point maximum halved)") : "",
+      exhaustion >= 5 ? say("charSheet.state.exhaustion.effect.speedZero", undefined, " (speed 0)") : "",
+    ].join("");
+    tags.push({ id: "exhaustion", label: say("charSheet.state.exhaustion.label", { level: exhaustion }, `Exhaustion ${exhaustion}`), tone: "harm", note: say("charSheet.state.exhaustion.note", { level: exhaustion, effects }, `Exhaustion ${exhaustion}${effects}. A long rest lowers it by one.`) });
   }
   if (sheet.concentratingOn) {
     tags.push({
       id: "concentration",
-      label: `Concentrating: ${sheet.concentratingOn}`,
+      label: say("charSheet.state.concentration.label", { spell: sheet.concentratingOn }, `Concentrating: ${sheet.concentratingOn}`),
       tone: "bless",
-      note: "Damage calls for a CON save (DC 10 or half the damage); another concentration spell, or falling unconscious, ends it.",
+      note: say("charSheet.state.concentration.note", undefined, "Damage calls for a Constitution save (DC 10 or half the damage). Another concentration spell or falling unconscious ends it."),
     });
   }
   const readied = sheet.conditions.find((entry) => entry.trim().toLowerCase() === "readied");
@@ -126,14 +133,14 @@ export function stateTags(sheet: CharacterSheet): StateTag[] {
     const trigger = sheet.conditionMeta?.[readied]?.source;
     tags.push({
       id: "readied",
-      label: "Readied",
+      label: say("charSheet.state.readied.label", undefined, "Readied"),
       tone: "ward",
-      note: trigger ? `When ${trigger}: the readied attack, with the reaction. It lapses when their next turn starts.` : "An action held for its trigger; it lapses when their next turn starts.",
+      note: trigger ? say("charSheet.state.readied.trigger", { trigger }, `When ${trigger}: a readied attack uses the reaction. It ends at the start of the next turn.`) : say("charSheet.state.readied.note", undefined, "An action is held for its trigger; it ends at the start of the next turn."),
     });
   }
   const inspiration = sheet.resources?.inspiration;
   if (inspiration && inspiration.used < inspiration.max) {
-    tags.push({ id: "inspiration", label: "Inspiration", tone: "bless", note: "Spend it for advantage on one attack, save or check." });
+    tags.push({ id: "inspiration", label: say("charSheet.state.inspiration.label", undefined, "Inspiration"), tone: "bless", note: say("charSheet.state.inspiration.note", undefined, "Spend it to gain advantage on one attack, saving throw, or ability check.") });
   }
   return tags;
 }
