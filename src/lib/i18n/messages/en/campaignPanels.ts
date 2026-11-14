@@ -5686,4 +5686,5 @@ export const enCampaignPanels = {
   "campaign.dmAction.field.addTo": "Add to {field}",
   "campaign.dmAction.field.notInList": "Not in the list",
   "campaign.dmAction.field.petPlaceholder": "clockwork crow"
+  "campaign.mapStudio.seed": "Seed",
 };
