@@ -2,6 +2,7 @@
 
 import { owedChoices } from "@/lib/srd/owed-choices";
 import { useState } from "react";
+import { useT } from "@/lib/i18n/provider";
 import * as Dialog from "@radix-ui/react-dialog";
 import { returnFocus } from "@/components/ui/return-focus";
 import { GameIcon } from "@/components/ui/GameIcon";
@@ -116,6 +117,7 @@ export function CharacterSheetDialog({
   onAdjust?: () => void;
   onClose: () => void;
 }) {
+  const t = useT();
   const derived = computeSheetDerived(sheet);
   const armor = acBreakdownFor(sheet);
   const attunedCount = sheet.equipment.filter((item) => item.attuned).length;
@@ -638,9 +640,9 @@ export function CharacterSheetDialog({
               onClick={handleDownloadPdf}
               disabled={pdfBusy}
               className={ui.btnSmall}
-              title="Download this character sheet as a fillable PDF"
+              title={t("charDetail.pdf.hint")}
             >
-              <FileDown className="size-3.5" /> {pdfBusy ? "Preparing..." : "Download PDF"}
+              <FileDown className="size-3.5" /> {pdfBusy ? t("charDetail.pdf.busy") : t("charDetail.pdf")}
             </button>
             {steersStory && onAdjust ? (
               <button

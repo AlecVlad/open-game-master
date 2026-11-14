@@ -2,6 +2,7 @@
 
 import { Check, ListOrdered, Loader2, Minus } from "lucide-react";
 import { useState, type ReactNode } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/cn";
 import { SectionHead } from "@/components/ui/SectionHead";
 import { PanelError, kitButtonClass, panelField } from "./PanelKit";
@@ -9,7 +10,6 @@ import { SequenceEditor } from "./SequenceEditor";
 import {
   PLAN_MAX_CHARS,
   orderKey,
-  placeWords,
   sequenceOf,
   unconfirmedOrder,
   waitingOn,
@@ -28,13 +28,6 @@ import {
 // plan in order (issue 292) every seat sees it as numbered steps, and a
 // player whose Ready the new order took back is told where they stand now.
 
-const STATE_WORD: Record<CoordinationEntry["state"], string> = {
-  waiting: "Waiting",
-  drafting: "Drafting",
-  ready: "Ready",
-  pass: "Passed",
-};
-
 export function CoordinationPanel({
   campaignId,
   phase,
@@ -46,6 +39,7 @@ export function CoordinationPanel({
   meUserId: string;
   steersStory: boolean;
 }) {
+  const { t } = useI18n();
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -56,6 +50,71 @@ export function CoordinationPanel({
   const sequence = sequenceOf(phase);
   const unconfirmed = unconfirmedOrder(phase);
   const byId = new Map(phase.entries.map((entry) => [entry.characterId, entry]));
+  const stateWords: Record<CoordinationEntry["state"], string> = {
+    waiting: t("campaign.session.coordination.state.waiting"),
+    drafting: t("campaign.session.coordination.state.drafting"),
+    ready: t("campaign.session.coordination.state.ready"),
+    pass: t("campaign.session.coordination.state.pass"),
+  };
+  const joinNames = (names: string[]) =>
+    names.length < 2 ? (names[0] ?? "") : `${names.slice(0, -1).join(", ")} и ${names[names.length - 1]}`;
+  const placeDescription = (characterId: string) => {
+    if (!sequence) return t("campaign.session.coordination.position.everyone");
+    const at = sequence.findIndex((step) => step.includes(characterId));
+    if (at < 0) return "";
+    const before = sequence.slice(0, at).flat().map((id) => byId.get(id)?.name ?? id);
+    const alongside = sequence[at].filter((id) => id !== characterId).map((id) => byId.get(id)?.name ?? id);
+    const position = before.length
+      ? t("campaign.session.coordination.position.after", { names: joinNames(before) })
+      : t("campaign.session.coordination.position.first");
+    const together = alongside.length
+      ? t("campaign.session.coordination.position.alongside", { names: joinNames(alongside) })
+      : "";
+    return t("campaign.session.coordination.position.summary", { step: at + 1, steps: sequence.length, position, together });
+  };
+  const errorText = (message?: string) => {
+    if (!message) return t("campaign.session.coordination.error.generic");
+    const sessionEnd = " is over. Use OOC for table talk until the next session starts.";
+    if (message.startsWith("Session ") && message.endsWith(sessionEnd)) {
+      return t("campaign.session.coordination.error.sessionOver", { number: message.slice(8, -sessionEnd.length) });
+    }
+    const companionEnd = " is an AI companion; stage a request for them instead.";
+    if (message.endsWith(companionEnd)) {
+      return t("campaign.session.coordination.error.companionRequest", { name: message.slice(0, -companionEnd.length) });
+    }
+    const ownerEnd = "'s player stages their part.";
+    if (message.startsWith("Only ") && message.endsWith(ownerEnd)) {
+      return t("campaign.session.coordination.error.onlyOwner", { name: message.slice(5, -ownerEnd.length) });
+    }
+    const describeStart = "Say what ";
+    const describeEnd = " does before marking it ready, or pass.";
+    if (message.startsWith(describeStart) && message.endsWith(describeEnd)) {
+      return t("campaign.session.coordination.error.mustDescribe", { name: message.slice(describeStart.length, -describeEnd.length) });
+    }
+    if (message.startsWith("The order changed after ")) {
+      return t("campaign.session.coordination.error.waitForChangedOrder", { names: joinNames(unconfirmed) });
+    }
+    const exact: Record<string, string> = {
+      "Invalid request.": t("campaign.session.coordination.error.invalidRequest"),
+      "Whoever steers the story opens a coordinated plan.": t("campaign.session.coordination.error.mustSteerOpen"),
+      "Whoever steers the story sets the plan's order.": t("campaign.session.coordination.error.mustSteerOrder"),
+      "Only the lead resolves the plan early.": t("campaign.session.coordination.error.onlyLeadResolve"),
+      "Only the lead sets the plan aside.": t("campaign.session.coordination.error.onlyLeadSetAside"),
+      "The party is not coordinating right now.": t("campaign.session.coordination.error.notCoordinating"),
+      "Coordinated actions are for a table the AI narrates; a GM in the seat already takes the party's moves together.": t("campaign.session.coordination.error.aiOnly"),
+      "The adventure has not started yet.": t("campaign.session.coordination.error.adventureNotStarted"),
+      "A fight is running; the initiative order takes the turns now.": t("campaign.session.coordination.error.fightRunning"),
+      "The party is already coordinating; resolve or set aside that plan first.": t("campaign.session.coordination.error.alreadyOpen"),
+      "Pick at least one player's character to coordinate.": t("campaign.session.coordination.error.pickPlayer"),
+      "The order must name each character in the plan once.": t("campaign.session.coordination.error.orderInvalid"),
+      "Only a player in the plan may ask a companion for something.": t("campaign.session.coordination.error.onlyPlayerRequest"),
+      "This plan has already been resolved or set aside.": t("campaign.session.coordination.error.planEnded"),
+      "The lead has just changed the order. Look at where your character stands now, then mark it Ready.": t("campaign.session.coordination.error.orderChanged"),
+      "That character is not part of this plan.": t("campaign.session.coordination.error.characterMissing"),
+      "Requests are for the AI companions in the plan.": t("campaign.session.coordination.error.requestsCompanions"),
+    };
+    return exact[message] ?? t("campaign.session.coordination.error.generic");
+  };
 
   async function send(body: Record<string, unknown>) {
     setBusy(true);
@@ -68,12 +127,12 @@ export function CoordinationPanel({
       });
       if (!response.ok) {
         const data = (await response.json().catch(() => ({}))) as { error?: string };
-        setError(data.error ?? "The plan did not change.");
+        setError(errorText(data.error));
         return false;
       }
       return true;
     } catch {
-      setError("Could not reach the table.");
+      setError(t("campaign.session.coordination.error.network"));
       return false;
     } finally {
       setBusy(false);
@@ -132,19 +191,17 @@ export function CoordinationPanel({
           <span className="text-[11px] text-stone-500">
             {entry.companion
               ? entry.text
-                ? `AI companion · asked by ${entry.requestedBy ?? "the party"}`
-                : "AI companion · acts as they see fit"
+                ? t("campaign.session.coordination.companion.asked", { name: entry.requestedBy ?? t("campaign.session.coordination.theParty") })
+                : t("campaign.session.coordination.companion.acts")
               : entry.orderChanged
-                ? "Checking the new order"
-                : STATE_WORD[entry.state]}
+                ? t("campaign.session.coordination.checkingOrder")
+                : stateWords[entry.state]}
           </span>
         </div>
 
         {own && entry.orderChanged ? (
           <p role="status" className="motion-pop mt-1.5 rounded border border-amber-500/40 bg-amber-950/30 px-2 py-1 text-[11px] text-amber-100" data-order-notice>
-            The lead changed the order after you were ready:{" "}
-            {sequence ? `${entry.name} is now ${placeWords(phase, entry.characterId)}` : "everyone now acts at once"}. Check your
-            part still fits, then mark it Ready again.
+            {t("campaign.session.coordination.orderChanged", { name: entry.name, place: placeDescription(entry.characterId) })}
           </p>
         ) : null}
 
@@ -157,10 +214,10 @@ export function CoordinationPanel({
               maxLength={PLAN_MAX_CHARS}
               placeholder={
                 sequence
-                  ? `What does ${entry.name} do at this step?`
-                  : `What does ${entry.name} do? ("While Brann talks to the guard, I slip past to the gate.")`
+                  ? t("campaign.session.coordination.draft.atStep", { name: entry.name })
+                  : t("campaign.session.coordination.draft.prompt", { name: entry.name })
               }
-              aria-label={`${entry.name}'s part in the plan`}
+              aria-label={t("campaign.session.coordination.draft.aria", { name: entry.name })}
               className={cn(panelField, "w-full resize-y text-xs")}
             />
             <div className="flex flex-wrap gap-1.5">
@@ -172,7 +229,7 @@ export function CoordinationPanel({
                 data-coordination-ready
               >
                 {busy ? <Loader2 className="size-3.5 animate-spin" /> : null}
-                Ready
+                {t("campaign.session.coordination.ready")}
               </button>
               <button
                 type="button"
@@ -180,10 +237,10 @@ export function CoordinationPanel({
                 onClick={() => void settle(entry, "drafting")}
                 className={kitButtonClass("small")}
               >
-                Share draft
+                {t("campaign.session.coordination.shareDraft")}
               </button>
               <button type="button" disabled={busy} onClick={() => void settle(entry, "pass")} className={kitButtonClass("small")} data-coordination-pass>
-                Pass
+                {t("campaign.session.coordination.pass")}
               </button>
             </div>
           </div>
@@ -201,7 +258,7 @@ export function CoordinationPanel({
             className={cn(kitButtonClass("small"), "mt-1.5")}
             data-coordination-change
           >
-            Change
+            {t("campaign.session.coordination.change")}
           </button>
         ) : null}
 
@@ -211,8 +268,8 @@ export function CoordinationPanel({
               value={draftOf(entry)}
               onChange={(event) => setDraft(entry, event.target.value)}
               maxLength={PLAN_MAX_CHARS}
-              placeholder={`Ask ${entry.name} to... (optional)`}
-              aria-label={`Ask ${entry.name} to`}
+              placeholder={t("campaign.session.coordination.companion.prompt", { name: entry.name })}
+              aria-label={t("campaign.session.coordination.companion.aria", { name: entry.name })}
               className={cn(panelField, "w-auto min-w-0 flex-1 text-xs")}
             />
             <button
@@ -230,7 +287,7 @@ export function CoordinationPanel({
               className={kitButtonClass("small", "shrink-0")}
               data-coordination-request
             >
-              {draftOf(entry).trim() ? "Ask" : "Withdraw"}
+              {t(draftOf(entry).trim() ? "campaign.session.coordination.companion.ask" : "campaign.session.coordination.companion.withdraw")}
             </button>
           </div>
         ) : null}
@@ -239,21 +296,19 @@ export function CoordinationPanel({
   };
 
   return (
-    <section className="panel ornate reveal mb-2 rounded-lg border-amber-500/40 p-3" data-coordination={phase.id} data-ordered={sequence ? "" : undefined} aria-label="Coordinated plan">
+    <section className="panel ornate reveal mb-2 rounded-lg border-amber-500/40 p-3" data-coordination={phase.id} data-ordered={sequence ? "" : undefined} aria-label={t("campaign.session.coordination.aria")}>
       <SectionHead
-        title="The party acts together"
+        title={t("campaign.session.coordination.title")}
         glyph="tab-party"
         level="h3"
-        aside={waiting.length ? `waiting on ${waiting.length}` : "all ready"}
+        aside={waiting.length ? t("campaign.session.coordination.waitingOn", { count: waiting.length }) : t("campaign.session.coordination.allReady")}
       />
       <p className="mb-2 text-xs text-stone-400">
         {phase.prompt ? <span className="mr-1 font-serif italic text-amber-200/80">{phase.prompt}</span> : null}
-        {sequence
-          ? "The lead has set the order: each step happens after the one before it, and characters in one step act at the same time. Write what your character does at their step. Nothing happens until every player is ready; then the GM resolves the plan as one scene, step by step."
-          : 'Say what each character does in the same moment, with any "while", "after" or "if". Nothing happens until every player is ready; then the GM resolves the plan as one moment.'}
+        {t(sequence ? "campaign.session.coordination.description.ordered" : "campaign.session.coordination.description.together")}
       </p>
       {sequence ? (
-        <ol className="stagger space-y-2" aria-label="The plan's order">
+        <ol className="stagger space-y-2" aria-label={t("campaign.session.coordination.order.aria")}>
           {sequence.map((ids, index) => {
             const members = ids.flatMap((id) => (byId.has(id) ? [byId.get(id)!] : []));
             const passedBefore = sequence
@@ -264,12 +319,12 @@ export function CoordinationPanel({
               <li key={`step-${index}-${ids.join("+")}`} data-coordination-step={index + 1} className="reveal">
                 <p className="mb-1 flex flex-wrap items-center gap-1.5 text-[11px] uppercase tracking-wide text-amber-200/80">
                   <span className="rounded-full border border-amber-500/40 px-1.5 font-medium tabular-nums">{index + 1}</span>
-                  {index === 0 ? "First" : `After step ${index}`}
-                  {members.length > 1 ? <span className="normal-case tracking-normal text-stone-400">· at the same time</span> : null}
+                  {index === 0 ? t("campaign.session.coordination.step.first") : t("campaign.session.coordination.step.after", { step: index })}
+                  {members.length > 1 ? <span className="normal-case tracking-normal text-stone-400">{t("campaign.session.coordination.step.sameTime")}</span> : null}
                 </p>
                 {passedBefore.length ? (
                   <p className="mb-1 text-[11px] text-amber-300/80" data-step-pass-note>
-                    {passedBefore.join(", ")} passed before this step; the GM will not count on {passedBefore.length === 1 ? "it" : "them"}.
+                    {t("campaign.session.coordination.step.passedBefore", { names: joinNames(passedBefore) })}
                   </p>
                 ) : null}
                 <ul className="space-y-2">{members.map(entryRow)}</ul>
@@ -284,15 +339,14 @@ export function CoordinationPanel({
       {steersStory && ordering ? (
         <div className="reveal mt-2 rounded-md border border-amber-500/30 bg-stone-950/50 p-2" data-coordination-ordering>
           <p className="mb-1.5 text-[11px] text-stone-400">
-            Put the characters in the order they act. Drag a name onto a step to act with it, or between steps for a step of its
-            own; the arrows do the same. A player who is already Ready and whose place changes is asked to look again.
+            {t("campaign.session.coordination.order.help")}
           </p>
           <SequenceEditor
             items={phase.entries.map((entry) => ({ id: entry.characterId, name: entry.name, companion: entry.companion }))}
             sequence={ordering}
             onChange={setOrdering}
             disabled={busy}
-            label="The order the characters act in"
+            label={t("campaign.session.leadFloor.order.editor")}
           />
           <div className="mt-1.5 flex flex-wrap gap-1.5">
             <button
@@ -303,15 +357,15 @@ export function CoordinationPanel({
               data-coordination-save-order
             >
               {busy ? <Loader2 className="size-3.5 animate-spin" /> : null}
-              {ordering.length > 1 ? "Save the order" : "Save: all at once"}
+              {t(ordering.length > 1 ? "campaign.session.coordination.order.save" : "campaign.session.coordination.order.saveTogether")}
             </button>
             {sequence ? (
               <button type="button" disabled={busy} onClick={() => void saveOrder(null)} className={kitButtonClass("small")} data-coordination-clear-order>
-                All at once
+                {t("campaign.session.coordination.order.allAtOnce")}
               </button>
             ) : null}
             <button type="button" disabled={busy} onClick={() => setOrdering(null)} className={kitButtonClass("small")}>
-              Cancel
+              {t("campaign.session.coordination.cancel")}
             </button>
           </div>
         </div>
@@ -328,7 +382,7 @@ export function CoordinationPanel({
               data-coordination-order
             >
               <ListOrdered className="size-3.5" />
-              {sequence ? "Change the order" : "Set an order"}
+              {t(sequence ? "campaign.session.coordination.order.change" : "campaign.session.coordination.order.set")}
             </button>
           ) : null}
           <button
@@ -338,23 +392,23 @@ export function CoordinationPanel({
             className={kitButtonClass("small")}
             title={
               unconfirmed.length
-                ? `The order changed after ${unconfirmed.join(" and ")} ${unconfirmed.length === 1 ? "was" : "were"} ready; they mark it Ready again first`
+                ? t("campaign.session.coordination.resolve.waitForOrder", { names: joinNames(unconfirmed) })
                 : waiting.length
-                  ? `${waiting.join(", ")} will pass`
-                  : "Hand the plan to the GM now"
+                  ? t("campaign.session.coordination.resolve.waitingWillPass", { names: joinNames(waiting) })
+                  : t("campaign.session.coordination.resolve.tooltip")
             }
             data-coordination-resolve
           >
-            {waiting.length ? `Resolve now (${waiting.join(", ")} pass)` : "Resolve now"}
+            {waiting.length ? t("campaign.session.coordination.resolve.withPass", { names: joinNames(waiting) }) : t("campaign.session.coordination.resolve.button")}
           </button>
           <button type="button" disabled={busy} onClick={() => void send({ action: "cancel" })} className={kitButtonClass("small")} data-coordination-cancel>
-            Set aside
+            {t("campaign.session.coordination.setAside")}
           </button>
         </div>
       ) : null}
       {steersStory && unconfirmed.length ? (
         <p className="motion-pop mt-1.5 text-[11px] text-amber-300" role="status" data-order-waiting>
-          Waiting for {unconfirmed.join(" and ")} to look at the new order and mark it Ready again.
+          {t("campaign.session.coordination.waitForOrder", { names: joinNames(unconfirmed) })}
         </p>
       ) : null}
       {error ? <PanelError className="mt-1.5">{error}</PanelError> : null}

@@ -220,12 +220,114 @@ export function remapEntryIds(entry: Entry, plan: IdPlan): Entry {
 const LOCAL_ONLY = new Set(["id", "role", "frame", "regionLink"]);
 const withoutId = (row: Row): Record<string, unknown> => Object.fromEntries(Object.entries(row).filter(([key]) => !LOCAL_ONLY.has(key)));
 
-export type RowMerge = { added: number; updated: number; conflicts: string[]; pending: Array<{ origin: string; key: string; source: string }> };
+export type WorldConflictDetail = { code: string; params: Record<string, string | number>; message: string };
+
+export type RowMerge = { added: number; updated: number; conflicts: string[]; conflictDetails: WorldConflictDetail[]; pending: Array<{ origin: string; key: string; source: string }> };
 
 // Incoming rows (already remapped; `sourceIds` are their ids at the source,
 // in the same order) merged into the document's slice, value by value.
 export function mergeSliceRows(doc: WorldDoc, slice: ImportSlice, rows: Row[], sourceIds: string[], source: string): RowMerge {
-  const result: RowMerge = { added: 0, updated: 0, conflicts: [], pending: [] };
+ 
+ 
+c
+o
+n
+s
+t
+ 
+r
+e
+s
+u
+l
+t
+:
+ 
+R
+o
+w
+M
+e
+r
+g
+e
+ 
+=
+ 
+{
+ 
+a
+d
+d
+e
+d
+:
+ 
+0
+,
+ 
+u
+p
+d
+a
+t
+e
+d
+:
+ 
+0
+,
+ 
+c
+o
+n
+f
+l
+i
+c
+t
+s
+:
+ 
+[
+]
+,
+ 
+c
+o
+n
+f
+l
+i
+c
+t
+D
+e
+t
+a
+i
+l
+s
+:
+ 
+[
+]
+,
+ 
+p
+e
+n
+d
+i
+n
+g
+:
+ 
+[
+]
+ 
+}
+;
   const own = [...(doc[slice] as unknown as Row[])];
   const origins = (doc.origins ??= {});
   rows.forEach((theirs, index) => {
@@ -248,8 +350,16 @@ export function mergeSliceRows(doc: WorldDoc, slice: ImportSlice, rows: Row[], s
       result.updated += 1;
     }
     const label = String(own[at].name ?? own[at].title ?? own[at].id);
-    for (const clash of [...new Set(merged.clashes.map((key) => valueWords(key)))]) {
-      result.conflicts.push(`${SLICE_WORDS[slice]} “${label}”: kept your ${clash} over the import's.`);
+    for (const key of [...new Set(merged.clashes)]) {
+      const clash = valueWords(key);
+      const message = `${SLICE_WORDS[slice]} “${label}”: kept your ${clash} over the import's.`;
+      result.conflicts.push(message);
+      result.conflictDetails.push({
+        code: "workshop.contentImport.note.worldConflict.value",
+        params: { slice, label, field: key },
+        message,
+      });
+    }
     }
     origins[key] = { from, at: merged.at };
     for (const { key: value, source: read } of merged.pending) result.pending.push({ origin: key, key: value, source: read });

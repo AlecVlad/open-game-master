@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Sheet } from "@/components/ui/Sheet";
 import { Markdown } from "@/components/ui/Markdown";
 import type { MapLabel } from "@/lib/battlemap/scene";
+import { useT } from "@/lib/i18n/provider";
 
 // What a pinned map label opens (docs/vtt-parity-implementation-plan.md
 // section 3.5): the lore entry it points at, for whoever the entry's
@@ -21,6 +22,7 @@ export function LabelSheet({
   label: MapLabel | null;
   onClose: () => void;
 }) {
+  const t = useT();
   const [entry, setEntry] = useState<Entry | null>(null);
   const [loading, setLoading] = useState(false);
   const [missing, setMissing] = useState(false);
@@ -74,12 +76,12 @@ export function LabelSheet({
       <div className="space-y-2 text-sm text-stone-200">
         {ref?.kind === "lore" ? (
           loading ? (
-            <p className="reveal text-xs text-stone-500">Opening the entry...</p>
+            <p className="reveal text-xs text-stone-500">{t("campaign.session.labelSheet.loading")}</p>
           ) : entry ? (
             <Markdown source={entry.body} className="prose-sm" />
           ) : missing ? (
             <p className="reveal text-xs text-stone-500">
-              That entry is not one you can read, or it has been removed.
+              {t("campaign.session.labelSheet.missing")}
             </p>
           ) : null
         ) : (

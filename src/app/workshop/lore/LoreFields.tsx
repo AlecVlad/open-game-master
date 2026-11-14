@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { EyeOff, Image as ImageIcon, Loader2, Trash2, Users } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { encodeImageForUpload } from "@/lib/image-encode";
@@ -23,6 +24,7 @@ export function VisibilitySelect({
   value: LoreVisibility;
   onChange: (next: LoreVisibility) => void;
 }) {
+  const { t } = useI18n();
   return (
     <div data-pill-group="" className="flex flex-wrap items-center gap-1.5 text-xs">
       <button data-on={value === "party" ? "" : undefined}
@@ -34,7 +36,7 @@ export function VisibilitySelect({
           value === "party" ? "border-emerald-700 bg-emerald-950/40 text-emerald-200" : "",
         )}
       >
-        <Users className="size-3" /> The table reads it
+        <Users className="size-3" /> {t("campaign.lore.visibility.party")}
       </button>
       <button data-on={value === "dm" ? "" : undefined}
         type="button"
@@ -45,12 +47,12 @@ export function VisibilitySelect({
           value === "dm" ? "border-violet-700 bg-violet-950/40 text-violet-200" : "",
         )}
       >
-        <EyeOff className="size-3" /> Only I read it
+        <EyeOff className="size-3" /> {t("campaign.lore.visibility.dm")}
       </button>
       <span className="text-[11px] text-stone-500">
         {value === "dm"
-          ? "A secret: the GM prompt knows it, the players never see it."
-          : "Part of the world bible players can open, unless WorldForge marks it as not canon yet. With a picture, a handout."}
+          ? t("campaign.lore.visibility.secret")
+          : t("campaign.lore.visibility.shared")}
       </span>
     </div>
   );
@@ -63,6 +65,7 @@ export function LoreImageField({
   imagePath: string;
   onChange: (path: string) => void;
 }) {
+  const { t } = useI18n();
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
@@ -79,12 +82,12 @@ export function LoreImageField({
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError(payload.error || "That image would not upload.");
+        setError(t("campaign.lore.errors.image"));
         return;
       }
       onChange(payload.url);
     } catch {
-      setError("That image would not upload.");
+      setError(t("campaign.lore.errors.image"));
     } finally {
       setUploading(false);
     }
@@ -116,11 +119,11 @@ export function LoreImageField({
         className={chip}
       >
         {uploading ? <Loader2 className="size-3 animate-spin" /> : <ImageIcon className="size-3" />}
-        {imagePath ? "Replace the picture" : "Add a picture"}
+        {imagePath ? t("campaign.lore.image.replace") : t("campaign.lore.image.add")}
       </button>
       {imagePath ? (
         <button type="button" onClick={() => onChange("")} className={chip}>
-          <Trash2 className="size-3" /> Take it away
+          <Trash2 className="size-3" /> {t("campaign.lore.image.remove")}
         </button>
       ) : null}
       {error ? <span className="motion-shake inline-block text-[11px] text-red-400">{error}</span> : null}
@@ -141,6 +144,7 @@ export function LoreBody({
   onLink?: (target: LoreLinkTarget) => void;
   dmView?: boolean;
 }) {
+  const { t } = useI18n();
   return (
     <div className="space-y-2">
       {entry.imagePath ? (
@@ -164,12 +168,12 @@ export function LoreBody({
             onClick={() => void window.odm?.openDocument?.(entry.attachmentPath ?? "")}
             className={cn(ui.btnSmall, "mb-2 text-sm")}
           >
-            Open the pages in your reader
+            {t("campaign.lore.body.openPdf")}
           </button>
         ) : (
           <iframe
             src={entry.attachmentPath}
-            title={`${entry.title} pages`}
+            title={t("campaign.lore.body.pagesTitle", { title: entry.title })}
             className="h-[70vh] w-full rounded-lg border border-stone-800 bg-stone-100"
           />
         )

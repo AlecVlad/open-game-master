@@ -32,7 +32,7 @@ export async function POST(
   const raw = (await request.json().catch(() => ({}))) as Record<string, unknown>;
   const title = typeof raw.title === "string" ? raw.title.trim() : "";
   if (!title) {
-    return Response.json({ error: "A quest needs a title." }, { status: 400 });
+    return Response.json({ error: "A quest needs a title.", errorCode: "QUEST_TITLE_REQUIRED" }, { status: 400 });
   }
   const quest = insertQuest({
     campaignId,

@@ -2,12 +2,13 @@
 
 import { Crosshair, ExternalLink, Loader2, Network, Users, Crown } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui";
 import { KitButton } from "@/app/campaigns/[campaignId]/PanelKit";
 import { chain, family, linkInView, neighbourhood, treeRows, webLayout, type Edge, type WebView as View } from "@/lib/worldforge/web";
 import { startWebLayout } from "@/lib/worldforge/force-layout";
-import type { XY } from "@/lib/worldforge/model";
+import { LINK_LABELS, type XY } from "@/lib/worldforge/model";
 import type { WorldState } from "./useWorld";
 import { EntityAvatar, TypeChip, tint, typeOf } from "./world-ui";
 
@@ -94,6 +95,7 @@ function rowsLayout(rows: string[][]): Map<string, XY> {
 }
 
 export function WebView({ world, focus, onOpen }: { world: WorldState; focus: string | null; onOpen: (ref: string) => void }) {
+  const { t } = useI18n();
   const { doc, entities } = world;
   const [mode, setMode] = useState<Mode>("web");
   const [view, setView] = useState<View>("all");
@@ -142,38 +144,38 @@ export function WebView({ world, focus, onOpen }: { world: WorldState; focus: st
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center gap-2">
-        <div className="flex gap-1" role="tablist" aria-label="Kind of chart">
+        <div className="flex gap-1" role="tablist" aria-label={t("workshop.world.web.mode.aria")}>
           {MODES.map((entry) => (
             <button key={entry.id} type="button" role="tab" aria-selected={mode === entry.id} onClick={() => setMode(entry.id)} className={cn(ui.btnSmall, "px-2.5 py-1 text-xs", mode === entry.id && "border-amber-500/60 bg-amber-400/10 text-amber-100")}>
-              <entry.icon className="size-3.5" /> {entry.label}
+              <entry.icon className="size-3.5" /> {t(`workshop.world.web.mode.${entry.id}`)}
             </button>
           ))}
         </div>
-        <div className="flex gap-1" role="radiogroup" aria-label="Which links">
+        <div className="flex gap-1" role="radiogroup" aria-label={t("workshop.world.web.view.aria")}>
           {VIEWS.map((entry) => (
             <button key={entry.id} type="button" role="radio" aria-checked={view === entry.id} onClick={() => setView(entry.id)} className={cn("rounded-md border border-stone-700 px-2 py-1 text-[11px] motion-press", view === entry.id ? "bg-stone-800 text-amber-100" : "text-stone-400")}>
-              {entry.label}
+              {t(`workshop.world.web.view.${entry.id}`)}
             </button>
           ))}
         </div>
         {mode === "web" && center ? (
           <div className="motion-pop flex items-center gap-1.5 text-xs text-stone-400">
-            Around {byRef.get(center)?.name}, within
+            {t("workshop.world.web.around", { name: byRef.get(center)?.name ?? "" })}
             {[1, 2, 3].map((count) => (
               <button key={count} type="button" onClick={() => setHops(count)} className={cn("rounded px-1.5 motion-press", hops === count ? "bg-amber-400/15 text-amber-100" : "hover:text-stone-200")}>
                 {count}
               </button>
             ))}
-            links
+            {t("workshop.world.web.links")}
             <button type="button" onClick={() => setCenter("")} className="ml-1 underline decoration-stone-600 underline-offset-2 hover:text-stone-200">
-              whole world
+              {t("workshop.world.web.wholeWorld")}
             </button>
           </div>
         ) : null}
       </div>
       {mode === "web" && !center && target.of > target.nodes.length ? (
         <p className="text-xs text-stone-400" data-testid="web-most-linked">
-          The {target.nodes.length} most linked of {target.of.toLocaleString()} linked entries. Choose one to see the web around it.
+          {t("workshop.world.web.mostLinked", { shown: target.nodes.length, total: target.of.toLocaleString() })}
         </p>
       ) : null}
 
@@ -182,20 +184,20 @@ export function WebView({ world, focus, onOpen }: { world: WorldState; focus: st
       <div className="panel relative overflow-x-auto overflow-y-hidden rounded-xl" data-tour="world-web">
         {arranging ? (
           <p role="status" className="live-in flex items-center justify-center gap-2 p-8 text-sm text-stone-500">
-            <Loader2 className="size-4 animate-spin" /> Arranging {target.nodes.length} entries…
+            <Loader2 className="size-4 animate-spin" /> {t("workshop.world.web.arranging", { count: target.nodes.length })}
           </p>
         ) : graph.nodes.length === 0 ? (
           <p className="p-8 text-center text-sm text-stone-500">
             {mode === "family"
-              ? "No family yet: link people with parent of, child of, spouse of or sibling of."
+              ? t("workshop.world.web.empty.family")
               : mode === "chain"
-                ? "No chain of command yet: link with superior of, reports to, liege of or vassal of."
-                : "No links yet. Open an entry in the wiki and add one."}
+                ? t("workshop.world.web.empty.chain")
+                : t("workshop.world.web.empty.web")}
           </p>
         ) : (
           // Kept across a recentre, so the entries that stay glide to their
           // new places while the new ones pop in.
-          <svg key={`${mode}-${view}`} viewBox={`0 0 ${W} ${H}`} className="block h-auto w-full min-w-[720px]" role="img" aria-label={`${MODES.find((entry) => entry.id === mode)?.label} of the world`}>
+          <svg key={`${mode}-${view}`} viewBox={`0 0 ${W} ${H}`} className="block h-auto w-full min-w-[720px]" role="img" aria-label={t("workshop.world.web.svg.aria", { mode: t(`workshop.world.web.mode.${mode}`) })}>
             <defs>
               <marker id="wf-arrow" viewBox="0 0 10 10" refX="22" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
                 <path d="M0,0 L10,5 L0,10 z" fill="#a8a29e" />
@@ -229,11 +231,11 @@ export function WebView({ world, focus, onOpen }: { world: WorldState; focus: st
                     className={cn(hidden || believed || edge.kind === "sibling" ? "wf-edge-dashed" : "wf-edge")}
                     markerEnd={edge.kind === "oneway" || mode === "chain" ? "url(#wf-arrow)" : undefined}
                   >
-                    <title>{`${byRef.get(edge.from)?.name} ${edge.label} ${byRef.get(edge.to)?.name}${hidden ? " (hidden truth)" : believed ? " (false belief)" : ""}`}</title>
+                    <title>{t("workshop.world.web.edge.title", { from: byRef.get(edge.from)?.name ?? "", label: edge.kind === "chain" ? t("workshop.world.web.edge.above") : LINK_LABELS.includes(edge.label as (typeof LINK_LABELS)[number]) ? t(`workshop.world.link.words.${LINK_LABELS.indexOf(edge.label as (typeof LINK_LABELS)[number])}`) : edge.label, to: byRef.get(edge.to)?.name ?? "", status: hidden ? t("workshop.world.web.edge.hidden") : believed ? t("workshop.world.web.edge.believed") : "" })}</title>
                   </path>
                   {labels && mode === "web" ? (
                     <text x={middle.x} y={middle.y - 4} textAnchor="middle" className="wf-edge-label fill-stone-500 text-[11px]">
-                      {edge.label}
+                      {LINK_LABELS.includes(edge.label as (typeof LINK_LABELS)[number]) ? t(`workshop.world.link.words.${LINK_LABELS.indexOf(edge.label as (typeof LINK_LABELS)[number])}`) : edge.label}
                     </text>
                   ) : null}
                 </g>
@@ -273,17 +275,17 @@ export function WebView({ world, focus, onOpen }: { world: WorldState; focus: st
             <TypeChip type={typeOf(doc, chosen)} />
             {mode === "web" ? (
               <KitButton tone="small" onClick={() => setCenter(chosen.ref)}>
-                <Crosshair className="size-3.5" /> Center here
+                <Crosshair className="size-3.5" /> {t("workshop.world.web.centerHere")}
               </KitButton>
             ) : null}
             <KitButton tone="small" onClick={() => onOpen(chosen.ref)}>
-              <ExternalLink className="size-3.5" /> Open in the wiki
+              <ExternalLink className="size-3.5" /> {t("workshop.world.web.openWiki")}
             </KitButton>
           </div>
         ) : null}
       </div>
       <p className="text-[11px] text-stone-500">
-        Red dashes are hidden truths, violet dashes false beliefs, arrows one-way links. Gold lines join spouses.
+        {t("workshop.world.web.legend")}
       </p>
     </div>
   );

@@ -8,6 +8,7 @@ import type { CampaignDifficulty, CampaignStatus } from "@/lib/campaign-types";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui";
 import { GameIcon } from "@/components/ui/GameIcon";
+import { useI18n } from "@/lib/i18n/provider";
 import {
   ContentImportPicker,
   EMPTY_SELECTION,
@@ -59,6 +60,13 @@ export function SessionSettings({
   // A lasting AI companion can travel with this party (issue 503).
   lastingCompanions?: boolean;
 }) {
+  const { t } = useI18n();
+  const difficultyLabels: Record<CampaignDifficulty, string> = {
+    easy: t("campaign.editDialog.difficulty.easy"),
+    normal: t("campaign.editDialog.difficulty.normal"),
+    hard: t("campaign.editDialog.difficulty.hard"),
+    deadly: t("campaign.editDialog.difficulty.deadly"),
+  };
   const [editing, setEditing] = useState(false);
   const [prep, setPrep] = useState<ImportSelection>(EMPTY_SELECTION);
   const ended = campaign.status === "ended";
@@ -67,17 +75,17 @@ export function SessionSettings({
   // row at the top names them and takes you to each, so nobody reads one
   // form looking for another.
   const stops = [
-    { id: "ss-campaign", label: "Campaign", glyph: "tab-campaigns", shown: true },
-    { id: "ss-prep", label: "Prep", glyph: "system-lore", shown: steersStory && !ended },
-    { id: "ss-table", label: "Table settings", glyph: "tab-settings", shown: Boolean(campaign.gameSettings) },
-    { id: "ss-ai", label: "Story AI", glyph: "ui-ai", shown: Boolean(campaign.settings) },
-    { id: "ss-rules", label: "Rules", glyph: "system-rules", shown: Boolean(campaign.gameSettings) },
-    { id: "ss-end", label: "End", glyph: "quest-done", shown: canEnd },
+    { id: "ss-campaign", label: t("campaign.sessionSettings.section.campaign"), glyph: "tab-campaigns", shown: true },
+    { id: "ss-prep", label: t("campaign.sessionSettings.section.prep"), glyph: "system-lore", shown: steersStory && !ended },
+    { id: "ss-table", label: t("campaign.sessionSettings.section.table"), glyph: "tab-settings", shown: Boolean(campaign.gameSettings) },
+    { id: "ss-ai", label: t("campaign.sessionSettings.section.ai"), glyph: "ui-ai", shown: Boolean(campaign.settings) },
+    { id: "ss-rules", label: t("campaign.sessionSettings.section.rules"), glyph: "system-rules", shown: Boolean(campaign.gameSettings) },
+    { id: "ss-end", label: t("campaign.sessionSettings.section.end"), glyph: "quest-done", shown: canEnd },
   ].filter((stop) => stop.shown);
 
   return (
     <div className="text-sm">
-      <nav aria-label="Settings sections" className="stagger-pop mb-3 flex flex-wrap gap-1.5">
+      <nav aria-label={t("campaign.sessionSettings.sections")} className="stagger-pop mb-3 flex flex-wrap gap-1.5">
         {stops.map((stop) => (
           <button
             key={stop.id}
@@ -95,25 +103,28 @@ export function SessionSettings({
       </nav>
       <div id="ss-campaign" className="mb-3 scroll-mt-2 rounded-lg border border-stone-800 bg-stone-950/40 p-3">
         <div className="mb-1.5 flex items-center justify-between">
-          <p className="text-xs font-medium text-stone-400">Campaign</p>
+          <p className="text-xs font-medium text-stone-400">{t("campaign.sessionSettings.section.campaign")}</p>
           {isLead && !ended ? (
             <button
               type="button"
               onClick={() => setEditing(true)}
-              title="Edit title, premise, setting, difficulty, and player slots"
+              title={t("campaign.session.leadPanel.campaign.editTooltip")}
               className="flex items-center gap-1 rounded-md border border-stone-700 px-2 py-1 text-xs text-stone-300 hover:bg-stone-900"
             >
-              <Pencil className="size-3" /> Edit details
+              <Pencil className="size-3" /> {t("campaign.session.leadPanel.campaign.editButton")}
             </button>
           ) : null}
         </div>
         <p className="truncate text-stone-200">{campaign.title}</p>
         <p className="mt-1 text-xs text-stone-500">
-          Difficulty {campaign.difficulty} · Level {campaign.startingLevel} start · Up to{" "}
-          {campaign.maxPlayers} players
+          {t("campaign.session.leadPanel.campaign.summary", {
+            difficulty: difficultyLabels[campaign.difficulty],
+            level: campaign.startingLevel,
+            players: campaign.maxPlayers,
+          })}
         </p>
         {campaign.theme ? (
-          <p className="reveal mt-1 line-clamp-2 text-xs text-stone-500">Setting: {campaign.theme}</p>
+          <p className="reveal mt-1 line-clamp-2 text-xs text-stone-500">{t("campaign.sessionSettings.setting", { theme: campaign.theme })}</p>
         ) : null}
       </div>
 
@@ -121,10 +132,9 @@ export function SessionSettings({
           route's prep_imported ping), so nothing here needs refreshing. */}
       {steersStory && !ended ? (
         <div id="ss-prep" data-setup-prep className="reveal mb-3 scroll-mt-2 rounded-lg border border-stone-800 bg-stone-950/40 p-3">
-          <p className="mb-1 text-xs font-medium text-stone-400">Bring in prep</p>
+          <p className="mb-1 text-xs font-medium text-stone-400">{t("campaign.sessionSettings.prep.title")}</p>
           <p className="mb-2 text-xs text-stone-500">
-            Copy maps, NPCs, lore, encounters and more from a workshop or another campaign. The
-            source keeps its own version; name clashes get numbered rather than overwritten.
+            {t("campaign.sessionSettings.prep.description")}
           </p>
           <ContentImportPicker campaignId={campaign.id} selection={prep} onChange={setPrep} />
         </div>
@@ -179,6 +189,7 @@ export function SessionSettings({
 // shuts the room code; the transcript stays to be read. There is no way back
 // to "active", so the confirm says so plainly.
 function EndCampaign({ campaignId, title, ended }: { campaignId: string; title: string; ended: boolean }) {
+  const { t } = useI18n();
   // End the session is the everyday stop (issue 586); this one is for good.
   const capabilities = useCapabilities();
   const sessions = capabilities !== null && hostOffers(capabilities, "sessions");
@@ -189,11 +200,10 @@ function EndCampaign({ campaignId, title, ended }: { campaignId: string; title: 
     return (
       <div data-campaign-ended className="reveal mt-3 rounded-lg border border-stone-800 bg-stone-950/40 p-3">
         <p className="flex items-center gap-1.5 text-xs font-medium text-stone-400">
-          <Flag className="size-3.5" /> This campaign has ended
+          <Flag className="size-3.5" /> {t("campaign.ended.title")}
         </p>
         <p className="mt-1 text-xs text-stone-500">
-          Characters from a library took their progress home with them. The story stays here to
-          read.
+          {t("campaign.ended.body")}
         </p>
       </div>
     );
@@ -201,8 +211,12 @@ function EndCampaign({ campaignId, title, ended }: { campaignId: string; title: 
 
   async function end() {
     const ok = await appConfirm(
-      `End "${title}" for everyone? Every character brought in from a library takes its level, XP, gold, gear and spells home, and the story stays here to read, but nobody can play on and the room code stops working. This cannot be undone.`,
-      { title: "End the campaign", actionLabel: "End the campaign", tone: "danger" },
+      t("campaign.sessionSettings.endCampaign.confirm", { title }),
+      {
+        title: t("campaign.sessionSettings.endCampaign.title"),
+        actionLabel: t("campaign.sessionSettings.endCampaign.title"),
+        tone: "danger",
+      },
     );
     if (!ok) {
       return;
@@ -217,11 +231,11 @@ function EndCampaign({ campaignId, title, ended }: { campaignId: string; title: 
       });
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        setError(data.error || "Could not end the campaign.");
+        setError(data.error || t("campaign.sessionSettings.endCampaign.error"));
       }
       // On success the campaign_updated event flips every seat to ended.
     } catch {
-      setError("Could not reach the server.");
+      setError(t("campaign.session.networkError"));
     } finally {
       setBusy(false);
     }
@@ -229,11 +243,11 @@ function EndCampaign({ campaignId, title, ended }: { campaignId: string; title: 
 
   return (
     <div className="reveal mt-3 rounded-lg border border-red-900/50 bg-stone-950/40 p-3">
-      <p className="mb-1 text-xs font-medium text-stone-400">End the campaign</p>
+      <p className="mb-1 text-xs font-medium text-stone-400">{t("campaign.sessionSettings.endCampaign.title")}</p>
       <p className="mb-2 text-xs text-stone-500">
-        When the story is done: library characters take their progress home, and the table
-        closes. The transcript stays readable.
-        {sessions ? " To stop for tonight and play on another day, use End the session at the top of the table instead." : ""}
+        {t(sessions
+          ? "campaign.sessionSettings.endCampaign.bodyWithSessions"
+          : "campaign.sessionSettings.endCampaign.body")}
       </p>
       <div className="flex flex-wrap items-center gap-2">
         <button
@@ -244,7 +258,7 @@ function EndCampaign({ campaignId, title, ended }: { campaignId: string; title: 
           className={cn(ui.btnSmall, "text-red-300")}
         >
           {busy ? <Loader2 className="size-3.5 animate-spin" /> : <Flag className="size-3.5" />}
-          End the campaign
+          {t("campaign.sessionSettings.endCampaign.title")}
         </button>
         {error ? <span className="live-in text-xs text-red-300">{error}</span> : null}
       </div>

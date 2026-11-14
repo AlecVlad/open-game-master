@@ -4,10 +4,10 @@ import CatalogBrowser from "@/app/characters/builder/CatalogBrowser";
 import ContentPicker from "@/app/characters/builder/ContentPicker";
 import type { RaceOption } from "@/app/characters/builder/useBuilderOptions";
 import { GameTerm } from "@/components/ui/GameTerm";
+import { useI18n } from "@/lib/i18n/provider";
 import { contentSlug } from "@/lib/help";
 import { textKey } from "@/lib/language/text-logic";
 import { racialCantripsOf } from "@/lib/srd/racial-cantrips";
-import { countWord } from "./lineage";
 import { Chip } from "./steps/shared";
 
 // The cantrips a race lets the player choose: a high elf's one wizard
@@ -25,13 +25,13 @@ export function RacialCantripPicker({
   cantrips: string[];
   onChange: (cantrips: string[]) => void;
 }) {
+  const { t, tp } = useI18n();
   const choice = race.cantripChoice;
   if (!choice) {
     return null;
   }
   const { list, count } = choice;
   const picked = racialCantripsOf({ cantrips }).slice(0, count);
-  const word = countWord(count).toLowerCase();
   // A repeat, or a pick past the race's count, is not taken.
   const pick = (name: string) => {
     if (picked.length >= count || picked.some((entry) => textKey(entry) === textKey(name))) {
@@ -43,20 +43,12 @@ export function RacialCantripPicker({
   return (
     <div data-builder-target="racialCantrip">
       <span className="mb-1 flex flex-wrap items-center gap-1 text-stone-400">
-        {count === 1 ? (
-          <>
-            Bonus <GameTerm id="cantrip">cantrip</GameTerm> (one {list} cantrip)
-          </>
-        ) : (
-          <>
-            Bonus <GameTerm id="cantrip">cantrips</GameTerm> ({word} {list} cantrips, {picked.length} of {count} picked)
-          </>
-        )}
+        {t("builder.racialCantrip.title")}{" "}
+        <GameTerm id="cantrip">{tp("builder.extra.lineage.choice.cantrip", count, { count, list })}</GameTerm>{" "}
+        {t("builder.racialCantrip.progress", { picked: picked.length, count })}
       </span>
       <p className="mb-1.5 text-xs text-stone-500">
-        {count === 1
-          ? "A cantrip is a small spell you can cast as often as you like, forever. Pick one from the list below (tap ⓘ to read what each does), or search by name if you already have one in mind."
-          : `A cantrip is a small spell you can cast as often as you like, forever. Pick ${word} different ones from the list below (tap ⓘ to read what each does), or search by name if you already have some in mind.`}
+        {t("builder.racialCantrip.help")}
       </p>
       {picked.length ? (
         <div className="mb-1.5 flex flex-wrap gap-1.5">
@@ -77,7 +69,7 @@ export function RacialCantripPicker({
               with the ⓘ that says what it does; the search is second. */}
           <CatalogBrowser
             kind="spells"
-            buttonLabel={`Every ${list} cantrip`}
+            buttonLabel={t("builder.racialCantrip.all", { list })}
             defaultOpen
             openSections={[`cantrips:${list}`]}
             selectedNames={picked}
@@ -86,17 +78,17 @@ export function RacialCantripPicker({
             sections={[
               {
                 key: `cantrips:${list}`,
-                label: `Every ${list} cantrip`,
+                label: t("builder.racialCantrip.all", { list }),
                 params: { class: list, level: "0" },
               },
             ]}
             metaOf={(entry) => entry.school ?? ""}
           />
-          <p className="mt-2 mb-1 text-xs text-stone-500">Or search by name:</p>
+          <p className="mt-2 mb-1 text-xs text-stone-500">{t("builder.racialCantrip.search.label")}</p>
           <ContentPicker
             kind="spells"
             extraParams={{ class: list, level: "0" }}
-            placeholder="Search cantrips (e.g. fire bolt)"
+            placeholder={t("builder.racialCantrip.search.placeholder")}
             onPick={(entry) => pick(entry.name)}
           />
         </>

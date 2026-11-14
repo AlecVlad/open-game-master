@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/cn";
+import { useI18n } from "@/lib/i18n/provider";
 
 // The skill-check card (docs/visual-overhaul-plan.md 5.4, "Rolls and
 // Effects" 5b): the violet frame with its thorn corners, the breathing halo,
@@ -195,12 +196,13 @@ export function modifierParts(expression: string): Array<{ text: string; kind: "
 }
 
 export function ModifierBreakdown({ expression, caption }: { expression: string; caption?: string }) {
+  const { t } = useI18n();
   const parts = modifierParts(expression);
   if (!parts.length) {
     return null;
   }
   return (
-    <span className="flex flex-wrap items-center gap-1" aria-label={`Rolls ${expression}`}>
+    <span className="flex flex-wrap items-center gap-1" aria-label={t("campaign.roll.expression.aria", { expression })}>
       {parts.map((part, index) => (
         <span
           key={`${part.text}-${index}`}

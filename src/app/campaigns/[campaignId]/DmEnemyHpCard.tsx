@@ -9,6 +9,7 @@ import { NumberStepper } from "@/components/ui/NumberStepper";
 import { Select } from "@/components/ui/Select";
 import { FieldLabel } from "@/app/campaigns/[campaignId]/DmConsoleParts";
 import type { PublicEncounter } from "@/lib/db/encounter-view";
+import { useI18n } from "@/lib/i18n/provider";
 
 // The DM's hand on an enemy's hit points (U:UD9): the troll regenerates, a
 // cult healer patched up the lieutenant, a number was mistyped. Only the DM
@@ -22,6 +23,7 @@ export function DmEnemyHpCard({
   campaignId: string;
   encounter: PublicEncounter;
 }) {
+  const { t } = useI18n();
   const standing = (encounter.enemies ?? []).filter((enemy) => enemy.status === "alive");
   const [enemyId, setEnemyId] = useState("");
   const picked = standing.find((enemy) => enemy.id === enemyId) ?? null;
@@ -50,29 +52,29 @@ export function DmEnemyHpCard({
       });
       const data = (await response.json().catch(() => ({}))) as { error?: string; name?: string; hp?: string; woke?: boolean };
       if (!response.ok) {
-        setError(data.error ?? "The engine refused that.");
+        setError(data.error ?? t("campaign.dmEnemyHp.error.refused"));
         return;
       }
-      setDone(`${data.name ?? picked.name} now has ${data.hp ?? value} hit points${data.woke ? " and wakes" : ""}.`);
+      setDone(t("campaign.dmEnemyHp.done", { name: data.name ?? picked.name, hp: data.hp ?? value, woke: data.woke ? t("campaign.dmEnemyHp.woke") : "" }));
       offerCorrectionReason(campaignId, data);
       setHp(null);
     } catch {
-      setError("Could not reach the server.");
+      setError(t("campaign.dmEnemyHp.error.server"));
     } finally {
       setBusy(false);
     }
   }
 
   return (
-    <section className={cn(ui.card, "reveal mt-3 space-y-2.5 p-3")} aria-label="Correct an enemy's hit points">
+    <section className={cn(ui.card, "reveal mt-3 space-y-2.5 p-3")} aria-label={t("campaign.dmEnemyHp.aria")}>
       <div>
-        <p className="gold-title font-display text-sm tracking-wide">Correct an enemy&apos;s hit points</p>
+        <p className="gold-title font-display text-sm tracking-wide">{t("campaign.dmEnemyHp.heading")}</p>
         <p className="text-xs leading-snug text-stone-400">
-          A regeneration, a healer, a slip on the tray. A drop to 0 goes through Damage an enemy.
+          {t("campaign.dmEnemyHp.description")}
         </p>
       </div>
       <div>
-        <FieldLabel>Enemy</FieldLabel>
+        <FieldLabel>{t("campaign.dmEnemyHp.enemy")}</FieldLabel>
         <Select
           value={enemyId}
           onChange={(next) => {
@@ -82,15 +84,15 @@ export function DmEnemyHpCard({
             setError("");
           }}
           options={[
-            { value: "", label: "Pick an enemy" },
+            { value: "", label: t("campaign.dmEnemyHp.pick") },
             ...standing.map((enemy) => ({
               value: enemy.id,
               label: `${enemy.name}${enemy.currentHp !== undefined ? ` (${enemy.currentHp}/${enemy.maxHp})` : ""}`,
               icon: { kind: "glyph" as const, key: "system-bestiary" },
             })),
           ]}
-          label="Enemy"
-          placeholder="Pick an enemy"
+          label={t("campaign.dmEnemyHp.enemy")}
+          placeholder={t("campaign.dmEnemyHp.pick")}
         />
       </div>
       {picked ? (
@@ -100,12 +102,12 @@ export function DmEnemyHpCard({
             min={1}
             max={picked.maxHp ?? 10000}
             onChange={(next) => setHp(next)}
-            label={`Hit points for ${picked.name}`}
+            label={t("campaign.dmEnemyHp.hitPointsFor", { name: picked.name })}
             suffix={picked.maxHp !== undefined ? `/ ${picked.maxHp}` : undefined}
           />
           <button type="button" onClick={save} disabled={busy} aria-busy={busy} className={ui.btnPrimary}>
             {busy ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
-            Set
+            {t("campaign.dmEnemyHp.save")}
           </button>
         </div>
       ) : null}

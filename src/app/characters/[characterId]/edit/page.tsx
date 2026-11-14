@@ -15,6 +15,7 @@ import CharacterBuilder, { type BuilderResult } from "@/app/characters/builder/C
 import LevelUpSheet from "@/app/characters/builder/LevelUpSheet";
 import type { BuilderRole } from "@/app/characters/builder/steps/FinishStep";
 import { refusalText } from "@/app/characters/builder/refusal";
+import { useI18n } from "@/lib/i18n/provider";
 
 type LibraryCharacter = {
   id: string;
@@ -32,6 +33,7 @@ type LibraryCharacter = {
 // ?copyOf=<id> is "Duplicate and edit": the entry is the fresh copy, and the
 // original it came from is named and left alone.
 function EditCharacterInner({ characterId }: { characterId: string }) {
+  const { t } = useI18n();
   const search = useSearchParams();
   const copyOf = search.get("copyOf") ?? "";
   // "Level up" on the character's page: the level-up sheet, only what the
@@ -101,12 +103,12 @@ function EditCharacterInner({ characterId }: { characterId: string }) {
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
         // Refused whole: the stored character is as it was.
-        setError(refusalText(data, "Could not save the character."));
+        setError(refusalText(data, t("charEdit.err.save"), t));
         return;
       }
       navigateTo(`/characters/${characterId}`);
     } catch {
-      setError("Could not reach the server.");
+      setError(t("charEdit.err.net"));
     } finally {
       setBusy(false);
     }
@@ -115,7 +117,7 @@ function EditCharacterInner({ characterId }: { characterId: string }) {
   // The copy was made when Duplicate and edit was pressed; leaving it
   // unwanted takes it away again and goes back to the original.
   async function discardCopy() {
-    if (!character || !(await appConfirm(`Delete ${character.name}? ${sourceName || "The original"} stays as it is.`))) {
+    if (!character || !(await appConfirm(t("charEdit.confirm", { name: character.name, source: sourceName || t("charEdit.original") })))) {
       return;
     }
     setDiscarding(true);
@@ -123,7 +125,7 @@ function EditCharacterInner({ characterId }: { characterId: string }) {
     try {
       const response = await fetch(`/api/characters/${characterId}`, { method: "DELETE" }).catch(() => null);
       if (!response?.ok) {
-        setError(`${character.name} was not deleted. Check the connection and try again.`);
+        setError(t("charEdit.err.delete", { name: character.name }));
         return;
       }
       navigateTo(copyOf ? `/characters/${copyOf}` : "/characters");
@@ -144,9 +146,9 @@ function EditCharacterInner({ characterId }: { characterId: string }) {
     return (
       <main className="mx-auto w-full max-w-3xl flex-1 p-4 sm:p-6">
         <div className={cn(ui.card, "ornate texture-noise flex flex-col items-center gap-3 px-6 py-8 text-center")}>
-          <p className="font-serif text-sm text-stone-300">Character not found.</p>
+          <p className="font-serif text-sm text-stone-300">{t("charEdit.notfound")}</p>
           <Link href="/characters" className={ui.btnSecondary}>
-            Back to your library
+            {t("charEdit.back")}
           </Link>
         </div>
       </main>
@@ -160,35 +162,32 @@ function EditCharacterInner({ characterId }: { characterId: string }) {
           href={`/characters/${characterId}`}
           className="-my-1 inline-flex min-h-10 items-center gap-1.5 text-sm text-stone-400 hover:text-amber-200"
         >
-          <ArrowLeft className="size-4" /> Back without saving
+          <ArrowLeft className="size-4" /> {t("charEdit.nosave")}
         </Link>
         <div className="mt-2 flex items-center gap-3">
           <PixelTile src={PIXEL_ICONS.characters} />
           <div className="min-w-0">
             <GoldTitle size="text-2xl">
-              {nextLevel ? `${character.name} reaches level ${nextLevel}` : `Edit ${character.name}`}
+              {nextLevel ? t("charEdit.title.level", { name: character.name, level: nextLevel }) : t("charEdit.title.edit", { name: character.name })}
             </GoldTitle>
             <p className="text-sm text-stone-400">
-              Saved to your library. Every campaign you bring them to from now on starts from this build.
+              {t("charEdit.sub")}
             </p>
           </div>
         </div>
         {nextLevel && slimSheet ? (
           <p className="reveal mt-3 rounded-lg border border-amber-500/25 bg-amber-500/5 px-3 py-2 text-xs text-amber-100">
-            Only what level {nextLevel} brings is asked here; the rest of {character.name}&apos;s build stays as it is.
-            Edit the whole build opens every step at level {nextLevel}.
+            {t("charEdit.slim", { level: nextLevel, name: character.name })}
           </p>
         ) : nextLevel ? (
           <p className="reveal mt-3 rounded-lg border border-amber-500/25 bg-amber-500/5 px-3 py-2 text-xs text-amber-100">
-            The build opens at level {nextLevel}, on its summary. Hit points come with the level; anything it lets{" "}
-            {character.name} choose (an ability score improvement, a subclass, new spells) is listed there as still
-            to choose, with a Fix that goes to it. Save changes takes the build once nothing is owed.
+            {t("charEdit.whole", { level: nextLevel, name: character.name })}
           </p>
         ) : null}
         {copyOf ? (
           <div className="reveal mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-amber-500/25 bg-amber-500/5 px-3 py-2">
             <p className="min-w-0 flex-1 text-xs text-amber-100">
-              A separate copy of {sourceName || "the original"}. Saving changes this copy only; {sourceName || "the original"} stays as it is.
+              {t("charEdit.copy", { source: sourceName || t("charEdit.original.lc") })}
             </p>
             <button
               type="button"
@@ -196,16 +195,16 @@ function EditCharacterInner({ characterId }: { characterId: string }) {
               disabled={discarding || busy}
               className={cn(ui.btnSmall, "text-xs")}
             >
-              {discarding ? "Deleting..." : "Discard this copy"}
+              {discarding ? t("charEdit.discarding") : t("charEdit.discard")}
             </button>
           </div>
         ) : null}
         {tables.length ? (
           <p className="reveal mt-3 rounded-lg border border-stone-700/60 bg-stone-900/60 px-3 py-2 text-xs text-stone-300">
-            The copies already at {tables.map((table) => table.title).join(", ")} keep their own sheets; this edit does not
-            reach them. When one of those tables saves its progress to your library (Save to library, or the end of its
-            campaign), what it carries back is written over this edit. While a table holds a copy, they stay{" "}
-            {character.role === "companion" ? "an ally the GM plays" : "a character you play"}.
+            {t("charEdit.tables.head", {
+              tables: tables.map((table) => table.title).join(", "),
+              role: character.role === "companion" ? t("charEdit.role.ally") : t("charEdit.role.pc"),
+            })}
           </p>
         ) : null}
       </header>
@@ -229,7 +228,7 @@ function EditCharacterInner({ characterId }: { characterId: string }) {
         initial={character.sheet}
         initialLevel={character.level}
         startLevel={nextLevel ?? undefined}
-        submitLabel="Save changes"
+        submitLabel={t("charEdit.submit")}
         onSubmit={(result) => void save(result)}
         busy={busy}
         error={error}

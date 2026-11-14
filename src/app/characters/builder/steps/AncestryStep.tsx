@@ -23,26 +23,31 @@ import type { BuilderDerived } from "../useBuilderDerived";
 import type { BuilderState } from "../useBuilderState";
 import { bonusLanguageCount } from "../submit";
 import { StepPanel, inputClass } from "./shared";
+import { useI18n } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages";
 
-function languageHelp(race: RaceOption, background: BackgroundOption | undefined): string {
-  const parts = [`${race.name} speaks ${race.languages.join(" and ")}`];
+type T = (key: MessageKey, params?: Record<string, string | number>) => string;
+
+function languageHelp(race: RaceOption, background: BackgroundOption | undefined, t: T): string {
+  const and = t("builder.and");
+  const parts = [t("builder.anc.lang.speaks", { race: race.name, langs: race.languages.join(and) })];
   const choice = race.languageChoice;
   const open = race.bonusLanguages - (choice?.count ?? 0);
   if (choice) {
-    parts.push(`plus ${choice.count === 1 ? "one" : choice.count} of ${choice.from.join(", ")}`);
+    parts.push(t("builder.anc.lang.choice", { n: choice.count === 1 ? t("builder.anc.lang.one") : choice.count, list: choice.from.join(", ") }));
   }
   if (open > 0) {
-    parts.push(`${choice ? "and" : "plus"} ${open} of your choice`);
+    parts.push(t("builder.anc.lang.open", { joiner: choice ? t("builder.anc.lang.and") : t("builder.anc.lang.plus"), open }));
   }
   if (background?.knownLanguages?.length) {
-    parts.push(`and ${background.knownLanguages.join(" and ")} from your ${background.name} background`);
+    parts.push(t("builder.anc.lang.known", { list: background.knownLanguages.join(and), bg: background.name }));
   }
   if (background?.languages) {
     parts.push(
-      `${race.bonusLanguages > 0 ? "and" : "plus"} ${background.languages} more from your ${background.name} background`,
+      t("builder.anc.lang.bg", { joiner: race.bonusLanguages > 0 ? t("builder.anc.lang.and") : t("builder.anc.lang.plus"), n: background.languages, bg: background.name }),
     );
   }
-  return `${parts.join(" ")}.`;
+  return `${parts.join("")}.`;
 }
 
 // Step 2: where they are from. The lineage grid (every race the picker
@@ -74,6 +79,7 @@ export function AncestryStep({
 }) {
   // The race's bonus languages plus the background's (an acolyte or a sage
   // learns two more), which used to be loaded and never asked for.
+  const { t } = useI18n();
   const languageCount = bonusLanguageCount(race, background);
   const [detailIndex, setDetailIndex] = useState<number | null>(null);
   const { gender } = state;
@@ -97,35 +103,31 @@ export function AncestryStep({
       })),
     [raceGroups, slides],
   );
-  const facets = useMemo(() => raceFacets(slides), [slides]);
+  const facets = useMemo(() => raceFacets(slides, t), [slides, t]);
 
   return (
     <div className="space-y-4">
       <StepPanel
-        title="Where are they from?"
+        title={t("builder.anc.where")}
         ornate
         anchor="race"
         help={
           race
-            ? `${race.name} is chosen. Every lineage grants its own ability bumps, senses and tongues: tap a card to choose it, or its ? to read what it hands you first.`
-            : "Tap a card to choose a lineage, or its ? to read what it hands you first."
+            ? t("builder.anc.help.chosen", { race: race.name })
+            : t("builder.anc.help.none")
         }
       >
         {state.revisedSpecies ? (
           <p role="note" className="mb-3 rounded border border-amber-700/40 bg-amber-950/30 p-2 text-xs text-amber-100">
             {race ? (
               <>
-                This character was made with the 2024 rules&rsquo; {race.name}. This server plays the 2014 rules, so they now
-                have the 2014 {race.name}&rsquo;s traits, and their ability scores stay as they were. Save to keep it, or
-                choose another lineage.
+                {t("builder.anc.rev.race", { race: race.name })}
               </>
             ) : (
               // A content pack that offers no such lineage: its id, written
               // as a name, and the pick it now owes.
               <>
-                This character was made with the 2024 rules&rsquo; {speciesWords(state.revisedSpecies)}. This server plays
-                the 2014 rules and offers no 2014 {speciesWords(state.revisedSpecies)} here, so choose a lineage below; their
-                ability scores stay as they were.
+                {t("builder.anc.rev.none", { name: speciesWords(state.revisedSpecies) })}
               </>
             )}
           </p>
@@ -169,16 +171,14 @@ export function AncestryStep({
         <StepPanel
           title={
             <span className="flex items-center gap-1">
-              Bonus {languageCount === 1 ? "language" : "languages"}
+              {languageCount === 1 ? t("builder.anc.lang.title.one") : t("builder.anc.lang.title.plural")}
               <InfoButton
-                label="Languages"
-                text={
-                  "A language you know is one you can speak, read and write. It decides who your character can talk to without help, and it comes up more than new players expect: half the trouble in a dungeon is written on a wall.\n\nCommon is the trade tongue everyone shares. The rest are the tongues of particular peoples: Dwarvish, Elvish, Orc, Draconic and so on. Pick whatever fits where your character grew up, or whoever you expect to be negotiating with."
-                }
+                label={t("builder.anc.lang.info.label")}
+                text={t("builder.anc.lang.info")}
               />
             </span>
           }
-          help={languageHelp(race, background)}
+          help={languageHelp(race, background, t)}
           anchor="languages"
         >
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -194,10 +194,10 @@ export function AncestryStep({
                   })
                 }
                 className="w-full"
-                label={`Bonus language ${index + 1}`}
-                placeholder="Choose a language..."
+                label={t("builder.anc.lang.aria", { n: index + 1 })}
+                placeholder={t("builder.anc.lang.pick")}
                 options={[
-                  { value: "", label: "Choose a language..." },
+                  { value: "", label: t("builder.anc.lang.pick") },
                   // A race that offers "your choice of Common or Undercommon"
                   // fills its first slots from that list only.
                   ...(race.languageChoice && index < race.languageChoice.count
@@ -283,7 +283,7 @@ const ABILITY_WORDS: Array<[Ability, string]> = [
 // its size and its book. Each offers only the values some lineage has. A
 // lineage whose bumps are the player's to place raises anything they like
 // and suits any class.
-function raceFacets(slides: LineageSlide[]): CardFacet[] {
+function raceFacets(slides: LineageSlide[], t: T): CardFacet[] {
   const byId = new Map(slides.map((slide) => [slide.id, slide]));
   const sizeOf = (id: string) => srdRaceFor(id)?.size ?? "";
   const bookOf = (slide: LineageSlide) => slide.source || "Core rules";
@@ -292,8 +292,8 @@ function raceFacets(slides: LineageSlide[]): CardFacet[] {
   return [
     {
       key: "raises",
-      label: "Raises",
-      options: ABILITY_WORDS.map(([value, label]) => ({ value, label })),
+      label: t("builder.anc.f.raises"),
+      options: ABILITY_WORDS.map(([value]) => ({ value, label: t(`builder.anc.ab.${value}` as MessageKey) })),
       test: (id, ability) => {
         const slide = byId.get(id);
         return Boolean(slide && ((slide.asi[ability as Ability] ?? 0) > 0 || slide.asiChoice));
@@ -301,7 +301,7 @@ function raceFacets(slides: LineageSlide[]): CardFacet[] {
     },
     {
       key: "suits",
-      label: "Good for",
+      label: t("builder.anc.f.suits"),
       options: SRD_CLASSES.map((klass) => ({ value: klass.name, label: klass.name })),
       test: (id, className) => {
         const slide = byId.get(id);
@@ -310,10 +310,10 @@ function raceFacets(slides: LineageSlide[]): CardFacet[] {
       },
     },
     ...(sizes.length > 1
-      ? [{ key: "size", label: "Size", options: sizes.map((size) => ({ value: size, label: size })), test: (id: string, size: string) => sizeOf(id) === size }]
+      ? [{ key: "size", label: t("builder.anc.f.size"), options: sizes.map((size) => ({ value: size, label: (t(`builder.anc.size.${size}` as MessageKey) === `builder.anc.size.${size}` ? size : t(`builder.anc.size.${size}` as MessageKey)) })), test: (id: string, size: string) => sizeOf(id) === size }]
       : []),
     ...(books.length > 1
-      ? [{ key: "book", label: "Book", options: books.map((book) => ({ value: book, label: book })), test: (id: string, book: string) => { const slide = byId.get(id); return Boolean(slide && bookOf(slide) === book); } }]
+      ? [{ key: "book", label: t("builder.anc.f.book"), options: books.map((book) => ({ value: book, label: book === "Core rules" ? t("builder.anc.core") : book })), test: (id: string, book: string) => { const slide = byId.get(id); return Boolean(slide && bookOf(slide) === book); } }]
       : []),
   ];
 }

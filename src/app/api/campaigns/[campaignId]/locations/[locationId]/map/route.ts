@@ -31,7 +31,7 @@ export async function POST(
   }
   const location = getLocation(locationId);
   if (!location || location.campaignId !== campaignId) {
-    return Response.json({ error: "Location not found." }, { status: 404 });
+    return Response.json({ error: "Location not found.", errorCode: "LOCATION_NOT_FOUND" }, { status: 404 });
   }
   // The redraw path has always taken an empty POST; an unreadable body still
   // means "redraw", so only a body that is present and wrong is refused.
@@ -39,7 +39,7 @@ export async function POST(
   const parsed = bodySchema.safeParse(raw ?? {});
   if (!parsed.success) {
     return Response.json(
-      { error: parsed.error.issues[0]?.message || "That is not an uploaded image." },
+      { error: parsed.error.issues[0]?.message || "That is not an uploaded image.", errorCode: "IMAGE_NOT_UPLOADED" },
       { status: 400 },
     );
   }
@@ -47,7 +47,7 @@ export async function POST(
   if (parsed.data.imageUrl) {
     const image = uploadedImageRecord(parsed.data.imageUrl, "landscape");
     if (!setLocationMap(locationId, image)) {
-      return Response.json({ error: "Location not found." }, { status: 404 });
+      return Response.json({ error: "Location not found.", errorCode: "LOCATION_NOT_FOUND" }, { status: 404 });
     }
     publishPersisted(campaignId, "location_map_ready", { locationId, image });
     return Response.json({ ok: true, image });
@@ -57,7 +57,7 @@ export async function POST(
   // so up front, and the panel offers the upload instead.
   if (!(await imagesAvailable(context.campaign.settings))) {
     return Response.json(
-      { error: "This server has no image model to draw with. Upload a map instead." },
+      { error: "This server has no image model to draw with. Upload a map instead.", errorCode: "IMAGE_MODEL_UNAVAILABLE" },
       { status: 409 },
     );
   }
@@ -79,7 +79,7 @@ export async function DELETE(
   }
   const location = getLocation(locationId);
   if (!location || location.campaignId !== campaignId) {
-    return Response.json({ error: "Location not found." }, { status: 404 });
+    return Response.json({ error: "Location not found.", errorCode: "LOCATION_NOT_FOUND" }, { status: 404 });
   }
   setLocationMap(locationId, null);
   publishPersisted(campaignId, "location_map_ready", { locationId, image: null });

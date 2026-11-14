@@ -2,6 +2,7 @@
 
 import { Loader2, Plus } from "lucide-react";
 import { useEffect, useId, useRef } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/cn";
 import { InfoButton } from "@/components/ui/InfoDialog";
 import { describeContentEntry, spellSummary } from "@/lib/help";
@@ -38,6 +39,7 @@ export default function ContentPicker({
   // be picked.
   judge?: (entry: PickerEntry) => { blocked: boolean; note: string } | null;
 }) {
+  const { t } = useI18n();
   const { query, setQuery, results: found, setResults, open, setOpen, loading, unavailable, failed, unadmitted } =
     useContentSearch(kind, extraParams);
   const results = hide ? found.filter((entry) => !hide(entry)) : found;
@@ -78,22 +80,20 @@ export default function ContentPicker({
       {failed ? (
         // A refused request or a dropped connection is not a missing pack.
         <p role="alert" className="mt-1 rounded-lg border border-amber-900/50 bg-amber-950/20 px-3 py-2 text-xs text-amber-200/80">
-          Could not reach the server to search. Type again to retry.
+          {t("builder.extra.contentPicker.searchFailed")}
         </p>
       ) : unavailable ? (
         <p className="mt-1 rounded-lg border border-amber-900/50 bg-amber-950/20 px-3 py-2 text-xs text-amber-200/80">
-          The content pack is not installed on this server, so there is nothing to search or
-          browse. Whoever runs it can install it with: node scripts/import-open5e.mjs
+          {t("builder.extra.contentPicker.packMissing")}
         </p>
       ) : open && !results.length && query.trim() && !loading ? (
         <p className="mt-1 rounded-lg border border-stone-800 bg-stone-950/60 px-3 py-2 text-xs text-stone-500">
-          Nothing matched &quot;{query.trim()}&quot;. Try fewer letters, or pick from the full list.
+          {t("builder.extra.contentPicker.noMatch", { query: query.trim() })}
         </p>
       ) : null}
       {unadmitted.length ? (
         <p className="mt-1 text-sm text-stone-500">
-          Your own {unadmitted.join(", ")} {unadmitted.length === 1 ? "is" : "are"} not offered at this table: whoever runs it (the owner, the
-          GM or the assistant GM) keeps a copy in their workshop to admit one.
+          {t("builder.extra.contentPicker.unadmitted", { names: unadmitted.join(", ") })}
         </p>
       ) : null}
       {open && results.length ? (
@@ -132,7 +132,7 @@ export default function ContentPicker({
                 </span>
                 <span className="shrink-0 text-xs text-stone-500">
                   {entry.source === "homebrew"
-                    ? "homebrew"
+                    ? t("builder.extra.contentPicker.homebrew")
                     : (renderMeta?.(entry) ?? "")}
                 </span>
               </button>

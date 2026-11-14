@@ -8,7 +8,7 @@ import { register } from "node:module";
 
 register("./lib/register-alias.mjs", import.meta.url);
 
-const { applyFeatGrants, featGrantSpec, featGrantsAnything, featPicksOwed, withoutFeatPicks } = await import("../src/lib/srd/feat-grants.ts");
+const { applyFeatGrants, featGrantSpec, featGrantsAnything, featPicksOwed, featOwedDetail, withoutFeatPicks } = await import("../src/lib/srd/feat-grants.ts");
 const { authoredFeatDesc } = await import("../src/lib/srd/feat-effects.ts");
 const authored = (await import("../src/lib/srd/authored-feats.json", { with: { type: "json" } })).default.feats;
 
@@ -63,6 +63,11 @@ test("a content pack's wording reads the same", () => {
 
 test("what a feat still waits for is said in one sentence", () => {
   assert.equal(featPicksOwed("Linguist", spec("Linguist"), undefined), "Linguist: pick 3 languages.");
+  assert.deepEqual(featOwedDetail("Linguist", spec("Linguist"), undefined), {
+    kind: "picks",
+    feat: "Linguist",
+    picks: { languages: 3, skills: 0, expertise: 0, weapons: 0, tools: 0, shared: 0, sharedKinds: [], damageType: false },
+  });
   assert.equal(featPicksOwed("Linguist", spec("Linguist"), { languages: ["Dwarvish", ""] }), "Linguist: pick 2 languages.");
   assert.equal(featPicksOwed("Linguist", spec("Linguist"), { languages: ["Dwarvish", "Giant", "Orc"] }), null);
   assert.equal(featPicksOwed("Skill Expert", spec("Skill Expert"), { skills: ["stealth"] }), "Skill Expert: pick expertise in 1 skill.");

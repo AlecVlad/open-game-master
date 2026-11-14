@@ -2,6 +2,8 @@ import { isErrorResponse, requireDm } from "@/lib/campaign-api";
 import { deleteBeat, updateBeat } from "@/lib/db/workshop-beats";
 import { checkBeat, linksWithin } from "@/lib/workshop/board";
 import { storyboardInventory } from "@/lib/db/workshop-common";
+import { getLang } from "@/lib/i18n/server";
+import { localizeStoryboardError } from "@/lib/workshop/storyboard-api-i18n";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -19,9 +21,10 @@ export async function PATCH(
   if (isErrorResponse(context)) {
     return context;
   }
+  const lang = await getLang();
   const checked = checkBeat(await request.json().catch(() => ({})));
   if ("error" in checked) {
-    return Response.json({ error: checked.error }, { status: 400 });
+    return Response.json({ error: localizeStoryboardError(checked.error, lang) }, { status: 400 });
   }
   // A link is kept only when it names a row this board may point at: its
   // own, or its shared workshop's (#159). Anything else is dropped here
@@ -35,7 +38,7 @@ export async function PATCH(
   });
   return beat
     ? Response.json({ beat })
-    : Response.json({ error: "No such card." }, { status: 404 });
+    : Response.json({ error: localizeStoryboardError("No such card.", lang) }, { status: 404 });
 }
 
 export async function DELETE(
@@ -47,7 +50,8 @@ export async function DELETE(
   if (isErrorResponse(context)) {
     return context;
   }
+  const lang = await getLang();
   return deleteBeat(campaignId, beatId)
     ? Response.json({ ok: true })
-    : Response.json({ error: "No such card." }, { status: 404 });
+    : Response.json({ error: localizeStoryboardError("No such card.", lang) }, { status: 404 });
 }

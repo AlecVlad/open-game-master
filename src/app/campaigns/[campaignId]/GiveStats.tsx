@@ -2,6 +2,7 @@
 
 import { Hammer } from "lucide-react";
 import { useEffect, useState, type MouseEvent } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { kitButtonClass } from "./PanelKit";
 import { textKey } from "@/lib/language/text-logic";
 import { navigateTo } from "@/lib/navigation";
@@ -42,6 +43,7 @@ export function useUnknownGear(campaignId: string, sheetId: string): UnknownGear
 }
 
 export function GiveStats({ name, gear, unsaved = false }: { name: string; gear: UnknownGear | null; unsaved?: boolean }) {
+  const { t } = useI18n();
   // Asked to leave with changes in the dialog not saved yet (in the apps,
   // where the workshop takes the table's place): the changes stay, and the
   // line says to save or cancel them first.
@@ -67,26 +69,26 @@ export function GiveStats({ name, gear, unsaved = false }: { name: string; gear:
   });
   return (
     <p className="reveal flex flex-wrap items-center gap-x-2 gap-y-1 pl-8 text-[11px] text-stone-400">
-      <span>No stats at this table yet.</span>
+      <span>{t("campaign.session.leadEdit.gear.noStats")}</span>
       {!gear.canAuthor ? (
-        <span>The table&apos;s host or GM can give it some in their workshop.</span>
+        <span>{t("campaign.session.leadEdit.gear.hostCanAddStats")}</span>
       ) : gear.workshopId ? (
         <a
           {...linkTo(`/workshop/${gear.workshopId}?system=homebrew&item=${encodeURIComponent(name)}`)}
           className={kitButtonClass("small", "gap-1 py-0.5")}
         >
           <Hammer className="size-3.5" aria-hidden="true" />
-          Give it stats
-          <span className="sr-only">{inApp ? " (opens the workshop)" : " (opens the workshop in a new tab)"}</span>
+          {t("campaign.session.leadEdit.gear.giveStats")}
+          <span className="sr-only">{inApp ? t("campaign.session.leadEdit.gear.opensWorkshop") : t("campaign.session.leadEdit.gear.opensWorkshopNewTab")}</span>
         </a>
       ) : (
         <a {...linkTo("/workshop")} className={kitButtonClass("link")}>
-          Make a workshop to give it stats
+          {t("campaign.session.leadEdit.gear.makeWorkshop")}
         </a>
       )}
       {inApp && gear.canAuthor ? (
         <span role="status" className={heldBack && unsaved ? "basis-full text-amber-200" : "sr-only"}>
-          {heldBack && unsaved ? "Save or cancel your changes first: the workshop opens in place of the table." : ""}
+          {heldBack && unsaved ? t("campaign.session.leadEdit.gear.saveBeforeWorkshop") : ""}
         </span>
       ) : null}
     </p>

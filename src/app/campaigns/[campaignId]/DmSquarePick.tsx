@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Crosshair } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { useT } from "@/lib/i18n/provider";
 import { ui } from "@/lib/ui";
 import {
   SQUARE_ARMED_EVENT,
@@ -41,6 +42,7 @@ export function DmSquarePick({
   values: Values;
   onPick: (square: { x: number; y: number }) => void;
 }) {
+  const t = useT();
   const [state, setState] = useState<"idle" | "asking" | "armed" | "absent">("idle");
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const pickRef = useRef(onPick);
@@ -104,9 +106,9 @@ export function DmSquarePick({
   return (
     <span className="ml-auto inline-flex items-center gap-1.5">
       {state === "absent" ? (
-        <span className="motion-shake text-[11px] text-stone-400">Open the battle map to pick, or type the numbers.</span>
+        <span className="motion-shake text-[11px] text-stone-400">{t("campaign.dmSquarePick.absent")}</span>
       ) : state === "armed" ? (
-        <span className="animate-fade-up text-[11px] text-amber-200/90">Tap the square on the map.</span>
+        <span className="animate-fade-up text-[11px] text-amber-200/90">{t("campaign.dmSquarePick.armed")}</span>
       ) : null}
       <button
         type="button"
@@ -119,7 +121,7 @@ export function DmSquarePick({
         )}
       >
         <Crosshair className="size-3.5" />
-        {state === "armed" ? "Stop" : "Pick on the board"}
+        {state === "armed" ? t("campaign.dmSquarePick.stop") : t("campaign.dmSquarePick.pick")}
       </button>
     </span>
   );

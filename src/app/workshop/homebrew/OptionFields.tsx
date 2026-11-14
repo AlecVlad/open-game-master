@@ -1,6 +1,7 @@
 "use client";
 
 import { PREREQUISITE_SUGGESTIONS } from "@/lib/workshop/pickers";
+import { useT } from "@/lib/i18n/provider";
 import { SelectField, TextField } from "@/app/workshop/homebrew/fields";
 import type { EditorKind } from "@/app/workshop/homebrew/types";
 import type { Data } from "@/app/workshop/homebrew/draft";
@@ -16,32 +17,28 @@ import { compareNames } from "@/lib/language/text-logic";
 // the same picker an SRD one does.
 
 // The feats the engines run, for a workshop feat to run as one.
-const RUNS_AS_OPTIONS = [
-  { value: "", label: "its own text" },
-  ...engineFeatNames()
-    .slice()
-    .sort(compareNames)
-    .map((name) => ({ value: name, label: name })),
-];
+const RUNS_AS_NAMES = engineFeatNames().slice().sort(compareNames);
 
 function FeatFields({ data, set }: { data: Data; set: (patch: Data) => void }) {
+  const t = useT();
+  const runsAsOptions = [{ value: "", label: t("workshop.homebrew.feat.runsAs.own") }, ...RUNS_AS_NAMES.map((name) => ({ value: name, label: name }))];
   return (
     <div className="grid gap-2 sm:grid-cols-2">
       <TextField
-        label="Prerequisite"
+        label={t("workshop.homebrew.feat.prerequisite")}
         value={String(data.prerequisite ?? "")}
         onChange={(prerequisite) => set({ prerequisite })}
-        placeholder="Strength 13 or higher"
+        placeholder={t("workshop.homebrew.feat.prerequisite.placeholder")}
         maxLength={200}
-        hint="Leave empty for none. The builder shows it beside the feat."
+        hint={t("workshop.homebrew.feat.prerequisite.hint")}
         suggestions={PREREQUISITE_SUGGESTIONS}
       />
       <SelectField
-        label="Runs at the table as"
+        label={t("workshop.homebrew.feat.runsAs")}
         value={String(data.runsAs ?? "")}
-        options={RUNS_AS_OPTIONS}
+        options={runsAsOptions}
         onChange={(runsAs) => set({ runsAs: runsAs || undefined })}
-        hint="A published feat whose rules the server applies under this feat's name (a renamed Sharpshooter). Its own text is read for what it grants either way."
+        hint={t("workshop.homebrew.feat.runsAs.hint")}
       />
     </div>
   );

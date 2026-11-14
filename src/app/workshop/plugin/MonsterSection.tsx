@@ -2,6 +2,7 @@
 
 import { rowIcon } from "@/app/workshop/kit";
 import { SectionHead } from "@/components/ui/SectionHead";
+import { useI18n } from "@/lib/i18n/provider";
 import { X } from "lucide-react";
 import { ContentPick } from "@/components/ui/ContentPick";
 import { normalizeCreatureType } from "@/lib/bestiary/creature-type";
@@ -25,13 +26,14 @@ function formatCr(cr: number): string {
 }
 
 export function MonsterSection({ draft, onDraft }: SectionProps) {
+  const { t } = useI18n();
   const list = draft.monsters;
   const set = (next: typeof list) => onDraft({ ...draft, monsters: next });
   return (
     <section className={ui.card + " p-4"}>
-      <SectionHead title="Monsters" glyph="system-bestiary" className="mb-0" />
+      <SectionHead title={t("workshop.plugin.monsters.title")} glyph="system-bestiary" className="mb-0" />
       <p className="mb-3 text-[11px] text-stone-500">
-        Pick a creature from the content pack and give it the world&apos;s name. The stat block, rating and type come with it. Upload a picture for it under Pictures.
+        {t("workshop.plugin.monsters.body")}
       </p>
       <div className="stagger space-y-1.5">
         {list.map((entry, index) => (
@@ -56,23 +58,23 @@ export function MonsterSection({ draft, onDraft }: SectionProps) {
             <input
               value={entry.name}
               maxLength={60}
-              placeholder="Called here"
-              aria-label={`Name for ${entry.slug}`}
+              placeholder={t("workshop.plugin.monsters.calledHere")}
+              aria-label={t("workshop.plugin.monsters.nameFor", { slug: entry.slug })}
               onChange={(event) => set(replaceAt(list, index, { ...entry, name: event.target.value }))}
               className={cn(input, "w-40 min-w-0")}
             />
             <input
               value={entry.blurb}
               maxLength={200}
-              placeholder="One line about it"
-              aria-label="Blurb"
+              placeholder={t("workshop.plugin.monsters.blurb")}
+              aria-label={t("workshop.plugin.monsters.blurb")}
               onChange={(event) => set(replaceAt(list, index, { ...entry, blurb: event.target.value }))}
               className={cn(input, "min-w-0 flex-1")}
             />
             <button
               type="button"
               onClick={() => set(removeAt(list, index))}
-              aria-label={`Remove ${entry.slug}`}
+              aria-label={t("workshop.plugin.monsters.remove", { slug: entry.slug })}
               className={cn(ui.iconAction, rowIcon, "hover:text-red-300")}
             >
               <X className="size-3.5" />
@@ -83,8 +85,8 @@ export function MonsterSection({ draft, onDraft }: SectionProps) {
       <div className="mt-2">
         <ContentPick
           kind="monsters"
-          label="Find a monster to rename"
-          placeholder="Find a monster to rename"
+          label={t("workshop.plugin.monsters.find")}
+          placeholder={t("workshop.plugin.monsters.find")}
           onPick={(entry) => {
             if (entry.source !== "open5e" || list.some((current) => current.slug === entry.slug)) {
               return;
@@ -102,7 +104,7 @@ export function MonsterSection({ draft, onDraft }: SectionProps) {
           }}
         />
         <p className="mt-1 text-[11px] text-stone-500">
-          Only content-pack creatures can be listed; a hand-built monster has no stat block on the other server.
+          {t("workshop.plugin.monsters.onlyContentPack")}
         </p>
       </div>
     </section>

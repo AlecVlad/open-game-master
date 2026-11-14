@@ -1,6 +1,6 @@
 "use client";
 
-import { findLostCreate, readLoad, readWrite, UNREACHABLE, useLoadStatus } from "@/lib/load-state";
+import { findLostCreate, readLoad, readWrite, useLoadStatus } from "@/lib/load-state";
 import { EmptyState } from "@/components/EmptyState";
 import { ChevronDown, Info, Pencil, Plus, Trash2 } from "lucide-react";
 import { ContextMenu, type ContextMenuItem } from "@/components/ui/ContextMenu";
@@ -21,6 +21,8 @@ import type { StockLine } from "@/lib/dm/shop-logic";
 import type { MarketRequest } from "@/lib/dm/table-tabs";
 import { GameTerm } from "@/components/ui/GameTerm";
 import { useTourPrepare } from "@/lib/tours/prepare";
+import { useI18n } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages";
 
 // The market (docs/vtt-parity-implementation-plan.md 11.1): the shops at
 // the party's place, stock as tiles with a price chip in coin, a Buy on
@@ -68,27 +70,136 @@ type HaggleSkill = "persuasion" | "intimidation" | "deception";
 // A haggle's outcome for the person who made it, in the rules' own words.
 // `moved` is false at an end of the price ladder, where a step had nowhere
 // to go; `prices` is where it left them, in the server's words.
-function haggleOutcome(steps: number, moved: boolean, prices: string): string {
-  if (steps < 0) {
-    return moved ? `You talked the keeper down: your prices here are ${prices}.` : "You talked the keeper down, but your prices here are already at their lowest.";
-  }
-  if (steps === 0) {
-    return "The keeper holds firm: your prices stay where they were.";
-  }
-  return moved
-    ? `A bad failure (you missed the DC by 5 or more): your prices here are ${prices}.`
-    : "A bad failure (you missed the DC by 5 or more), but your prices here are already at their highest.";
+function haggleOutcome(steps: number, moved: boolean, prices: string, t: ReturnType<typeof useI18n>["t"]): string {
+  if (steps < 0) return moved ? t("campaign.market.haggleDownMoved", { prices }) : t("campaign.market.haggleDownStuck");
+  if (steps === 0) return t("campaign.market.haggleHeld");
+  return moved ? t("campaign.market.haggleBadMoved", { prices }) : t("campaign.market.haggleBadStuck");
 }
 
 // Where the viewer's haggle left their prices, for the line under a shop.
-function haggledLine(steps: number, prices: string): string {
-  return steps < 0 ? `You haggled here: your prices are ${prices}.` : steps === 0 ? "You haggled here: the keeper held firm." : `You haggled here and pushed too hard: your prices are ${prices}.`;
+function haggledLine(steps: number, prices: string, t: ReturnType<typeof useI18n>["t"]): string {
+  return steps < 0 ? t("campaign.market.haggledDown", { prices }) : steps === 0 ? t("campaign.market.haggledHeld") : t("campaign.market.haggledTooHard", { prices });
+}
+
+type MarketTradeAction = "buy" | "sell" | "haggle";
+type MarketErrorPayload = { error?: unknown; errorCode?: unknown; errorParams?: unknown };
+
+const MARKET_ACTION_LABELS: Record<MarketTradeAction, MessageKey> = {
+  buy: "campaign.market.error.action.buy",
+  sell: "campaign.market.error.action.sell",
+  haggle: "campaign.market.error.action.haggle",
+};
+
+const MARKET_CONDITION_LABELS: Record<string, MessageKey> = {
+  incapacitated: "campaign.market.error.condition.incapacitated",
+  paralyzed: "campaign.market.error.condition.paralyzed",
+  stunned: "campaign.market.error.condition.stunned",
+  unconscious: "campaign.market.error.condition.unconscious",
+  petrified: "campaign.market.error.condition.petrified",
+};
+
+function marketTradeError(data: MarketErrorPayload, action: MarketTradeAction, t: ReturnType<typeof useI18n>["t"]): string {
+  const params =
+    data.errorParams && typeof data.errorParams === "object" && !Array.isArray(data.errorParams)
+      ? (data.errorParams as Record<string, unknown>)
+      : {};
+  const value = (key: string, fallback = "") => {
+    const found = params[key];
+    return found === undefined || found === null ? fallback : String(found);
+  };
+  const code = typeof data.errorCode === "string" ? data.errorCode : "";
+  const reason = () => {
+    const kind = value("reason");
+    if (kind === "dead") return t("campaign.market.error.reason.dead");
+    if (kind === "turned") return t("campaign.market.error.reason.turned");
+    if (kind === "down") return t("campaign.market.error.reason.down");
+    const condition = value("condition", "incapacitated");
+    return t("campaign.market.error.reason.condition", {
+      condition: t(MARKET_CONDITION_LABELS[condition] ?? MARKET_CONDITION_LABELS.incapacitated),
+    });
+  };
+
+  switch (code) {
+    case "shop_out_of_reach": {
+      const place = value("place");
+      let message = place
+        ? t("campaign.market.error.shopOutOfReach", { shop: value("shop"), place })
+        : t("campaign.market.error.shopOutOfReachNoPlace", { shop: value("shop") });
+      const shopPlace = value("shopPlace");
+      if (shopPlace) message += ` ${t("campaign.market.error.shopAtPlace", { place: shopPlace })}`;
+      message += ` ${action === "haggle" ? t("campaign.market.error.nothingRolled") : t("campaign.market.error.nothingChanged")}`;
+      return message;
+    }
+    case "character_unavailable": {
+      const verb = value("verb", action) as MarketTradeAction;
+      return t("campaign.market.error.characterUnavailable", {
+        character: value("character"),
+        action: t(MARKET_ACTION_LABELS[verb] ?? MARKET_ACTION_LABELS[action]),
+        reason: reason(),
+        outcome: action === "haggle" ? t("campaign.market.error.nothingRolled") : t("campaign.market.error.nothingChanged"),
+      });
+    }
+    case "item_not_stocked":
+      return value("shelf")
+        ? t("campaign.market.error.itemNotStocked", { shop: value("shop"), item: value("item"), shelf: value("shelf") })
+        : t("campaign.market.error.itemNotStockedEmpty", { shop: value("shop"), item: value("item") });
+    case "stock_quantity":
+      return t("campaign.market.error.stockQuantity", { shop: value("shop"), quantity: value("quantity"), item: value("item") });
+    case "insufficient_funds":
+      return t("campaign.market.error.insufficientFunds", {
+        character: value("character"), quantity: value("quantity"), item: value("item"),
+        price: value("price"), purse: value("purse"),
+      });
+    case "carrying_capacity":
+      return t("campaign.market.error.carryingCapacity", {
+        character: value("character"), carried: value("carried"), capacity: value("capacity"), item: value("item"),
+      });
+    case "shop_does_not_buy":
+      return t("campaign.market.error.shopDoesNotBuy", { shop: value("shop") });
+    case "item_not_carried":
+      return t("campaign.market.error.itemNotCarried", { character: value("character"), item: value("item") });
+    case "unknown_item":
+      return t("campaign.market.error.unknownItem", {
+        character: value("character"), item: value("item"),
+        carried: value("carried") || t("campaign.market.error.nothingCarried"),
+      });
+    case "magic_item_not_accepted":
+      return t("campaign.market.error.magicItemNotAccepted", { shop: value("shop"), item: value("item") });
+    case "haggle_already_used":
+      return t("campaign.market.error.haggleAlreadyUsed", { character: value("character"), shop: value("shop") });
+    case "deception_already_used":
+      return t("campaign.market.error.deceptionAlreadyUsed", { shop: value("shop") });
+    case "companion_unavailable":
+      return t("campaign.market.error.companionUnavailable", { character: value("character"), reason: reason() });
+    case "invalid_haggle_skill":
+      return t("campaign.market.error.invalidHaggleSkill", { skill: value("skill") });
+    case "haggle_check_unavailable":
+      return t("campaign.market.error.haggleCheckUnavailable", { character: value("character") });
+    case "character_missing":
+      return t("campaign.market.error.characterMissing");
+    case "shop_missing":
+      return t("campaign.market.error.shopMissing");
+    case "no_character":
+      return t("campaign.market.error.noCharacter");
+    case "invalid_trade_action":
+      return t("campaign.market.error.invalidTradeAction");
+    default:
+      return String(data.error ?? t("campaign.market.keeperRejects"));
+  }
 }
 
 const KINDS = ["general", "smith", "apothecary", "outfitter", "curiosities"] as const;
 const SIZES = ["hamlet", "village", "town", "city"] as const;
-const KIND_OPTIONS = KINDS.map((kind) => ({ value: kind as string, label: kind }));
-const SIZE_OPTIONS = SIZES.map((size) => ({ value: size as string, label: size }));
+const KIND_LABEL_KEYS: Record<(typeof KINDS)[number], MessageKey> = {
+  general: "campaign.market.kind.general", smith: "campaign.market.kind.smith", apothecary: "campaign.market.kind.apothecary",
+  outfitter: "campaign.market.kind.outfitter", curiosities: "campaign.market.kind.curiosities",
+};
+const SIZE_LABEL_KEYS: Record<(typeof SIZES)[number], MessageKey> = {
+  hamlet: "campaign.market.size.hamlet", village: "campaign.market.size.village", town: "campaign.market.size.town", city: "campaign.market.size.city",
+};
+function marketKindLabel(kind: string, t: ReturnType<typeof useI18n>["t"]): string {
+  return kind in KIND_LABEL_KEYS ? t(KIND_LABEL_KEYS[kind as keyof typeof KIND_LABEL_KEYS]) : kind;
+}
 
 // The coin a price is mostly made of, so a chip leads with the right metal.
 function coinGlyph(copper: number): string {
@@ -125,6 +236,9 @@ export function MarketPanel({
   // Puts an action in the composer, for a sale only the DM can price.
   onAskKeeper?: (text: string) => void;
 }) {
+  const { t } = useI18n();
+  const kindOptions = KINDS.map((kind) => ({ value: kind as string, label: t(KIND_LABEL_KEYS[kind]) }));
+  const sizeOptions = SIZES.map((size) => ({ value: size as string, label: t(SIZE_LABEL_KEYS[size]) }));
   const [shops, setShops] = useState<ShopView[] | null>(null);
   const [here, setHere] = useState<{ id: string; name: string } | null>(null);
   const [places, setPlaces] = useState<Named[]>([]);
@@ -158,7 +272,7 @@ export function MarketPanel({
     let cancelled = false;
     readLoad<{ shops?: ShopView[]; here?: { id: string; name: string } | null; places?: Named[]; keepers?: Named[]; canPrep?: boolean }>(
       fetch(`/api/campaigns/${campaignId}/shops`),
-      "The market",
+      t("campaign.market.loadingLabel"),
     ).then((outcome) => {
       if (cancelled) {
         return;
@@ -229,7 +343,7 @@ export function MarketPanel({
       } catch {
         // The trade may have gone through before the answer was lost: the
         // shelf and the purse are read again before anything is tried twice.
-        setWriteError(`${UNREACHABLE} The shelf is read again; check it before trying again.`);
+        setWriteError(t("campaign.market.tradeUnreachable"));
         setReload((current) => current + 1);
         return;
       }
@@ -237,11 +351,11 @@ export function MarketPanel({
       if (!response.ok && data.unpriced === true) {
         setUnpriced({ shop: shop.name, item });
       } else if (!response.ok) {
-        setError(String(data.error ?? "The keeper shakes their head."));
+        setError(marketTradeError(data, action, t));
       } else if (action === "haggle") {
         // The haggler's new markup against the shop's own: equal when the
         // step met an end of the ladder.
-        setError(haggleOutcome(Number(data.result?.steps) || 0, Number(data.result?.markup) !== shop.markup, String(data.result?.prices ?? "")));
+        setError(haggleOutcome(Number(data.result?.steps) || 0, Number(data.result?.markup) !== shop.markup, String(data.result?.prices ?? ""), t));
       }
       setReload((current) => current + 1);
     } finally {
@@ -263,7 +377,7 @@ export function MarketPanel({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ ...draft, locationId: draft.locationId || here?.id || "" }),
         }),
-        "The shop could not be opened.",
+        t("campaign.market.openFailed"),
       );
       if (sent.error !== null) {
         // A shop whose answer was lost is looked for before anything is said,
@@ -271,7 +385,7 @@ export function MarketPanel({
         if (sent.unanswered) {
           const name = draft.name.trim();
           const reread = async () =>
-            (await readLoad<{ shops?: ShopView[] }>(fetch(`/api/campaigns/${campaignId}/shops`), "The market")).payload?.shops ?? null;
+            (await readLoad<{ shops?: ShopView[] }>(fetch(`/api/campaigns/${campaignId}/shops`), t("campaign.market.loadingLabel"))).payload?.shops ?? null;
           const found = await findLostCreate(shops, reread, (shop) => shop.name === name);
           if (found === "made") {
             setOpening(false);
@@ -281,8 +395,8 @@ export function MarketPanel({
           }
           setWriteError(
             found === "missing"
-              ? "The server did not answer and the shop is not in the market, so it was not opened. What you typed is kept; press Open it again."
-              : "The server could not be reached, so it is not known yet whether the shop was opened. What you typed is kept. Look at the market before opening it again.",
+              ? t("campaign.market.openUnanswered")
+              : t("campaign.market.openUnknown"),
           );
           return;
         }
@@ -303,11 +417,11 @@ export function MarketPanel({
   }
 
   async function close(shop: ShopView) {
-    if (!(await appConfirm(`Close ${shop.name} for good?`, { actionLabel: "Close it", tone: "danger" }))) {
+    if (!(await appConfirm(t("campaign.market.closeConfirm", { shop: shop.name }), { actionLabel: t("campaign.market.closeAction"), tone: "danger" }))) {
       return;
     }
     setWriteError("");
-    const sent = await readWrite(fetch(`/api/campaigns/${campaignId}/shops/${shop.id}`, { method: "DELETE" }), `${shop.name} could not be closed.`);
+    const sent = await readWrite(fetch(`/api/campaigns/${campaignId}/shops/${shop.id}`, { method: "DELETE" }), t("campaign.market.closeFailed", { shop: shop.name }));
     if (sent.error !== null) setWriteError(sent.error);
     setReload((current) => current + 1);
   }
@@ -322,7 +436,7 @@ export function MarketPanel({
   }
 
   if (shops === null) {
-    return <PanelLoading label="Looking over the stalls..." />;
+    return <PanelLoading label={t("campaign.market.loadingLabel")} />;
   }
   return (
     <div ref={listRef} className="space-y-2">
@@ -331,7 +445,7 @@ export function MarketPanel({
           open
           onOpenChange={(open) => !open && setDetails(null)}
           title={details.itemName}
-          meta={`${formatPrice(details.askingCp)} here, ${details.qty} on the shelf`}
+          meta={t("campaign.market.detailsMeta", { price: formatPrice(details.askingCp), qty: details.qty })}
           note={details.note || undefined}
           reference={{ kind: "items", slug: contentSlug(details.itemName), name: details.itemName }}
           icon={cardArtwork({ kind: "item", key: details.itemName, family: "item-gear" })}
@@ -339,7 +453,7 @@ export function MarketPanel({
       ) : null}
       <SectionHead
         headingRef={headingRef}
-        title="Market"
+        title={t("campaign.market.title")}
         glyph="tab-market"
         aside={
           mySheet ? (
@@ -350,15 +464,15 @@ export function MarketPanel({
           ) : null
         }
       />
-      {here ? <p className="-mt-1 text-xs text-stone-500">at {here.name}</p> : null}
+      {here ? <p className="-mt-1 text-xs text-stone-500">{t("campaign.market.atLocation", { location: here.name })}</p> : null}
       {error ? <p role="status" className="live-in text-xs text-amber-300/90">{error}</p> : null}
       {writeError ? <PanelError>{writeError}</PanelError> : null}
       {unpriced ? (
         <p role="status" className="live-in flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-amber-300/90">
-          <span className="min-w-0">The shopkeeper will name a price for {unpriced.item}.</span>
+          <span className="min-w-0">{t("campaign.market.unpricedNotice", { item: unpriced.item })}</span>
           {onAskKeeper ? (
-            <KitButton onClick={() => onAskKeeper(`I offer my ${unpriced.item} to the keeper of ${unpriced.shop} and ask what they would pay.`)}>
-              Ask at the counter
+            <KitButton onClick={() => onAskKeeper(t("campaign.market.askSellerPrompt", { item: unpriced.item, shop: unpriced.shop }))}>
+              {t("campaign.market.askAtCounter")}
             </KitButton>
           ) : null}
         </p>
@@ -366,15 +480,15 @@ export function MarketPanel({
       {canPrep ? (
         opening ? (
           <div className="panel reveal flex flex-wrap items-center gap-1.5 rounded-lg p-2.5">
-            <input ref={nameRef} value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} maxLength={80} placeholder="Marla's Sundries" aria-label="Shop name" className={cn(panelField, "min-w-[9rem] flex-1")} />
-            <Select size="sm" label="Kind of shop" value={draft.kind} options={KIND_OPTIONS} onChange={(kind) => setDraft({ ...draft, kind })} className="pk-w-28" />
-            <Select size="sm" label="Size of the place" value={draft.size} options={SIZE_OPTIONS} onChange={(size) => setDraft({ ...draft, size })} className="pk-w-24" />
+            <input ref={nameRef} value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} maxLength={80} placeholder={t("campaign.market.shopNamePlaceholder")} aria-label={t("campaign.marketEditor.shopName")} className={cn(panelField, "min-w-[9rem] flex-1")} />
+            <Select size="sm" label={t("campaign.marketEditor.kindLabel")} value={draft.kind} options={kindOptions} onChange={(kind) => setDraft({ ...draft, kind })} className="pk-w-28" />
+            <Select size="sm" label={t("campaign.marketEditor.sizeLabel")} value={draft.size} options={sizeOptions} onChange={(size) => setDraft({ ...draft, size })} className="pk-w-24" />
             {places.length ? (
               <Select
                 size="sm"
-                label="Where it stands"
+                label={t("campaign.marketEditor.where")}
                 value={draft.locationId || here?.id || ""}
-                options={[{ value: "", label: "No place yet" }, ...places.map((place) => ({ value: place.id, label: place.name, icon: { kind: "glyph" as const, key: "tab-map" } }))]}
+                options={[{ value: "", label: t("campaign.market.noPlace") }, ...places.map((place) => ({ value: place.id, label: place.name, icon: { kind: "glyph" as const, key: "tab-map" } }))]}
                 onChange={(locationId) => setDraft({ ...draft, locationId })}
                 className="min-w-[9rem] flex-1"
               />
@@ -382,25 +496,25 @@ export function MarketPanel({
             {keepers.length ? (
               <Select
                 size="sm"
-                label="Who keeps it"
+                label={t("campaign.marketEditor.whoKeeps")}
                 value={draft.keeperNpcId}
-                options={[{ value: "", label: "Nobody named" }, ...keepers.map((npc) => ({ value: npc.id, label: npc.name, icon: { kind: "glyph" as const, key: "system-cast" } }))]}
+                options={[{ value: "", label: t("campaign.market.noKeeper") }, ...keepers.map((npc) => ({ value: npc.id, label: npc.name, icon: { kind: "glyph" as const, key: "system-cast" } }))]}
                 onChange={(keeperNpcId) => setDraft({ ...draft, keeperNpcId })}
                 className="min-w-[9rem] flex-1"
               />
             ) : null}
             <SettingToggle on={draft.stockFromPack} onToggle={() => setDraft({ ...draft, stockFromPack: !draft.stockFromPack })}>
-              Stock the shelves from the content pack
+              {t("campaign.market.stockFromPack")}
             </SettingToggle>
-            {draft.stockFromPack ? null : <span className="live-in basis-full text-[11px] text-stone-500">It opens bare, straight into its shelf, for you to write line by line.</span>}
+            {draft.stockFromPack ? null : <span className="live-in basis-full text-[11px] text-stone-500">{t("campaign.market.bareShopHelp")}</span>}
             <KitButton tone="primary" disabled={busy === "open" || !draft.name.trim()} busy={busy === "open"} onClick={() => void open()}>
-              Open it
+              {t("campaign.market.createShop")}
             </KitButton>
-            <KitButton onClick={() => setOpening(false)}>Cancel</KitButton>
+            <KitButton onClick={() => setOpening(false)}>{t("campaign.market.cancel")}</KitButton>
           </div>
         ) : (
           <KitButton data-tour="market-open" onClick={() => setOpening(true)}>
-            <Plus className="size-3.5" /> Open a shop {here ? `at ${here.name}` : ""}
+            <Plus className="size-3.5" /> {here ? t("campaign.market.openShopAt", { place: here.name }) : t("campaign.market.openShop")}
           </KitButton>
         )
       ) : null}
@@ -408,7 +522,7 @@ export function MarketPanel({
         loadError ? (
           <LoadFailed error={loadError} onRetry={() => setReload((current) => current + 1)} />
         ) : loaded ? (
-          <EmptyState size="sm" art="chest" title={here ? `No shops at ${here.name}.` : canPrep ? "No shops yet. Open one and give it a shelf." : "The party is nowhere with a market yet."} />
+          <EmptyState size="sm" art="chest" title={here ? t("campaign.market.emptyAtLocation", { place: here.name }) : canPrep ? t("campaign.market.emptyCanOpen") : t("campaign.market.emptyPartyAway")} />
         ) : null
       ) : null}
       {shops.map((shop) => {
@@ -423,15 +537,15 @@ export function MarketPanel({
         // right-click or long-press menu offer the same list.
         const haggleItems: ContextMenuItem[] = canHaggle
           ? [
-              { id: "haggle", label: "Haggle (Persuasion)", glyph: "skill-persuasion", disabled: Boolean(busy), onSelect: () => void counter(shop, "haggle") },
-              { id: "haggle-intimidation", label: "Haggle by Intimidation (a bad failure: two steps up)", glyph: "skill-intimidation", disabled: Boolean(busy), onSelect: () => void counter(shop, "haggle", "", "intimidation") },
-              ...(canDeceive ? [{ id: "haggle-deception", label: "Haggle by Deception (works once per shop)", glyph: "skill-deception", disabled: Boolean(busy), onSelect: () => void counter(shop, "haggle", "", "deception") }] : []),
+              { id: "haggle", label: t("campaign.market.hagglePersuasion"), glyph: "skill-persuasion", disabled: Boolean(busy), onSelect: () => void counter(shop, "haggle") },
+              { id: "haggle-intimidation", label: t("campaign.market.haggleIntimidation"), glyph: "skill-intimidation", disabled: Boolean(busy), onSelect: () => void counter(shop, "haggle", "", "intimidation") },
+              ...(canDeceive ? [{ id: "haggle-deception", label: t("campaign.market.haggleDeception"), glyph: "skill-deception", disabled: Boolean(busy), onSelect: () => void counter(shop, "haggle", "", "deception") }] : []),
             ]
           : [];
         const shopItems: ContextMenuItem[] = [
           ...haggleItems,
-          ...(canPrep ? [{ id: "edit", label: "Edit the shop and its shelf", glyph: "ui-edit", separated: canHaggle, onSelect: () => setEditing(shop.id) }] : []),
-          ...(canPrep ? [{ id: "close", label: `Close ${shop.name}`, glyph: "ui-lock", tone: "danger" as const, onSelect: () => void close(shop) }] : []),
+          ...(canPrep ? [{ id: "edit", label: t("campaign.market.editShop"), glyph: "ui-edit", separated: canHaggle, onSelect: () => setEditing(shop.id) }] : []),
+          ...(canPrep ? [{ id: "close", label: t("campaign.market.closeNamedShop", { shop: shop.name }), glyph: "ui-lock", tone: "danger" as const, onSelect: () => void close(shop) }] : []),
         ];
         if (editing === shop.id) {
           return (
@@ -465,16 +579,16 @@ export function MarketPanel({
                     20rem panel leaves a name and its markup a few letters. */}
                 <p className="gold-title break-words text-sm leading-tight">{shop.name}</p>
                 <p className="text-pretty break-words text-[11px] leading-snug text-stone-500">
-                  {shop.kind}
-                  {shop.keeperName ? `, kept by ${shop.keeperName}` : ""}
-                  {steersStory && shop.locationName ? ` at ${shop.locationName}` : ""}
-                  {shop.yourMarkup !== 1 ? ` (prices ${shop.yourMarkup > 1 ? "+" : ""}${Math.round((shop.yourMarkup - 1) * 100)}%)` : ""}
+                  {marketKindLabel(shop.kind, t)}
+                  {shop.keeperName ? `, ${t("campaign.market.keeperBy", { name: shop.keeperName })}` : ""}
+                  {steersStory && shop.locationName ? ` · ${t("campaign.market.at", { place: shop.locationName })}` : ""}
+                  {shop.yourMarkup !== 1 ? ` ${t("campaign.market.priceMarkup", { percent: `${shop.yourMarkup > 1 ? "+" : ""}${Math.round((shop.yourMarkup - 1) * 100)}` })}` : ""}
                   {shop.kind === "curiosities" || shop.kind === "apothecary" ? (
                     <>
                       {" · "}
                       {/* A finger-sized target (40px) that keeps the line's height. */}
                       <GameTerm id="magic_item_prices" className="-my-3.5 inline-block py-3.5">
-                        How magic is priced
+                        {t("campaign.market.magicPricing")}
                       </GameTerm>
                     </>
                   ) : null}
@@ -483,24 +597,24 @@ export function MarketPanel({
               {canHaggle ? (
                 <>
                   <KitButton disabled={Boolean(busy)} busy={busy === `${shop.id}:haggle:`} onClick={() => void counter(shop, "haggle")}>
-                    Haggle
+                    {t("campaign.market.haggle")}
                   </KitButton>
                   {/* One tap haggles by Persuasion; this door opens the other
                       skills, the same list the shop's own menu holds. */}
                   <RowMenu
                     items={haggleItems}
-                    label={`Haggle at ${shop.name}`}
-                    trigger={{ label: "Haggle with another skill", icon: <ChevronDown className="size-4" aria-hidden="true" /> }}
+                    label={t("campaign.market.haggleAt", { shop: shop.name })}
+                    trigger={{ label: t("campaign.market.haggleOtherSkill"), icon: <ChevronDown className="size-4" aria-hidden="true" /> }}
                     className="-ml-1.5"
                   />
                 </>
               ) : null}
               {canPrep ? (
                 <>
-                  <KitButton tone="icon" always aria-label={`Edit ${shop.name}`} onClick={() => setEditing(shop.id)}>
+                  <KitButton tone="icon" always aria-label={t("campaign.marketEditor.ariaLabel", { shop: shop.name })} onClick={() => setEditing(shop.id)}>
                     <Pencil className="size-3.5" />
                   </KitButton>
-                  <KitButton tone="iconDanger" always aria-label={`Close ${shop.name}`} onClick={() => void close(shop)}>
+                  <KitButton tone="iconDanger" always aria-label={t("campaign.market.closeNamedShop", { shop: shop.name })} onClick={() => void close(shop)}>
                     <Trash2 className="size-3.5" />
                   </KitButton>
                 </>
@@ -508,19 +622,17 @@ export function MarketPanel({
             </ContextMenu>
             {canHaggle ? (
               <p data-haggle-rules="" className="text-pretty text-[11px] leading-snug text-stone-500">
-                Haggling is a Persuasion check against DC {shop.haggleDc}: win and your prices drop a step, fail and they stay where they were, fail by 5 or
-                more and they rise a step. One try each, and the price you get is yours, not the whole party&apos;s. The menu beside Haggle offers
-                Intimidation and Deception instead.
+                {t("campaign.market.haggleRules", { dc: shop.haggleDc })}
               </p>
             ) : mySheet && shop.standsHere === false ? (
               <p data-shop-away="" className="text-pretty text-[11px] leading-snug text-stone-500">
                 {shop.locationName
-                  ? `The party is not at ${shop.locationName}. Its shelf is for looking until they get there.`
-                  : "This shop has no place yet. Its shelf is for looking until it opens where the party is."}
+                  ? t("campaign.market.shopAwayNamed", { place: shop.locationName })
+                  : t("campaign.market.shopAwayUnknown")}
               </p>
             ) : mySheet && shop.yourHaggle !== null ? (
               <p data-haggle-rules="" className="text-[11px] leading-snug text-stone-500">
-                {haggledLine(shop.yourHaggle, shop.yourPrices ?? "")}
+                {haggledLine(shop.yourHaggle, shop.yourPrices ?? "", t)}
               </p>
             ) : null}
             {/* Columns follow the panel, not the window: the side panel is
@@ -536,15 +648,15 @@ export function MarketPanel({
                     key={line.itemName}
                     label={line.itemName}
                     items={[
-                      { id: "details", label: "Details", glyph: "system-rules", onSelect: () => setDetails(line) },
-                      ...(trades ? [{ id: "buy", label: `Buy for ${formatPrice(line.askingCp)}`, glyph: coinGlyph(line.askingCp), disabled: cannotBuy, onSelect: () => void counter(shop, "buy", line.itemName) }] : []),
+                      { id: "details", label: t("campaign.market.details"), glyph: "system-rules", onSelect: () => setDetails(line) },
+                      ...(trades ? [{ id: "buy", label: t("campaign.market.buyFor", { price: formatPrice(line.askingCp) }), glyph: coinGlyph(line.askingCp), disabled: cannotBuy, onSelect: () => void counter(shop, "buy", line.itemName) }] : []),
                     ]}
                     className="flex flex-col justify-between rounded-lg border border-stone-700/60 bg-stone-900/50 p-2 transition-transform duration-[var(--dur-quick,150ms)] hover:-translate-y-0.5 hover:border-amber-500/40"
                   >
                     <button
                       type="button"
                       onClick={() => setDetails(line)}
-                      aria-label={`Details of ${line.itemName}`}
+                      aria-label={t("campaign.market.detailsOf", { item: line.itemName })}
                       className="pk-tap flex min-w-0 items-center gap-1.5 rounded text-left text-xs text-stone-200 hover:text-amber-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-400"
                     >
                       <GameIcon icon={{ kind: "item", key: line.itemName, family: "item-gear" }} size="size-7" />
@@ -560,18 +672,18 @@ export function MarketPanel({
                     </span>
                     {trades ? (
                       <KitButton disabled={cannotBuy} busy={buying} onClick={() => void counter(shop, "buy", line.itemName)} className="mt-1.5 w-full justify-center border-amber-500/30 text-amber-100">
-                        {buying ? null : "Buy"}
+                        {buying ? null : t("campaign.market.buy")}
                       </KitButton>
                     ) : null}
                   </ContextMenu>
                 );
               })}
-              {!shop.stock.length ? <li className="col-span-full text-xs italic text-stone-500">Bare shelves.</li> : null}
+              {!shop.stock.length ? <li className="col-span-full text-xs italic text-stone-500">{t("campaign.market.bareShelves")}</li> : null}
             </ul>
             {shop.buys && trades && mySheet?.equipment.length ? (
               <details className="group/sell text-xs">
                 <summary className="pk-link pk-tap flex cursor-pointer list-none items-center gap-1">
-                  <GameIcon icon={{ kind: "glyph", key: "tab-trade" }} size="size-5" /> Sell from your pack
+                  <GameIcon icon={{ kind: "glyph", key: "tab-trade" }} size="size-5" /> {t("campaign.market.sellFromPack")}
                   <ChevronDown className="size-3.5 transition-transform group-open/sell:rotate-180" />
                 </summary>
                 <ul className="stagger mt-1.5 flex flex-wrap gap-1">

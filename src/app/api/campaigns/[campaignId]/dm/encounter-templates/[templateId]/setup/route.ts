@@ -1,6 +1,6 @@
 import { isErrorResponse, requirePrepAuthority } from "@/lib/campaign-api";
 import { getEncounterTemplate, getTemplateSetup, setTemplateSetup } from "@/lib/db/encounter-templates";
-import { describeFightSetup } from "@/lib/workshop/fight-setup-logic";
+import { describeFightSetup, describeFightSetupReadout } from "@/lib/workshop/fight-setup-logic";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -35,7 +35,11 @@ export async function GET(
     return resolved.error;
   }
   const setup = getTemplateSetup(resolved.template.id);
-  return Response.json({ setup, lines: setup ? describeFightSetup(setup) : [] });
+  return Response.json({
+    setup,
+    lines: setup ? describeFightSetup(setup) : [],
+    readout: setup ? describeFightSetupReadout(setup) : null,
+  });
 }
 
 export async function DELETE(

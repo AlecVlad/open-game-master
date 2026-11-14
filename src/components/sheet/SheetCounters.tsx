@@ -2,6 +2,7 @@
 
 import { Minus, Plus } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { useI18n } from "@/lib/i18n/provider";
 import { InfoButton } from "@/components/ui/InfoDialog";
 import { counterView } from "@/components/sheet/sheet-state";
 
@@ -34,13 +35,14 @@ export function SlotRow({
   onSpend?: () => void;
   onRecover?: () => void;
 }) {
+  const { t } = useI18n();
   return (
     <span
       className="flex items-center gap-1.5 rounded-lg border border-stone-800 px-2 py-1"
-      title={`${left} of ${max} ${label.toLowerCase()} slots left`}
+      title={t("charSheet.spellSlot.leftTitle", { left, max, label: label.toLowerCase() })}
     >
       <span className="font-display text-[11px] tracking-wide text-stone-400">{label}</span>
-      <span className="flex gap-0.5" aria-label={`${left} of ${max} left`}>
+      <span className="flex gap-0.5" aria-label={t("charSheet.spellSlot.leftAria", { left, max })}>
         {Array.from({ length: max }, (_, index) => (
           <span
             key={index}
@@ -58,8 +60,8 @@ export function SlotRow({
           type="button"
           className={STEP_BUTTON}
           disabled={busy || left <= 0}
-          title="Mark one slot as spent"
-          aria-label={`Spend a ${label} slot`}
+          title={t("charSheet.spellSlot.spendTitle")}
+          aria-label={t("charSheet.spellSlot.spendAria", { label })}
           onClick={onSpend}
         >
           <Minus className="size-3" />
@@ -70,8 +72,8 @@ export function SlotRow({
           type="button"
           className={STEP_BUTTON}
           disabled={busy || left >= max}
-          title="Correction: give one slot back"
-          aria-label={`Give back a ${label} slot`}
+          title={t("charSheet.spellSlot.recoverTitle")}
+          aria-label={t("charSheet.spellSlot.recoverAria", { label })}
           onClick={onRecover}
         >
           <Plus className="size-3" />
@@ -109,6 +111,7 @@ export function ResourceRow({
   onSpend: () => void;
   onRecover: () => void;
 }) {
+  const { t } = useI18n();
   const counter = counterView(id, pool);
   return (
   <div className="flex items-center gap-2">
@@ -121,7 +124,7 @@ export function ResourceRow({
         type="button"
         className={STEP_BUTTON}
         disabled={busy || pool.used >= pool.max || Boolean(deadNote)}
-        title={deadNote ?? "Spend a use"}
+        title={deadNote ?? t("charSheet.resource.spendTitle")}
         onClick={onSpend}
       >
         <Minus className="size-3" />
@@ -133,14 +136,14 @@ export function ResourceRow({
     {/* Relentless Rage's DC climbs with each use since the
         last rest (the engine's count). */}
     {id === "relentless_rage" ? (
-      <span className="text-[11px] text-stone-500">next DC {10 + 5 * pool.used}</span>
+      <span className="text-[11px] text-stone-500">{t("charSheet.resource.nextDc", { dc: 10 + 5 * pool.used })}</span>
     ) : null}
     {corrects ? (
       <button
         type="button"
         className={STEP_BUTTON}
         disabled={busy || pool.used <= 0}
-        title="Correction: give a use back"
+        title={t("charSheet.resource.recoverTitle")}
         onClick={onRecover}
       >
         <Plus className="size-3" />

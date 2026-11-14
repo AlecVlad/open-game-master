@@ -79,6 +79,155 @@ const fighterLevel = (sheet, extra = {}) => ({
 
 // ---- enforced today ----
 
+await test("level-up builder refusals expose locale-neutral codes and parameters", async () => {
+  const { sheet, patch } = await table(FIGHTER, { xp: XP[3] });
+  const before = sheet();
+  const skipped = await patch({ level: 3 });
+  assert.equal(skipped.status, 400);
+  assert.equal(skipped.json.errorCode, "LEVEL_UP_WRONG_SEQUENCE");
+  assert.deepEqual(skipped.json.errorParams, { name: before.name, level: 1, nextLevel: 2 });
+  assert.deepEqual(sheet(), before);
+
+  const earlySubclass = await patch({ level: 2, subclass: "Champion" });
+  assert.equal(earlySubclass.status, 400);
+  assert.equal(earlySubclass.json.errorCode, "LEVEL_UP_SUBCLASS_TOO_EARLY");
+  assert.deepEqual(earlySubclass.json.errorParams, { className: "Fighter", classLevel: 2, requiredLevel: 3 });
+  assert.deepEqual(sheet(), before);
+
+  const unavailableClass = await patch({ level: 2, levelUpClass: "not-a-class" });
+  assert.equal(unavailableClass.status, 400);
+  assert.equal(unavailableClass.json.errorCode, "LEVEL_UP_UNKNOWN_CLASS");
+  assert.deepEqual(sheet(), before);
+});
+
+await test("an unearned level identifies the missing experience in a structured refusal", async () => {
+  const { sheet, patch } = await table(FIGHTER);
+  const before = sheet();
+  const response = await patch({ level: 2 });
+  assert.equal(response.status, 403);
+  assert.equal(response.json.errorCode, "LEVEL_UP_XP_REQUIRED");
+  assert.deepEqual(response.json.errorParams, { name: before.name, level: 2, required: 300, current: 0 });
+  assert.deepEqual(sheet(), before);
+});
+
+await test("level-up choice refusals carry stable codes", async () => {
+  const { sheet, patch } = await table(FIGHTER, { xp: XP[2] });
+  const before = sheet();
+  const lowered = await patch({ level: 2, abilities: { ...before.abilities, str: before.abilities.str - 1 } });
+  assert.equal(lowered.status, 400);
+  assert.equal(lowered.json.errorCode, "LEVEL_UP_ABILITY_LOWERED");
+  assert.deepEqual(lowered.json.errorParams, { ability: "str", current: before.abilities.str, requested: before.abilities.str - 1 });
+  assert.deepEqual(sheet(), before);
+
+  const asi = await patch({ level: 2, asiChoices: [{ mode: "plus2", ability: "str" }] });
+  assert.equal(asi.status, 400);
+  assert.equal(asi.json.errorCode, "LEVEL_UP_ASI_NOT_GRANTED");
+  assert.deepEqual(asi.json.errorParams, { classLevel: 2 });
+  assert.deepEqual(sheet(), before);
+
+  const expertise = await patch({ level: 2, expertise: ["perception"] });
+  assert.equal(expertise.status, 400);
+  assert.equal(expertise.json.errorCode, "LEVEL_UP_EXPERTISE_NOT_AVAILABLE");
+  assert.deepEqual(sheet(), before);
+});
+await test("a half-feat with an unselected ability returns a structured refusal", async () => {
+  const { sheet, patch } = await table({ ...FIGHTER, level: 3 }, { xp: XP[4] });
+  const before = sheet();
+  const response = await patch({ level: 4, asiChoices: [{ mode: "feat", feat: "Resilient" }] });
+  assert.equal(response.status, 400);
+  assert.equal(response.json.errorCode, "FEAT_ABILITY_CHOICE_REQUIRED");
+  assert.equal(response.json.errorParams.feat, "Resilient");
+  assert.equal(response.json.errorParams.abilities.split(",").length, 6);
+  assert.deepEqual(sheet(), before);
+});
+await test("invalid feat-grant selections return structured refusal details", async () => {
+  const { sheet, patch } = await table({ ...FIGHTER, level: 3 }, { xp: XP[4] });
+  const before = sheet();
+  const response = await patch({
+    level: 4,
+    asiChoices: [{ mode: "feat", feat: "Skilled" }],
+    featChoices: { Skilled: { skills: ["not-a-skill", "athletics", "perception"] } },
+  });
+  assert.equal(response.status, 400);
+  assert.equal(response.json.errorCode, "FEAT_GRANT_SKILL_INVALID");
+  assert.deepEqual(response.json.errorParams, { feat: "Skilled", skill: "not-a-skill" });
+  assert.deepEqual(sheet(), before);
+});
+await test("spell-grant refusals carry structured spell and list details", async () => {
+  const { sheet, patch } = await table({ ...FIGHTER, level: 3 }, { xp: XP[4] });
+  const before = sheet();
+  const response = await patch({
+    level: 4,
+    asiChoices: [{ mode: "feat", feat: "Magic Initiate" }],
+    featChoices: { "Magic Initiate": { list: "dragon", ability: "cha", cantrips: ["mage hand", "minor illusion"], spells: ["shield"] } },
+  });
+  assert.equal(response.status, 400);
+  assert.equal(response.json.errorCode, "FEAT_SPELL_LIST_NOT_OFFERED");
+  assert.deepEqual(response.json.errorParams, { feat: "Magic Initiate", list: "dragon", offered: "bard,cleric,druid,sorcerer,warlock,wizard" });
+  assert.deepEqual(sheet(), before);
+});
+await test("a class-feature option refusal carries a stable cantrip prerequisite code", async () => {
+  const { sheet, patch } = await table({
+    name: "Mira",
+    class: "warlock",
+    level: 1,
+    maxHp: 10,
+    currentHp: 10,
+    abilities: { str: 8, dex: 14, con: 14, int: 10, wis: 12, cha: 16 },
+    features: [],
+    spellcasting: {
+      ability: "cha",
+      slots: { 1: { max: 1, used: 0 } },
+      prepared: [],
+      known: ["Armor of Agathys", "Hex"],
+      cantrips: ["Mage Hand", "Minor Illusion"],
+      spellbook: [],
+    },
+  }, { xp: 300 });
+  const before = sheet();
+  const refused = await patch({
+    level: 2,
+    features: [{ name: "Invocation: Repelling Blast", source: "choice" }],
+  });
+  assert.equal(refused.status, 400, JSON.stringify(refused.json));
+  assert.equal(refused.json.errorCode, "LEVEL_UP_OPTION_REQUIRES_CANTRIP");
+  assert.deepEqual(refused.json.errorParams, { option: "Repelling Blast", cantrip: "Eldritch Blast" });
+  assert.match(refused.json.error, /Repelling Blast needs the Eldritch Blast cantrip/);
+  assert.deepEqual(sheet(), before, "a refused invocation changed the character");
+});
+
+await test("a Spell Mastery choice must already be written in the wizard's spellbook", async () => {
+  const { sheet, patch } = await table({
+    name: "Ilvane",
+    class: "wizard",
+    subclass: "School of Evocation",
+    level: 17,
+    maxHp: 100,
+    currentHp: 100,
+    abilities: { str: 8, dex: 14, con: 14, int: 18, wis: 12, cha: 10 },
+    hitDice: { die: "d6", total: 17, spent: 0 },
+    features: [],
+    spellcasting: {
+      ability: "int",
+      slots: { 1: { max: 4, used: 0 } },
+      prepared: ["Shield"],
+      known: [],
+      cantrips: ["Fire Bolt"],
+      spellbook: ["Shield", "Magic Missile", "Mage Armor", "Detect Magic"],
+    },
+  }, { xp: 225000 });
+  const before = sheet();
+  const refused = await patch({
+    level: 18,
+    features: [{ name: "Spell Mastery: Feather Fall", source: "choice" }],
+  });
+  assert.equal(refused.status, 400, JSON.stringify(refused.json));
+  assert.equal(refused.json.errorCode, "LEVEL_UP_OPTION_SPELLBOOK_REQUIRED");
+  assert.deepEqual(refused.json.errorParams, { spell: "Feather Fall", name: "Ilvane" });
+  assert.match(refused.json.error, /Feather Fall is not in Ilvane's spellbook/);
+  assert.deepEqual(sheet(), before, "a refused Spell Mastery choice changed the character");
+});
+
 await test("an earned level is taken, and the stored sheet is the levelled one", async () => {
   const { sheet, patch } = await table(FIGHTER, { xp: XP[2] });
   const before = sheet();
@@ -117,6 +266,13 @@ await test("experience for several levels lets them be taken, one request each",
 await test("outside a level-up only portrait, notes and backstory can be written", async () => {
   const { sheet, patch } = await table({ ...FIGHTER, level: 3 }, { xp: XP[3] });
   const before = sheet();
+  const alreadyTaken = await patch({ level: before.level });
+  assert.equal(alreadyTaken.status, 403);
+  assert.equal(alreadyTaken.json.errorCode, "LEVEL_UP_ALREADY_TAKEN");
+  assert.deepEqual(alreadyTaken.json.errorParams, { name: before.name, level: before.level, nextLevel: before.level + 1 });
+  const cosmeticsOnly = await patch({ maxHp: 200 });
+  assert.equal(cosmeticsOnly.status, 403);
+  assert.equal(cosmeticsOnly.json.errorCode, "LEVEL_UP_COSMETIC_FIELDS_ONLY");
   const attempts = [
     { maxHp: 200 },
     { currentHp: 1 },
@@ -140,6 +296,16 @@ await test("outside a level-up only portrait, notes and backstory can be written
   assert.equal(notes.status, 200);
   assert.equal(sheet().notes, "a note");
   assert.equal(sheet().level, 3);
+});
+
+await test("a repeated request at level 20 uses the maximum-level refusal code", async () => {
+  const { sheet, patch } = await table({ ...FIGHTER, level: 20 });
+  const before = sheet();
+  const response = await patch({ level: 20 });
+  assert.equal(response.status, 403);
+  assert.equal(response.json.errorCode, "LEVEL_UP_ALREADY_AT_MAX");
+  assert.deepEqual(response.json.errorParams, { name: before.name, level: 20 });
+  assert.deepEqual(sheet(), before);
 });
 
 await test("no sheet passes level 20, and a level is a whole number from 1", async () => {

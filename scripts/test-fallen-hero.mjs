@@ -138,8 +138,12 @@ await test("picking the fallen hero again from the library is refused, by the do
   const again = await table.call("campaigns/[campaignId]/sheet", "POST", { libraryCharacterId: linked });
   assert.equal(again.status, 409);
   assert.match(again.json.error, /Mira Vale fell at this table/);
+  assert.equal(again.json.errorCode, "HERO_FELL_AT_TABLE");
+  assert.deepEqual(again.json.errorParams, { name: "Mira Vale" });
   const preview = await table.call("campaigns/[campaignId]/sheet/preview", "POST", { libraryCharacterId: linked });
   assert.ok(preview.json.preview.problems.some((line) => /Mira Vale fell at this table/.test(line)), JSON.stringify(preview.json.preview.problems));
+  assert.deepEqual(preview.json.preview.problemCodes, ["HERO_FELL_AT_TABLE"]);
+  assert.deepEqual(preview.json.preview.problemParams, [{ name: "Mira Vale" }]);
   // Only the refusal: not "already at this table" above it, and nothing
   // about what joining would change.
   assert.equal(preview.json.preview.alreadyHere, false, "a fallen hero is not offered as already seated");

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState, type CSSProperties } from "re
 import { Flame, Footprints, Swords } from "lucide-react";
 import { cn } from "@/lib/cn";
 import type { MoveNote } from "@/lib/battlemap/board-move";
+import { formatMeasurementText, type MeasurementSystem } from "@/lib/measurement-system";
 
 // What a walk met on the way, as the move route reported it
 // (src/lib/battlemap/board-move.ts moveNotesFrom): an enemy's opportunity
@@ -45,7 +46,7 @@ export function useMoveNotes() {
   return { notes, push };
 }
 
-export function BoardMoveNotes({ notes }: { notes: Shown[] }) {
+export function BoardMoveNotes({ notes, measurementSystem = "si", tableLanguage = "english" }: { notes: Shown[]; measurementSystem?: MeasurementSystem; tableLanguage?: string }) {
   if (!notes.length) return null;
   return (
     <div
@@ -73,7 +74,7 @@ export function BoardMoveNotes({ notes }: { notes: Shown[] }) {
           ) : (
             <Flame className="mt-0.5 size-3.5 shrink-0" />
           )}
-          {note.text}
+          {formatMeasurementText(note.text, measurementSystem, tableLanguage)}
         </p>
       ))}
     </div>

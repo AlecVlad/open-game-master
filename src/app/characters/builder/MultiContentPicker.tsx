@@ -2,6 +2,7 @@
 
 import { Check, Loader2, Plus, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/cn";
 import { InfoButton } from "@/components/ui/InfoDialog";
 import { describeContentEntry, spellSummary } from "@/lib/help";
@@ -34,6 +35,7 @@ export default function MultiContentPicker({
   onAdd: (entries: MultiPick[]) => void;
   renderMeta?: (entry: PickerEntry) => string;
 }) {
+  const { t } = useI18n();
   const { query, setQuery, results, setResults, open, setOpen, loading, unavailable, failed, unadmitted } =
     useContentSearch(kind, extraParams);
   const [pending, setPending] = useState<MultiPick[]>([]);
@@ -132,9 +134,9 @@ export default function MultiContentPicker({
                   </span>
                   <span className="shrink-0 text-xs text-stone-500">
                     {alreadyOn
-                      ? "already added"
+                      ? t("builder.extra.contentPicker.alreadyAdded")
                       : entry.source === "homebrew"
-                        ? "homebrew"
+                        ? t("builder.extra.contentPicker.homebrew")
                         : (renderMeta?.(entry) ?? "")}
                   </span>
                 </button>
@@ -156,22 +158,22 @@ export default function MultiContentPicker({
                 onClick={addCustom}
                 className="flex w-full items-center gap-1.5 px-3 py-1.5 text-left text-sm text-amber-300 hover:bg-stone-800"
               >
-                <Plus className="size-3.5 shrink-0" /> Add &quot;{trimmedQuery}&quot; as custom
+                <Plus className="size-3.5 shrink-0" /> {t("builder.extra.contentPicker.addCustom", { query: trimmedQuery })}
               </button>
             </li>
           ) : null}
           {failed ? (
             <li role="alert" className="px-3 py-1.5 text-xs text-amber-300/90">
-              Could not reach the server to search; type again to retry, or add entries by name.
+              {t("builder.extra.contentPicker.searchFailedCustom")}
             </li>
           ) : unavailable ? (
             <li className="px-3 py-1.5 text-xs text-stone-500">
-              Content pack not installed; add entries by name instead.
+              {t("builder.extra.contentPicker.packMissingShort")}
             </li>
           ) : null}
           {unadmitted.length ? (
             <li className="px-3 py-1.5 text-sm text-stone-500">
-              Your own {unadmitted.join(", ")} {unadmitted.length === 1 ? "is" : "are"} not offered at this table: whoever runs it (the owner, the GM or the assistant GM) keeps a copy to admit one.
+              {t("builder.extra.contentPicker.unadmitted", { names: unadmitted.join(", ") })}
             </li>
           ) : null}
         </ul>
@@ -189,7 +191,7 @@ export default function MultiContentPicker({
                 onClick={() =>
                   setPending((picks) => picks.filter((entry) => entry.name !== pick.name))
                 }
-                aria-label={`Remove ${pick.name}`}
+                aria-label={t("builder.extra.contentPicker.remove", { name: pick.name })}
                 className="text-stone-500 hover:text-red-400"
               >
                 <X className="size-3" />
@@ -201,7 +203,7 @@ export default function MultiContentPicker({
             onClick={commit}
             className="rounded-full bg-amber-300 px-2.5 py-0.5 text-xs font-medium text-stone-950 hover:bg-amber-200"
           >
-            Add {pending.length}
+            {t("builder.extra.contentPicker.pendingAdd", { count: pending.length })}
           </button>
         </div>
       ) : null}

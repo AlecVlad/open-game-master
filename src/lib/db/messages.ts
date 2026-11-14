@@ -6,6 +6,7 @@ import { parseMessageIntent, type MessageIntent } from "@/lib/dm/intent-logic";
 import { isSystemGlyph, type SystemGlyph } from "@/lib/system-glyphs";
 import { noteNamesHeard } from "@/lib/dm/cast";
 import { isHaltedTurnNotice } from "@/lib/campaign-types";
+import { parseFightSetupNotice, type FightSetupNotice } from "@/lib/workshop/fight-setup-logic";
 
 export type CampaignMessage = {
   id: string;
@@ -59,6 +60,7 @@ export type CampaignMessage = {
   // person's adjudication, src/lib/dm/persons-record.ts). Its words stand
   // alone for a screen that does not know this field. Only rolls every seat
   // is sent; absent everywhere else.
+  fightSetup?: FightSetupNotice;
   rollIds?: string[];
   createdAt: string;
 };
@@ -86,6 +88,7 @@ type MessageRow = {
   speech_json?: string | null;
   shop_id?: string | null;
   roll_ids_json?: string | null;
+  fight_setup_json?: string | null;
   created_at: string;
 };
 
@@ -93,6 +96,11 @@ function rollIdsOf(json: string | null | undefined): { rollIds?: string[] } {
   const ids = parseJson<unknown>(json ?? "null", null);
   const rollIds = Array.isArray(ids) ? ids.filter((id): id is string => typeof id === "string") : [];
   return rollIds.length ? { rollIds } : {};
+}
+ 
+function fightSetupOf(json: string | null | undefined): { fightSetup?: FightSetupNotice } {
+  const fightSetup = parseFightSetupNotice(parseJson<unknown>(json ?? "null", null));
+  return fightSetup ? { fightSetup } : {};
 }
 
 function mapMessage(row: MessageRow): CampaignMessage {
@@ -119,6 +127,7 @@ function mapMessage(row: MessageRow): CampaignMessage {
     speech: normalizeSpokenLines(parseJson<unknown>(row.speech_json ?? "null", null)),
     shopId: row.shop_id ?? undefined,
     ...rollIdsOf(row.roll_ids_json),
+    ...fightSetupOf(row.fight_setup_json),
     createdAt: row.created_at,
   };
 }
@@ -140,7 +149,7 @@ export function insertCampaignMessage(
   } & (
     | { authorType: "player"; glyph?: never; speech?: never }
     | { authorType: "dm"; glyph?: never; speech: readonly SpokenLine[] }
-    | { authorType: "system"; glyph: SystemGlyph; speech?: never; shopId?: string; rollIds?: readonly string[] }
+    | { authorType: "system"; glyph: SystemGlyph; speech?: never; shopId?: string; rollIds?: readonly string[]; fightSetup?: FightSetupNotice }
   ),
 ): CampaignMessage {
   const id = crypto.randomUUID();
@@ -149,9 +158,9 @@ export function insertCampaignMessage(
       `
         INSERT INTO campaign_messages (
           id, campaign_id, seq, author_type, user_id, character_id, content,
-          image_request_json, location_id, dm_turn_id, speaker_json, intent_json, glyph, speech_json, shop_id, roll_ids_json, created_at
+          image_request_json, location_id, dm_turn_id, speaker_json, intent_json, glyph, speech_json, shop_id, roll_ids_json, fight_setup_json, created_at
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
     )
     .run(
@@ -171,6 +180,7 @@ export function insertCampaignMessage(
       input.speech?.length ? JSON.stringify(input.speech) : null,
       (input.authorType === "system" && input.shopId) || null,
       input.authorType === "system" && input.rollIds?.length ? JSON.stringify(input.rollIds) : null,
+      input.authorType === "system" && input.fightSetup ? JSON.stringify(input.fightSetup) : null,
       nowIso(),
     );
   touchCampaign(input.campaignId);

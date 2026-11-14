@@ -2,6 +2,8 @@
 
 import { Plus, Sparkles, UserRound } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
+import { characterClassName, characterRaceName, characterSubclassName } from "@/lib/i18n/character-names";
 import { GameIcon } from "@/components/ui/GameIcon";
 import { SectionHead } from "@/components/ui/SectionHead";
 import { cn } from "@/lib/cn";
@@ -14,8 +16,6 @@ import { useWorldPack } from "@/app/characters/builder/useBuilderOptions";
 import { settingClassIds } from "@/lib/classes";
 import { genrePreset } from "@/lib/genres";
 import type { Genre } from "@/lib/schemas/game-settings";
-import { findClass } from "@/lib/srd";
-import { workshopClassName } from "@/lib/classes/workshop-registry";
 import { classWordsAfterLevel } from "@/lib/characters/class-words";
 
 export type ChooserCharacter = {
@@ -46,9 +46,6 @@ type OfferedPregen = {
   takenBy: string | null;
 };
 
-function titleCase(value: string) {
-  return value.replace(/[-_]/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
-}
 
 // One screen for every hero a seat can take (backlog F5), in this order: the
 // player's own heroes, the pregens the table's DM offers its players (ticked
@@ -86,6 +83,7 @@ export function HeroChooser({
   onHelpMeBuild: () => void;
   onSeated: () => void;
 }) {
+  const { t } = useI18n();
   const [workshops, setWorkshops] = useState<Record<string, string>>({});
   // Which of a library character's classes come from another setting than
   // the table's: said on the card before it joins, never refused (issue
@@ -98,7 +96,7 @@ export function HeroChooser({
       return [];
     }
     const ids = [...new Set([character.class, ...(character.sheet?.classes ?? []).map((entry) => entry.id)].map((id) => id.toLowerCase()))];
-    return ids.filter((id) => !settingIds.includes(id)).map((id) => findClass(id)?.name ?? titleCase(id));
+    return ids.filter((id) => !settingIds.includes(id)).map((id) => characterClassName(id, t));
   };
   const [picked, setPicked] = useState<JoinHero | null>(null);
   const sections = chooserSections(characters);
@@ -163,26 +161,26 @@ export function HeroChooser({
             <GameIcon icon={{ kind: "family", key: `class-${character.class.toLowerCase()}` }} size="size-7" className="ml-auto" />
             {character.id === currentLibraryId ? (
               <span className="rounded-full border border-amber-500/30 bg-amber-400/10 px-2 py-0.5 text-[11px] text-amber-200">
-                current
+                {t("campaign.session.heroChooser.current")}
               </span>
             ) : null}
           </div>
           <p className="mt-1 text-sm text-stone-400">
-            Level {character.level} {character.raceLabel ?? titleCase(character.race)}{" "}
-            {classWordsAfterLevel({ ...character, classes: character.sheet?.classes }, (id) => workshopClassName(id) ?? titleCase(id))}
-            {character.subclass ? ` (${character.subclass})` : ""}
+            {t("campaign.session.heroChooser.levelLine", { level: character.level, race: characterRaceName(character.race, character.raceLabel, t) })}{" "}
+            {classWordsAfterLevel({ ...character, classes: character.sheet?.classes }, (id) => characterClassName(id, t))}
+            {character.subclass ? ` (${characterSubclassName(character.class, character.subclass, t)})` : ""}
           </p>
-          {from ? <p className="mt-0.5 text-xs text-stone-500">From {from}</p> : null}
+          {from ? <p className="mt-0.5 text-xs text-stone-500">{t("campaign.session.heroChooser.from", { name: from })}</p> : null}
           {strangers(character).length ? (
             <p className="reveal mt-1 text-xs text-stone-400">
-              {strangers(character).join(" and ")} {strangers(character).length === 1 ? "comes" : "come"} from another setting; this table plays {settingName}.
+              {t("campaign.session.heroChooser.foreignClasses", { classes: strangers(character).join(", "), setting: settingName })}
             </p>
           ) : null}
           {character.level !== level ? (
             <p className="reveal mt-1 text-xs text-amber-200">
               {character.level < level
-                ? `Levelled up to ${level} for this table. Your library copy stays level ${character.level} until the campaign ends and brings its progress home.`
-                : `Plays at level ${level} here. Your library copy keeps level ${character.level}; gear, gold and notes still come home with it.`}
+                ? t("campaign.session.heroChooser.belowTableLevel", { tableLevel: level, libraryLevel: character.level })
+                : t("campaign.session.heroChooser.aboveTableLevel", { tableLevel: level, libraryLevel: character.level })}
             </p>
           ) : null}
         </button>
@@ -194,7 +192,7 @@ export function HeroChooser({
     <section className="reveal space-y-5" data-hero-chooser>
       {sections.own.length ? (
         <div className="space-y-3" data-chooser-section="library">
-          <SectionHead title="Your heroes" glyph="tab-characters" level="h2" aside={<span className="text-xs text-stone-400">{sections.own.length}</span>} />
+          <SectionHead title={t("campaign.session.heroChooser.own.title")} glyph="tab-characters" level="h2" aside={<span className="text-xs text-stone-400">{sections.own.length}</span>} />
           <ul className="stagger-up grid grid-cols-1 gap-3 sm:grid-cols-2">
             {sections.own.map((character) => characterCard(character))}
           </ul>
@@ -203,8 +201,8 @@ export function HeroChooser({
 
       {offered.length ? (
         <div className="space-y-3" data-chooser-section="offered">
-          <SectionHead title="Pregens your GM offers" glyph="tab-characters" level="h2" aside={<span className="text-xs text-stone-400">{offered.length}</span>} />
-          <p className="text-xs text-stone-400">Heroes the GM wrote for this adventure. Take one and you play your own copy, at this table&apos;s level. One player each.</p>
+          <SectionHead title={t("campaign.session.heroChooser.offered.title")} glyph="tab-characters" level="h2" aside={<span className="text-xs text-stone-400">{offered.length}</span>} />
+          <p className="text-xs text-stone-400">{t("campaign.session.heroChooser.offered.description")}</p>
           <ul className="stagger-up grid grid-cols-1 gap-3 sm:grid-cols-2">
             {offered.map((pregen) => (
               <li key={pregen.id}>
@@ -222,16 +220,18 @@ export function HeroChooser({
                     <GameIcon icon={{ kind: "family", key: `class-${pregen.class.toLowerCase()}` }} size="size-7" className="ml-auto" />
                   </div>
                   <p className="mt-1 text-sm text-stone-400">
-                    Level {pregen.level} {titleCase(pregen.race)} {workshopClassName(pregen.class) ?? titleCase(pregen.class)}
-                    {pregen.subclass ? ` (${pregen.subclass})` : ""}
+                    {t("campaign.session.heroChooser.levelLine", { level: pregen.level, race: characterRaceName(pregen.race, null, t) })} {characterClassName(pregen.class, t)}
+                    {pregen.subclass ? ` (${characterSubclassName(pregen.class, pregen.subclass, t)})` : ""}
                   </p>
                   {pregen.taken === "mine" ? (
-                    <p className="mt-1 text-xs text-amber-200">You play this one here.</p>
+                    <p className="mt-1 text-xs text-amber-200">{t("campaign.session.heroChooser.taken.mine")}</p>
                   ) : pregen.taken === "other" ? (
-                    <p className="mt-1 text-xs text-stone-400">Taken by {pregen.takenBy}.</p>
+                    <p className="mt-1 text-xs text-stone-400">{t("campaign.session.heroChooser.taken.other", { name: pregen.takenBy ?? "" })}</p>
                   ) : pregen.level !== level ? (
                     <p className="reveal mt-1 text-xs text-amber-200">
-                      {pregen.level < level ? `Levelled up to ${level} for this table.` : `Plays at level ${level} here.`}
+                      {pregen.level < level
+                        ? t("campaign.session.heroChooser.offeredBelowLevel", { level })
+                        : t("campaign.session.heroChooser.offeredAboveLevel", { level })}
                     </p>
                   ) : null}
                 </button>
@@ -243,11 +243,11 @@ export function HeroChooser({
 
       {sections.pregens.length ? (
         <div className="space-y-3" data-chooser-section="pregens">
-          <SectionHead title="Pregens from your adventures" glyph="tab-characters" level="h2" aside={<span className="text-xs text-stone-400">{sections.pregens.length}</span>} />
-          <p className="text-xs text-stone-400">Heroes a workshop or an imported adventure was written for.</p>
+          <SectionHead title={t("campaign.session.heroChooser.workshop.title")} glyph="tab-characters" level="h2" aside={<span className="text-xs text-stone-400">{sections.pregens.length}</span>} />
+          <p className="text-xs text-stone-400">{t("campaign.session.heroChooser.workshop.description")}</p>
           <ul className="stagger-up grid grid-cols-1 gap-3 sm:grid-cols-2">
             {sections.pregens.map((character) =>
-              characterCard(character, workshops[character.workshopId ?? ""] || "an adventure"),
+              characterCard(character, workshops[character.workshopId ?? ""] || t("campaign.session.heroChooser.anAdventure")),
             )}
           </ul>
         </div>
@@ -256,7 +256,7 @@ export function HeroChooser({
       {/* The ready-made starters, through the same confirm sheet. A switch
           in the lobby swaps one library hero for another (PUT /sheet); the
           ready-made door only seats a first hero, so it is not offered. */}
-      {flow === "join" ? <PregenPicker campaignId={campaignId} heading="Ready-made heroes" onSeated={onSeated} /> : null}
+      {flow === "join" ? <PregenPicker campaignId={campaignId} heading={t("campaign.session.heroChooser.readyMade")} onSeated={onSeated} /> : null}
 
       {/* A few questions, then a hero built at this table's level; it comes
           back here through the same confirm sheet (backlog F1). */}
@@ -268,8 +268,8 @@ export function HeroChooser({
       >
         <IconChip icon={Sparkles} size="size-8" iconSize="size-4" />
         <span className="min-w-0">
-          <span className="block font-display tracking-wide text-stone-100">Help me build</span>
-          <span className="block text-sm text-stone-400">Answer a few questions and get a hero suggested for you.</span>
+          <span className="block font-display tracking-wide text-stone-100">{t("campaign.session.heroChooser.help.title")}</span>
+          <span className="block text-sm text-stone-400">{t("campaign.session.heroChooser.help.description")}</span>
         </span>
       </button>
 
@@ -279,7 +279,7 @@ export function HeroChooser({
         className={cn(ui.btnSecondary, "w-full border-dashed")}
         data-chooser-section="build"
       >
-        <Plus className="size-4" /> Build a new character
+        <Plus className="size-4" /> {t("campaign.session.heroChooser.buildNew")}
       </button>
 
       <JoinConfirmDialog

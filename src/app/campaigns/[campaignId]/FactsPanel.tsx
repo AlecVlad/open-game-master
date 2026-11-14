@@ -3,6 +3,8 @@
 import { EmptyState } from "@/components/EmptyState";
 import { BookMarked, Check, Eye, EyeOff, Pin, PinOff, X } from "lucide-react";
 import { useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
+import { campaignApiErrorText } from "@/lib/i18n/campaignApiError";
 import { ContextMenu, type ContextMenuItem } from "@/components/ui/ContextMenu";
 import { SectionHead } from "@/components/ui/SectionHead";
 import { cn } from "@/lib/cn";
@@ -16,14 +18,14 @@ import { appendDictation } from "@/lib/dictation";
 // close (plus manual pins). Everyone sees party-known facts; the lead can
 // pin, edit, retire, add facts, and peek at DM-only secrets.
 
-const CATEGORY_LABELS: Record<FactCategory, string> = {
-  location: "Places",
-  npc: "People",
-  promise: "Promises & debts",
-  world: "World state",
-  party: "The party",
-  lore: "Lore & rules",
-};
+const CATEGORY_LABEL_KEY = {
+  location: "campaign.fact.category.location",
+  npc: "campaign.fact.category.npc",
+  promise: "campaign.fact.category.promise",
+  world: "campaign.fact.category.world",
+  party: "campaign.fact.category.party",
+  lore: "campaign.fact.category.lore",
+} as const satisfies Record<FactCategory, string>;
 
 // The painted glyph each heading leads with.
 const CATEGORY_GLYPHS: Record<FactCategory, string> = {
@@ -46,32 +48,44 @@ function FactCard({
   steersStory: boolean;
   refresh: () => Promise<void>;
 }) {
+  const { t } = useI18n();
   const [editing, setEditing] = useState(false);
   const [text, setText] = useState(fact.fact);
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
 
-  async function patch(payload: Record<string, unknown>) {
+  async function patch(payload: Record<string, unknown>): Promise<boolean> {
     setBusy(true);
+    setError("");
     try {
-      await fetch(`/api/campaigns/${campaignId}/facts`, {
+      const response = await fetch(`/api/campaigns/${campaignId}/facts`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ factId: fact.id, ...payload }),
       });
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        setError(campaignApiErrorText(data, t("campaign.fact.error.update"), t));
+        return false;
+      }
       await refresh();
+      return true;
+    } catch {
+      setError(t("campaign.fact.error.server"));
+      return false;
     } finally {
       setBusy(false);
     }
   }
 
-  const pinTitle = fact.pinned ? "Unpin" : "Pin: always kept in front of the GM, never auto-replaced";
+  const pinTitle = fact.pinned ? t("campaign.fact.action.unpin") : t("campaign.fact.action.pin");
   const items: ContextMenuItem[] = steersStory
     ? [
         { id: "pin", label: pinTitle, glyph: "ui-pin", disabled: busy, onSelect: () => void patch({ pinned: !fact.pinned }) },
-        { id: "edit", label: "Edit", glyph: "ui-edit", onSelect: () => setEditing(true) },
+        { id: "edit", label: t("campaign.fact.action.edit"), glyph: "ui-edit", onSelect: () => setEditing(true) },
         {
           id: "retire",
-          label: "Retire: the GM stops treating this as true",
+          label: t("campaign.fact.action.retire"),
           glyph: "ui-delete",
           tone: "danger",
           separated: true,
@@ -82,16 +96,17 @@ function FactCard({
     : [];
 
   return (
-    <ContextMenu as="li" items={editing ? [] : items} label={fact.subject || CATEGORY_LABELS[fact.category]} className={panelRow}>
+    <ContextMenu as="li" items={editing ? [] : items} label={fact.subject || t(CATEGORY_LABEL_KEY[fact.category])} className={panelRow}>
+      {error ? <PanelError className="mb-2">{error}</PanelError> : null}
       {editing ? (
         <div className="reveal space-y-1.5">
-          <DictateField label="Fact" onTranscript={(spoken) => setText((current) => appendDictation(current, spoken, 300))}>
+          <DictateField label={t("campaign.fact.label")} onTranscript={(spoken) => setText((current) => appendDictation(current, spoken, 300))}>
             <textarea
               value={text}
               onChange={(event) => setText(event.target.value)}
               rows={2}
               maxLength={300}
-              aria-label="Fact"
+              aria-label={t("campaign.fact.label")}
               className={cn(panelField, "leading-5")}
             />
           </DictateField>
@@ -101,12 +116,11 @@ function FactCard({
               disabled={busy || !text.trim()}
               busy={busy}
               onClick={async () => {
-                await patch({ fact: text.trim() });
-                setEditing(false);
+                if (await patch({ fact: text.trim() })) setEditing(false);
               }}
             >
               {busy ? null : <Check className="size-3.5" />}
-              Save
+              {t("common.action.save")}
             </KitButton>
             <KitButton
               onClick={() => {
@@ -114,7 +128,7 @@ function FactCard({
                 setText(fact.fact);
               }}
             >
-              <X className="size-3.5" /> Cancel
+              <X className="size-3.5" /> {t("wizard.cancel")}
             </KitButton>
           </div>
         </div>
@@ -129,7 +143,7 @@ function FactCard({
           </p>
           <div className="mt-1 flex min-h-6 items-center gap-2 text-[11px] text-stone-500">
             <span className={isSecretFact(fact.knownBy) ? "text-violet-300" : undefined}>
-              {isStorytellerFact(fact.knownBy) ? "Storyteller secret" : isSecretFact(fact.knownBy) ? "GM secret" : CATEGORY_LABELS[fact.category]}
+              {isStorytellerFact(fact.knownBy) ? t("campaign.fact.known.storyteller") : isSecretFact(fact.knownBy) ? t("campaign.fact.known.gm") : t(CATEGORY_LABEL_KEY[fact.category])}
             </span>
             {steersStory ? (
               <span className="ml-auto flex shrink-0 items-center gap-0.5">
@@ -145,7 +159,7 @@ function FactCard({
                 >
                   {busy ? null : fact.pinned ? <PinOff className="size-3.5" /> : <Pin className="size-3.5" />}
                 </KitButton>
-                <RowMenu items={items} label={fact.subject || CATEGORY_LABELS[fact.category]} />
+                <RowMenu items={items} label={fact.subject || t(CATEGORY_LABEL_KEY[fact.category])} />
               </span>
             ) : null}
           </div>
@@ -162,6 +176,7 @@ function FactComposer({
   campaignId: string;
   refresh: () => Promise<void>;
 }) {
+  const { t } = useI18n();
   const [category, setCategory] = useState<FactCategory>("world");
   const [subject, setSubject] = useState("");
   const [fact, setFact] = useState("");
@@ -182,14 +197,14 @@ function FactComposer({
       });
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        setError(data.error || "Could not save the fact.");
+        setError(campaignApiErrorText(data, t("campaign.fact.error.save"), t));
         return;
       }
       setSubject("");
       setFact("");
       await refresh();
     } catch {
-      setError("Could not reach the server.");
+      setError(t("campaign.fact.error.server"));
     } finally {
       setBusy(false);
     }
@@ -197,8 +212,8 @@ function FactComposer({
 
   return (
     <div className="panel rounded-lg p-2.5">
-      <SectionHead title="Pin a fact" glyph="tab-facts" level="h4" />
-      <div data-pill-group="" role="group" aria-label="Category" className="mb-1.5 flex flex-wrap gap-1">
+      <SectionHead title={t("campaign.fact.section.pin")} glyph="tab-facts" level="h4" />
+      <div data-pill-group="" role="group" aria-label={t("campaign.fact.category.label")} className="mb-1.5 flex flex-wrap gap-1">
         {FACT_CATEGORIES.map((value) => (
           <button
             data-on={category === value ? "" : undefined}
@@ -208,7 +223,7 @@ function FactComposer({
             onClick={() => setCategory(value)}
             className="pk-pill pk-tap motion-press"
           >
-            {CATEGORY_LABELS[value]}
+            {t(CATEGORY_LABEL_KEY[value])}
           </button>
         ))}
       </div>
@@ -216,25 +231,25 @@ function FactComposer({
         value={subject}
         onChange={(event) => setSubject(event.target.value)}
         maxLength={80}
-        placeholder="Subject (who or what it is about)"
-        aria-label="Subject"
+        placeholder={t("campaign.fact.placeholder.subject")}
+        aria-label={t("campaign.fact.subject.label")}
         className={cn(panelField, "mb-1.5")}
       />
-      <DictateField label="Fact" onTranscript={(text) => setFact((current) => appendDictation(current, text, 300))}>
+      <DictateField label={t("campaign.fact.label")} onTranscript={(text) => setFact((current) => appendDictation(current, text, 300))}>
         <textarea
           value={fact}
           onChange={(event) => setFact(event.target.value)}
           rows={2}
           maxLength={300}
-          placeholder="One sentence the GM must never contradict"
-          aria-label="Fact"
+          placeholder={t("campaign.fact.placeholder.text")}
+          aria-label={t("campaign.fact.label")}
           className={cn(panelField, "leading-5")}
         />
       </DictateField>
       {error ? <PanelError className="mt-1">{error}</PanelError> : null}
       <KitButton tone="secondary" onClick={submit} disabled={busy || !fact.trim()} busy={busy} className="mt-1.5 w-full">
         {busy ? null : <BookMarked className="size-3.5" />}
-        Pin fact
+        {t("campaign.fact.action.pinFact")}
       </KitButton>
     </div>
   );
@@ -251,25 +266,29 @@ export function FactsPanel({
   steersStory: boolean;
   refreshFacts: () => Promise<void>;
 }) {
+  const { t } = useI18n();
   // Lead-only peek at DM secrets: fetched separately so the spoilers never
   // sit in shared state, and merged in only while the toggle is on.
   const [secrets, setSecrets] = useState<WorldFact[] | null>(null);
+  const [secretsError, setSecretsError] = useState("");
 
   async function toggleSecrets() {
     if (secrets) {
       setSecrets(null);
+      setSecretsError("");
       return;
     }
+    setSecretsError("");
     try {
       const response = await fetch(`/api/campaigns/${campaignId}/facts?secrets=1`);
-      if (response.ok) {
-        const data = await response.json();
-        setSecrets(
-          ((data.facts ?? []) as WorldFact[]).filter((fact) => isSecretFact(fact.knownBy)),
-        );
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        setSecretsError(campaignApiErrorText(data, t("campaign.fact.error.secretsLoad"), t));
+        return;
       }
+      setSecrets(((data.facts ?? []) as WorldFact[]).filter((fact) => isSecretFact(fact.knownBy)));
     } catch {
-      // transient; the button retries
+      setSecretsError(t("campaign.fact.error.server"));
     }
   }
 
@@ -289,7 +308,7 @@ export function FactsPanel({
 
       {pinned.length ? (
         <div className="reveal space-y-1.5">
-          <SectionHead title="Pinned" glyph="tab-facts" aside={pinned.length} />
+          <SectionHead title={t("campaign.fact.section.pinned")} glyph="tab-facts" aside={pinned.length} />
           <ul className="stagger space-y-1.5">
             {pinned.map((fact) => (
               <FactCard
@@ -311,7 +330,7 @@ export function FactsPanel({
         }
         return (
           <div key={category} className="space-y-1.5">
-            <SectionHead title={CATEGORY_LABELS[category]} glyph={CATEGORY_GLYPHS[category]} aside={entries.length} />
+            <SectionHead title={t(CATEGORY_LABEL_KEY[category])} glyph={CATEGORY_GLYPHS[category]} aside={entries.length} />
             <ul className="stagger space-y-1.5">
               {entries.map((fact) => (
                 <FactCard
@@ -328,15 +347,16 @@ export function FactsPanel({
       })}
 
       {!facts.length ? (
-        <EmptyState size="sm" art="board" title={`Nothing recorded yet. The GM writes durable facts here as chapters close${steersStory ? ", or pin one yourself above" : ""}.`} />
+        <EmptyState size="sm" art="board" title={steersStory ? t("campaign.fact.empty.lead") : t("campaign.fact.empty.player")} />
       ) : null}
 
       {steersStory ? (
         <div className="reveal space-y-1.5">
           <KitButton tone="link" onClick={toggleSecrets} aria-expanded={Boolean(secrets)}>
             {secrets ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
-            {secrets ? "Hide GM secrets" : "Show GM secrets (spoilers)"}
+            {secrets ? t("campaign.fact.action.hideSecrets") : t("campaign.fact.action.showSecrets")}
           </KitButton>
+          {secretsError ? <PanelError>{secretsError}</PanelError> : null}
           {secrets ? (
             secrets.length ? (
               <ul className="stagger space-y-1.5">
@@ -351,7 +371,7 @@ export function FactsPanel({
                 ))}
               </ul>
             ) : (
-              <p className="live-in px-1 text-xs text-stone-500">No GM secrets recorded.</p>
+              <p className="live-in px-1 text-xs text-stone-500">{t("campaign.fact.empty.none")}</p>
             )
           ) : null}
         </div>

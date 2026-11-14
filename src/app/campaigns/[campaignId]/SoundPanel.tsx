@@ -3,6 +3,8 @@
 import { Check, Loader2, Music, VolumeX } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useAmbienceInstall } from "@/app/admin/useAmbienceInstall";
+import { useI18n } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages";
 import type { AmbienceAudio } from "@/app/campaigns/[campaignId]/useAmbienceAudio";
 import { HeaderGlyph } from "@/app/campaigns/[campaignId]/SessionGlyph";
 import { headerButtonClass } from "@/app/campaigns/[campaignId]/headerButton";
@@ -36,9 +38,27 @@ export type SoundSteering = {
   isAdmin: boolean;
 };
 
-const LAYER_LABEL: Record<AmbienceLayerName, string> = { bed: "Room", music: "Music" };
+type Translate = ReturnType<typeof useI18n>["t"];
 
-async function steer(campaignId: string, body: Record<string, unknown>): Promise<string | null> {
+function layerLabel(layer: AmbienceLayerName, t: Translate): string {
+  return layer === "bed" ? t("campaign.sound.layerRoom") : t("campaign.sound.layerMusic");
+}
+
+function cueMessageKey(layer: AmbienceLayer, id: string): MessageKey {
+  if (layer === "bed") return `campaign.dmCatalog.set_ambience.field.bed.option.${id}` as MessageKey;
+  if (layer === "music") return `campaign.dmCatalog.set_ambience.field.music.option.${id}` as MessageKey;
+  return `campaign.dmCatalog.play_sting.field.cue.option.${id}` as MessageKey;
+}
+
+function cueLabel(layer: AmbienceLayer, id: string, t: Translate): string {
+  return t(cueMessageKey(layer, id));
+}
+
+function cueBlurb(id: string, t: Translate): string {
+  return t(`campaign.sound.blurb.${id}` as MessageKey);
+}
+
+async function steer(campaignId: string, body: Record<string, unknown>, t: Translate): Promise<string | null> {
   try {
     const response = await fetch(`/api/campaigns/${campaignId}/ambience`, {
       method: "POST",
@@ -47,17 +67,19 @@ async function steer(campaignId: string, body: Record<string, unknown>): Promise
     });
     if (!response.ok) {
       const data = (await response.json().catch(() => ({}))) as { error?: string };
-      return data.error ?? "That did not take.";
+      return data.error ?? t("campaign.sound.errorAction");
     }
     return null;
   } catch {
-    return "The server could not be reached.";
+    return t("campaign.sound.errorServer");
   }
 }
 
 // One looping layer as the listener sees it: the painting, the cue, the
 // take, and the level slider under it.
 function LayerRow({ layer, ambience }: { layer: AmbienceLayerName; ambience: AmbienceAudio }) {
+  const { t } = useI18n();
+  const layerTitle = layerLabel(layer, t);
   const cueId = ambience.state[layer];
   const cue = cueId ? cueById(cueId) : null;
   const snapshot = ambience.playing[layer];
@@ -79,34 +101,34 @@ function LayerRow({ layer, ambience }: { layer: AmbienceLayerName; ambience: Amb
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex items-baseline gap-2">
-            <span className={ui.sectionEyebrow}>{LAYER_LABEL[layer]}</span>
+            <span className={ui.sectionEyebrow}>{layerTitle}</span>
             {held ? (
-              <Tooltip content="Held: the scene will not change this on its own.">
-                <span className="sound-held">Held</span>
+              <Tooltip content={t("campaign.sound.heldTooltip")}>
+                <span className="sound-held">{t("campaign.sound.held")}</span>
               </Tooltip>
             ) : null}
           </div>
-          <div className="truncate font-display text-base text-amber-100">{cue ? cue.label : "Silence"}</div>
+          <div className="truncate font-display text-base text-amber-100">{cue ? cueLabel(layer, cue.id, t) : t("campaign.sound.silence")}</div>
           <div className="sound-take truncate">
             {noFile
-              ? "No audio for this cue on this server"
+              ? t("campaign.sound.noAudio")
               : take
-                ? `${take.title}${takes.length > 1 ? ` · take ${snapshot.take} of ${takes.length}` : ""}`
+                ? `${take.title}${takes.length > 1 ? ` · ${t("campaign.sound.takeOf", { take: snapshot.take, total: takes.length })}` : ""}`
                 : cue
-                  ? cue.blurb
-                  : "Nothing is playing here."}
+                  ? cueBlurb(cue.id, t)
+                  : t("campaign.sound.nothingPlaying")}
           </div>
         </div>
         {takes.length > 1 ? (
-          <button type="button" onClick={() => ambience.skip(layer)} className={ui.btnSmall} aria-label={`Next ${LAYER_LABEL[layer].toLowerCase()} take`}>
-            Next
+          <button type="button" onClick={() => ambience.skip(layer)} className={ui.btnSmall} aria-label={t("campaign.sound.nextTake", { layer: layerTitle })}>
+            {t("campaign.sound.next")}
           </button>
         ) : null}
       </div>
       <div className="mt-2 flex items-center gap-3">
-        <span className="sound-caption">Level</span>
+        <span className="sound-caption">{t("campaign.sound.level")}</span>
         <Slider
-          label={`${LAYER_LABEL[layer]} level`}
+          label={`${layerTitle}: ${t("campaign.sound.level").toLowerCase()}`}
           value={level}
           min={0}
           max={1}
@@ -128,6 +150,7 @@ function LayerRow({ layer, ambience }: { layer: AmbienceLayerName; ambience: Amb
 function CueTile({
   glyph,
   label,
+  unavailableLabel,
   on,
   available,
   busy,
@@ -137,13 +160,14 @@ function CueTile({
   // cue: silence, which has no picture because there is nothing to hear.
   glyph: string | null;
   label: string;
+  unavailableLabel: string;
   on: boolean;
   available: boolean;
   busy: boolean;
   onPick: () => void;
 }) {
   return (
-    <Tooltip content={available ? label : `${label}: no audio on this server yet`}>
+    <Tooltip content={available ? label : unavailableLabel}>
       <button
         type="button"
         onClick={onPick}
@@ -166,6 +190,7 @@ function CueTile({
 }
 
 function Pickers({ ambience, steering }: { ambience: AmbienceAudio; steering: SoundSteering }) {
+  const { t } = useI18n();
   const [tab, setTab] = useState<AmbienceLayer>("bed");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -176,7 +201,7 @@ function Pickers({ ambience, steering }: { ambience: AmbienceAudio; steering: So
   const send = async (body: Record<string, unknown>) => {
     setBusy(true);
     setError("");
-    const failure = await steer(steering.campaignId, body);
+    const failure = await steer(steering.campaignId, body, t);
     if (failure) {
       setError(failure);
     }
@@ -186,16 +211,16 @@ function Pickers({ ambience, steering }: { ambience: AmbienceAudio; steering: So
   return (
     <section className="mt-5">
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <span className={ui.sectionEyebrow}>Change the sound</span>
+        <span className={ui.sectionEyebrow}>{t("campaign.sound.changeSound")}</span>
         <SegmentedControl
           size="sm"
-          label="What to change"
+          label={t("campaign.sound.whatToChange")}
           value={tab}
           onChange={setTab}
           options={[
-            { value: "bed", label: "Room" },
-            { value: "music", label: "Music" },
-            { value: "sting", label: "Sounds" },
+            { value: "bed", label: t("campaign.sound.layerRoom") },
+            { value: "music", label: t("campaign.sound.layerMusic") },
+            { value: "sting", label: t("campaign.sound.layerSounds") },
           ]}
         />
       </div>
@@ -203,29 +228,30 @@ function Pickers({ ambience, steering }: { ambience: AmbienceAudio; steering: So
         <div className="mb-2 flex flex-wrap items-center gap-3">
           <span className="flex items-center gap-2">
             <Switch
-              label={`Hold the ${LAYER_LABEL[tab].toLowerCase()} here`}
+              label={t("campaign.sound.holdLayer", { layer: layerLabel(tab, t).toLowerCase() })}
               on={held}
               disabled={!current || busy}
               onChange={(on) => void send({ [tab]: current, hold: on })}
             />
-            <span className="text-sm text-stone-300">Hold</span>
+            <span className="text-sm text-stone-300">{t("campaign.sound.hold")}</span>
           </span>
           <span className="text-xs text-stone-500">
             {steering.auto
               ? held
-                ? "The scene will leave this alone until you change it."
-                : "The scene picks this on its own: a new place sets the room, a fight sets the music."
-              : "The scene does not change the sound at this table; it stays until someone sets it."}
+                ? t("campaign.sound.autoHeld")
+                : t("campaign.sound.autoMode")
+              : t("campaign.sound.manualMode")}
           </span>
         </div>
       ) : (
-        <p className="mb-2 text-xs text-stone-500">One sound, once, over whatever is playing.</p>
+        <p className="mb-2 text-xs text-stone-500">{t("campaign.sound.oneShot")}</p>
       )}
       <div key={tab} className="motion-tab sound-grid">
         {tab !== "sting" ? (
           <CueTile
             glyph={null}
-            label="Silence"
+            label={t("campaign.sound.silence")}
+            unavailableLabel={t("campaign.sound.silence")}
             on={current === null}
             available
             busy={busy}
@@ -236,7 +262,8 @@ function Pickers({ ambience, steering }: { ambience: AmbienceAudio; steering: So
           <CueTile
             key={cue.id}
             glyph={`cue-${cue.id}`}
-            label={cue.label}
+            label={cueLabel(tab, cue.id, t)}
+            unavailableLabel={t("campaign.sound.cueUnavailable", { label: cueLabel(tab, cue.id, t) })}
             on={tab !== "sting" && current === cue.id}
             available={Boolean(ambience.tracks[cue.id]?.length)}
             busy={busy}
@@ -250,12 +277,13 @@ function Pickers({ ambience, steering }: { ambience: AmbienceAudio; steering: So
 }
 
 function LibraryNote({ ambience, steering }: { ambience: AmbienceAudio; steering: SoundSteering }) {
+  const { t } = useI18n();
   const counts = ambience.counts;
   if (!ambience.installed) {
     return steering.isAdmin ? (
       <LibraryInstall ambience={ambience} />
     ) : (
-      <p className="sound-note">This server has no sound library yet, so every cue is silence. The server admin can install it from the admin panel.</p>
+      <p className="sound-note">{t("campaign.sound.libraryMissingUser")}</p>
     );
   }
   if (!counts || !steering.canSteer) {
@@ -263,8 +291,14 @@ function LibraryNote({ ambience, steering }: { ambience: AmbienceAudio; steering
   }
   return (
     <p className="sound-note">
-      This server has audio for {counts.bed.installed} of {counts.bed.total} rooms, {counts.music.installed} of{" "}
-      {counts.music.total} moods and {counts.sting.installed} of {counts.sting.total} sounds.
+      {t("campaign.sound.libraryCounts", {
+        roomsInstalled: counts.bed.installed,
+        roomsTotal: counts.bed.total,
+        musicInstalled: counts.music.installed,
+        musicTotal: counts.music.total,
+        soundsInstalled: counts.sting.installed,
+        soundsTotal: counts.sting.total,
+      })}
     </p>
   );
 }
@@ -273,6 +307,7 @@ function LibraryNote({ ambience, steering }: { ambience: AmbienceAudio; steering
 // small, so the download is offered here, where the silence is noticed,
 // and the table hears the first cue the moment it lands.
 function LibraryInstall({ ambience }: { ambience: AmbienceAudio }) {
+  const { t } = useI18n();
   const { status, error, installing, percent, install } = useAmbienceInstall();
   const landed = status?.status === "ready";
   useEffect(() => {
@@ -282,19 +317,16 @@ function LibraryInstall({ ambience }: { ambience: AmbienceAudio }) {
   }, [landed, ambience]);
   return (
     <div className="sound-note">
-      <p>
-        This server has no sound library yet, so every cue is silence. The rooms, music and sounds are a download of about 75 MB, kept across
-        updates and credited on the licenses page.
-      </p>
+      <p>{t("campaign.sound.libraryMissingAdmin")}</p>
       <div className="mt-2 flex flex-wrap items-center gap-2">
         <button type="button" onClick={() => install()} disabled={!status || installing} className={ui.btnSmall}>
           {installing ? <Loader2 className="size-4 animate-spin" aria-hidden="true" /> : null}
-          {installing ? `Downloading ${percent}%` : "Download the sound library"}
+          {installing ? t("campaign.sound.downloading", { percent }) : t("campaign.sound.downloadLibrary")}
         </button>
         {landed && status.result ? (
           <span className="inline-flex items-center gap-1 text-emerald-300">
             <Check className="size-4" aria-hidden="true" />
-            {status.result.installed} tracks installed
+            {t("campaign.sound.tracksInstalled", { count: status.result.installed })}
           </span>
         ) : null}
         {status?.status === "error" ? <span className="text-red-300">{status.error}</span> : null}
@@ -315,6 +347,7 @@ export function SoundDialog({
   ambience: AmbienceAudio;
   steering: SoundSteering;
 }) {
+  const { t } = useI18n();
   // Ask again when the panel opens; the page gesture listener also retries
   // during the click itself, while the browser's audio gesture is active.
   const { unlock } = ambience;
@@ -324,16 +357,16 @@ export function SoundDialog({
     }
   }, [open, unlock]);
   return (
-    <Dialog open={open} onOpenChange={onOpenChange} title="Sound" icon={<Music className="size-5 text-amber-300" />} width="w-[min(94vw,38rem)]">
+    <Dialog open={open} onOpenChange={onOpenChange} title={t("campaign.sound.dialogTitle")} icon={<Music className="size-5 text-amber-300" />} width="w-[min(94vw,38rem)]">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <Switch label="Sound on" on={!ambience.muted} onChange={(on) => ambience.setMuted(!on)} />
-          <span className="text-sm text-stone-300">{ambience.muted ? "Sound off for you" : "Sound on"}</span>
+          <Switch label={t("campaign.sound.soundSwitchOn")} on={!ambience.muted} onChange={(on) => ambience.setMuted(!on)} />
+          <span className="text-sm text-stone-300">{ambience.muted ? t("campaign.sound.soundOffForUser") : t("campaign.sound.soundOnForUser")}</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="sound-caption">Volume</span>
+          <span className="sound-caption">{t("campaign.sound.volume")}</span>
           <Slider
-            label="Sound volume"
+            label={t("campaign.sound.soundVolume")}
             value={ambience.volume}
             min={0}
             max={1}
@@ -347,7 +380,7 @@ export function SoundDialog({
         </div>
       </div>
       {ambience.playing.blocked ? (
-        <p className="sound-note text-amber-200">Your browser is holding the sound back until you tap something on the page.</p>
+        <p className="sound-note text-amber-200">{t("campaign.sound.blockedBrowser")}</p>
       ) : null}
       <div className="mt-4 space-y-3">
         <LayerRow layer="bed" ambience={ambience} />
@@ -364,24 +397,25 @@ export function SoundDialog({
 // only ever wanted it quieter.
 // What the table's sound is doing, for the header's tip and the phone's
 // table menu: "Sound: Rain, Tavern music", or why there is none.
-export function soundSummary(ambience: AmbienceAudio): { quiet: boolean; playing: string; tip: string } {
+export function soundSummary(ambience: AmbienceAudio, t: Translate): { quiet: boolean; playing: string; tip: string } {
   const quiet = ambience.muted || !ambience.unlocked;
-  const bed = ambience.state.bed ? cueById(ambience.state.bed)?.label : null;
-  const music = ambience.state.music ? cueById(ambience.state.music)?.label : null;
-  const playing = [bed, music ? `${music} music` : null].filter(Boolean).join(", ");
+  const bed = ambience.state.bed ? cueLabel("bed", ambience.state.bed, t) : null;
+  const music = ambience.state.music ? cueLabel("music", ambience.state.music, t) : null;
+  const playing = [bed, music ? `${music} — ${t("campaign.sound.layerMusic").toLowerCase()}` : null].filter(Boolean).join(", ");
   const tip = !ambience.installed
-    ? "Sound: no library on this server yet"
+    ? t("campaign.sound.summaryNoLibrary")
     : quiet
-      ? "Sound: off for you"
+      ? t("campaign.sound.summaryOff")
       : playing
-        ? `Sound: ${playing}`
-        : "Sound: nothing playing";
+        ? t("campaign.sound.summaryPlaying", { playing })
+        : t("campaign.sound.summaryNothing");
   return { quiet, playing, tip };
 }
 
 export function SoundControl({ ambience, steering }: { ambience: AmbienceAudio; steering: SoundSteering }) {
   const [open, setOpen] = useState(false);
-  const { quiet, playing, tip } = soundSummary(ambience);
+  const { t } = useI18n();
+  const { quiet, playing, tip } = soundSummary(ambience, t);
   return (
     <>
       <div className="flex items-center">
@@ -389,7 +423,7 @@ export function SoundControl({ ambience, steering }: { ambience: AmbienceAudio; 
           <button
             type="button"
             onClick={() => setOpen(true)}
-            aria-label="Sound"
+            aria-label={t("campaign.sound.dialogTitle")}
             aria-haspopup="dialog"
             data-tour="header-sound"
             className={headerButtonClass(!quiet && Boolean(playing))}
@@ -399,14 +433,14 @@ export function SoundControl({ ambience, steering }: { ambience: AmbienceAudio; 
         </Tooltip>
         {ambience.unlocked && !ambience.muted ? (
           <div className="hidden sm:block">
-            <Tooltip content="Sound volume" side="bottom">
+            <Tooltip content={t("campaign.sound.soundVolume")} side="bottom">
               <Slider
                 min={0}
                 max={1}
                 step={0.05}
                 value={ambience.volume}
                 onChange={ambience.setVolume}
-                label="Sound volume"
+                label={t("campaign.sound.soundVolume")}
                 bubble={(value) => `${Math.round(value * 100)}%`}
                 className="session-volume"
               />

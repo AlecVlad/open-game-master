@@ -14,7 +14,7 @@ async function requireQuest(campaignId: string, questId: string) {
   }
   const quest = getQuest(questId);
   if (!quest || quest.campaignId !== campaignId) {
-    return Response.json({ error: "Quest not found." }, { status: 404 });
+    return Response.json({ error: "Quest not found.", errorCode: "QUEST_NOT_FOUND" }, { status: 404 });
   }
   return quest;
 }
@@ -60,7 +60,7 @@ export async function DELETE(
   // mirrors; it is settled, not taken off (the panel offers no remove). One
   // whose thread has left the arc answers to nothing and can go.
   if (quest.source === "arc" && quest.sourceRef) {
-    return Response.json({ error: "This quest comes from the story. Mark it done or failed instead." }, { status: 409 });
+    return Response.json({ error: "This quest comes from the story. Mark it done or failed instead.", errorCode: "QUEST_FROM_STORY" }, { status: 409 });
   }
   deleteQuest(questId);
   publishEphemeral(campaignId, "quests_updated", { at: Date.now() });

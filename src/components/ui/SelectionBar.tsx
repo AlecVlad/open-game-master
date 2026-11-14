@@ -1,6 +1,7 @@
 "use client";
 
 import { Copy, Link2, Move, Pencil, Trash2, X } from "lucide-react";
+import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/cn";
 
 // The compact action bar above a selected object (docs/vtt-parity-
@@ -28,25 +29,26 @@ export function SelectionBar({
   onClear: () => void;
   className?: string;
 }) {
+  const { t } = useI18n();
   const buttons: Array<{ action: SelectionAction; label: string; icon: typeof Move; tone?: "danger" }> = [
-    { action: "edit", label: "Edit", icon: Pencil },
-    { action: "move", label: moving ? "Tap the new tile" : "Move", icon: Move },
-    { action: "duplicate", label: "Duplicate", icon: Copy },
-    { action: "link", label: "Link", icon: Link2 },
-    { action: "dmOnly", label: "GM only", icon: Link2 },
-    { action: "delete", label: "Delete", icon: Trash2, tone: "danger" },
+    { action: "edit", label: t("workshop.maps.selection.action.edit"), icon: Pencil },
+    { action: "move", label: moving ? t("workshop.maps.selection.action.moving") : t("workshop.maps.selection.action.move"), icon: Move },
+    { action: "duplicate", label: t("workshop.maps.selection.action.duplicate"), icon: Copy },
+    { action: "link", label: t("workshop.maps.selection.action.link"), icon: Link2 },
+    { action: "dmOnly", label: t("workshop.maps.selection.action.gmOnly"), icon: Link2 },
+    { action: "delete", label: t("workshop.maps.selection.action.delete"), icon: Trash2, tone: "danger" },
   ];
   return (
     <div
       role="toolbar"
-      aria-label={`Selected: ${title}`}
+      aria-label={t("workshop.maps.selection.aria", { title })}
       className={cn(
         "fx-pop flex flex-wrap items-center gap-1 rounded-lg border border-amber-700/60 bg-stone-950/95 px-2 py-1 shadow-elev-2",
         className,
       )}
     >
       <span className="mr-1 max-w-[12rem] truncate text-[11px] text-amber-200">
-        {count > 1 ? `${count} selected` : title}
+        {count > 1 ? t("workshop.maps.selection.count", { count }) : title}
       </span>
       {buttons
         .filter((button) => actions.includes(button.action))
@@ -75,7 +77,7 @@ export function SelectionBar({
       <button
         type="button"
         onClick={onClear}
-        aria-label="Clear selection"
+        aria-label={t("workshop.maps.selection.clear")}
         className="ml-auto flex size-10 items-center justify-center rounded-md text-stone-500 hover:text-stone-200"
       >
         <X className="size-3.5" />

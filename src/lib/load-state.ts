@@ -20,8 +20,19 @@ export const UNREADABLE = "The server's answer could not be read.";
 // yes; otherwise one sentence, the server's own where it gave one ("Only the
 // Dungeon Master can do that."), after what did not load. Never throws, so
 // a `.then` on it is the whole handling.
-export async function readLoad<T>(request: Promise<Response>, what: string): Promise<LoadOutcome<T>> {
-  const failed = (reason: string): LoadOutcome<T> => ({ payload: null, error: `${what} did not load. ${reason}` });
+export type LoadErrorFormatter = (body: unknown, status: number) => string;
+export type LoadFailureFormatter = (what: string, reason: string) => string;
+
+export async function readLoad<T>(
+  request: Promise<Response>,
+  what: string,
+  formatError?: LoadErrorFormatter,
+  formatFailure?: LoadFailureFormatter,
+): Promise<LoadOutcome<T>> {
+  const failed = (reason: string): LoadOutcome<T> => ({
+    payload: null,
+    error: formatFailure ? formatFailure(what, reason) : `${what} did not load. ${reason}`,
+  });
   let response: Response;
   try {
     response = await request;
@@ -37,7 +48,9 @@ export async function readLoad<T>(request: Promise<Response>, what: string): Pro
     }
   }
   const body = (await response.json().catch(() => ({}))) as { error?: unknown };
-  const reason = typeof body.error === "string" && body.error.trim() ? body.error.trim() : `The server answered ${response.status}.`;
+  const reason = formatError
+    ? formatError(body, response.status)
+    : typeof body.error === "string" && body.error.trim() ? body.error.trim() : `The server answered ${response.status}.`;
   return failed(reason);
 }
 
@@ -52,7 +65,11 @@ export type WriteOutcome<T> =
   | { payload: T; error: null; unanswered: false }
   | { payload: null; error: string; unanswered: boolean };
 
-export async function readWrite<T = Record<string, unknown>>(request: Promise<Response>, failed: string): Promise<WriteOutcome<T>> {
+export async function readWrite<T = Record<string, unknown>>(
+  request: Promise<Response>,
+  failed: string,
+  formatError?: LoadErrorFormatter,
+): Promise<WriteOutcome<T>> {
   let response: Response;
   try {
     response = await request;
@@ -65,7 +82,9 @@ export async function readWrite<T = Record<string, unknown>>(request: Promise<Re
   if (response.ok) {
     return { payload: body as T, error: null, unanswered: false };
   }
-  const reason = typeof body.error === "string" && body.error.trim() ? body.error.trim() : `${failed} The server answered ${response.status}.`;
+  const reason = formatError
+    ? formatError(body, response.status)
+    : typeof body.error === "string" && body.error.trim() ? body.error.trim() : `${failed} The server answered ${response.status}.`;
   return { payload: null, error: reason, unanswered: false };
 }
 

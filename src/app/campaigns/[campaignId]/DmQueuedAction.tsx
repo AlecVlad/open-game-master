@@ -6,6 +6,7 @@ import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui";
 import { GameIcon } from "@/components/ui/GameIcon";
 import type { CampaignMessage } from "@/lib/db/messages";
+import { useI18n } from "@/lib/i18n/provider";
 
 // One row of the GM console's "Waiting on you" list: a player's action the
 // GM has not answered yet. A row whose card the engine can take whole offers
@@ -61,6 +62,7 @@ export function QueuedAction({
   const [state, setState] = useState<"idle" | "sending" | "done">("idle");
   const [error, setError] = useState("");
   const hintId = useId();
+  const { t } = useI18n();
 
   const resolve = async () => {
     if (state !== "idle") return;
@@ -76,7 +78,7 @@ export function QueuedAction({
         // The engine's own refusal (no slot left, out of reach), shown here
         // so the GM knows why the card still waits.
         const data = (await response.json().catch(() => ({}))) as { error?: string };
-        setError(data.error || "The card could not be resolved.");
+        setError(data.error || t("campaign.dmQueuedAction.error.resolve"));
         setState("idle");
         return;
       }
@@ -84,7 +86,7 @@ export function QueuedAction({
       // (message_updated); until then it says so.
       setState("done");
     } catch {
-      setError("Could not reach the table.");
+      setError(t("campaign.dmQueuedAction.error.table"));
       setState("idle");
     }
   };
@@ -100,7 +102,7 @@ export function QueuedAction({
           className={cn(ui.btnSmall, "min-h-10 px-2 py-1 text-xs")}
         >
           <GameIcon icon={{ kind: "glyph", key: "die-d20" }} size="size-5" />
-          What should I press?
+          {t("campaign.dmQueuedAction.ask")}
         </button>
         {resolvable && state !== "done" ? (
           <button
@@ -108,22 +110,22 @@ export function QueuedAction({
             onClick={() => void resolve()}
             disabled={state === "sending"}
             aria-describedby={hintId}
-            title="The engine resolves the card as the player played it: its rolls, its slot, its effect."
+            title={t("campaign.dmQueuedAction.resolve.title")}
             className={cn(ui.btnSmall, "motion-press min-h-10 px-2 py-1 text-xs")}
           >
             {state === "sending" ? <Loader2 className="size-5 animate-spin" aria-hidden /> : <GameIcon icon={{ kind: "glyph", key: "tab-dice" }} size="size-5" />}
-            Resolve as played
+            {t("campaign.dmQueuedAction.resolve")}
           </button>
         ) : null}
         {state === "done" ? (
           <span role="status" className="motion-pop text-xs text-stone-400">
-            Resolved.
+            {t("campaign.dmQueuedAction.done")}
           </span>
         ) : null}
       </div>
       {resolvable ? (
         <span id={hintId} className="sr-only">
-          The engine resolves the card as the player played it: its rolls, its slot, its effect.
+          {t("campaign.dmQueuedAction.resolve.title")}
         </span>
       ) : null}
       {error ? (

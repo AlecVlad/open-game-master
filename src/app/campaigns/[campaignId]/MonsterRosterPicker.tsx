@@ -7,6 +7,7 @@ import { MonsterTile } from "@/lib/ui";
 import { crLabel } from "@/lib/bestiary/derive-cr";
 import { addToRoster, formatRoster, parseRoster } from "@/lib/dm/encounter-template-logic";
 import { textKey } from "@/lib/language/text-logic";
+import { useI18n } from "@/lib/i18n/provider";
 
 const input =
   "rounded-md border border-stone-700 bg-stone-950 px-2 py-1 text-xs text-stone-200 focus:border-amber-500/50 focus:outline-none pointer-coarse:min-h-10";
@@ -30,6 +31,7 @@ export function MonsterRosterPicker({
   roster: string;
   onChange: (roster: string) => void;
 }) {
+  const { t } = useI18n();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<
     Array<{ slug: string; name: string; cr: number; type: string; art?: string; rosterName?: string }>
@@ -109,8 +111,8 @@ export function MonsterRosterPicker({
         <input
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          placeholder="Search monsters to add: goblin, owlbear, the boss you built..."
-          aria-label="Search monsters to add"
+          placeholder={t("campaign.session.monsterRoster.search.placeholder")}
+          aria-label={t("campaign.session.monsterRoster.search.aria")}
           className={cn(input, "w-full pl-7")}
         />
         {loading ? (

@@ -20,6 +20,14 @@ type Rec = Record<string, unknown>;
 
 const TABLE_OF = { tables: "roll_tables", npcs: "npcs", lore: "lore_entries", locations: "locations" } as const;
 type NamedKind = keyof typeof TABLE_OF;
+
+export type ImportReferenceNote = {
+  tableName: string;
+  kind: NamedKind;
+  name: string;
+  resolution: "campaign" | "missing";
+  message: string;
+};
 const LABEL_OF = { tables: "name", npcs: "name", lore: "title", locations: "name" } as const;
 const ROW_REF: Record<string, NamedKind> = { table: "tables", npc: "npcs", lore: "lore" };
 const NOUN: Record<NamedKind, string> = { tables: "table", npcs: "NPC", lore: "lore entry", locations: "place" };
@@ -39,7 +47,7 @@ export function remapImportedRefs(input: {
   campaignId: string;
   // `kind:sourceRowId` -> the row this import wrote.
   idMap: Map<string, string>;
-}): { notes: string[]; unbound: number } {
+}): { notes: string[]; noteDetails: ImportReferenceNote[]; unbound: number } {
   const { sourceId, campaignId, idMap } = input;
   const db = getDatabase();
   // Every copy at the target of a source row, this import's and earlier ones'.
@@ -54,7 +62,7 @@ export function remapImportedRefs(input: {
     if (from !== null && to !== null && !names[kind].has(textKey(from))) names[kind].set(textKey(from), to);
   }
   const written = (kind: string) => [...idMap].filter(([key]) => key.startsWith(`${kind}:`)).map(([, id]) => id);
-  const notes = new Set<string>();
+  const notes = new Map<string, ImportReferenceNote>();
   let unbound = 0;
 
   // Roll tables: a row that is another table, an NPC or a lore entry.
@@ -74,11 +82,12 @@ export function remapImportedRefs(input: {
       }
       // What it names stayed behind at the source: say what it reads now.
       if (hasNamed(kind, sourceId, ref.name)) {
-        notes.add(
-          hasNamed(kind, campaignId, ref.name)
-            ? `${row.name}: its row for the ${NOUN[kind]} ${ref.name} now names this campaign's own ${ref.name}, since the source's stayed behind.`
-            : `${row.name}: its row for the ${NOUN[kind]} ${ref.name} names nothing here, since that ${NOUN[kind]} stayed behind.`,
-        );
+        const resolution = hasNamed(kind, campaignId, ref.name) ? "campaign" : "missing";
+        const message = resolution === "campaign"
+          ? `${row.name}: its row for the ${NOUN[kind]} ${ref.name} now names this campaign's own ${ref.name}, since the source's stayed behind.`
+          : `${row.name}: its row for the ${NOUN[kind]} ${ref.name} names nothing here, since that ${NOUN[kind]} stayed behind.`;
+        const key = `${row.name}| ${kind} | ${ref.name} | ${resolution}`;
+        notes.set(key, { tableName: row.name, kind, name: ref.name, resolution, message });
       }
       return entry;
     });
@@ -142,7 +151,7 @@ export function remapImportedRefs(input: {
     if (changed) db.prepare(`UPDATE prepared_maps SET labels_json = ? WHERE id = ?`).run(JSON.stringify(labels), id);
   }
 
-  return { notes: [...notes], unbound };
+  return { notes: [...notes.values()].map((note) => note.message), noteDetails: [...notes.values()], unbound };
 }
 
 // For the preview: how many of the source's roll-table rows name an NPC, a

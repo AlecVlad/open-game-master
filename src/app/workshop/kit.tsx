@@ -130,14 +130,14 @@ const menuItemClass =
 
 // The kebab on a row: the same items the row's ContextMenu lists, behind a
 // button, so a phone and a keyboard reach them without a long press.
-export function RowMenu({ items, label, className }: { items: ContextMenuItem[]; label: string; className?: string }) {
+export function RowMenu({ items, label, className, triggerLabel }: { items: ContextMenuItem[]; label: string; className?: string; triggerLabel?: string }) {
   if (!items.length) return null;
   return (
     <DropdownMenu.Root>
       <DropdownMenu.Trigger asChild>
         <button
           type="button"
-          aria-label={`More for ${label}`}
+          aria-label={triggerLabel ?? `More for ${label}`}
           className={cn(ui.iconAction, "grid size-10 shrink-0 place-items-center text-stone-400 opacity-100", className)}
         >
           <EllipsisVertical className="size-4" aria-hidden="true" />

@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { CopyLine } from "@/components/CopyLine";
 import { SegmentedControl, type SegmentedOption } from "@/components/ui/SegmentedControl";
+import { useI18n } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages/index";
 
 // The one line an agent needs, for the program the person actually uses,
 // then a lamp that lights when the agent's first call arrives. Shared by
@@ -12,28 +14,27 @@ import { SegmentedControl, type SegmentedOption } from "@/components/ui/Segmente
 
 export type AgentProgram = "claude" | "codex" | "opencode" | "other";
 
-const PROGRAMS: SegmentedOption<AgentProgram>[] = [
+const PROGRAMS: Array<{ value: AgentProgram; label: string }> = [
   { value: "claude", label: "Claude Code" },
   { value: "codex", label: "Codex" },
   { value: "opencode", label: "opencode" },
-  { value: "other", label: "Other" },
 ];
 
-type Line = { text: string; block: boolean; where: string };
+type Line = { text: string; block: boolean; whereKey: MessageKey };
 
 export function agentSetupLine(program: AgentProgram, url: string, token: string): Line {
   if (program === "claude") {
     return {
       text: `claude mcp add --transport http odm ${url} --header "Authorization: Bearer ${token}"`,
       block: false,
-      where: "Run it once in a terminal on the computer where Claude Code is installed.",
+      whereKey: "agentConnect.where.claude",
     };
   }
   if (program === "codex") {
     return {
       text: `[mcp_servers.odm]\nurl = "${url}"\nhttp_headers = { Authorization = "Bearer ${token}" }`,
       block: true,
-      where: "Add it to ~/.codex/config.toml (create the file if it is not there), then start Codex again.",
+      whereKey: "agentConnect.where.codex",
     };
   }
   // opencode 2's shape, with the servers under `mcp.servers`; 2.x still
@@ -42,13 +43,13 @@ export function agentSetupLine(program: AgentProgram, url: string, token: string
     return {
       text: `"mcp": { "servers": { "odm": { "type": "remote", "url": "${url}", "headers": { "Authorization": "Bearer ${token}" }, "oauth": false } } }`,
       block: false,
-      where: "For opencode 2. Add it inside opencode.json (in the project, or ~/.config/opencode/opencode.json), then start opencode again.",
+      whereKey: "agentConnect.where.opencode",
     };
   }
   return {
     text: `${url}  ·  Authorization: Bearer ${token}`,
     block: false,
-    where: "Any MCP client that speaks streamable HTTP: give it this address and this header.",
+    whereKey: "agentConnect.where.other",
   };
 }
 
@@ -70,6 +71,13 @@ export function AgentConnectLines({
   mcpUrl: string;
   initialProgram?: AgentProgram;
 }) {
+  const { t, lang } = useI18n();
+  const programOptions: SegmentedOption<AgentProgram>[] = [
+    ...PROGRAMS,
+    { value: "other", label: t("agentConnect.program.other") },
+  ];
+  const programLabel = programOptions.find((entry) => entry.value === program)?.label ?? t("agentConnect.program.other");
+  const locale = lang === "ru" ? "ru-RU" : "en-US";
   const [program, setProgram] = useState<AgentProgram>(initialProgram);
   const [first, setFirst] = useState<Activity | null>(null);
   const [gaveUp, setGaveUp] = useState(false);
@@ -109,26 +117,26 @@ export function AgentConnectLines({
   return (
     <div className="space-y-3">
       <div className="-mx-1 overflow-x-auto px-1 pb-1 [scrollbar-width:none]">
-        <SegmentedControl options={PROGRAMS} value={program} onChange={setProgram} label="Your agent program" className="w-max" />
+        <SegmentedControl options={programOptions} value={program} onChange={setProgram} label={t("agentConnect.programLabel")} className="w-max" />
       </div>
       <ol className="su-steps space-y-2 text-sm text-stone-300">
         <li>
           <span className="su-step-n">1</span>
           <span className="min-w-0 flex-1">
-            Copy this.
+            {t("agentConnect.copyThis")}
             <span key={program} className="reveal mt-1.5 block">
-              <CopyLine text={line.text} label={`${PROGRAMS.find((entry) => entry.value === program)?.label} setup`} block={line.block} />
+              <CopyLine text={line.text} label={t("agentConnect.copyLabel", { program: programLabel })} block={line.block} />
             </span>
           </span>
         </li>
         <li>
           <span className="su-step-n">2</span>
-          <span key={program} className="reveal min-w-0 flex-1">{line.where}</span>
+          <span key={program} className="reveal min-w-0 flex-1">{t(line.whereKey)}</span>
         </li>
         <li>
           <span className="su-step-n">3</span>
           <span className="min-w-0 flex-1">
-            Ask it something about this server, for example <em className="text-amber-100">&ldquo;list my Open Game Master campaigns&rdquo;</em>.
+            {t("agentConnect.askExample", { example: t("agentConnect.example") })}
           </span>
         </li>
       </ol>
@@ -141,15 +149,15 @@ export function AgentConnectLines({
         <span className="su-lamp" data-tone={first ? "ok" : gaveUp ? "off" : "wait"} aria-hidden="true" />
         {first ? (
           <span key="ok" className="reveal-pop text-emerald-300">
-            Connected. Its first call{first.tool ? <> (<code className="text-emerald-200">{first.tool}</code>)</> : null} arrived
-            {first.createdAt ? ` at ${new Date(first.createdAt).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}` : ""}.
+            {t("agentConnect.connected")} {t("agentConnect.firstCall")}{first.tool ? <> (<code className="text-emerald-200">{first.tool}</code>)</> : null} {t("agentConnect.arrived")}
+            {first.createdAt ? ` ${t("agentConnect.at", { time: new Date(first.createdAt).toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" }) })}` : "."}
           </span>
         ) : gaveUp ? (
           <span key="off" className="reveal text-stone-400">
-            No call yet. The connection stays ready; this page just stopped watching for it.
+            {t("agentConnect.noCall")}
           </span>
         ) : (
-          <span key="wait" className="text-stone-400">Waiting for its first call…</span>
+          <span key="wait" className="text-stone-400">{t("agentConnect.waiting")}</span>
         )}
       </p>
     </div>

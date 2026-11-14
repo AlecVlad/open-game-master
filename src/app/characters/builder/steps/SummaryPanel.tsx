@@ -6,6 +6,7 @@ import { ui } from "@/lib/ui";
 import type { BlockerTarget } from "../submit";
 import { summaryOwedCount, type SummaryRow, type SummaryRowKey } from "../summary";
 import { StepPanel } from "./shared";
+import { useI18n } from "@/lib/i18n/provider";
 
 // The summary an edit opens on and a new build ends on (backlog F3): one
 // row per step with its picks in plain words and an Edit that goes there.
@@ -20,13 +21,14 @@ export function SummaryPanel({
   onEdit: (key: SummaryRowKey) => void;
   onFix: (target: BlockerTarget) => void;
 }) {
+  const { t, tp } = useI18n();
   const owed = summaryOwedCount(rows);
   return (
-    <StepPanel title="Your hero" ornate className="border-amber-500/30">
+    <StepPanel title={t("builder.sum.title")} ornate className="border-amber-500/30">
       <p className="text-xs text-stone-400" data-summary-owed={owed}>
         {owed
-          ? `${owed === 1 ? "One pick is" : `${owed} picks are`} still to choose. Fix goes straight to each one.`
-          : "Every step is complete. Edit any row to change it."}
+          ? tp("builder.sum.owed", owed, { count: owed })
+          : t("builder.sum.owed.none")}
       </p>
       <ul className="mt-2 divide-y divide-stone-800/70 text-sm" data-finish-summary>
         {rows.map((row) => (
@@ -49,7 +51,7 @@ export function SummaryPanel({
                 <div className="mt-2 rounded-md border border-amber-500/30 bg-amber-950/20 px-2.5 py-1.5">
                   <p className="flex items-center gap-1.5 text-xs font-medium text-amber-100">
                     <CircleAlert aria-hidden="true" className="size-3.5 shrink-0" />
-                    Still to choose:
+                    {t("builder.sum.owed.head")}
                   </p>
                   <ul className="mt-1 space-y-1">
                     {row.owed.map((pick) => (
@@ -59,10 +61,10 @@ export function SummaryPanel({
                           type="button"
                           onClick={() => onFix(pick.target)}
                           data-summary-fix={pick.target}
-                          aria-label={`Fix ${pick.label}`}
+                          aria-label={t("builder.sum.fixAria", { label: pick.label })}
                           className="-my-1 min-h-10 shrink-0 px-2 font-mono text-xs text-amber-300 underline underline-offset-2 hover:text-amber-200"
                         >
-                          Fix
+                          {t("builder.sum.fix")}
                         </button>
                       </li>
                     ))}
@@ -74,10 +76,10 @@ export function SummaryPanel({
               type="button"
               onClick={() => onEdit(row.key)}
               data-summary-edit={row.key}
-              aria-label={`Edit ${row.label}`}
+              aria-label={t("builder.sum.editAria", { label: row.label })}
               className={cn(ui.btnSmall, "min-h-10 shrink-0 self-start px-3 text-xs")}
             >
-              Edit
+              {t("builder.sum.edit")}
             </button>
           </li>
         ))}

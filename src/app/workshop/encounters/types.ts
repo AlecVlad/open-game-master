@@ -4,6 +4,7 @@ import {
   type TemplateExtras,
 } from "@/lib/dm/encounter-template-logic";
 import type { MapLabel, MapProp } from "@/lib/battlemap/scene";
+import type { FightSetupReadout } from "@/lib/workshop/fight-setup-logic";
 
 // What /api/campaigns/:id/dm/encounter-templates hands the client. Shared by
 // the prep panel and the workshop's rows so a row and the editor behind it
@@ -45,6 +46,7 @@ export type PreparedEncounter = {
   // with (issue 685, src/lib/workshop/fight-setup-logic.ts). Null for none;
   // absent from an older host's answer.
   setup?: string[] | null;
+  setupReadout?: FightSetupReadout | null;
   setupParty?: { kind: "stand-ins"; size: number; level: number; allyIds?: string[] } | { kind: "characters"; characterIds: string[]; allyIds?: string[] } | null;
 };
 

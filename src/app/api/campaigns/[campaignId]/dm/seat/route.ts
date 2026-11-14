@@ -55,31 +55,31 @@ export async function POST(
   const { campaign, user } = context;
   if (campaign.gameSettings.dmMode === "ai") {
     return Response.json(
-      { error: "The AI runs this game; there is no GM seat to fill." },
+      { error: "The AI runs this game; there is no GM seat to fill.", errorCode: "AI_MODE_NO_GM_SEAT" },
       { status: 400 },
     );
   }
   if (!isPrimaryDm(campaignSeats(campaign), user.id) && campaign.ownerUserId !== user.id) {
     return Response.json(
-      { error: "Only the Game Master can hand out the GM seats." },
+      { error: "Only the Game Master can hand out the GM seats.", errorCode: "GM_SEAT_PERMISSION_REQUIRED" },
       { status: 403 },
     );
   }
 
   const parsed = seatSchema.safeParse(await request.json().catch(() => ({})));
   if (!parsed.success) {
-    return Response.json({ error: "Say which seat, and who fills it." }, { status: 400 });
+    return Response.json({ error: "Say which seat, and who fills it.", errorCode: "SEAT_INPUT_REQUIRED" }, { status: 400 });
   }
   const { seat, userId } = parsed.data;
 
   if (userId && !listMembers(campaignId).some((member) => member.userId === userId)) {
-    return Response.json({ error: "That player is not at this table." }, { status: 400 });
+    return Response.json({ error: "That player is not at this table.", errorCode: "PLAYER_NOT_IN_CAMPAIGN" }, { status: 400 });
   }
   // The two seats cannot be the same person: a co-DM who is also the DM is
   // just the DM, and the pair would then disagree about who may re-seat whom.
   if (userId && seat === "assistant" && userId === campaign.dmUserId) {
     return Response.json(
-      { error: "They already run the game; a co-GM has to be someone else." },
+      { error: "They already run the game; a co-GM has to be someone else.", errorCode: "CO_GM_MUST_BE_DIFFERENT" },
       { status: 400 },
     );
   }
@@ -90,7 +90,7 @@ export async function POST(
   }
   if (seat === "dm" && !userId) {
     return Response.json(
-      { error: "A human-run game needs someone in the GM seat. Switch to the AI instead." },
+      { error: "A human-run game needs someone in the GM seat. Switch to the AI instead.", errorCode: "HUMAN_MODE_REQUIRES_GM" },
       { status: 400 },
     );
   }
@@ -98,7 +98,7 @@ export async function POST(
   const applied =
     seat === "dm" ? setHumanDm(campaignId, userId) : setAssistantDm(campaignId, userId);
   if (!applied) {
-    return Response.json({ error: "Could not move that seat." }, { status: 409 });
+    return Response.json({ error: "Could not move that seat.", errorCode: "SEAT_UPDATE_FAILED" }, { status: 409 });
   }
   // Persisted and table-wide: who is running the game is not a private fact,
   // and a player whose adjudicator changed mid-session is owed the news.

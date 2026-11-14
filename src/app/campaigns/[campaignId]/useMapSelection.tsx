@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { PromptDialog } from "@/components/ui/PromptDialog";
 import { SelectionBar, type SelectionAction } from "@/components/ui/SelectionBar";
 import {
@@ -8,7 +9,6 @@ import {
   listObjects,
   moveObject,
   objectAt,
-  OBJECT_LABELS,
   refBounds,
   removeObjects,
   sameRef,
@@ -30,6 +30,14 @@ import type { XY } from "@/lib/battlemap/types";
 
 type Save = (objects: Partial<MapObjects> & { door?: XY }) => Promise<boolean> | void;
 
+const OBJECT_KIND_LABEL_KEYS: Record<ObjectRef["kind"], string> = {
+  labels: "workshop.maps.layers.labels",
+  props: "workshop.maps.layers.props",
+  lights: "workshop.maps.layers.lights",
+  doors: "workshop.maps.layers.doors",
+  drawings: "workshop.maps.layers.drawings",
+};
+
 export function useMapSelection({
   objects,
   width,
@@ -44,6 +52,7 @@ export function useMapSelection({
   save: Save;
   kinds: Array<keyof MapObjects>;
 }) {
+  const { t } = useI18n();
   const [refs, setRefs] = useState<ObjectRef[]>([]);
   const [moving, setMoving] = useState(false);
   const [editing, setEditing] = useState<ObjectRef | null>(null);
@@ -204,9 +213,10 @@ export function useMapSelection({
     if (!first) {
       return "";
     }
+    const kind = t(OBJECT_KIND_LABEL_KEYS[first.kind] as never);
     const row = listObjects(objects).find((entry) => sameRef(entry.ref, first));
-    return row ? `${OBJECT_LABELS[first.kind]}: ${row.name}` : OBJECT_LABELS[first.kind];
-  }, [live, objects]);
+    return row ? `${kind}: ${row.name}` : kind;
+  }, [live, objects, t]);
 
   const actions = useMemo<SelectionAction[]>(() => {
     const first = live[0];
@@ -243,10 +253,15 @@ export function useMapSelection({
             }
           }}
           title={
-            editing?.kind === "lights" ? "Bright radius, in feet" : editing?.kind === "props" ? "Rename the prop" : "Change the label"
+            editing?.kind === "lights"
+              ? t("workshop.maps.selection.dialog.brightRadius")
+              : editing?.kind === "props"
+                ? t("workshop.maps.selection.dialog.renameProp")
+                : t("workshop.maps.selection.dialog.changeLabel")
           }
           defaultValue={editValue}
-          submitLabel="Apply"
+          submitLabel={t("workshop.maps.selection.apply")}
+          cancelLabel={t("workshop.maps.selection.cancel")}
           onSubmit={submitEdit}
         />
   );

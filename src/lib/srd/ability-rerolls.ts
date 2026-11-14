@@ -9,6 +9,9 @@
 // group actually plays it, so neither screen asks anyone to know that 108
 // means "as often as you like". Pure, no "@/" imports, so a test can load it.
 
+import type { MessageKey } from "@/lib/i18n/messages/index";
+import type { Params } from "@/lib/i18n/core";
+
 export const REROLL_NEVER = 0;
 export const REROLL_ALWAYS = 108;
 // ODM's own default for "reroll a poor roll", and so the server's rule until
@@ -78,7 +81,47 @@ export type RerollWords = {
   keptClosed: string;
 };
 
-export function rerollWords(rerollBelow: number, atTable: boolean): RerollWords {
+export function rerollWords(rerollBelow: number, atTable: boolean, translate?: (key: MessageKey, params?: Params) => string): RerollWords {
+  if (translate) {
+    const place = translate(atTable ? "builder.extra.ability.reroll.place.table" : "builder.extra.ability.reroll.place.server");
+    const placeCap = translate(atTable ? "builder.extra.ability.reroll.placeCap.table" : "builder.extra.ability.reroll.placeCap.server");
+    const choice = rerollChoiceOf(rerollBelow);
+    const underOpen = translate("builder.extra.ability.reroll.open", { limit: rerollBelow });
+    const underOpenTitle = translate("builder.extra.ability.reroll.openTitle", { limit: rerollBelow });
+    const underClosed = translate("builder.extra.ability.reroll.closed", { limit: rerollBelow });
+    const underClosedTitle = translate("builder.extra.ability.reroll.closedTitle", { limit: rerollBelow });
+    const underKept = translate("builder.extra.ability.reroll.keptClosed", { limit: rerollBelow });
+    if (choice === "keep") {
+      const closed = translate("builder.extra.ability.reroll.noSecond", { place: placeCap });
+      return {
+        rule: translate("builder.extra.ability.rerollRule.keep", { place }),
+        open: underOpen,
+        openTitle: underOpenTitle,
+        closed,
+        closedTitle: translate("builder.extra.ability.reroll.noSecondTitle", { place: placeCap }),
+        keptClosed: closed,
+      };
+    }
+    if (choice === "free") {
+      const free = translate("builder.extra.ability.rerollRule.free", { place: placeCap });
+      return {
+        rule: free,
+        open: free,
+        openTitle: translate("builder.extra.ability.reroll.freeTitle", { place: placeCap }),
+        closed: underClosed,
+        closedTitle: underClosedTitle,
+        keptClosed: underKept,
+      };
+    }
+    return {
+      rule: translate("builder.extra.ability.rerollRule.low", { place, limit: rerollBelow }),
+      open: underOpen,
+      openTitle: underOpenTitle,
+      closed: underClosed,
+      closedTitle: underClosedTitle,
+      keptClosed: underKept,
+    };
+  }
   const here = atTable ? "this table" : "this server";
   const Here = atTable ? "This table" : "This server";
   const choice = rerollChoiceOf(rerollBelow);

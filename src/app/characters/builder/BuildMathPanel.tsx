@@ -2,13 +2,17 @@
 
 import { ChevronDown } from "lucide-react";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages";
 import type { Ability } from "@/lib/schemas/sheet";
 import { useLowEffects } from "@/lib/effects-mode";
 import { InfoBody } from "@/components/ui/InfoDialog";
 import { cn } from "@/lib/cn";
 import { classRoles } from "@/lib/srd/class-roles";
+import type { BuildMathMessages } from "./derivedReasons";
 import { buildMathSections, createChangeAnnouncer, knownSoFarRows, type BuildMathRow } from "./buildMath";
 import { LineageDetails } from "./LineageCarousel";
+import type { LineageMessages } from "./lineage";
 import type { PickerGroup } from "./OptionPicker";
 import { lineageSlidesFor } from "./steps/AncestryStep";
 import { classDetailsMeta } from "./steps/CallingStep";
@@ -49,23 +53,25 @@ export function BuildMathPanel({
   raceGroups: PickerGroup[];
   gender: BuilderState["gender"];
 }) {
+  const { t, tp } = useI18n();
+  const messages: BuildMathMessages = useMemo(() => ({ t, tp }), [t, tp]);
   const headingId = useId();
   const bodyId = useId();
   const [open, setOpen] = useState(false);
   const low = useLowEffects();
   const sections = useMemo(
-    () => buildMathSections({ derived, scores, klass, atTable }),
-    [derived, scores, klass, atTable],
+    () => buildMathSections({ derived, scores, klass, atTable }, messages),
+    [derived, scores, klass, atTable, messages],
   );
 
   // One short polite line per burst of changes (buildMath.ts).
   const [spoken, setSpoken] = useState("");
   const announcer = useRef<ReturnType<typeof createChangeAnnouncer> | null>(null);
   useEffect(() => {
-    const made = createChangeAnnouncer({ say: setSpoken });
+    const made = createChangeAnnouncer({ say: setSpoken, messages });
     announcer.current = made;
     return () => made.dispose();
-  }, []);
+  }, [messages]);
   useEffect(() => {
     announcer.current?.update(sections);
   }, [sections]);
@@ -92,7 +98,7 @@ export function BuildMathPanel({
     >
       <div className="flex shrink-0 items-center gap-2 px-3 py-1">
         <h2 id={headingId} className="min-w-0 flex-1 font-display text-base tracking-wide text-amber-100">
-          Character details
+          {t("builder.extra.buildMath.title")}
         </h2>
         <button
           type="button"
@@ -100,11 +106,11 @@ export function BuildMathPanel({
           aria-controls={bodyId}
           // The heading beside it says what; the word on its face fits a
           // phone's row, and the name read aloud starts with that word.
-          aria-label={open ? "Hide character details" : "Show character details"}
+          aria-label={t(open ? "builder.extra.buildMath.hide" : "builder.extra.buildMath.show")}
           onClick={() => setOpen((was) => !was)}
           className="flex min-h-11 shrink-0 items-center gap-1 rounded-md px-2 text-base text-sky-300 transition-colors hover:bg-stone-800 @4xl:hidden"
         >
-          {open ? "Hide" : "Show"}
+          {open ? t("builder.extra.buildMath.hideShort") : t("builder.extra.buildMath.showShort")}
           <ChevronDown aria-hidden="true" className={cn("size-4 transition-transform", open && "rotate-180")} />
         </button>
       </div>
@@ -125,7 +131,7 @@ export function BuildMathPanel({
       >
         {sections.length ? (
           <table className="w-full table-fixed border-collapse text-left">
-            <caption className="sr-only">Every number on the sheet and how it is made</caption>
+            <caption className="sr-only">{t("builder.extra.buildMath.caption")}</caption>
             <colgroup>
               <col className="w-[34%]" />
               <col className="w-[26%]" />
@@ -134,13 +140,13 @@ export function BuildMathPanel({
             <thead>
               <tr>
                 <th scope="col" className="px-2 pb-1 text-sm font-semibold text-stone-400">
-                  Number
+                  {t("builder.extra.buildMath.number")}
                 </th>
                 <th scope="col" className="px-2 pb-1 text-sm font-semibold text-stone-400">
-                  Value
+                  {t("builder.extra.buildMath.value")}
                 </th>
                 <th scope="col" className="px-2 pb-1 text-sm font-semibold text-stone-400">
-                  How it is made
+                  {t("builder.extra.buildMath.working")}
                 </th>
               </tr>
             </thead>
@@ -152,7 +158,7 @@ export function BuildMathPanel({
                     colSpan={3}
                     className="px-2 pb-1 pt-3 font-display text-base font-semibold text-amber-200/90"
                   >
-                    {section.title}
+                    {t(`builder.extra.buildMath.section.${section.id}` as MessageKey)}
                   </th>
                 </tr>
                 {section.rows.map((row) => (
@@ -162,7 +168,7 @@ export function BuildMathPanel({
                     className={changed(row) ? "flash-changed" : undefined}
                   >
                     <th scope="row" className={cn(cell, "font-normal text-stone-200")}>
-                      {row.label}
+                      {buildMathRowLabel(row, t)}
                     </th>
                     <td className={cn(cell, "break-words font-mono text-amber-100")}>{row.value}</td>
                     <td className={cn(cell, "break-words text-stone-400")}>{row.working}</td>
@@ -179,7 +185,7 @@ export function BuildMathPanel({
               race,
               racialBonus: derived.racialBonus,
               proficientSkills: derived.proficientSkills,
-            })}
+            }, messages)}
             klass={klass}
             race={race}
             races={races}
@@ -190,6 +196,33 @@ export function BuildMathPanel({
       </div>
     </aside>
   );
+}
+
+function buildMathRowLabel(row: BuildMathRow, t: ReturnType<typeof useI18n>["t"]): string {
+  if (row.id === "ac") return t("builder.extra.buildMath.row.ac");
+  if (row.id === "hp") return t("builder.extra.buildMath.row.hp");
+  if (row.id === "initiative") return t("builder.extra.buildMath.row.initiative");
+  if (row.id === "proficiency") return t("builder.extra.buildMath.row.proficiency");
+  if (row.id === "passive-perception") return t("builder.extra.buildMath.row.passivePerception");
+  if (row.id === "hit-die") return t("builder.extra.buildMath.row.hitDie");
+  if (row.id === "save-proficiencies") return t("builder.extra.buildMath.row.saveProficiencies");
+  if (row.id === "ancestry-bonuses") return t("builder.extra.buildMath.row.ancestryBonuses");
+  if (row.id === "speed") return t("builder.extra.buildMath.row.speed");
+  if (row.id === "skill-proficiencies") return t("builder.extra.buildMath.row.skillProficiencies");
+  if (row.id === "spell-dc") return t("builder.extra.buildMath.row.spellDc");
+  if (row.id === "spell-attack") return t("builder.extra.buildMath.row.spellAttack");
+  if (row.id.startsWith("spell-dc-")) return t("builder.extra.buildMath.row.classSpellDc", { klass: row.label.replace(/ spell save DC$/i, "") });
+  if (row.id.startsWith("spell-attack-")) return t("builder.extra.buildMath.row.classSpellAttack", { klass: row.label.replace(/ spell attack$/i, "") });
+  if (row.id.startsWith("ability-")) return t(`builder.extra.ability.${row.id.slice("ability-".length)}` as MessageKey);
+  if (row.id.startsWith("save-")) {
+    const ability = t(`builder.extra.ability.${row.id.slice("save-".length)}` as MessageKey);
+    return t("builder.extra.buildMath.row.save", { ability });
+  }
+  if (row.id.startsWith("slots-")) {
+    const level = row.id.slice("slots-".length);
+    return level === "pact" ? t("builder.extra.buildMath.row.pactSlots") : t("builder.extra.buildMath.row.slots", { level });
+  }
+  return row.label;
 }
 
 function rowKey(row: { id: string; value: string }) {
@@ -213,6 +246,8 @@ function PicksSoFar({
   raceGroups: PickerGroup[];
   gender: BuilderState["gender"];
 }) {
+  const { t, tp } = useI18n();
+  const messages: LineageMessages = { t, tp };
   const headingId = useId();
   const slide = useMemo(
     () => (race ? lineageSlidesFor(raceGroups, races, gender).find((entry) => entry.id === race.id) : undefined),
@@ -223,14 +258,13 @@ function PicksSoFar({
   return (
     <section aria-labelledby={headingId} data-picks-so-far="">
       <h3 id={headingId} className="mb-1 font-display text-base font-semibold text-amber-200/90">
-        Your picks so far
+        {t("builder.extra.buildMath.picksSoFar")}
       </h3>
       <p className="mb-2 text-base text-stone-400">
-        Every number and how it is made appears here once your hero has a class, an ancestry, a background and six
-        scores.
+        {t("builder.extra.buildMath.picksIntro")}
       </p>
       <table className="w-full table-fixed border-collapse text-left">
-        <caption className="sr-only">What is already settled</caption>
+        <caption className="sr-only">{t("builder.extra.buildMath.settledCaption")}</caption>
         <colgroup>
           <col className="w-[38%]" />
           <col className="w-[34%]" />
@@ -239,13 +273,13 @@ function PicksSoFar({
         <thead>
           <tr>
             <th scope="col" className="px-2 pb-1 text-sm font-semibold text-stone-400">
-              Number
+              {t("builder.extra.buildMath.number")}
             </th>
             <th scope="col" className="px-2 pb-1 text-sm font-semibold text-stone-400">
-              Value
+              {t("builder.extra.buildMath.value")}
             </th>
             <th scope="col" className="px-2 pb-1 text-sm font-semibold text-stone-400">
-              From
+              {t("builder.extra.buildMath.from")}
             </th>
           </tr>
         </thead>
@@ -253,7 +287,7 @@ function PicksSoFar({
           {known.map((row) => (
             <tr key={row.id} data-row={row.id}>
               <th scope="row" className={cn(cell, "font-normal text-stone-200")}>
-                {row.label}
+                {buildMathRowLabel(row, t)}
               </th>
               <td className={cn(cell, "break-words text-amber-100")}>{row.value}</td>
               <td className={cn(cell, "break-words text-stone-400")}>{row.working}</td>
@@ -266,7 +300,7 @@ function PicksSoFar({
           <h3 className={title}>{klass.name}</h3>
           <InfoBody
             large
-            meta={classDetailsMeta({ id: klass.id, saves: klass.saves, reading: classRoles(klass) }).join(" · ")}
+            meta={classDetailsMeta({ id: klass.id, saves: klass.saves, reading: classRoles(klass) }, t).join(" · ")}
             text={classInfoText(klass)}
             reference={{ kind: "classes", slug: klass.id, name: klass.name }}
           />
@@ -276,7 +310,7 @@ function PicksSoFar({
         <div data-picked="ancestry">
           <h3 className={title}>{slide.name}</h3>
           <div className="flex flex-wrap items-start gap-3.5">
-            <LineageDetails slide={slide} />
+            <LineageDetails slide={slide} messages={messages} />
           </div>
         </div>
       ) : null}

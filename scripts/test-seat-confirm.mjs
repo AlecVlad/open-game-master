@@ -14,13 +14,27 @@ const campaigns = await import("../src/lib/db/campaigns.ts");
 const { joinChanges } = await import("../src/lib/characters/join-changes.ts");
 const { chooserSections } = await import("../src/app/campaigns/[campaignId]/hero-chooser.ts");
 const { owedChoices } = await import("../src/lib/srd/owed-choices.ts");
+const { refusalCodes } = await import("../src/lib/characters/admit.ts");
 // Windows CI checks the files out with CRLF line endings.
 const read = (file) => fs.readFileSync(new URL(`../${file}`, import.meta.url), "utf8").replace(/\r\n/g, "\n");
 
 // ---- the words, pure ----
 
+await test("only fixed refusal messages receive localization codes", () => {
+  assert.deepEqual(
+    refusalCodes([
+      "This table turns multiclassing off; a character made here holds one class.",
+      "A variable diagnostic with a character or content-pack name.",
+      "This subclass is not configured to use the third-caster spellcasting progression.",
+    ]),
+    ["MULTICLASS_DISABLED", null, "THIRD_CASTER_NOT_CONFIGURED"],
+  );
+});
+
 await test("a hero going up says so and lists what the level owes", () => {
-  const { changes, owed } = joinChanges(LEGAL_FIGHTER, 1, { ...LEGAL_FIGHTER, maxHp: 36, features: [...LEGAL_FIGHTER.features, { name: "ASI taken: 0", source: "story" }] }, 4);
+  const { changes, changeDetails, owed } = joinChanges(LEGAL_FIGHTER, 1, { ...LEGAL_FIGHTER, maxHp: 36, features: [...LEGAL_FIGHTER.features, { name: "ASI taken: 0", source: "story" }] }, 4);
+  assert.deepEqual(changeDetails?.[0], { kind: "levelUp", from: 1, to: 4 });
+  assert.ok(changeDetails?.some((change) => change.kind === "hitPoints" && change.from === 12 && change.to === 36));
   assert.equal(changes[0], "Goes up from level 1 to 4 for this table.");
   assert.ok(changes.includes("Hit points: 12 becomes 36."), changes.join(" | "));
   assert.ok(owed.some((line) => /subclass for fighter/.test(line)), owed.join(" | "));
@@ -30,15 +44,21 @@ await test("the confirmation names a split's classes and an owed subclass in wor
   // The join sheet printed "Classes: fighter 3 / plague_doctor 2" and "a
   // subclass for plague_doctor" (the 0.31.1 playtest's setting class).
   const split = { ...LEGAL_FIGHTER, level: 5, classes: [{ id: "fighter", subclass: "", level: 3 }, { id: "plague_doctor", subclass: "", level: 2 }] };
-  const { changes } = joinChanges(split, 5, { ...LEGAL_FIGHTER, classes: [{ id: "fighter", subclass: "", level: 1 }] }, 1);
+  const { changes, changeDetails } = joinChanges(split, 5, { ...LEGAL_FIGHTER, classes: [{ id: "fighter", subclass: "", level: 1 }] }, 1);
   assert.ok(changes.includes("Classes: fighter 3 / plague doctor 2 becomes fighter 1."), changes.join(" | "));
+  const classChange = changeDetails?.find((change) => change.kind === "classes");
+  assert.deepEqual(classChange && classChange.kind === "classes" ? classChange.from.map(({ name, level }) => ({ name, level })) : [], [
+    { name: "fighter", level: 3 },
+    { name: "plague doctor", level: 2 },
+  ]);
   const owed = owedChoices({ ...LEGAL_FIGHTER, class: "plague_doctor", subclass: "", level: 3, classes: [] });
   assert.ok(!owed.some((line) => line.includes("plague_doctor")), owed.join(" | "));
 });
 
 await test("a hero at its own level changes nothing but says where it plays", () => {
-  const { changes } = joinChanges(LEGAL_FIGHTER, 1, LEGAL_FIGHTER, 1);
+  const { changes, changeDetails } = joinChanges(LEGAL_FIGHTER, 1, LEGAL_FIGHTER, 1);
   assert.deepEqual(changes, ["Plays at its own level, 1."]);
+  assert.deepEqual(changeDetails, [{ kind: "ownLevel", level: 1 }]);
 });
 
 await test("a hero going down names the improvements, feats and spells it gives back", () => {
@@ -63,11 +83,19 @@ await test("a hero going down names the improvements, feats and spells it gives 
     asiChoices: [],
     spellcasting: { ...stored.spellcasting, slots: { 1: { max: 2, used: 0 } }, prepared: ["Shield"] },
   };
-  const { changes } = joinChanges(stored, 5, seated, 1);
+  const { changes, changeDetails } = joinChanges(stored, 5, seated, 1);
   assert.equal(changes[0], "Plays at level 1 here, down from 5.");
   assert.ok(changes.includes("Gives back 1 Ability Score Improvement this level has not earned, with Alert."), changes.join(" | "));
   assert.ok(changes.includes("Gives back 1 spell this level cannot hold: Fireball."), changes.join(" | "));
   assert.ok(changes.includes("Spell slots: 2 × 1st."), changes.join(" | "));
+  assert.ok(changeDetails?.some((change) => change.kind === "levelDown" && change.level === 1 && change.from === 5));
+  assert.ok(changeDetails?.some((change) => change.kind === "improvementsReturned" && change.count === 1));
+  assert.ok(changeDetails?.some((change) => change.kind === "featsReturned" && change.feats.includes("Alert")));
+  assert.ok(changeDetails?.some((change) => change.kind === "spellsReturned" && change.spells.includes("Fireball")));
+  assert.deepEqual(changeDetails?.find((change) => change.kind === "spellSlots"), {
+    kind: "spellSlots",
+    slots: [{ level: 1, count: 2 }],
+  });
 });
 
 // ---- the chooser's order ----
@@ -142,6 +170,9 @@ async function libraryHero(table, sheet = LEGAL_FIGHTER, level = 1) {
 await test("a library hero previewed at a level 4 table: the changes, a pass, the owed choices, and nothing stored", async () => {
   const table = await openCreation({ campaign: { startingLevel: 4 } });
   const character = await libraryHero(table);
+  const badPicks = await table.call(table.sheetRoute, "POST", { libraryCharacterId: character.id, picks: { skills: "not-an-array" } }, { campaignId: table.campaignId });
+  assert.equal(badPicks.status, 400);
+  assert.equal(badPicks.json.errorCode, "PICKS_COULD_NOT_BE_READ");
   const { status, json } = await previewAs(table, { libraryCharacterId: character.id });
   assert.equal(status, 200, JSON.stringify(json));
   const { preview } = json;
@@ -191,6 +222,7 @@ await test("the door rules show before the seat is offered: a second hero, a swi
   const join = await previewAs(table, { libraryCharacterId: second.id });
   assert.equal(join.json.preview.ok, false);
   assert.match(join.json.preview.problems[0], /already have a character/);
+  assert.equal(join.json.preview.problemCodes[0], "HERO_ALREADY_HAS_CHARACTER");
 
   const swap = await previewAs(table, { libraryCharacterId: second.id, flow: "replace" });
   assert.equal(swap.json.preview.ok, true, swap.json.preview.problems.join(" | "));
@@ -199,6 +231,10 @@ await test("the door rules show before the seat is offered: a second hero, a swi
   const late = await previewAs(table, { libraryCharacterId: second.id, flow: "replace" });
   assert.equal(late.json.preview.ok, false);
   assert.match(late.json.preview.problems[0], /only be changed in the lobby/);
+  assert.equal(late.json.preview.problemCodes[0], "CAMPAIGN_NOT_LOBBY");
+  const lockedSwitch = await table.call(table.sheetRoute, "PUT", {}, { campaignId: table.campaignId });
+  assert.equal(lockedSwitch.status, 409);
+  assert.equal(lockedSwitch.json.errorCode, "CAMPAIGN_NOT_LOBBY");
   table.world.close();
 });
 
@@ -225,10 +261,12 @@ await test("a hero the quiz built is previewed by the table's door, stored by no
   assert.equal(broken.status, 200, JSON.stringify(broken.json));
   assert.equal(broken.json.preview.ok, false);
   assert.ok(broken.json.preview.problems.length > 0);
+  assert.deepEqual(broken.json.preview.problemCodes, broken.json.preview.problems.map(() => null));
 
   // One hero at a time.
   const both = await previewAs(table, { sheet, pregenId: "kara" });
   assert.equal(both.status, 400);
+  assert.equal(both.json.errorCode, "PICK_ONE_HERO");
   table.world.close();
 });
 
@@ -240,15 +278,19 @@ await test("an ally the DM plays, a stranger's hero and an unknown starter are r
   const allyPreview = await previewAs(table, { libraryCharacterId: ally.json.character.id });
   assert.equal(allyPreview.status, 400);
   assert.match(allyPreview.json.error, /ally the GM plays/);
+  assert.equal(allyPreview.json.errorCode, "COMPANION_NOT_PLAYER_CHARACTER");
+  assert.deepEqual(allyPreview.json.errorParams, { name: "Pip" });
 
   const stranger = table.world.addUser("stranger");
   table.world.signIn(stranger);
   const theirs = await table.call(table.libraryRoute, "POST", { level: 1, sheet: { ...LEGAL_FIGHTER, name: "Theirs" } });
   const stolen = await previewAs(table, { libraryCharacterId: theirs.json.character.id });
   assert.equal(stolen.status, 404);
+  assert.equal(stolen.json.errorCode, "CHARACTER_NOT_FOUND");
 
   const nobody = await previewAs(table, { pregenId: "nobody" });
   assert.equal(nobody.status, 404);
+  assert.equal(nobody.json.errorCode, "HERO_NOT_FOUND");
   const both = await previewAs(table, { pregenId: "kara", libraryCharacterId: "x" });
   assert.equal(both.status, 400);
   table.world.close();

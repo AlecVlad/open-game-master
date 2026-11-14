@@ -25,6 +25,17 @@ export const HOMEBREW_EDITOR_KINDS = [
 
 export type EditorKind = (typeof HOMEBREW_EDITOR_KINDS)[number];
 
+export const KIND_I18N_KEYS = {
+  item: { plural: "workshop.homebrew.kind.item.plural", singular: "workshop.homebrew.kind.item.singular", blurb: "workshop.homebrew.kind.item.blurb" },
+  spell: { plural: "workshop.homebrew.kind.spell.plural", singular: "workshop.homebrew.kind.spell.singular", blurb: "workshop.homebrew.kind.spell.blurb" },
+  feat: { plural: "workshop.homebrew.kind.feat.plural", singular: "workshop.homebrew.kind.feat.singular", blurb: "workshop.homebrew.kind.feat.blurb" },
+  background: { plural: "workshop.homebrew.kind.background.plural", singular: "workshop.homebrew.kind.background.singular", blurb: "workshop.homebrew.kind.background.blurb" },
+  race: { plural: "workshop.homebrew.kind.race.plural", singular: "workshop.homebrew.kind.race.singular", blurb: "workshop.homebrew.kind.race.blurb" },
+  class: { plural: "workshop.homebrew.kind.class.plural", singular: "workshop.homebrew.kind.class.singular", blurb: "workshop.homebrew.kind.class.blurb" },
+  archetype: { plural: "workshop.homebrew.kind.archetype.plural", singular: "workshop.homebrew.kind.archetype.singular", blurb: "workshop.homebrew.kind.archetype.blurb" },
+  hazard: { plural: "workshop.homebrew.kind.hazard.plural", singular: "workshop.homebrew.kind.hazard.singular", blurb: "workshop.homebrew.kind.hazard.blurb" },
+} as const;
+
 export const KIND_LABELS: Record<EditorKind, string> = {
   item: "Items",
   spell: "Spells",

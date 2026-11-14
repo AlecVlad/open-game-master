@@ -2,7 +2,8 @@
 
 import { AlignLeft, Bot, Image as ImageIcon, Wrench } from "lucide-react";
 import { useEffect, useState } from "react";
-import { ART_STYLE_LABELS, ART_STYLE_NOTES } from "@/lib/art-direction";
+import { useI18n } from "@/lib/i18n/provider";
+
 import { cn } from "@/lib/cn";
 import { ImagesNote } from "@/app/campaigns/[campaignId]/NarrationNote";
 import { commitValue, draftsFrom, editDraft, followSaved, inStep } from "@/app/campaigns/[campaignId]/settingDrafts";
@@ -32,21 +33,6 @@ type TextField = "customBaseUrl" | "customModel" | "utilityBaseUrl" | "utilityMo
 
 // In the order the pickers offer them: llama.cpp (or another
 // OpenAI-compatible server) is the one ODM sets up and recommends.
-const PROVIDER_LABELS: Record<TextProvider, string> = {
-  custom: "llama.cpp or compatible server",
-  local: "Ollama",
-  none: "No AI storyteller",
-  harness: "The server's agent",
-};
-
-const BACKEND_LABELS: Record<ImageBackend, string> = {
-  comfyui: "ComfyUI",
-  openai: "OpenAI-compatible",
-  "mflux-hs": "MFLUX (home server)",
-  "sdnq-hs": "SDNQ (home server)",
-  harness: "The server's agent",
-};
-
 // Per-campaign AI settings for the Settings tab. The values render from the
 // campaign snapshot (kept live by campaign_updated over SSE); only the
 // key-existence booleans come from the story-settings GET, because the
@@ -60,6 +46,47 @@ export function StoryAiPanel({
   settings: StorySettings;
   steersStory: boolean;
 }) {
+  const { t } = useI18n();
+  const PROVIDER_LABELS: Record<TextProvider, string> = {
+    custom: t("campaign.storyAi.provider.custom"),
+    local: t("campaign.storyAi.provider.local"),
+    none: t("campaign.storyAi.provider.none"),
+    harness: t("campaign.storyAi.provider.harness"),
+  };
+  const BACKEND_LABELS: Record<ImageBackend, string> = {
+    comfyui: t("campaign.storyAi.backend.comfyui"),
+    openai: t("campaign.storyAi.backend.openai"),
+    "mflux-hs": t("campaign.storyAi.backend.mflux"),
+    "sdnq-hs": t("campaign.storyAi.backend.sdnq"),
+    harness: t("campaign.storyAi.backend.harness"),
+  };
+  const artStyleLabels: Record<ArtStyle, string> = {
+    setting: t("campaign.storyAi.artStyle.setting"),
+    painted: t("campaign.storyAi.artStyle.painted"),
+    ink: t("campaign.storyAi.artStyle.ink"),
+    realistic: t("campaign.storyAi.artStyle.realistic"),
+    comic: t("campaign.storyAi.artStyle.comic"),
+    custom: t("campaign.storyAi.artStyle.custom"),
+  };
+  const artStyleNotes: Record<ArtStyle, string> = {
+    setting: t("campaign.storyAi.artStyleNote.setting"),
+    painted: t("campaign.storyAi.artStyleNote.painted"),
+    ink: t("campaign.storyAi.artStyleNote.ink"),
+    realistic: t("campaign.storyAi.artStyleNote.realistic"),
+    comic: t("campaign.storyAi.artStyleNote.comic"),
+    custom: t("campaign.storyAi.artStyleNote.custom"),
+  };
+  const proseSizeLabels: Record<StorySettings["proseSize"], string> = {
+    tiny: t("campaign.storyAi.proseSize.tiny"),
+    xsmall: t("campaign.storyAi.proseSize.xsmall"),
+    small: t("campaign.storyAi.proseSize.small"),
+    medium: t("campaign.storyAi.proseSize.medium"),
+    large: t("campaign.storyAi.proseSize.large"),
+    xlarge: t("campaign.storyAi.proseSize.xlarge"),
+    xxlarge: t("campaign.storyAi.proseSize.xxlarge"),
+    huge: t("campaign.storyAi.proseSize.huge"),
+    giant: t("campaign.storyAi.proseSize.giant"),
+  };
   const [busy, setBusy] = useState(false);
   // Every control renders the server's settings, so a refused PATCH changes
   // nothing on screen; without this line it changes nothing silently.
@@ -166,11 +193,18 @@ export function StoryAiPanel({
       });
       const data = (await response.json().catch(() => ({}))) as {
         error?: string;
+        errorCode?: string;
         settings?: MaskedStorySettings;
         harness?: HarnessOffer;
       };
       if (!response.ok) {
-        setError(data.error ?? "That change was not saved.");
+        const errorKey = {
+          INVALID_STORY_SETTINGS: "campaign.storyAi.error.invalid",
+          STORY_AGENT_NOT_AVAILABLE: "campaign.storyAi.error.agentUnavailable",
+          STORY_AGENT_IMAGES_NOT_ALLOWED: "campaign.storyAi.error.agentImagesUnavailable",
+          CAMPAIGN_NOT_FOUND: "campaign.storyAi.error.campaignMissing",
+        }[data.errorCode ?? ""];
+        setError(errorKey ? t(errorKey) : data.error ?? t("campaign.storyAi.error.notSaved"));
         return;
       }
       if (data.settings) {
@@ -189,7 +223,7 @@ export function StoryAiPanel({
         setKeys((prev) => ({ ...prev, utilityApiKey: SECRET_KEPT }));
       }
     } catch {
-      setError("Could not reach the server.");
+      setError(t("campaign.storyAi.error.network"));
     } finally {
       setBusy(false);
     }
@@ -210,11 +244,17 @@ export function StoryAiPanel({
   }
 
   const harnessName = harness?.label
-    ? `The server's ${harness.label}${harness.model ? ` (${harness.model})` : ""}`
+    ? harness.model
+      ? t("campaign.storyAi.provider.harnessNamedModel", { label: harness.label, model: harness.model })
+      : t("campaign.storyAi.provider.harnessNamed", { label: harness.label })
     : PROVIDER_LABELS.harness;
+
+  
   // A blank model is the server's, said with its name and where it comes
   // from rather than left for the reader to infer.
-  const inheritedModel = serverModel ? `${serverModel} · the server's model` : "the server's model";
+  const inheritedModel = serverModel
+    ? t("campaign.storyAi.summary.modelOnServer", { model: serverModel })
+    : t("campaign.storyAi.summary.serverModel");
   const storytellerSummary =
     settings.textProvider === "custom"
       ? settings.customModel || inheritedModel
@@ -222,32 +262,34 @@ export function StoryAiPanel({
         ? harnessName
         : PROVIDER_LABELS[settings.textProvider];
   const imagesSummary = settings.imageGenerationEnabled
-    ? `${BACKEND_LABELS[settings.imageBackend]}${settings.autoImages ? ", automatic" : ""}${
-        settings.artStyle === "setting" ? "" : `, ${ART_STYLE_LABELS[settings.artStyle].toLowerCase()} style`
-      }`
-    : "off";
+    ? [
+        BACKEND_LABELS[settings.imageBackend],
+        settings.autoImages ? t("campaign.storyAi.summary.auto") : null,
+        settings.artStyle === "setting" ? null : t("campaign.storyAi.summary.style", { style: artStyleLabels[settings.artStyle].toLowerCase() }),
+      ].filter(Boolean).join(", ")
+    : t("campaign.storyAi.summary.off");
 
   if (!steersStory) {
     return (
       <section className="rounded-lg border border-stone-800 bg-stone-950/60 p-4">
-        <h2 className="mb-1 text-sm font-medium text-stone-300">Story AI</h2>
-        <p className="mb-2 text-xs text-stone-500">The AI services this campaign plays with, chosen by whoever runs the story.</p>
+        <h2 className="mb-1 text-sm font-medium text-stone-300">{t("campaign.storyAi.title")}</h2>
+        <p className="mb-2 text-xs text-stone-500">{t("campaign.storyAi.viewer.description")}</p>
         <div className="flex flex-wrap gap-x-5 gap-y-1.5 text-xs text-stone-400">
           <span className="flex items-center gap-1.5">
             <Bot className="size-3.5 text-amber-200" />
-            Storyteller: {storytellerSummary}
+            {t("campaign.storyAi.summary.storyteller", { name: storytellerSummary })}
           </span>
           <span className="flex items-center gap-1.5">
             <Wrench className="size-3.5 text-amber-200" />
-            Utility model: {settings.utilityModel || "off"}
+            {t("campaign.storyAi.summary.utility", { name: settings.utilityModel || t("campaign.storyAi.summary.off") })}
           </span>
           <span className="flex items-center gap-1.5">
             <ImageIcon className="size-3.5 text-amber-200" />
-            Images: {imagesSummary}
+            {t("campaign.storyAi.summary.images", { name: imagesSummary })}
           </span>
           <span className="flex items-center gap-1.5">
             <AlignLeft className="size-3.5 text-amber-200" />
-            Passage length: {settings.proseSize}
+            {t("campaign.storyAi.summary.passages", { name: proseSizeLabels[settings.proseSize] })}
           </span>
         </div>
       </section>
@@ -255,12 +297,14 @@ export function StoryAiPanel({
   }
 
   const shell = shellHost();
-  const backendName = { openai: "OpenAI", openrouter: "OpenRouter", local: "local model" }[
-    endpointKind(settings.customBaseUrl)
-  ];
+  const backendName = {
+    openai: t("campaign.storyAi.endpoint.openai"),
+    openrouter: t("campaign.storyAi.endpoint.openrouter"),
+    local: t("campaign.storyAi.backend.localModel"),
+  }[endpointKind(settings.customBaseUrl)];
   const deviceStoryteller =
     settings.textProvider === "custom"
-      ? `${settings.customModel || "custom backend"} (${backendName})`
+      ? `${settings.customModel || t("campaign.storyAi.backend.custom")} (${backendName})`
       : settings.textProvider === "harness"
         ? harnessName
         : PROVIDER_LABELS[settings.textProvider];
@@ -273,7 +317,7 @@ export function StoryAiPanel({
   const selectClass =
     "rounded-md border border-stone-700 bg-stone-900 px-2 py-1 text-xs outline-none focus:border-amber-600";
   const inputClass = cn(selectClass, "w-64 max-w-full");
-  const labelClass = "w-20 shrink-0 text-stone-500";
+  const labelClass = "w-32 shrink-0 text-stone-500";
   const blurOnEnter = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
       event.currentTarget.blur();
@@ -282,30 +326,30 @@ export function StoryAiPanel({
 
   return (
     <section className="rounded-lg border border-stone-800 bg-stone-950/60 p-4">
-      <h2 className="mb-1 text-sm font-medium text-stone-300">Story AI</h2>
+      <h2 className="mb-1 text-sm font-medium text-stone-300">{t("campaign.storyAi.title")}</h2>
       <p className="mb-3 text-xs text-stone-500">
-        Which AI services this campaign uses: who tells the story, the helper model, and pictures. It changes this campaign
-        only, as soon as you pick; {deviceManaged ? "the device's own choice is set from the app's home screen." : "the server's defaults live in the admin panel."}
+        {t("campaign.storyAi.editor.description")} {t(deviceManaged ? "campaign.storyAi.editor.deviceChoice" : "campaign.storyAi.editor.serverChoice")}
+
       </p>
       {error ? <p className="motion-shake mb-2 text-xs text-red-400">{error}</p> : null}
       <div className={cn("space-y-3 text-xs", busy && "opacity-70")}>
         {deviceManaged === null ? null : deviceManaged ? (
           <div className="reveal space-y-2">
             <div className="flex flex-wrap items-center gap-2">
-              <span className={labelClass}>Storyteller</span>
+              <span className={labelClass}>{t("campaign.storyAi.label.storyteller")}</span>
               <span className="text-stone-300">{deviceStoryteller}</span>
             </div>
             {settings.textProvider !== "none" && settings.utilityModel ? (
               <div className="flex flex-wrap items-center gap-2">
-                <span className={labelClass}>Utility</span>
+                <span className={labelClass}>{t("campaign.storyAi.label.utility")}</span>
                 <span className="text-stone-300">{settings.utilityModel}</span>
               </div>
             ) : null}
             <p className="text-stone-500">
-              Story AI is chosen once for this device, and every campaign here follows it.{" "}
+              {t("campaign.storyAi.device.explanation")}{" "}
               {shell
-                ? "Change it from Story AI on the app's home screen."
-                : "Change it in the app that hosts this world."}
+                ? t("campaign.storyAi.device.changeHome")
+                : t("campaign.storyAi.device.changeHost")}
             </p>
             {shell ? (
               <button
@@ -313,14 +357,14 @@ export function StoryAiPanel({
                 onClick={() => shell.showServers()}
                 className="motion-press rounded-md border border-stone-700 px-2 py-1 text-stone-300 hover:border-amber-700 hover:text-amber-200"
               >
-                App home
+                {t("campaign.storyAi.device.homeButton")}
               </button>
             ) : null}
           </div>
         ) : (
           <div className="reveal space-y-3">
             <div className="flex flex-wrap items-center gap-2">
-              <span className={labelClass}>Storyteller</span>
+              <span className={labelClass}>{t("campaign.storyAi.label.storyteller")}</span>
               <Select
                 value={settings.textProvider}
                 onChange={(textProvider) => patch({ textProvider })}
@@ -328,22 +372,21 @@ export function StoryAiPanel({
                   value: provider,
                   label: provider === "harness" ? harnessName : PROVIDER_LABELS[provider],
                 }))}
-                label="Storyteller"
+                label={t("campaign.storyAi.label.storyteller")}
                 size="sm"
               />
             </div>
             {settings.textProvider === "harness" ? (
               <p className="reveal text-stone-500">
-                Narrated by an agent program on this server&apos;s own sign-in, turn by turn, under
-                the same rules and caps as the built-in storyteller. It has none of its own tools.
+                {t("campaign.storyAi.note.agent")}
               </p>
             ) : null}
             {settings.textProvider === "custom" && serverManaged ? (
               <>
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className={labelClass}>Model</span>
+                  <span className={labelClass}>{t("campaign.storyAi.label.model")}</span>
                   <input
-                    aria-label="Model"
+                    aria-label={t("campaign.storyAi.label.model")}
                     value={drafts.customModel}
                     onChange={(event) =>
                       setDraft("customModel", event.target.value)
@@ -356,17 +399,17 @@ export function StoryAiPanel({
                 <ModelNote role="story" baseUrl="" model={settings.customModel} />
                 <p className="text-stone-500">
                   {settings.customModel
-                    ? "Runs on this server's backend. Clear the model to use the server's own again."
-                    : `In use: ${inheritedModel}. Type a model name to choose another for this campaign.`}{" "}
-                  Only an admin can change where it points.
+                    ? t("campaign.storyAi.note.modelOnServer")
+                    : t("campaign.storyAi.note.modelInherited", { model: inheritedModel })}{" "}
+                  {t("campaign.storyAi.note.adminOnly")}
                 </p>
               </>
             ) : settings.textProvider === "custom" ? (
               <>
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className={labelClass}>Base URL</span>
+                  <span className={labelClass}>{t("campaign.storyAi.label.baseUrl")}</span>
                   <input
-                    aria-label="Base URL"
+                    aria-label={t("campaign.storyAi.label.baseUrl")}
                     value={drafts.customBaseUrl}
                     onChange={(event) =>
                       setDraft("customBaseUrl", event.target.value)
@@ -378,9 +421,9 @@ export function StoryAiPanel({
                   />
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className={labelClass}>Model</span>
+                  <span className={labelClass}>{t("campaign.storyAi.label.model")}</span>
                   <input
-                    aria-label="Model"
+                    aria-label={t("campaign.storyAi.label.model")}
                     value={drafts.customModel}
                     onChange={(event) =>
                       setDraft("customModel", event.target.value)
@@ -392,17 +435,17 @@ export function StoryAiPanel({
                 </div>
                 <ModelNote role="story" baseUrl={settings.customBaseUrl} model={settings.customModel} />
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className={labelClass}>API key</span>
+                  <span className={labelClass}>{t("campaign.storyAi.label.apiKey")}</span>
                   <input
                     type="password"
-                    aria-label="API key"
+                    aria-label={t("campaign.storyAi.label.apiKey")}
                     value={drafts.customApiKey === SECRET_KEPT ? "" : drafts.customApiKey}
                     onChange={(event) =>
                       setKeys((prev) => ({ ...prev, customApiKey: event.target.value }))
                     }
                     onBlur={() => commitKey("customApiKey")}
                     onKeyDown={blurOnEnter}
-                    placeholder={hasCustomKey ? "•••••••• (set)" : "Not set"}
+                    placeholder={hasCustomKey ? t("campaign.storyAi.key.set") : t("campaign.storyAi.key.notSet")}
                     className={inputClass}
                   />
                   {hasCustomKey ? (
@@ -411,32 +454,32 @@ export function StoryAiPanel({
                       onClick={() => patch({ customApiKey: "" })}
                       className="rounded-md border border-stone-700 px-2 py-1 text-stone-400 hover:text-red-400"
                     >
-                      Clear
+                      {t("campaign.storyAi.key.clear")}
                     </button>
                   ) : null}
                 </div>
-                <p className="text-stone-500">Blank fields fall back to the server&apos;s settings.</p>
+                <p className="text-stone-500">{t("campaign.storyAi.note.blankFallback")}</p>
               </>
             ) : null}
 
             <div className="flex flex-wrap items-center gap-2 border-t border-stone-800/60 pt-3">
-              <span className={labelClass}>Utility</span>
+              <span className={labelClass}>{t("campaign.storyAi.label.utility")}</span>
               <Select
                 value={settings.utilityProvider}
                 onChange={(utilityProvider) => patch({ utilityProvider })}
                 options={(["custom", "local"] as TextProvider[]).map((provider) => ({ value: provider, label: PROVIDER_LABELS[provider] }))}
-                label="Utility model provider"
+                label={t("campaign.storyAi.label.utilityProvider")}
                 size="sm"
               />
               <input
-                aria-label="Utility model"
+                aria-label={t("campaign.storyAi.label.utilityModel")}
                 value={drafts.utilityModel}
                 onChange={(event) =>
                   setDraft("utilityModel", event.target.value)
                 }
                 onBlur={() => commitText("utilityModel")}
                 onKeyDown={blurOnEnter}
-                placeholder="Model (blank keeps everything on the storyteller)"
+                placeholder={t("campaign.storyAi.utility.modelPlaceholder")}
                 className={inputClass}
               />
             </div>
@@ -445,28 +488,28 @@ export function StoryAiPanel({
             ) : null}
             {settings.utilityProvider === "custom" && settings.utilityModel && !serverManaged ? (
               <div className="reveal flex flex-wrap items-center gap-2">
-                <span className={labelClass}>Utility URL</span>
+                <span className={labelClass}>{t("campaign.storyAi.label.utilityUrl")}</span>
                 <input
-                  aria-label="Utility URL"
+                  aria-label={t("campaign.storyAi.label.utilityUrl")}
                   value={drafts.utilityBaseUrl}
                   onChange={(event) =>
                     setDraft("utilityBaseUrl", event.target.value)
                   }
                   onBlur={() => commitText("utilityBaseUrl")}
                   onKeyDown={blurOnEnter}
-                  placeholder="Blank: the storyteller's server"
+                  placeholder={t("campaign.storyAi.utility.urlPlaceholder")}
                   className={inputClass}
                 />
                 <input
                   type="password"
-                  aria-label="Utility API key"
+                  aria-label={t("campaign.storyAi.label.utilityApiKey")}
                   value={drafts.utilityApiKey === SECRET_KEPT ? "" : drafts.utilityApiKey}
                   onChange={(event) =>
                     setKeys((prev) => ({ ...prev, utilityApiKey: event.target.value }))
                   }
                   onBlur={() => commitKey("utilityApiKey")}
                   onKeyDown={blurOnEnter}
-                  placeholder={hasUtilityKey ? "•••••••• (set)" : "API key (optional)"}
+                  placeholder={hasUtilityKey ? t("campaign.storyAi.key.set") : t("campaign.storyAi.utility.keyPlaceholder")}
                   className={cn(selectClass, "w-40")}
                 />
                 {hasUtilityKey ? (
@@ -475,7 +518,7 @@ export function StoryAiPanel({
                     onClick={() => patch({ utilityApiKey: "" })}
                     className="rounded-md border border-stone-700 px-2 py-1 text-stone-400 hover:text-red-400"
                   >
-                    Clear
+                    {t("campaign.storyAi.key.clear")}
                   </button>
                 ) : null}
               </div>
@@ -485,13 +528,13 @@ export function StoryAiPanel({
         )}
 
         <div className="flex flex-wrap items-center gap-2 border-t border-stone-800/60 pt-3">
-          <span className={labelClass}>Images</span>
+          <span className={labelClass}>{t("campaign.storyAi.label.images")}</span>
           <Select<ImageBackend | "off">
             value={settings.imageGenerationEnabled ? settings.imageBackend : "off"}
-            label="Images"
+            label={t("campaign.storyAi.label.images")}
             size="sm"
             options={[
-              { value: "off", label: "Off" },
+              { value: "off", label: t("campaign.storyAi.image.off") },
               // On a device the backend follows the device; only on and off
               // are this campaign's to choose.
               ...(deviceManaged
@@ -517,21 +560,21 @@ export function StoryAiPanel({
                 value={settings.aspect}
                 onChange={(aspect) => patch({ aspect })}
                 options={[
-                  { value: "square", label: "Square" },
-                  { value: "portrait", label: "Portrait" },
-                  { value: "landscape", label: "Landscape" },
+                  { value: "square", label: t("campaign.storyAi.image.aspect.square") },
+                  { value: "portrait", label: t("campaign.storyAi.image.aspect.portrait") },
+                  { value: "landscape", label: t("campaign.storyAi.image.aspect.landscape") },
                 ]}
-                label="Picture shape"
+                label={t("campaign.storyAi.image.pictureShape")}
                 size="sm"
               />
               <Select<StorySettings["imageMode"]>
                 value={settings.imageMode}
                 onChange={(imageMode) => patch({ imageMode })}
                 options={[
-                  { value: "fast", label: "Fast" },
-                  { value: "slow", label: "Slow (higher quality)" },
+                  { value: "fast", label: t("campaign.storyAi.image.speed.fast") },
+                  { value: "slow", label: t("campaign.storyAi.image.speed.slow") },
                 ]}
-                label="Picture speed"
+                label={t("campaign.storyAi.image.pictureSpeed")}
                 size="sm"
               />
               <button
@@ -544,7 +587,7 @@ export function StoryAiPanel({
                     : "border-stone-700 text-stone-400",
                 )}
               >
-                Auto scenes
+                {t("campaign.storyAi.image.autoScenes")}
               </button>
             </>
           ) : null}
@@ -554,23 +597,22 @@ export function StoryAiPanel({
         (settings.imageBackend === "openai" || (settings.imageBackend === "comfyui" && serverImagesNeedModel)) ? (
           <p className="reveal text-amber-400/90">
             {deviceManaged && settings.imageBackend === "openai"
-              ? "No picture model is saved on this device, so nothing is painted. Save your key again from Story AI on the app's home screen, which picks one from the key's list, or pick one in Admin > Image generation."
+              ? t("campaign.storyAi.warning.deviceModel")
               : serverManaged
-                ? "No picture model is picked on this server, so nothing is painted. An admin picks one in Admin > Image generation."
-                : "No picture model is picked, so nothing is painted until one is. Pick it in Admin > Image generation."}
+                ? t("campaign.storyAi.warning.serverModel")
+                : t("campaign.storyAi.warning.model")}
           </p>
         ) : settings.imageGenerationEnabled && settings.imageBackend === "openai" && !imagesReady ? (
           <p className="reveal text-amber-400/90">
             {deviceManaged
-              ? "No OpenAI API key is saved on this device. Add one from Story AI on the app's home screen and it covers narration and pictures in every campaign."
+              ? t("campaign.storyAi.warning.deviceKey")
               : serverManaged
-                ? "The OpenAI picture backend has no API key. An admin adds one in Admin > Image generation."
-                : "The OpenAI picture backend has no API key. Add one in Admin > Image generation, or point this story's text model at OpenAI so its key covers pictures too."}
+                ? t("campaign.storyAi.warning.serverKey")
+                : t("campaign.storyAi.warning.key")}
           </p>
         ) : settings.imageGenerationEnabled && !imagesConfigured && imagesReady ? (
           <p className="reveal text-amber-400/90">
-            The server has no image backend configured; these settings will not take effect
-            until it does.
+            {t("campaign.storyAi.warning.noBackend")}
           </p>
         ) : settings.imageGenerationEnabled && !deviceManaged ? (
           <ImagesNote backend={settings.imageBackend} />
@@ -578,43 +620,43 @@ export function StoryAiPanel({
         {settings.imageGenerationEnabled ? (
           <div className="reveal space-y-2">
             <div className="flex flex-wrap items-center gap-2">
-              <span className={labelClass}>Art style</span>
+              <span className={labelClass}>{t("campaign.storyAi.label.artStyle")}</span>
               <Select<ArtStyle>
                 value={settings.artStyle}
                 onChange={(artStyle) => patch({ artStyle })}
-                options={ART_STYLES.map((style) => ({ value: style, label: ART_STYLE_LABELS[style] }))}
-                label="Art style"
+                options={ART_STYLES.map((style) => ({ value: style, label: artStyleLabels[style] }))}
+                label={t("campaign.storyAi.label.artStyle")}
                 size="sm"
               />
               <span key={settings.artStyle} className="reveal text-stone-500">
-                {ART_STYLE_NOTES[settings.artStyle]}
+                {artStyleNotes[settings.artStyle]}
               </span>
             </div>
             {settings.artStyle === "custom" ? (
               <div className="reveal space-y-2">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className={labelClass}>Maps</span>
+                  <span className={labelClass}>{t("campaign.storyAi.label.maps")}</span>
                   <input
                     value={drafts.artStyleMap}
                     onChange={(event) => setDraft("artStyleMap", event.target.value)}
                     onBlur={() => commitText("artStyleMap")}
                     onKeyDown={blurOnEnter}
                     maxLength={ART_STYLE_TEXT_MAX}
-                    placeholder="Realistic terrain from above, clear paths"
-                    aria-label="Map style"
+                    placeholder={t("campaign.storyAi.customStyle.mapsPlaceholder")}
+                    aria-label={t("campaign.storyAi.label.mapsStyle")}
                     className={inputClass}
                   />
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className={labelClass}>Scenes</span>
+                  <span className={labelClass}>{t("campaign.storyAi.label.scenes")}</span>
                   <input
                     value={drafts.artStyleScene}
                     onChange={(event) => setDraft("artStyleScene", event.target.value)}
                     onBlur={() => commitText("artStyleScene")}
                     onKeyDown={blurOnEnter}
                     maxLength={ART_STYLE_TEXT_MAX}
-                    placeholder="Photorealistic, cinematic light"
-                    aria-label="Scene style"
+                    placeholder={t("campaign.storyAi.customStyle.scenesPlaceholder")}
+                    aria-label={t("campaign.storyAi.label.scenesStyle")}
                     className={inputClass}
                   />
                 </div>
@@ -624,15 +666,15 @@ export function StoryAiPanel({
         ) : null}
 
         <div className="flex flex-wrap items-center gap-2 border-t border-stone-800/60 pt-3">
-          <span className={labelClass}>Passages</span>
+          <span className={labelClass}>{t("campaign.storyAi.label.passages")}</span>
           <Select<StorySettings["proseSize"]>
             value={settings.proseSize}
             onChange={(proseSize) => patch({ proseSize })}
-            options={PROSE_SIZE_VALUES.map((size) => ({ value: size, label: size }))}
-            label="Passages"
+            options={PROSE_SIZE_VALUES.map((size) => ({ value: size, label: proseSizeLabels[size] }))}
+            label={t("campaign.storyAi.label.passages")}
             size="sm"
           />
-          <span className="text-stone-500">How long each narrated passage runs.</span>
+          <span className="text-stone-500">{t("campaign.storyAi.proseSize.description")}</span>
         </div>
       </div>
     </section>

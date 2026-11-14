@@ -11,9 +11,11 @@ import { useLowEffects } from "@/lib/effects-mode";
 import { freshPlaySheet, revealLine, threeThingsToTry } from "@/lib/characters/hero-tips";
 import type { CreateSheetInput } from "@/lib/schemas/sheet";
 import { classLevelWords, isSplit } from "@/lib/characters/class-words";
-import { workshopClassName } from "@/lib/classes/workshop-registry";
+
 import { CharacterPortrait, ui } from "@/lib/ui";
 import { UseInCampaignDialog } from "../UseInCampaignDialog";
+import { useI18n } from "@/lib/i18n/provider";
+import { characterClassName, characterRaceName, characterSubclassName } from "@/lib/i18n/character-names";
 
 // The hero page (backlog F23 and F26): where a new character lands after
 // its first save. A text page, not a toast: its own heading, which takes
@@ -41,14 +43,10 @@ type ReadyCharacter = {
 // The sheet page's limit: polling stops even if the job never resolves.
 const PORTRAIT_POLL_LIMIT = 240;
 
-// An id as words ("half-elf" as "half elf"); the line's capitalize class
-// shows it title-cased.
-function spaced(value: string) {
-  return value.split(/[-_]/).join(" ");
-}
 
 export default function HeroReadyPage({ params }: { params: Promise<{ characterId: string }> }) {
   const { characterId } = use(params);
+  const { t } = useI18n();
   const [character, setCharacter] = useState<ReadyCharacter | null>(null);
   const [loading, setLoading] = useState(true);
   const [seating, setSeating] = useState(false);
@@ -122,7 +120,7 @@ export default function HeroReadyPage({ params }: { params: Promise<{ characterI
       if (!response.ok) throw new Error("refused");
     } catch {
       setSkip(!next);
-      setSkipError("Could not save that. Try again.");
+      setSkipError(t("charReady.err.save"));
     }
   }
 
@@ -140,9 +138,9 @@ export default function HeroReadyPage({ params }: { params: Promise<{ characterI
       <main className="mx-auto w-full max-w-3xl flex-1 p-4 sm:p-6">
         <AppHeader />
         <div className={cn(ui.card, "ornate texture-noise flex flex-col items-center gap-3 px-6 py-8 text-center")}>
-          <p className="font-serif text-sm text-stone-300">Character not found.</p>
+          <p className="font-serif text-sm text-stone-300">{t("charReady.notfound")}</p>
           <Link href="/characters" className={ui.btnSecondary}>
-            Back to your library
+            {t("charReady.back")}
           </Link>
         </div>
       </main>
@@ -150,14 +148,14 @@ export default function HeroReadyPage({ params }: { params: Promise<{ characterI
   }
 
   const portraitUrl = character.sheet.portrait?.url;
-  const ancestry = character.raceLabel ?? spaced(character.race);
+  const ancestry = characterRaceName(character.race, character.raceLabel, t);
   // A split names each class's levels (backlog F9); one class reads the
   // server's name for it, a workshop class's included.
   const split = { ...character, classes: character.sheet.classes };
   const classWords = isSplit(split)
-    ? classLevelWords(split, (id) => workshopClassName(id) ?? spaced(id))
-    : (character.className ?? spaced(character.class));
-  const calling = `${classWords}${character.subclass ? ` (${spaced(character.subclass)})` : ""}`;
+    ? classLevelWords(split, (id) => characterClassName(id, t))
+    : characterClassName(character.class, t, character.className);
+  const calling = `${classWords}${character.subclass ? ` (${characterSubclassName(character.class, character.subclass, t)})` : ""}`;
   const motion = lowEffects ? "" : "reveal";
 
   return (
@@ -173,13 +171,13 @@ export default function HeroReadyPage({ params }: { params: Promise<{ characterI
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={portraitUrl}
-                alt={`Portrait of ${character.name}`}
+                alt={t("charReady.alt", { name: character.name })}
                 className="size-28 rounded-xl border border-amber-500/30 object-cover shadow-glow-gold sm:size-32"
               />
             ) : (
               <CharacterPortrait
                 look={{ race: character.race, class: character.class, gender: character.sheet.gender }}
-                alt={`${character.name}, placeholder portrait`}
+                alt={t("charReady.alt.ph", { name: character.name })}
                 size="size-28 sm:size-32"
                 rounded="rounded-xl"
                 className="border-amber-500/30 shadow-glow-gold"
@@ -198,16 +196,16 @@ export default function HeroReadyPage({ params }: { params: Promise<{ characterI
               tabIndex={-1}
               className="gold-title font-display text-3xl tracking-wide outline-none focus-visible:ring-2 focus-visible:ring-amber-300/60 sm:text-4xl"
             >
-              {character.name} is ready
+              {t("charReady.ready", { name: character.name })}
             </h1>
             <p className="mt-1 text-sm capitalize text-stone-300">
-              Level {character.level} {ancestry} {calling}
+              {t("charReady.line", { level: character.level, ancestry, calling })}
             </p>
             {reveal ? <p className="mt-2 font-serif text-base italic text-amber-200">{reveal}</p> : null}
             {portraitPending ? (
-              <p className="mt-2 text-xs text-stone-400">The portrait is still painting. It will appear here when it is done.</p>
+              <p className="mt-2 text-xs text-stone-400">{t("charReady.painting")}</p>
             ) : !portraitUrl && character.portraitStatus === "failed" ? (
-              <p className="mt-2 text-xs text-stone-500">The portrait couldn&apos;t be painted. You can paint or upload one from the sheet.</p>
+              <p className="mt-2 text-xs text-stone-500">{t("charReady.failed")}</p>
             ) : null}
           </div>
         </div>
@@ -215,7 +213,7 @@ export default function HeroReadyPage({ params }: { params: Promise<{ characterI
 
       <section aria-labelledby="hero-tips-heading" className={cn(ui.card, "mb-4 p-4 sm:p-5", motion)}>
         <h2 id="hero-tips-heading" className="font-display text-lg tracking-wide text-amber-100">
-          Three things to try on your turn
+          {t("charReady.tips")}
         </h2>
         {tips.length ? (
           <ol className="mt-3 space-y-3">
@@ -230,7 +228,7 @@ export default function HeroReadyPage({ params }: { params: Promise<{ characterI
             ))}
           </ol>
         ) : (
-          <p className="mt-3 text-sm text-stone-400">Your sheet lists everything you can do once you sit down at a table.</p>
+          <p className="mt-3 text-sm text-stone-400">{t("charReady.tips.none")}</p>
         )}
       </section>
 
@@ -242,14 +240,14 @@ export default function HeroReadyPage({ params }: { params: Promise<{ characterI
             onChange={(event) => void changeSkip(event.target.checked)}
             className="size-5 accent-amber-400 focus-visible:outline-2 focus-visible:outline-amber-300"
           />
-          Don&apos;t show this again
+          {t("charReady.skip")}
         </label>
         <div className="flex flex-wrap gap-2">
           <button type="button" onClick={() => setSeating(true)} className={cn(ui.btnPrimary, "min-w-0 flex-1 sm:flex-none")}>
-            <GameIcon icon={{ kind: "glyph", key: "tab-campaigns" }} size="size-6" /> Bring to a table
+            <GameIcon icon={{ kind: "glyph", key: "tab-campaigns" }} size="size-6" /> {t("charReady.bring")}
           </button>
           <Link href="/characters" className={cn(ui.btnSecondary, "min-w-0 flex-1 sm:flex-none")}>
-            Done
+            {t("charReady.done")}
           </Link>
         </div>
       </div>

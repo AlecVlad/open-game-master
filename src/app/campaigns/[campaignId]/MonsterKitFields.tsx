@@ -1,5 +1,7 @@
 "use client";
 
+import { useI18n } from "@/lib/i18n/provider";
+
 import { applyHalfDragon, DRAGON_COLORS, type DragonColor } from "@/lib/bestiary/half-dragon";
 import { Plus, Wand2 } from "lucide-react";
 import { useState } from "react";
@@ -13,6 +15,7 @@ import {
   ANCESTRY_OPTIONS,
   CLASS_KIT_OPTIONS,
   MOVEMENT_MODES,
+  DAMAGE_TYPES,
   addTrait,
   applyAncestry,
   applyArmor,
@@ -20,7 +23,7 @@ import {
   addAttack,
   armorOptionsFor,
   classFeatureLines,
-  describeChassis,
+  chassisDescription,
   findWeapon,
   formatSpeed,
   hasTerm,
@@ -50,6 +53,252 @@ const input =
 const chip =
   "rounded-full border px-2 py-0.5 text-[10px] transition-colors duration-150";
 
+const ANCESTRY_LABEL_KEYS: Record<string, string> = {
+  hill_dwarf: "workshop.monsterEditor.kit.ancestry.hill_dwarf",
+  mountain_dwarf: "workshop.monsterEditor.kit.ancestry.mountain_dwarf",
+  high_elf: "workshop.monsterEditor.kit.ancestry.high_elf",
+  wood_elf: "workshop.monsterEditor.kit.ancestry.wood_elf",
+  drow: "workshop.monsterEditor.kit.ancestry.drow",
+  lightfoot_halfling: "workshop.monsterEditor.kit.ancestry.lightfoot_halfling",
+  stout_halfling: "workshop.monsterEditor.kit.ancestry.stout_halfling",
+  human: "workshop.monsterEditor.kit.ancestry.human",
+  variant_human: "workshop.monsterEditor.kit.ancestry.variant_human",
+  dragonborn: "workshop.monsterEditor.kit.ancestry.dragonborn",
+  rock_gnome: "workshop.monsterEditor.kit.ancestry.rock_gnome",
+  forest_gnome: "workshop.monsterEditor.kit.ancestry.forest_gnome",
+  deep_gnome: "workshop.monsterEditor.kit.ancestry.deep_gnome",
+  half_elf: "workshop.monsterEditor.kit.ancestry.half_elf",
+  half_orc: "workshop.monsterEditor.kit.ancestry.half_orc",
+  tiefling: "workshop.monsterEditor.kit.ancestry.tiefling",
+  aasimar: "workshop.monsterEditor.kit.ancestry.aasimar",
+  goliath: "workshop.monsterEditor.kit.ancestry.goliath",
+  firbolg: "workshop.monsterEditor.kit.ancestry.firbolg",
+  tabaxi: "workshop.monsterEditor.kit.ancestry.tabaxi",
+  kenku: "workshop.monsterEditor.kit.ancestry.kenku",
+  tortle: "workshop.monsterEditor.kit.ancestry.tortle",
+  fire_genasi: "workshop.monsterEditor.kit.ancestry.fire_genasi",
+  water_genasi: "workshop.monsterEditor.kit.ancestry.water_genasi",
+  air_genasi: "workshop.monsterEditor.kit.ancestry.air_genasi",
+  earth_genasi: "workshop.monsterEditor.kit.ancestry.earth_genasi",
+  changeling: "workshop.monsterEditor.kit.ancestry.changeling",
+  warforged: "workshop.monsterEditor.kit.ancestry.warforged",
+  goblin: "workshop.monsterEditor.kit.ancestry.goblin",
+  bugbear: "workshop.monsterEditor.kit.ancestry.bugbear",
+  lizardfolk: "workshop.monsterEditor.kit.ancestry.lizardfolk",
+  orc: "workshop.monsterEditor.kit.ancestry.orc",
+};
+
+const TRANSLATABLE_CLASSES = new Set([
+  "barbarian", "bard", "cleric", "druid", "fighter", "monk", "paladin",
+  "ranger", "rogue", "sorcerer", "warlock", "wizard", "artificer",
+]);
+
+const CREATURE_TYPE_IDS = [
+  "aberration", "beast", "celestial", "construct", "dragon", "elemental",
+  "fey", "fiend", "giant", "humanoid", "monstrosity", "ooze", "plant", "undead",
+
+] as const;
+
+const ARMOUR_NAME_KEYS: Record<string, string> = {
+  "Padded": "workshop.monsterEditor.kit.catalog.armour.padded",
+  "Leather": "workshop.monsterEditor.kit.catalog.armour.leather",
+  "Studded Leather": "workshop.monsterEditor.kit.catalog.armour.studdedLeather",
+  "Hide": "workshop.monsterEditor.kit.catalog.armour.hide",
+  "Chain Shirt": "workshop.monsterEditor.kit.catalog.armour.chainShirt",
+  "Scale Mail": "workshop.monsterEditor.kit.catalog.armour.scaleMail",
+  "Breastplate": "workshop.monsterEditor.kit.catalog.armour.breastplate",
+  "Half Plate": "workshop.monsterEditor.kit.catalog.armour.halfPlate",
+  "Ring Mail": "workshop.monsterEditor.kit.catalog.armour.ringMail",
+  "Chain Mail": "workshop.monsterEditor.kit.catalog.armour.chainMail",
+  "Splint": "workshop.monsterEditor.kit.catalog.armour.splint",
+  "Plate": "workshop.monsterEditor.kit.catalog.armour.plate",
+  "Shield": "workshop.monsterEditor.kit.catalog.armour.shield",
+  "Armorweave Vest": "workshop.monsterEditor.kit.catalog.armour.armorweaveVest",
+  "Kevlar Vest": "workshop.monsterEditor.kit.catalog.armour.kevlarVest",
+  "Riot Plating": "workshop.monsterEditor.kit.catalog.armour.riotPlating",
+  "Brass Carapace": "workshop.monsterEditor.kit.catalog.armour.brassCarapace",
+  "Scrap Plate": "workshop.monsterEditor.kit.catalog.armour.scrapPlate",
+  "Ballistic Shield": "workshop.monsterEditor.kit.catalog.armour.ballisticShield",
+};
+
+const WEAPON_NAME_KEYS: Record<string, string> = {
+  "Club": "workshop.monsterEditor.kit.catalog.weapon.club",
+  "Dagger": "workshop.monsterEditor.kit.catalog.weapon.dagger",
+  "Greatclub": "workshop.monsterEditor.kit.catalog.weapon.greatclub",
+  "Handaxe": "workshop.monsterEditor.kit.catalog.weapon.handaxe",
+  "Javelin": "workshop.monsterEditor.kit.catalog.weapon.javelin",
+  "Light Hammer": "workshop.monsterEditor.kit.catalog.weapon.lightHammer",
+  "Mace": "workshop.monsterEditor.kit.catalog.weapon.mace",
+  "Quarterstaff": "workshop.monsterEditor.kit.catalog.weapon.quarterstaff",
+  "Sickle": "workshop.monsterEditor.kit.catalog.weapon.sickle",
+  "Spear": "workshop.monsterEditor.kit.catalog.weapon.spear",
+  "Light Crossbow": "workshop.monsterEditor.kit.catalog.weapon.lightCrossbow",
+  "Dart": "workshop.monsterEditor.kit.catalog.weapon.dart",
+  "Shortbow": "workshop.monsterEditor.kit.catalog.weapon.shortbow",
+  "Sling": "workshop.monsterEditor.kit.catalog.weapon.sling",
+  "Battleaxe": "workshop.monsterEditor.kit.catalog.weapon.battleaxe",
+  "Flail": "workshop.monsterEditor.kit.catalog.weapon.flail",
+  "Glaive": "workshop.monsterEditor.kit.catalog.weapon.glaive",
+  "Greataxe": "workshop.monsterEditor.kit.catalog.weapon.greataxe",
+  "Greatsword": "workshop.monsterEditor.kit.catalog.weapon.greatsword",
+  "Halberd": "workshop.monsterEditor.kit.catalog.weapon.halberd",
+  "Lance": "workshop.monsterEditor.kit.catalog.weapon.lance",
+  "Longsword": "workshop.monsterEditor.kit.catalog.weapon.longsword",
+  "Maul": "workshop.monsterEditor.kit.catalog.weapon.maul",
+  "Morningstar": "workshop.monsterEditor.kit.catalog.weapon.morningstar",
+  "Pike": "workshop.monsterEditor.kit.catalog.weapon.pike",
+  "Rapier": "workshop.monsterEditor.kit.catalog.weapon.rapier",
+  "Scimitar": "workshop.monsterEditor.kit.catalog.weapon.scimitar",
+  "Shortsword": "workshop.monsterEditor.kit.catalog.weapon.shortsword",
+  "Trident": "workshop.monsterEditor.kit.catalog.weapon.trident",
+  "War Pick": "workshop.monsterEditor.kit.catalog.weapon.warPick",
+  "Warhammer": "workshop.monsterEditor.kit.catalog.weapon.warhammer",
+  "Whip": "workshop.monsterEditor.kit.catalog.weapon.whip",
+  "Blowgun": "workshop.monsterEditor.kit.catalog.weapon.blowgun",
+  "Hand Crossbow": "workshop.monsterEditor.kit.catalog.weapon.handCrossbow",
+  "Heavy Crossbow": "workshop.monsterEditor.kit.catalog.weapon.heavyCrossbow",
+  "Longbow": "workshop.monsterEditor.kit.catalog.weapon.longbow",
+  "Net": "workshop.monsterEditor.kit.catalog.weapon.net",
+  "Pistol": "workshop.monsterEditor.kit.catalog.weapon.pistol",
+  "Revolver": "workshop.monsterEditor.kit.catalog.weapon.revolver",
+  "Sawed-off Scattergun": "workshop.monsterEditor.kit.catalog.weapon.sawedOffScattergun",
+  "Hunting Rifle": "workshop.monsterEditor.kit.catalog.weapon.huntingRifle",
+  "Musket": "workshop.monsterEditor.kit.catalog.weapon.musket",
+  "Hand Cannon": "workshop.monsterEditor.kit.catalog.weapon.handCannon",
+  "Monoblade": "workshop.monsterEditor.kit.catalog.weapon.monoblade",
+  "Chainblade": "workshop.monsterEditor.kit.catalog.weapon.chainblade",
+  "Shock Baton": "workshop.monsterEditor.kit.catalog.weapon.shockBaton",
+  "Vibroknife": "workshop.monsterEditor.kit.catalog.weapon.vibroknife",
+  "Ripper Gauntlet": "workshop.monsterEditor.kit.catalog.weapon.ripperGauntlet",
+  "Heavy Spanner": "workshop.monsterEditor.kit.catalog.weapon.heavySpanner",
+  "Sword Cane": "workshop.monsterEditor.kit.catalog.weapon.swordCane",
+  "Machete": "workshop.monsterEditor.kit.catalog.weapon.machete",
+  "Crowbar": "workshop.monsterEditor.kit.catalog.weapon.crowbar",
+  "Silvered Stake": "workshop.monsterEditor.kit.catalog.weapon.silveredStake",
+  "Censer Mace": "workshop.monsterEditor.kit.catalog.weapon.censerMace",
+  "Hurled Vial": "workshop.monsterEditor.kit.catalog.weapon.hurledVial",
+};
+
+const SUBCLASS_NAME_KEYS: Record<string, string> = {
+  "barbarian::Path of the Berserker": "workshop.monsterEditor.kit.subclass.barbarian.path_of_the_berserker",
+  "bard::College of Lore": "workshop.monsterEditor.kit.subclass.bard.college_of_lore",
+  "cleric::Life Domain": "workshop.monsterEditor.kit.subclass.cleric.life_domain",
+  "druid::Circle of the Land": "workshop.monsterEditor.kit.subclass.druid.circle_of_the_land",
+  "fighter::Champion": "workshop.monsterEditor.kit.subclass.fighter.champion",
+  "monk::Way of the Open Hand": "workshop.monsterEditor.kit.subclass.monk.way_of_the_open_hand",
+  "paladin::Oath of Devotion": "workshop.monsterEditor.kit.subclass.paladin.oath_of_devotion",
+  "ranger::Hunter": "workshop.monsterEditor.kit.subclass.ranger.hunter",
+  "rogue::Thief": "workshop.monsterEditor.kit.subclass.rogue.thief",
+  "sorcerer::Draconic Bloodline": "workshop.monsterEditor.kit.subclass.sorcerer.draconic_bloodline",
+  "warlock::The Fiend": "workshop.monsterEditor.kit.subclass.warlock.the_fiend",
+  "wizard::School of Evocation": "workshop.monsterEditor.kit.subclass.wizard.school_of_evocation",
+  "barbarian::Path of the Totem Warrior": "workshop.monsterEditor.kit.subclass.barbarian.path_of_the_totem_warrior",
+  "barbarian::Path of the Ancestral Guardian": "workshop.monsterEditor.kit.subclass.barbarian.path_of_the_ancestral_guardian",
+  "barbarian::Path of the Storm Herald": "workshop.monsterEditor.kit.subclass.barbarian.path_of_the_storm_herald",
+  "barbarian::Path of the Zealot": "workshop.monsterEditor.kit.subclass.barbarian.path_of_the_zealot",
+  "barbarian::Path of the Beast": "workshop.monsterEditor.kit.subclass.barbarian.path_of_the_beast",
+  "barbarian::Path of Wild Magic": "workshop.monsterEditor.kit.subclass.barbarian.path_of_wild_magic",
+  "barbarian::Path of the Giant": "workshop.monsterEditor.kit.subclass.barbarian.path_of_the_giant",
+  "bard::College of Valor": "workshop.monsterEditor.kit.subclass.bard.college_of_valor",
+  "bard::College of Glamour": "workshop.monsterEditor.kit.subclass.bard.college_of_glamour",
+  "bard::College of Swords": "workshop.monsterEditor.kit.subclass.bard.college_of_swords",
+  "bard::College of Whispers": "workshop.monsterEditor.kit.subclass.bard.college_of_whispers",
+  "bard::College of Eloquence": "workshop.monsterEditor.kit.subclass.bard.college_of_eloquence",
+  "bard::College of Creation": "workshop.monsterEditor.kit.subclass.bard.college_of_creation",
+  "bard::College of Spirits": "workshop.monsterEditor.kit.subclass.bard.college_of_spirits",
+  "cleric::Knowledge Domain": "workshop.monsterEditor.kit.subclass.cleric.knowledge_domain",
+  "cleric::Light Domain": "workshop.monsterEditor.kit.subclass.cleric.light_domain",
+  "cleric::Nature Domain": "workshop.monsterEditor.kit.subclass.cleric.nature_domain",
+  "cleric::Tempest Domain": "workshop.monsterEditor.kit.subclass.cleric.tempest_domain",
+  "cleric::Trickery Domain": "workshop.monsterEditor.kit.subclass.cleric.trickery_domain",
+  "cleric::War Domain": "workshop.monsterEditor.kit.subclass.cleric.war_domain",
+  "cleric::Death Domain": "workshop.monsterEditor.kit.subclass.cleric.death_domain",
+  "cleric::Forge Domain": "workshop.monsterEditor.kit.subclass.cleric.forge_domain",
+  "cleric::Grave Domain": "workshop.monsterEditor.kit.subclass.cleric.grave_domain",
+  "cleric::Order Domain": "workshop.monsterEditor.kit.subclass.cleric.order_domain",
+  "cleric::Peace Domain": "workshop.monsterEditor.kit.subclass.cleric.peace_domain",
+  "cleric::Twilight Domain": "workshop.monsterEditor.kit.subclass.cleric.twilight_domain",
+  "cleric::Arcana Domain": "workshop.monsterEditor.kit.subclass.cleric.arcana_domain",
+  "druid::Circle of the Moon": "workshop.monsterEditor.kit.subclass.druid.circle_of_the_moon",
+  "druid::Circle of Dreams": "workshop.monsterEditor.kit.subclass.druid.circle_of_dreams",
+  "druid::Circle of the Shepherd": "workshop.monsterEditor.kit.subclass.druid.circle_of_the_shepherd",
+  "druid::Circle of Spores": "workshop.monsterEditor.kit.subclass.druid.circle_of_spores",
+  "druid::Circle of Stars": "workshop.monsterEditor.kit.subclass.druid.circle_of_stars",
+  "druid::Circle of Wildfire": "workshop.monsterEditor.kit.subclass.druid.circle_of_wildfire",
+  "fighter::Battle Master": "workshop.monsterEditor.kit.subclass.fighter.battle_master",
+  "fighter::Eldritch Knight": "workshop.monsterEditor.kit.subclass.fighter.eldritch_knight",
+  "fighter::Arcane Archer": "workshop.monsterEditor.kit.subclass.fighter.arcane_archer",
+  "fighter::Cavalier": "workshop.monsterEditor.kit.subclass.fighter.cavalier",
+  "fighter::Samurai": "workshop.monsterEditor.kit.subclass.fighter.samurai",
+  "fighter::Echo Knight": "workshop.monsterEditor.kit.subclass.fighter.echo_knight",
+  "fighter::Psi Warrior": "workshop.monsterEditor.kit.subclass.fighter.psi_warrior",
+  "fighter::Rune Knight": "workshop.monsterEditor.kit.subclass.fighter.rune_knight",
+  "fighter::Banneret": "workshop.monsterEditor.kit.subclass.fighter.banneret",
+  "monk::Way of Shadow": "workshop.monsterEditor.kit.subclass.monk.way_of_shadow",
+  "monk::Way of the Four Elements": "workshop.monsterEditor.kit.subclass.monk.way_of_the_four_elements",
+  "monk::Way of the Drunken Master": "workshop.monsterEditor.kit.subclass.monk.way_of_the_drunken_master",
+  "monk::Way of the Kensei": "workshop.monsterEditor.kit.subclass.monk.way_of_the_kensei",
+  "monk::Way of the Sun Soul": "workshop.monsterEditor.kit.subclass.monk.way_of_the_sun_soul",
+  "monk::Way of the Long Death": "workshop.monsterEditor.kit.subclass.monk.way_of_the_long_death",
+  "monk::Way of Mercy": "workshop.monsterEditor.kit.subclass.monk.way_of_mercy",
+  "monk::Way of the Astral Self": "workshop.monsterEditor.kit.subclass.monk.way_of_the_astral_self",
+  "monk::Way of the Ascendant Dragon": "workshop.monsterEditor.kit.subclass.monk.way_of_the_ascendant_dragon",
+  "paladin::Oath of the Ancients": "workshop.monsterEditor.kit.subclass.paladin.oath_of_the_ancients",
+  "paladin::Oath of Vengeance": "workshop.monsterEditor.kit.subclass.paladin.oath_of_vengeance",
+  "paladin::Oath of Conquest": "workshop.monsterEditor.kit.subclass.paladin.oath_of_conquest",
+  "paladin::Oath of Redemption": "workshop.monsterEditor.kit.subclass.paladin.oath_of_redemption",
+  "paladin::Oath of Glory": "workshop.monsterEditor.kit.subclass.paladin.oath_of_glory",
+  "paladin::Oath of the Watchers": "workshop.monsterEditor.kit.subclass.paladin.oath_of_the_watchers",
+  "paladin::Oath of the Crown": "workshop.monsterEditor.kit.subclass.paladin.oath_of_the_crown",
+  "paladin::Oathbreaker": "workshop.monsterEditor.kit.subclass.paladin.oathbreaker",
+  "ranger::Beast Master": "workshop.monsterEditor.kit.subclass.ranger.beast_master",
+  "ranger::Gloom Stalker": "workshop.monsterEditor.kit.subclass.ranger.gloom_stalker",
+  "ranger::Horizon Walker": "workshop.monsterEditor.kit.subclass.ranger.horizon_walker",
+  "ranger::Monster Slayer": "workshop.monsterEditor.kit.subclass.ranger.monster_slayer",
+  "ranger::Fey Wanderer": "workshop.monsterEditor.kit.subclass.ranger.fey_wanderer",
+  "ranger::Swarmkeeper": "workshop.monsterEditor.kit.subclass.ranger.swarmkeeper",
+  "ranger::Drakewarden": "workshop.monsterEditor.kit.subclass.ranger.drakewarden",
+  "rogue::Assassin": "workshop.monsterEditor.kit.subclass.rogue.assassin",
+  "rogue::Arcane Trickster": "workshop.monsterEditor.kit.subclass.rogue.arcane_trickster",
+  "rogue::Mastermind": "workshop.monsterEditor.kit.subclass.rogue.mastermind",
+  "rogue::Swashbuckler": "workshop.monsterEditor.kit.subclass.rogue.swashbuckler",
+  "rogue::Inquisitive": "workshop.monsterEditor.kit.subclass.rogue.inquisitive",
+  "rogue::Scout": "workshop.monsterEditor.kit.subclass.rogue.scout",
+  "rogue::Phantom": "workshop.monsterEditor.kit.subclass.rogue.phantom",
+  "rogue::Soulknife": "workshop.monsterEditor.kit.subclass.rogue.soulknife",
+  "sorcerer::Wild Magic": "workshop.monsterEditor.kit.subclass.sorcerer.wild_magic",
+  "sorcerer::Divine Soul": "workshop.monsterEditor.kit.subclass.sorcerer.divine_soul",
+  "sorcerer::Shadow Magic": "workshop.monsterEditor.kit.subclass.sorcerer.shadow_magic",
+  "sorcerer::Storm Sorcery": "workshop.monsterEditor.kit.subclass.sorcerer.storm_sorcery",
+  "sorcerer::Aberrant Mind": "workshop.monsterEditor.kit.subclass.sorcerer.aberrant_mind",
+  "sorcerer::Clockwork Soul": "workshop.monsterEditor.kit.subclass.sorcerer.clockwork_soul",
+  "sorcerer::Lunar Sorcery": "workshop.monsterEditor.kit.subclass.sorcerer.lunar_sorcery",
+  "warlock::The Archfey": "workshop.monsterEditor.kit.subclass.warlock.the_archfey",
+  "warlock::The Great Old One": "workshop.monsterEditor.kit.subclass.warlock.the_great_old_one",
+  "warlock::The Celestial": "workshop.monsterEditor.kit.subclass.warlock.the_celestial",
+  "warlock::The Hexblade": "workshop.monsterEditor.kit.subclass.warlock.the_hexblade",
+  "warlock::The Fathomless": "workshop.monsterEditor.kit.subclass.warlock.the_fathomless",
+  "warlock::The Genie": "workshop.monsterEditor.kit.subclass.warlock.the_genie",
+  "warlock::The Undead": "workshop.monsterEditor.kit.subclass.warlock.the_undead",
+  "warlock::The Undying": "workshop.monsterEditor.kit.subclass.warlock.the_undying",
+  "wizard::School of Abjuration": "workshop.monsterEditor.kit.subclass.wizard.school_of_abjuration",
+  "wizard::School of Conjuration": "workshop.monsterEditor.kit.subclass.wizard.school_of_conjuration",
+  "wizard::School of Divination": "workshop.monsterEditor.kit.subclass.wizard.school_of_divination",
+  "wizard::School of Enchantment": "workshop.monsterEditor.kit.subclass.wizard.school_of_enchantment",
+  "wizard::School of Illusion": "workshop.monsterEditor.kit.subclass.wizard.school_of_illusion",
+  "wizard::School of Necromancy": "workshop.monsterEditor.kit.subclass.wizard.school_of_necromancy",
+  "wizard::School of Transmutation": "workshop.monsterEditor.kit.subclass.wizard.school_of_transmutation",
+  "wizard::War Magic": "workshop.monsterEditor.kit.subclass.wizard.war_magic",
+  "wizard::Bladesinging": "workshop.monsterEditor.kit.subclass.wizard.bladesinging",
+  "wizard::Chronurgy Magic": "workshop.monsterEditor.kit.subclass.wizard.chronurgy_magic",
+  "wizard::Graviturgy Magic": "workshop.monsterEditor.kit.subclass.wizard.graviturgy_magic",
+  "wizard::Order of Scribes": "workshop.monsterEditor.kit.subclass.wizard.order_of_scribes",
+  "artificer::Alchemist": "workshop.monsterEditor.kit.subclass.artificer.alchemist",
+  "artificer::Armorer": "workshop.monsterEditor.kit.subclass.artificer.armorer",
+  "artificer::Artillerist": "workshop.monsterEditor.kit.subclass.artificer.artillerist",
+  "artificer::Battle Smith": "workshop.monsterEditor.kit.subclass.artificer.battle_smith",
+};
+
 // A term list stored as one comma-joined string. The catalogue is offered as
 // chips; anything not in it stays typeable, because a monster immune to
 // "sunlight" is a real monster and no list of ours will ever hold every
@@ -68,6 +317,16 @@ export function TermPicker({
   // What the known terms mean, one line each, behind a ⓘ in the caption.
   glossary?: readonly GlossaryEntry[];
 }) {
+  const { t } = useI18n();
+  const termLabel = (term: string) => {
+    if (DAMAGE_TYPES.includes(term as (typeof DAMAGE_TYPES)[number])) {
+      return t(`workshop.monsterEditor.defence.damageType.${term}` as never);
+    }
+    if (CONDITIONS.includes(term as (typeof CONDITIONS)[number])) {
+      return t(`workshop.monsterEditor.defence.condition.${term}` as never);
+    }
+    return term;
+  };
   const extras = parseTerms(value).filter(
     (term) => !known.some((entry) => textKey(entry) === textKey(term)),
   );
@@ -93,7 +352,7 @@ export function TermPicker({
                   : "border-stone-700 text-stone-500 hover:text-stone-200",
               )}
             >
-              {term}
+              {termLabel(term)}
             </button>
           );
         })}
@@ -103,7 +362,7 @@ export function TermPicker({
             type="button"
             aria-pressed
             onClick={() => onChange(toggleTerm(value, term))}
-            title="Your own; click to remove"
+            title={t("workshop.monsterEditor.kit.removeOwn")}
             className={cn(chip, "border-amber-500/50 bg-stone-800 text-amber-100")}
           >
             {term}
@@ -113,7 +372,7 @@ export function TermPicker({
       <input
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        placeholder="or type your own, comma separated"
+        placeholder={t("workshop.monsterEditor.kit.ownTerms")}
         className={cn(input, "w-full")}
       />
     </div>
@@ -130,29 +389,30 @@ export function SpeedPicker({
   value: string;
   onChange: (value: string) => void;
 }) {
+  const { t } = useI18n();
   const speeds = parseSpeed(value);
   const set = (mode: "walk" | (typeof MOVEMENT_MODES)[number], feet: number) =>
     onChange(formatSpeed({ ...speeds, [mode]: feet }));
   return (
     <div className="flex flex-col gap-1">
-      <span className="text-[10px] uppercase tracking-wide text-stone-500">Speed</span>
+      <span className="text-[10px] uppercase tracking-wide text-stone-500">{t("workshop.monsterEditor.kit.speed")}</span>
       <div className="flex flex-wrap gap-2">
         {(["walk", ...MOVEMENT_MODES] as const).map((mode) => (
           <div key={mode} className="flex flex-col gap-0.5">
-            <span className="text-[10px] capitalize text-stone-600">{mode}</span>
+            <span className="text-[10px] capitalize text-stone-600">{t(`workshop.monsterEditor.kit.${mode}` as never)}</span>
             <NumberStepper
               min={0}
               max={999}
               step={5}
               value={speeds[mode] ?? 0}
               onChange={(feet) => set(mode, feet)}
-              label={`${mode} speed in feet`}
+              label={t("workshop.monsterEditor.kit.speedMode", { mode: t(`workshop.monsterEditor.kit.${mode}` as never) })}
               size="sm"
             />
           </div>
         ))}
       </div>
-      <span className="text-[10px] text-stone-600">Reads as &quot;{value || "0"}&quot;. Zero hides a mode.</span>
+      <span className="text-[10px] text-stone-600">{t("workshop.monsterEditor.kit.readsAs", { value: value || "0" })}</span>
     </div>
   );
 }
@@ -190,6 +450,7 @@ export function MonsterKitPanel({
   draft: MonsterDraft;
   onChange: (draft: MonsterDraft) => void;
 }) {
+  const { t } = useI18n();
   const [ancestryId, setAncestryId] = useState("");
   const [classId, setClassId] = useState("");
   const [subclass, setSubclass] = useState("");
@@ -205,25 +466,39 @@ export function MonsterKitPanel({
   const subclasses = subclassOptionsFor(classId);
   const features = classFeatureLines(classId, subclass, level);
   const chassis = { classId, subclass, level, con, ancestryId };
+  const chassisDetails = chassisDescription(chassis);
   const traitsFull = draft.stats.traits.length >= MAX_TRAITS;
   const attacksFull = draft.stats.attacks.length >= 4;
+  const armourLabel = (name: string) =>
+    ARMOUR_NAME_KEYS[name] ? t(ARMOUR_NAME_KEYS[name] as never) : name;
+  const weaponLabel = (name: string) =>
+    WEAPON_NAME_KEYS[name] ? t(WEAPON_NAME_KEYS[name] as never) : name;
+  const weaponDamageLabel = (damage: string) => {
+    const match = /^(\d+d\d+|\d+)\s+([a-z]+)$/i.exec(damage.trim());
+    if (match && (DAMAGE_TYPES as readonly string[]).includes(match[2].toLowerCase())) {
+      return `${match[1]} ${t(`workshop.monsterEditor.defence.damageType.${match[2].toLowerCase()}` as never).toLowerCase()}`;
+    }
+    if (damage === "0 (restrains)") {
+      return t("workshop.monsterEditor.kit.catalog.weaponDamage.restrains");
+    }
+    return damage;
+  };
 
   return (
     <div className="flex flex-col gap-3 rounded-lg border border-stone-800 bg-stone-950/50 p-3">
       <h4 className="flex items-center gap-1.5 text-xs text-amber-100">
-        <Wand2 className="size-3.5" /> Build it out of the catalogue
+        <Wand2 className="size-3.5" /> {t("workshop.monsterEditor.kit.title")}
       </h4>
       <p className="text-[10px] text-stone-600">
-        Everything these add is an ordinary line on the block below: rename it, retune the
-        numbers, or delete it. Mix as many classes as you like.
+        {t("workshop.monsterEditor.kit.description")}
       </p>
 
       <div className="flex flex-wrap items-end gap-2">
         <Select
-          label="Ancestry"
+          label={t("workshop.monsterEditor.kit.ancestry")}
           value={ancestryId}
           onChange={setAncestryId}
-          options={[{ value: "", label: "Pick one" }, ...ANCESTRY_OPTIONS.map((ancestry) => ({ value: ancestry.id as string, label: ancestry.name }))]}
+          options={[{ value: "", label: t("workshop.monsterEditor.kit.pickOne") }, ...ANCESTRY_OPTIONS.map((ancestry) => ({ value: ancestry.id as string, label: ANCESTRY_LABEL_KEYS[ancestry.id] ? t(ANCESTRY_LABEL_KEYS[ancestry.id] as never) : ancestry.name }))]}
         />
         <button
           type="button"
@@ -231,33 +506,33 @@ export function MonsterKitPanel({
           onClick={() => onChange(applyAncestry(draft, ancestryId))}
           className="rounded-md border border-stone-700 px-2 py-1 text-[11px] text-stone-300 hover:text-amber-100 disabled:opacity-40"
         >
-          Take its size, speed and traits
+          {t("workshop.monsterEditor.kit.takeAncestry")}
         </button>
       </div>
 
       <div className="flex flex-wrap items-end gap-2">
         <Select
-          label="Class"
+          label={t("workshop.monsterEditor.kit.class")}
           value={classId}
           onChange={(next) => {
             setClassId(next);
             setSubclass("");
           }}
-          options={[{ value: "", label: "Pick one" }, ...CLASS_KIT_OPTIONS.map((klass) => ({ value: klass.id as string, label: klass.name }))]}
+          options={[{ value: "", label: t("workshop.monsterEditor.kit.pickOne") }, ...CLASS_KIT_OPTIONS.map((klass) => ({ value: klass.id as string, label: TRANSLATABLE_CLASSES.has(klass.id) ? t(`charSheet.class.${klass.id}` as never) : klass.name }))]}
         />
         <Select
-          label="Subclass"
+          label={t("workshop.monsterEditor.kit.subclass")}
           value={subclass}
           onChange={setSubclass}
-          options={[{ value: "", label: subclasses.length ? "None" : "None available" }, ...subclasses.map((name) => ({ value: name, label: name }))]}
+          options={[{ value: "", label: subclasses.length ? t("workshop.monsterEditor.kit.none") : t("workshop.monsterEditor.kit.noneAvailable") }, ...subclasses.map((name) => ({ value: name, label: SUBCLASS_NAME_KEYS[`${classId}::${name}`] ? t(SUBCLASS_NAME_KEYS[`${classId}::${name}`] as never) : name }))]}
         />
         <div className="flex flex-col gap-0.5">
-          <span className="text-[10px] uppercase tracking-wide text-stone-500">Level</span>
-          <NumberStepper min={1} max={20} value={level} onChange={setLevel} label="Level" size="sm" />
+          <span className="text-[10px] uppercase tracking-wide text-stone-500">{t("workshop.monsterEditor.kit.level")}</span>
+          <NumberStepper min={1} max={20} value={level} onChange={setLevel} label={t("workshop.monsterEditor.kit.level")} size="sm" />
         </div>
         <div className="flex flex-col gap-0.5">
-          <span className="text-[10px] uppercase tracking-wide text-stone-500">CON</span>
-          <NumberStepper min={1} max={30} value={con} onChange={setCon} label="CON" size="sm" />
+          <span className="text-[10px] uppercase tracking-wide text-stone-500">{t("workshop.monsterEditor.kit.con")}</span>
+          <NumberStepper min={1} max={30} value={con} onChange={setCon} label={t("workshop.monsterEditor.kit.con")} size="sm" />
         </div>
         <button
           type="button"
@@ -265,17 +540,24 @@ export function MonsterKitPanel({
           onClick={() => onChange(applyClassChassis(draft, chassis))}
           className="rounded-md border border-stone-700 px-2 py-1 text-[11px] text-stone-300 hover:text-amber-100 disabled:opacity-40"
         >
-          Take its hit points, saves and swings
+          {t("workshop.monsterEditor.kit.takeClass")}
         </button>
       </div>
-      {classId ? (
-        <p className="reveal text-[10px] text-stone-600">{describeChassis(chassis)}</p>
+      {classId && chassisDetails ? (
+        <p className="reveal text-[10px] text-stone-600">
+          {t("workshop.monsterEditor.kit.chassisSummary", {
+            hitDie: `d${chassisDetails.hitDie}`,
+            hitPoints: chassisDetails.hitPoints,
+            saves: chassisDetails.saves.map((ability) => t(`workshop.monsterEditor.stats.ability.${ability}` as never)).join(", "),
+            proficiency: chassisDetails.proficiency,
+          })}
+        </p>
       ) : null}
 
       {features.length ? (
         <div className="reveal flex flex-col gap-1">
           <span className="text-[10px] uppercase tracking-wide text-stone-500">
-            Its abilities at that level {traitsFull ? "(trait list full)" : "(click to add)"}
+            {t("workshop.monsterEditor.kit.featuresAtLevel")} {traitsFull ? t("workshop.monsterEditor.kit.traitsFull") : t("workshop.monsterEditor.kit.clickToAdd")}
           </span>
           <div className="stagger-pop flex flex-wrap gap-1">
             {features.map((feature) => {
@@ -287,7 +569,7 @@ export function MonsterKitPanel({
                   key={`${feature.name}-${feature.level}`}
                   type="button"
                   disabled={on || traitsFull}
-                  title={feature.text || `Gained at level ${feature.level}`}
+                  title={feature.text || t("workshop.monsterEditor.kit.gainedAtLevel", { level: feature.level })}
                   onClick={() => onChange(addTrait(draft, feature.line))}
                   className={cn(
                     chip,
@@ -308,10 +590,10 @@ export function MonsterKitPanel({
 
       <div className="flex flex-wrap items-end gap-2">
         <Select
-          label="Half-dragon template"
+          label={t("workshop.monsterEditor.kit.halfDragon")}
           value={dragon}
           onChange={(value) => setDragon(value as DragonColor | "")}
-          options={[{ value: "", label: "Dragon half" }, ...DRAGON_COLORS.map((color) => ({ value: color as string, label: color }))]}
+          options={[{ value: "", label: t("workshop.monsterEditor.kit.dragonHalf") }, ...DRAGON_COLORS.map((color) => ({ value: color as string, label: t(`workshop.monsterEditor.kit.dragonColor.${color}` as never) }))]}
         />
         <button
           type="button"
@@ -320,55 +602,62 @@ export function MonsterKitPanel({
             if (!dragon) return;
             const made = applyHalfDragon(draft, dragon);
             if ("error" in made) {
-              setTemplateNote(made.error);
+              const type = (CREATURE_TYPE_IDS as readonly string[]).includes(made.creatureType)
+                ? t(`workshop.monsterEditor.defence.creatureType.${made.creatureType}` as never)
+                : made.creatureType;
+              setTemplateNote(t("workshop.monsterEditor.kit.halfDragon.unsupportedType", { type }));
               return;
             }
-            setTemplateNote(made.note);
+            setTemplateNote(t(`workshop.monsterEditor.kit.halfDragon.${made.noteCode}` as never, {
+              color: t(`workshop.monsterEditor.kit.dragonColor.${made.color}` as never).toLowerCase(),
+              cr: made.cr,
+              challenge: made.prerequisite,
+            }));
             onChange(made.draft);
           }}
           className="rounded-md border border-stone-700 px-2 py-1 text-[11px] text-stone-300 hover:text-amber-100 disabled:opacity-40"
         >
-          Make it a half-dragon
+          {t("workshop.monsterEditor.kit.makeHalfDragon")}
         </button>
         {templateNote ? <span className="live-in basis-full text-[10px] text-stone-500">{templateNote}</span> : null}
       </div>
 
       <div className="flex flex-wrap items-end gap-2">
         <Select
-          label="Armour"
+          label={t("workshop.monsterEditor.kit.armour")}
           value={armorName}
           onChange={setArmorName}
           options={[
-            { value: "", label: "Unarmoured" },
+            { value: "", label: t("workshop.monsterEditor.kit.unarmoured") },
             ...armorOptionsFor(classId)
               .filter((armor) => armor.category !== "shield")
-              .map((armor) => ({ value: armor.name, label: `${armor.name} (${armor.baseAc})` })),
+              .map((armor) => ({ value: armor.name, label: `${armourLabel(armor.name)} (${armor.baseAc})` })),
           ]}
         />
         <label className="flex items-center gap-1.5 pb-1 text-[11px] text-stone-400">
-          <Switch on={shield} onChange={setShield} label="Shield" />
-          Shield
+          <Switch on={shield} onChange={setShield} label={t("workshop.monsterEditor.kit.shield")} />
+          {t("workshop.monsterEditor.kit.shield")}
         </label>
         <button
           type="button"
           onClick={() => onChange(applyArmor(draft, armorName, shield))}
           className="rounded-md border border-stone-700 px-2 py-1 text-[11px] text-stone-300 hover:text-amber-100"
         >
-          Set the armour class
+          {t("workshop.monsterEditor.kit.setAc")}
         </button>
       </div>
 
       <div className="flex flex-wrap items-end gap-2">
         <Select
-          label="Weapon"
+          label={t("workshop.monsterEditor.kit.weapon")}
           value={weaponName}
           onChange={setWeaponName}
           className="w-44"
-          options={[{ value: "", label: "Pick one" }, ...weaponOptionsFor(classId).map((weapon) => ({ value: weapon.name, label: `${weapon.name} (${weapon.damage})` }))]}
+          options={[{ value: "", label: t("workshop.monsterEditor.kit.pickOne") }, ...weaponOptionsFor(classId).map((weapon) => ({ value: weapon.name, label: `${weaponLabel(weapon.name)} (${weaponDamageLabel(weapon.damage)})` }))]}
         />
         <div className="flex flex-col gap-0.5">
-          <span className="text-[10px] uppercase tracking-wide text-stone-500">Ability mod</span>
-          <NumberStepper min={0} max={10} value={weaponMod} onChange={setWeaponMod} label="Ability mod" size="sm" />
+          <span className="text-[10px] uppercase tracking-wide text-stone-500">{t("workshop.monsterEditor.kit.abilityMod")}</span>
+          <NumberStepper min={0} max={10} value={weaponMod} onChange={setWeaponMod} label={t("workshop.monsterEditor.kit.abilityMod")} size="sm" />
         </div>
         <button
           type="button"
@@ -389,10 +678,10 @@ export function MonsterKitPanel({
           }}
           className="rounded-md border border-stone-700 px-2 py-1 text-[11px] text-stone-300 hover:text-amber-100 disabled:opacity-40"
         >
-          {attacksFull ? "Attack list full" : "Add it as an attack"}
+          {attacksFull ? t("workshop.monsterEditor.kit.attackFull") : t("workshop.monsterEditor.kit.addAttack")}
         </button>
         <span className="pb-1 text-[10px] text-stone-600">
-          To hit +{proficiencyBonus(level) + Math.max(0, weaponMod)} at level {level}.
+          {t("workshop.monsterEditor.kit.toHit", { bonus: proficiencyBonus(level) + Math.max(0, weaponMod), level })}
         </span>
       </div>
     </div>

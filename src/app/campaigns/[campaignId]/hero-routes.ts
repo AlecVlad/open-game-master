@@ -12,15 +12,14 @@ export type HeroRouteAdvice = {
   library: boolean;
   // The ready-made list opens by itself (an empty library).
   openReady: boolean;
-  // The library card's line, naming what it holds.
-  libraryLine: string;
+  // Names to show on the library card, limited to two plus a count.
+  libraryNames: string[];
+  libraryMoreCount: number;
 };
 
 export function heroRouteAdvice({ library, pregens }: { library: string[]; pregens: number }): HeroRouteAdvice {
   const ready = pregens > 0;
   const has = library.length > 0;
-  const named =
-    library.length <= 2 ? library.join(" and ") : `${library.slice(0, 2).join(", ")} and ${library.length - 2} more`;
   return {
     // A player with heroes of their own most likely wants one of them; one
     // with none is quickest at the table with a ready-made one.
@@ -28,8 +27,7 @@ export function heroRouteAdvice({ library, pregens }: { library: string[]; prege
     ready,
     library: has,
     openReady: !has && ready,
-    libraryLine: has
-      ? `${named}, adapted to this table's level. Joining leaves your library copy as it is.`
-      : "Nothing saved yet. Heroes you make or take here are kept for your next table.",
+    libraryNames: library.slice(0, 2),
+    libraryMoreCount: Math.max(0, library.length - 2),
   };
 }

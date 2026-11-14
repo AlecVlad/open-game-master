@@ -153,27 +153,51 @@ export const AMBIENT_LABELS: Record<AmbientLight, string> = { bright: "Daylight"
 
 // The sentences under the chips: what the kind of place decided, or that
 // the DM did instead.
+type ForgeTranslator = (key: string, params?: Record<string, string | number>) => string;
+
+// The translator is optional so existing non-UI callers keep the English
+// fallback while the map editor can present the explanation in its UI language.
 export function explainForge(
   settings: Pick<ForgeSettings, "theme" | "ambient" | "scene">,
   themeLabel: (theme: MapTheme) => string,
   sceneLabel: (scene: string) => string,
+  t?: ForgeTranslator,
+  ambientLabel: (ambient: AmbientLight) => string = (ambient) => AMBIENT_LABELS[ambient],
 ): string[] {
   const out: string[] = [];
   const { theme } = forgeOutcome(settings);
   if (settings.theme) {
-    out.push(`You said ${themeLabel(settings.theme).toLowerCase()} outright, so the kind of place does not pick the ground.`);
+    const label = themeLabel(settings.theme).toLowerCase();
+    out.push(t
+      ? t("workshop.maps.forge.explain.themeOverride", { theme: label })
+      : `You said ${label} outright, so the kind of place does not pick the ground.`);
   } else if (settings.scene) {
-    out.push(`${sceneLabel(settings.scene)} is fought on ${themeLabel(theme).toLowerCase()}.`);
+    const scene = sceneLabel(settings.scene);
+    const label = themeLabel(theme).toLowerCase();
+    out.push(t
+      ? t("workshop.maps.forge.explain.sceneTheme", { scene, theme: label })
+      : `${scene} is fought on ${label}.`);
   } else {
-    out.push("No kind of place is set, so it is open ground.");
+    out.push(t
+      ? t("workshop.maps.forge.explain.openGround")
+      : "No kind of place is set, so it is open ground.");
   }
   if (settings.ambient) {
-    out.push(`You set the light to ${AMBIENT_LABELS[settings.ambient].toLowerCase()}.`);
+    const light = ambientLabel(settings.ambient).toLowerCase();
+    out.push(t
+      ? t("workshop.maps.forge.explain.setLight", { light })
+      : `You set the light to ${AMBIENT_LABELS[settings.ambient].toLowerCase()}.`);
   } else {
-    out.push(`The light is what ${themeLabel(theme).toLowerCase()} usually has.`);
+    const label = themeLabel(theme).toLowerCase();
+    out.push(t
+      ? t("workshop.maps.forge.explain.defaultLight", { theme: label })
+      : `The light is what ${label} usually has.`);
   }
   if (sceneRough(settings.scene || null)) {
-    out.push(`${sceneLabel(settings.scene)} scatters rough ground.`);
+    const scene = sceneLabel(settings.scene);
+    out.push(t
+      ? t("workshop.maps.forge.explain.roughGround", { scene })
+      : `${scene} scatters rough ground.`);
   }
   return out;
 }

@@ -256,7 +256,7 @@ export async function PATCH(
   const raw = await request.json().catch(() => ({}));
   const parsed = patchSchema.safeParse(raw);
   if (!parsed.success) {
-    return Response.json({ error: "Invalid update." }, { status: 400 });
+    return Response.json({ error: "Invalid update.", errorCode: "INVALID_CAMPAIGN_UPDATE" }, { status: 400 });
   }
 
   const { status: nextStatus, ...info } = parsed.data;
@@ -268,14 +268,14 @@ export async function PATCH(
   // only seeds sheets for future joiners.
   if (infoKeys.length) {
     if (!isLead(context)) {
-      return Response.json({ error: "Only the party lead can edit the campaign." }, { status: 403 });
+      return Response.json({ error: "Only the party lead can edit the campaign.", errorCode: "PARTY_LEAD_REQUIRED" }, { status: 403 });
     }
     if (campaign.status === "ended") {
-      return Response.json({ error: "The campaign has ended." }, { status: 400 });
+      return Response.json({ error: "The campaign has ended.", errorCode: "CAMPAIGN_ENDED" }, { status: 400 });
     }
     if (info.maxPlayers !== undefined && info.maxPlayers < listMembers(campaignId).length) {
       return Response.json(
-        { error: "Max players cannot drop below the current party size." },
+        { error: "Max players cannot drop below the current party size.", errorCode: "MAX_PLAYERS_BELOW_PARTY" },
         { status: 400 },
       );
     }
@@ -287,18 +287,18 @@ export async function PATCH(
   }
 
   if (!nextStatus) {
-    return Response.json({ error: "Invalid update." }, { status: 400 });
+    return Response.json({ error: "Invalid update.", errorCode: "INVALID_CAMPAIGN_UPDATE" }, { status: 400 });
   }
   // The owner, or the person in the DM seat: a DM who was handed a table they
   // do not own still has to be able to open it (the lobby's Begin button asks
   // the same two, LobbyActions.tsx).
   const seats = campaignSeats(campaign);
   if (campaign.ownerUserId !== user.id && !isPrimaryDm(seats, user.id)) {
-    return Response.json({ error: "Only the campaign owner or the GM can do that." }, { status: 403 });
+    return Response.json({ error: "Only the campaign owner or the GM can do that.", errorCode: "OWNER_OR_GM_REQUIRED" }, { status: 403 });
   }
   if (nextStatus === "active") {
     if (campaign.status !== "lobby") {
-      return Response.json({ error: "Campaign has already started." }, { status: 400 });
+      return Response.json({ error: "Campaign has already started.", errorCode: "CAMPAIGN_ALREADY_STARTED" }, { status: 400 });
     }
     // One rule, shared with the lobby's Begin button (lobbyBlocker in
     // src/lib/dm/viewer.ts), so this route never refuses a start the UI just
@@ -401,7 +401,7 @@ export async function DELETE(
 
   const { campaign, user } = context;
   if (campaign.ownerUserId !== user.id) {
-    return Response.json({ error: "Only the campaign owner can delete it." }, { status: 403 });
+    return Response.json({ error: "Only the campaign owner can delete it.", errorCode: "CAMPAIGN_DELETE_OWNER_ONLY" }, { status: 403 });
   }
 
   deleteCampaignWithFiles(campaignId);

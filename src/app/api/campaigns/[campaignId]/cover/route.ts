@@ -48,14 +48,14 @@ export async function PATCH(
   const parsed = patchSchema.safeParse(await request.json().catch(() => ({})));
   if (!parsed.success) {
     return Response.json(
-      { error: "The cover must be an image uploaded to this server." },
+      { error: "The cover must be an image uploaded to this server.", errorCode: "COVER_INVALID_IMAGE" },
       { status: 400 },
     );
   }
   const url = parsed.data.imageUrl;
   const cover = { id: url.slice("/uploads/".length).replace(/\.[a-z]+$/, ""), url };
   if (!setCampaignCover(campaignId, cover)) {
-    return Response.json({ error: "Could not save the cover." }, { status: 400 });
+    return Response.json({ error: "Could not save the cover.", errorCode: "COVER_SAVE_FAILED" }, { status: 400 });
   }
   publishPersisted(campaignId, "campaign_updated", { cover });
   return Response.json({ ok: true, cover, status: null });
@@ -72,7 +72,7 @@ export async function POST(
   }
   if (!(await imagesAvailable())) {
     return Response.json(
-      { error: "This server has no image backend, so it cannot paint a cover. Upload one instead." },
+      { error: "This server has no image backend, so it cannot paint a cover. Upload one instead.", errorCode: "NO_IMAGE_BACKEND" },
       { status: 409 },
     );
   }

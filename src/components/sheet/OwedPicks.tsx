@@ -3,12 +3,13 @@
 import { Check, Loader2 } from "lucide-react";
 import { useId, useRef, useState, type CSSProperties } from "react";
 import { cn } from "@/lib/cn";
+import { useI18n } from "@/lib/i18n/provider";
 import { replayAnimation } from "@/lib/motion/replay";
 import { STANDARD_LANGUAGES } from "@/lib/content/mechanics";
 import type { CharacterSheet } from "@/lib/schemas/sheet";
 import { fightingStyleFeatureName } from "@/lib/srd/feature-effects";
-import { optionCost, optionFeatureName, remainingWords, slotTakes, type OptionSlot } from "@/lib/srd/options";
-import { owedChoiceGroups, owedChoicesSentences } from "@/lib/srd/owed-choices";
+import { optionCost, optionFeatureName, slotTakes, type OptionSlot } from "@/lib/srd/options";
+import { owedChoiceGroups } from "@/lib/srd/owed-choices";
 import { owedPickSlots } from "@/lib/srd/owed-picks-logic";
 import { subclassChoicePickName, subclassChoiceSummary } from "@/lib/content/subclass-choices";
 import { hostOffers, useCapabilities } from "@/lib/use-capabilities";
@@ -27,10 +28,79 @@ import { textKey } from "@/lib/language/text-logic";
 // made here, on the player's own sheet, or at a level-up that offers them
 // on a host without the route (owed-choices.ts owedChoicesSentences).
 export function OwedPicks({ sheet, mine }: { sheet: CharacterSheet; mine: boolean }) {
+  const { t } = useI18n();
   const offered = hostOffers(useCapabilities(), "owedPicks");
   const owed = owedPickSlots(sheet);
   const where = !mine ? "owner" : offered ? "here" : "level-up";
-  const sentences = owedChoicesSentences(owedChoiceGroups(sheet), where);
+  const groups = owedChoiceGroups(sheet);
+  const classNames: Record<string, string> = {
+    barbarian: t("charSheet.class.barbarian"),
+    bard: t("charSheet.class.bard"),
+    cleric: t("charSheet.class.cleric"),
+    druid: t("charSheet.class.druid"),
+    fighter: t("charSheet.class.fighter"),
+    monk: t("charSheet.class.monk"),
+    paladin: t("charSheet.class.paladin"),
+    ranger: t("charSheet.class.ranger"),
+    rogue: t("charSheet.class.rogue"),
+    sorcerer: t("charSheet.class.sorcerer"),
+    warlock: t("charSheet.class.warlock"),
+    wizard: t("charSheet.class.wizard"),
+    artificer: t("charSheet.class.artificer"),
+  };
+  const optionLabels: Record<OptionSlot["kind"], string> = {
+    invocation: t("charSheet.owed.kind.invocation"),
+    maneuver: t("charSheet.owed.kind.maneuver"),
+    metamagic: t("charSheet.owed.kind.metamagic"),
+    pact_boon: t("charSheet.owed.kind.pact_boon"),
+    infusion: t("charSheet.owed.kind.infusion"),
+    rune: t("charSheet.owed.kind.rune"),
+    discipline: t("charSheet.owed.kind.discipline"),
+    hunters_prey: t("charSheet.owed.kind.hunters_prey"),
+    defensive_tactics: t("charSheet.owed.kind.defensive_tactics"),
+    hunter_multiattack: t("charSheet.owed.kind.hunter_multiattack"),
+    superior_hunters_defense: t("charSheet.owed.kind.superior_hunters_defense"),
+    dragon_ancestor: t("charSheet.owed.kind.dragon_ancestor"),
+    favored_enemy: t("charSheet.owed.kind.favored_enemy"),
+    favored_terrain: t("charSheet.owed.kind.favored_terrain"),
+    land_circle: t("charSheet.owed.kind.land_circle"),
+    spell_mastery_1: t("charSheet.owed.kind.spell_mastery_1"),
+    spell_mastery_2: t("charSheet.owed.kind.spell_mastery_2"),
+    signature_spell: t("charSheet.owed.kind.signature_spell"),
+  };
+  const levelUpLines = groups.levelUp.map((line) => localizeLevelUpLine(line, t, classNames));
+  const onSheetLines = [
+    ...owed.options.map((slot) => `${optionLabels[slot.kind]}: ${remainingText(slot.remaining, t)}`),
+    ...owed.choices.map((choice) => t("charSheet.owed.choice", { subclass: choice.subclass, label: choice.label })),
+    ...(owed.styles.count
+      ? [t(owed.styles.count === 1 ? "charSheet.owed.styles.one" : "charSheet.owed.styles.many", { count: owed.styles.count })]
+      : []),
+    ...owed.training.map((grant) =>
+      t(grant.spec.languages === 1 ? "charSheet.owed.training.one" : "charSheet.owed.training.many", {
+        grant: grant.name,
+        count: grant.spec.languages,
+      }),
+    ),
+  ];
+  const sentences = [
+    ...(levelUpLines.length
+      ? [t("charSheet.owed.sentences.levelUp", { choices: levelUpLines.join("; ") })]
+      : []),
+    ...(onSheetLines.length
+      ? [
+          t(
+            where === "here"
+              ? "charSheet.owed.sentences.here"
+              : where === "owner"
+                ? "charSheet.owed.sentences.owner"
+                : "charSheet.owed.sentences.levelUpOnly",
+            {
+              list: `${t(levelUpLines.length ? "charSheet.owed.sentences.onSheetLead" : "charSheet.owed.sentences.onSheetOnly")}: ${onSheetLines.join("; ")}.`,
+            },
+          ),
+        ]
+      : []),
+  ];
   const pickers = where === "here" && (owed.options.length > 0 || owed.choices.length > 0 || owed.styles.count > 0 || owed.training.length > 0);
   return (
     <>
@@ -45,6 +115,7 @@ export function OwedPicks({ sheet, mine }: { sheet: CharacterSheet; mine: boolea
 }
 
 function OwedPickers({ sheet, owed }: { sheet: CharacterSheet; owed: ReturnType<typeof owedPickSlots> }) {
+  const { t } = useI18n();
   return (
     <div className="reveal mt-3 space-y-3">
       {owed.options.map((slot) => (
@@ -76,7 +147,7 @@ function OwedPickers({ sheet, owed }: { sheet: CharacterSheet; owed: ReturnType<
           sheet={sheet}
           slot={{
             kind: "invocation",
-            label: "Fighting style",
+            label: t("charSheet.owed.fightingStyle"),
             total: owed.styles.count,
             chosen: [],
             remaining: owed.styles.count,
@@ -95,7 +166,9 @@ function OwedPickers({ sheet, owed }: { sheet: CharacterSheet; owed: ReturnType<
   );
 }
 
-async function sendOwed(sheet: CharacterSheet, body: Record<string, unknown>): Promise<string | null> {
+type SheetTranslator = ReturnType<typeof useI18n>["t"];
+
+async function sendOwed(sheet: CharacterSheet, body: Record<string, unknown>, t: SheetTranslator): Promise<string | null> {
   try {
     const response = await fetch(`/api/campaigns/${sheet.campaignId}/sheet/owed`, {
       method: "POST",
@@ -104,12 +177,57 @@ async function sendOwed(sheet: CharacterSheet, body: Record<string, unknown>): P
     });
     if (!response.ok) {
       const data = (await response.json().catch(() => ({}))) as { error?: string };
-      return data.error || "The pick was refused.";
+      return data.error || t("charSheet.owed.refused");
     }
     return null;
   } catch {
-    return "Could not reach the server.";
+    return t("charSheet.owed.network");
   }
+}
+
+
+
+function localizeLevelUpLine(
+  line: string,
+  t: SheetTranslator,
+  classNames: Record<string, string>,
+): string {
+  const ability = /^(\\d+) Ability Score Improvements? \\(two points, or a feat\\)$/i.exec(line);
+  if (ability) return t("charSheet.owed.dynamic.asi", { count: Number(ability[1]) });
+  const expertiseOne = /^expertise in one more proficiency$/i.test(line);
+  if (expertiseOne) return t("charSheet.owed.dynamic.expertise.one");
+  const expertiseMany = /^expertise in (\\d+) more proficiencies$/i.exec(line);
+  if (expertiseMany) return t("charSheet.owed.dynamic.expertise.many", { count: Number(expertiseMany[1]) });
+  const skills = /^(\\d+) (.+) skills?$/i.exec(line);
+  if (skills) {
+    const id = skills[2].trim().toLowerCase().replace(/\\s+/g, "_");
+    const className = classNames[id] ?? skills[2];
+    return t(Number(skills[1]) === 1 ? "charSheet.owed.dynamic.skill.one" : "charSheet.owed.dynamic.skill.many", {
+      className,
+      count: Number(skills[1]),
+    });
+  }
+  const subclass = /^a subclass for (.+) \\(due at (.+) level (\\d+)\\)$/i.exec(line);
+  if (subclass) {
+    const first = subclass[1].trim().toLowerCase().replace(/\\s+/g, "_");
+    const second = subclass[2].trim().toLowerCase().replace(/\\s+/g, "_");
+    return t("charSheet.owed.dynamic.subclass", {
+      className: classNames[first] ?? classNames[second] ?? subclass[1],
+      level: Number(subclass[3]),
+    });
+  }
+  return line;
+}
+
+function remainingText(remaining: number, t: SheetTranslator): string {
+  const whole = Math.floor(remaining);
+  const half = remaining - whole >= 0.5;
+  return [
+    whole ? t("charSheet.owed.remaining.whole", { count: whole }) : "",
+    half
+      ? t(whole ? "charSheet.owed.remaining.halfWithWhole" : "charSheet.owed.remaining.half")
+      : "",
+  ].filter(Boolean).join(" ");
 }
 
 function SlotPicker({
@@ -121,6 +239,7 @@ function SlotPicker({
   slot: OptionSlot;
   featureOf?: (name: string) => string;
 }) {
+  const { t } = useI18n();
   const [picked, setPicked] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [refusal, setRefusal] = useState<string | null>(null);
@@ -149,7 +268,7 @@ function SlotPicker({
 
   async function keep() {
     setBusy(true);
-    const error = await sendOwed(sheet, { features: picked.map(featureOf) });
+    const error = await sendOwed(sheet, { features: picked.map(featureOf) }, t);
     setBusy(false);
     if (error) {
       setRefusal(error);
@@ -163,7 +282,7 @@ function SlotPicker({
     <div className="space-y-1.5 text-xs" role="group" aria-labelledby={labelId}>
       <p id={labelId} className="text-stone-300">
         <span className="font-medium text-amber-100">{slot.label}</span>{" "}
-        <span className="text-stone-400">({remainingWords(slot)})</span>
+        <span className="text-stone-400">({remainingText(slot.remaining, t)})</span>
       </p>
       <div className="flex flex-wrap gap-1.5" data-pill-group>
         {options.map((option, index) => {
@@ -205,7 +324,7 @@ function SlotPicker({
           className="motion-press inline-flex min-h-[40px] items-center gap-1.5 rounded-lg border border-amber-500/60 bg-amber-500/15 px-3 text-amber-100 hover:bg-amber-500/25 focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-400 sm:min-h-[32px]"
         >
           {busy ? <Loader2 className="size-3 animate-spin" aria-hidden /> : <Check className="size-3" aria-hidden />}
-          Keep {picked.join(" and ")}
+          {t("charSheet.owed.keep", { picks: picked.join(", ") })}
         </button>
       ) : null}
       {refusal ? (
@@ -220,6 +339,7 @@ function SlotPicker({
 // A language a class feature teaches and the sheet never recorded (a
 // ranger's Favored Enemy: one spoken by the favored enemy).
 function LanguagePicker({ sheet, grant }: { sheet: CharacterSheet; grant: string }) {
+  const { t } = useI18n();
   const [language, setLanguage] = useState("");
   const [busy, setBusy] = useState(false);
   const [refusal, setRefusal] = useState<string | null>(null);
@@ -229,7 +349,7 @@ function LanguagePicker({ sheet, grant }: { sheet: CharacterSheet; grant: string
 
   async function keep() {
     setBusy(true);
-    const error = await sendOwed(sheet, { featChoices: { [grant]: { languages: [language] } } });
+    const error = await sendOwed(sheet, { featChoices: { [grant]: { languages: [language] } } }, t);
     setBusy(false);
     setRefusal(error);
   }
@@ -237,7 +357,7 @@ function LanguagePicker({ sheet, grant }: { sheet: CharacterSheet; grant: string
   return (
     <div className="flex flex-wrap items-center gap-2 text-xs">
       <label htmlFor={selectId} className="text-stone-300">
-        {grant}: a language they speak
+        {t("charSheet.owed.languageLabel", { grant })}
       </label>
       <select
         id={selectId}
@@ -246,7 +366,7 @@ function LanguagePicker({ sheet, grant }: { sheet: CharacterSheet; grant: string
         disabled={busy}
         className="min-h-[40px] rounded-lg border border-stone-600 bg-stone-950 px-2 text-stone-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-400 sm:min-h-[32px]"
       >
-        <option value="">Choose a language</option>
+        <option value="">{t("charSheet.owed.chooseLanguage")}</option>
         {options.map((entry) => (
           <option key={entry} value={entry}>
             {entry}
@@ -261,7 +381,7 @@ function LanguagePicker({ sheet, grant }: { sheet: CharacterSheet; grant: string
           className="motion-press inline-flex min-h-[40px] items-center gap-1.5 rounded-lg border border-amber-500/60 bg-amber-500/15 px-3 text-amber-100 hover:bg-amber-500/25 focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-400 sm:min-h-[32px]"
         >
           {busy ? <Loader2 className="size-3 animate-spin" aria-hidden /> : <Check className="size-3" aria-hidden />}
-          Keep {language}
+          {t("charSheet.owed.keepLanguage", { language })}
         </button>
       ) : null}
       {refusal ? (

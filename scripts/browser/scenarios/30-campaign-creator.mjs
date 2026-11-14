@@ -88,7 +88,7 @@ export default {
     await t.tap(dialog.locator('button[aria-label^="Go to step 3"]'));
     const review = dialog.locator("section[data-active]");
     await eventually(async () => /Here is what you made/.test(await textOf(review)), { label: "the review" });
-    await eventually(async () => /1 line/.test(await textOf(review.locator(".cc-readback"))), { label: "the review counts the line just typed" });
+    await eventually(async () => /Lines: 1/i.test(await textOf(review.locator(".cc-readback"))), { label: "the review counts the line just typed" });
     check(
       /each speaker gets a voice|no speech service/.test(await textOf(review.locator(".cc-readback"))),
       "the review reads back the casting choice, or why there is none",
@@ -137,7 +137,7 @@ export default {
     dialog = await openCreator();
     await eventually(async () => /Starting from your saved defaults/.test(await textOf(dialog)), { label: "the next creator starts from the defaults" });
     const safetySummary = dialog.locator('[data-group="safety"] .cc-group-summary');
-    check(/1 line/.test(await textOf(safetySummary)), "the saved line is in the new draft");
+    check(/Lines: 1/i.test(await textOf(safetySummary)), "the saved line is in the new draft");
     await t.tap(dialog.getByRole("radio", { name: "App defaults" }));
     await eventually(async () => /no lines or veils/.test(await textOf(safetySummary)), { label: "app defaults put the line away" });
     // The step's entrance has finished before the picture.

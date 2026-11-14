@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { ui } from "@/lib/ui";
+import { useI18n } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages/index";
 import { PageSection } from "@/components/PageShell";
 import type { ComfyModelReport, ComfyStatus } from "@/lib/comfyui";
 import { CHECKPOINT_PRESET, comfyModel } from "@/lib/image-models/catalog";
@@ -102,7 +104,7 @@ export function comfyModelPatch(value: string, options: ReturnType<typeof comfyM
   return null;
 }
 
-export async function fetchComfyModels(url: string, signal: AbortSignal): Promise<ComfyDiscovery> {
+export async function fetchComfyModels(url: string, signal: AbortSignal, fallbackError: string): Promise<ComfyDiscovery> {
   const response = await fetch("/api/comfy", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -111,7 +113,7 @@ export async function fetchComfyModels(url: string, signal: AbortSignal): Promis
   });
   const result = (await response.json()) as Partial<ComfyStatus>;
   if (!response.ok || !result.ok) {
-    return { checkpoints: [], models: [], hardware: null, device: null, error: result.error || "Could not check ComfyUI." };
+    return { checkpoints: [], models: [], hardware: null, device: null, error: result.error || fallbackError };
   }
   return {
     checkpoints: Array.isArray(result.checkpoints) ? result.checkpoints.filter((name): name is string => typeof name === "string") : [],
@@ -144,9 +146,10 @@ export function comfyModelStatus(discovery: ComfyDiscovery | null, preset: strin
 // code, so it paints nothing until one is picked; an upgrade from a version
 // that named one lands here.
 function NoPictureModel() {
+  const { t } = useI18n();
   return (
     <p role="status" className="text-[11px] leading-4 text-amber-300 sm:col-span-2" data-needs-model>
-      No model is picked, so nothing is painted until you pick one.
+      {t("admin.images.noModel")}
     </p>
   );
 }
@@ -160,6 +163,7 @@ function ComfyModelField({
   env: EnvDefaults;
   onChange: (patch: Partial<Images>) => void;
 }) {
+  const { t } = useI18n();
   const url = images.comfyUrl || env.comfyUrl;
   const [revision, setRevision] = useState(0);
   const [discovery, setDiscovery] = useState<Discovery | null>(null);
@@ -168,11 +172,11 @@ function ComfyModelField({
     const controller = new AbortController();
     const timer = window.setTimeout(async () => {
       try {
-        const result = await fetchComfyModels(url, controller.signal);
+        const result = await fetchComfyModels(url, controller.signal, t("admin.images.err.comfy"));
         if (!controller.signal.aborted) setDiscovery({ url, revision, ...result });
       } catch {
         if (!controller.signal.aborted) {
-          setDiscovery({ url, revision, checkpoints: [], models: [], hardware: null, device: null, error: "Could not check ComfyUI. Check the server URL." });
+          setDiscovery({ url, revision, checkpoints: [], models: [], hardware: null, device: null, error: t("admin.images.err.comfy") });
         }
       }
     }, 250);
@@ -180,7 +184,9 @@ function ComfyModelField({
       window.clearTimeout(timer);
       controller.abort();
     };
-  }, [url, revision]);
+    // t changes only with the language, which re-renders the section anyway.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [url, revision, t]);
 
   const current = discovery?.url === url && discovery.revision === revision ? discovery : null;
   const preset = images.comfyWorkflowPreset;
@@ -196,7 +202,7 @@ function ComfyModelField({
     <>
       <div>
         <SelectField<string>
-          label="Image model"
+          label={t("admin.images.model")}
           value={selected}
           onChange={(value) => {
             const patch = comfyModelPatch(value, options);
@@ -209,7 +215,7 @@ function ComfyModelField({
             {comfyModelStatus(current, preset)}
           </p>
           <button type="button" className="shrink-0 text-[11px] text-amber-300 hover:text-amber-200" onClick={() => setRevision((value) => value + 1)}>
-            Refresh
+            {t("admin.images.refresh")}
           </button>
         </div>
       </div>
@@ -230,10 +236,10 @@ function groupOf(backend: string): Group | null {
   return null;
 }
 
-const GROUP_TITLE: Record<Group, string> = {
-  comfyui: "ComfyUI",
-  flux: "FLUX worker",
-  openai: "OpenAI-compatible images API",
+const GROUP_TITLE: Record<Group, MessageKey> = {
+  comfyui: "admin.images.title.comfyui",
+  flux: "admin.images.title.flux",
+  openai: "admin.images.title.openai",
 };
 
 export function AdminImagesSection({
@@ -254,6 +260,7 @@ export function AdminImagesSection({
   onImages: (images: Images) => void;
   onOpenaiKey: (value: string) => void;
 }) {
+  const { t } = useI18n();
   const set = (patch: Partial<Images>) => onImages({ ...images, ...patch });
   // The backend "Auto" resolves to, so its fields are the ones shown open.
   const effective = images.defaultBackend || env.imageBackend || "comfyui";
@@ -262,7 +269,7 @@ export function AdminImagesSection({
   const blocks: Record<Group, React.ReactNode> = {
     comfyui: (
       <div className="grid gap-3 sm:grid-cols-2">
-        <Field label="Server URL" hint={inheritedHint(images.comfyUrl, env.comfyUrl)}>
+        <Field label={t("admin.images.comfy.url")} hint={inheritedHint(images.comfyUrl, env.comfyUrl, undefined, t)}>
           <input
             className={ui.input}
             value={images.comfyUrl}
@@ -275,7 +282,7 @@ export function AdminImagesSection({
     ),
     flux: (
       <div className="grid gap-3 sm:grid-cols-2">
-        <Field label="Worker URL" hint={inheritedHint(images.fluxWorkerUrl, env.fluxWorkerUrl, "The worker loads its own FLUX model.")}>
+        <Field label={t("admin.images.flux.url")} hint={inheritedHint(images.fluxWorkerUrl, env.fluxWorkerUrl, t("admin.images.flux.extra"), t)}>
           <input
             className={ui.input}
             value={images.fluxWorkerUrl}
@@ -288,8 +295,8 @@ export function AdminImagesSection({
     openai: (
       <div className="grid gap-3 sm:grid-cols-2">
         <Field
-          label="Server base URL"
-          hint="OpenAI itself, or any server with OpenAI's /v1/images/generations. Blank = api.openai.com."
+          label={t("admin.images.openai.base")}
+          hint={t("admin.images.openai.base.hint")}
         >
           <input
             className={ui.input}
@@ -299,8 +306,8 @@ export function AdminImagesSection({
           />
         </Field>
         <ModelChoiceField
-          label="Model"
-          hint="The picture models the server lists."
+          label={t("admin.images.openai.model")}
+          hint={t("admin.images.openai.model.hint")}
           role="image"
           provider="images"
           baseUrl={images.openaiBaseUrl}
@@ -310,14 +317,14 @@ export function AdminImagesSection({
           blankLabel={env.openaiImageModel ? fromEnv(env.openaiImageModel, "OPENAI_IMAGE_MODEL") : BLANK.picture}
         />
         <SecretField
-          label="API key"
+          label={t("admin.images.openai.key")}
           isSet={images.hasOpenaiApiKey}
           value={openaiKey}
           onChange={onOpenaiKey}
           hint={
             env.hasOpenaiImageApiKey
-              ? "An env-var key is also set; this one wins when filled."
-              : "Billed to whoever owns the key. Used only when a campaign's backend is this API."
+              ? t("admin.images.openai.key.env")
+              : t("admin.images.openai.key.billed")
           }
         />
         {!images.openaiModel.trim() && !env.openaiImageModel ? <NoPictureModel /> : null}
@@ -332,30 +339,30 @@ export function AdminImagesSection({
   const [opened, setOpened] = useState<Group[]>([]);
 
   return (
-    <PageSection id="admin-images" heading="Image generation" glyph="ui-paint">
+    <PageSection id="admin-images" heading={t("admin.images.heading")} glyph="ui-paint">
       <div className="mb-3">
         <SelectField<Images["defaultBackend"]>
-          label="Default backend"
+          label={t("admin.images.default.label")}
           hint={
             phoneWorld
-              ? "For new campaigns. The OpenAI-compatible API renders on another machine with the key below and needs no GPU here."
-              : "For new campaigns; a campaign can pick any backend that is set up below. ComfyUI and the FLUX workers run on this machine; an OpenAI-compatible API renders wherever its address points."
+              ? t("admin.images.default.hint.phone")
+              : t("admin.images.default.hint")
           }
           value={images.defaultBackend}
           onChange={(defaultBackend) => set({ defaultBackend })}
           options={[
-            { value: "", label: `Auto (${env.imageBackend || "ComfyUI"})` },
-            ...(phoneWorld ? [] : [{ value: "comfyui" as const, label: "ComfyUI (local)" }]),
-            { value: "openai", label: "OpenAI-compatible images API" },
+            { value: "", label: t("admin.images.opt.auto", { value: env.imageBackend || "ComfyUI" }) },
+            ...(phoneWorld ? [] : [{ value: "comfyui" as const, label: t("admin.images.opt.comfyLocal") }]),
+            { value: "openai", label: t("admin.images.title.openai") },
             ...(phoneWorld
               ? []
               : [
-                  { value: "mflux-hs" as const, label: "FLUX worker: mflux (Apple Silicon)" },
-                  { value: "sdnq-hs" as const, label: "FLUX worker: sdnq (CUDA/ROCm)" },
+                  { value: "mflux-hs" as const, label: t("admin.images.opt.mflux") },
+                  { value: "sdnq-hs" as const, label: t("admin.images.opt.sdnq") },
                 ]),
             // Only once the agent program has painted a real test picture.
             ...(harness?.images === "native" && harness.imagesVerifiedAt
-              ? [{ value: "harness" as const, label: "The agent program's own pictures" }]
+              ? [{ value: "harness" as const, label: t("admin.images.opt.harness") }]
               : []),
           ]}
         />
@@ -363,17 +370,17 @@ export function AdminImagesSection({
       {active && offered.includes(active) ? (
         // Keyed, so picking another backend brings its block in.
         <div key={active} className="reveal">
-          <h3 className="mb-2 text-sm font-medium text-stone-200">{GROUP_TITLE[active]}</h3>
+          <h3 className="mb-2 text-sm font-medium text-stone-200">{t(GROUP_TITLE[active])}</h3>
           {blocks[active]}
         </div>
       ) : effective === "harness" ? (
         <p className="reveal text-xs text-stone-500">
-          Pictures come from the agent program set up in the Agent section; it has no address or key of its own.
+          {t("admin.images.harness.note")}
         </p>
       ) : null}
       {others.length ? (
         <div className="mt-4 space-y-2">
-          <p className="text-xs text-stone-500">Other backends a campaign can pick:</p>
+          <p className="text-xs text-stone-500">{t("admin.images.others")}</p>
           {others.map((group) => (
             <details
               key={group}
@@ -382,7 +389,7 @@ export function AdminImagesSection({
                 if (event.currentTarget.open && !opened.includes(group)) setOpened([...opened, group]);
               }}
             >
-              <summary className="cursor-pointer text-sm text-stone-300">{GROUP_TITLE[group]}</summary>
+              <summary className="cursor-pointer text-sm text-stone-300">{t(GROUP_TITLE[group])}</summary>
               {opened.includes(group) ? <div className="mt-3">{blocks[group]}</div> : null}
             </details>
           ))}

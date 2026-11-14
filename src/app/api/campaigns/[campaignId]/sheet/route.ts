@@ -16,10 +16,10 @@ import { announceMidGameJoin } from "@/lib/characters/mid-game-join";
 import { heroFell } from "@/lib/characters/fallen-logic";
 import { HERO_DOOR_SHUT, heroDoorFor } from "@/lib/characters/hero-door";
 import { listMembers, setMemberReady } from "@/lib/db/campaigns";
-import { pregenSeatRefusal, recordPregenSeat } from "@/lib/db/pregen-offers";
+import { pregenSeatRefusalDetail, recordPregenSeat } from "@/lib/db/pregen-offers";
 import {
   admitLibraryCharacter,
-  companionRoleRefusal,
+  companionRoleRefusalDetail,
   createCharacter,
   getCharacterForUser,
   instantiateIntoCampaign,
@@ -66,7 +66,10 @@ function picksOf(raw: unknown): { picks: SeatPicks | null } | { error: Response 
   const parsed = seatPicksSchema.safeParse(sent);
   return parsed.success
     ? { picks: parsed.data }
-    : { error: Response.json({ error: parsed.error.issues[0]?.message || "Those picks could not be read." }, { status: 400 }) };
+    : { error: Response.json({
+        error: parsed.error.issues[0]?.message || "Those picks could not be read.",
+        errorCode: "PICKS_COULD_NOT_BE_READ",
+      }, { status: 400 }) };
 }
 
 // The library door with the picks made: the hero is adapted and admitted
@@ -88,7 +91,7 @@ const editSchema = z.object({
 function lobbyGuard(context: MemberContext): Response | null {
   if (context.campaign.status !== "lobby") {
     return Response.json(
-      { error: "Characters can only be changed in the lobby." },
+      { error: "Characters can only be changed in the lobby.", errorCode: "CAMPAIGN_NOT_LOBBY" },
       { status: 409 },
     );
   }
@@ -197,17 +200,21 @@ export async function POST(
     // Picking the fallen hero again would only seat the dead sheet back in
     // the player's place; their library copy does not know it died here.
     if (reusedSheet && heroFell(reusedSheet)) {
-      return Response.json({ error: `${reusedSheet.name} fell at this table. Bring in someone else.` }, { status: 409 });
+      return Response.json({
+        error: `${reusedSheet.name} fell at this table. Bring in someone else.`,
+        errorCode: "HERO_FELL_AT_TABLE",
+        errorParams: { name: reusedSheet.name },
+      }, { status: 409 });
     }
     if (!reused && !door.open) {
-      return Response.json({ error: HERO_DOOR_SHUT }, { status: 409 });
+      return Response.json({ error: HERO_DOOR_SHUT, errorCode: "HERO_ALREADY_HAS_CHARACTER" }, { status: 409 });
     }
     // One player per pregen per table (src/lib/db/pregen-offers.ts): a copy of
     // a DM's offered pregen does not sit where another sheet plays it.
     const library = reused ? null : getCharacterForUser(context.user.id, fromLibrary.data.libraryCharacterId);
-    const held = library ? pregenSeatRefusal(campaignId, library, context.user.id) : null;
+    const held = library ? pregenSeatRefusalDetail(campaignId, library, context.user.id) : null;
     if (held) {
-      return Response.json({ error: held }, { status: 409 });
+      return Response.json({ error: held.message, errorCode: held.code, errorParams: held.params }, { status: 409 });
     }
     const result = instantiateIntoCampaign(
       fromLibrary.data.libraryCharacterId,
@@ -230,7 +237,7 @@ export async function POST(
 
   // Path 2: create new; also saved to the user's library, then copied in.
   if (!door.open) {
-    return Response.json({ error: HERO_DOOR_SHUT }, { status: 409 });
+    return Response.json({ error: HERO_DOOR_SHUT, errorCode: "HERO_ALREADY_HAS_CHARACTER" }, { status: 409 });
   }
   const parsed = createSheetSchema.safeParse(raw);
   if (!parsed.success) {
@@ -252,7 +259,7 @@ export async function POST(
     olderBuilder: olderBuilderOf(raw),
   });
   if (!admitted.ok) {
-    return refusal(admitted.problems);
+    return refusal(admitted.problems, 400, admitted.problemDetails);
   }
   const libraryCharacter = createCharacter(
     targetUserId,
@@ -301,7 +308,7 @@ export async function PUT(
   const existing = getSheetForUser(campaignId, context.user.id);
   if (!existing) {
     return Response.json(
-      { error: "You have no character in this campaign yet; create one first." },
+      { error: "You have no character in this campaign yet; create one first.", errorCode: "NO_CHARACTER_TO_SWITCH" },
       { status: 404 },
     );
   }
@@ -318,26 +325,27 @@ export async function PUT(
     }
     const character = getCharacterForUser(context.user.id, fromLibrary.data.libraryCharacterId);
     if (!character) {
-      return Response.json({ error: "Character not found in your library." }, { status: 404 });
+      return Response.json({ error: "Character not found in your library.", errorCode: "CHARACTER_NOT_FOUND" }, { status: 404 });
     }
     // Held before the old sheet goes: a refused companion must not cost the
     // player the character they have (issue 192).
     if (character.role === "companion") {
-      return Response.json({ error: companionRoleRefusal(character) }, { status: 400 });
+      const refusal = companionRoleRefusalDetail(character);
+      return Response.json({ error: refusal.message, errorCode: refusal.code, errorParams: refusal.params }, { status: 400 });
     }
     // Picks that are not within the rules are refused before the old sheet
     // goes too: the switch is judged first, then made.
     if (hasSeatPicks(picked.picks)) {
       const judged = admitLibraryForSeat(character, context.campaign, context.user.id, Math.max(1, Math.min(20, context.campaign.startingLevel)), picked.picks);
       if (!judged.ok) {
-        return refusal(judged.problems);
+        return refusal(judged.problems, 400, judged.problemDetails);
       }
     }
     // A pregen someone else holds here is refused before the old sheet goes
     // too (src/lib/db/pregen-offers.ts); the sheet given up holds nothing.
-    const held = pregenSeatRefusal(campaignId, character, context.user.id, existing.id);
+    const held = pregenSeatRefusalDetail(campaignId, character, context.user.id, existing.id);
     if (held) {
-      return Response.json({ error: held }, { status: 409 });
+      return Response.json({ error: held.message, errorCode: held.code, errorParams: held.params }, { status: 409 });
     }
     deleteSheetForUser(campaignId, context.user.id);
     const result = instantiateIntoCampaign(
@@ -375,12 +383,13 @@ export async function PUT(
   if (edit.success) {
     const character = getCharacterForUser(context.user.id, edit.data.editLibraryCharacterId);
     if (!character) {
-      return Response.json({ error: "Character not found in your library." }, { status: 404 });
+      return Response.json({ error: "Character not found in your library.", errorCode: "CHARACTER_NOT_FOUND" }, { status: 404 });
     }
     // Held before the old sheet goes: a refused companion must not cost the
     // player the character they have (issue 192).
     if (character.role === "companion") {
-      return Response.json({ error: companionRoleRefusal(character) }, { status: 400 });
+      const refusal = companionRoleRefusalDetail(character);
+      return Response.json({ error: refusal.message, errorCode: refusal.code, errorParams: refusal.params }, { status: 400 });
     }
     // The copy this edit replaces is the one made from the character it
     // edited. At a table where the player fields several, the seat may be on
@@ -393,9 +402,9 @@ export async function PUT(
       ) ?? existing;
     // The edited sheet takes a new id; a pregen it plays stays this player's
     // (src/lib/db/pregen-offers.ts), and one someone else holds is refused.
-    const held = pregenSeatRefusal(campaignId, character, context.user.id, replaced.id);
+    const held = pregenSeatRefusalDetail(campaignId, character, context.user.id, replaced.id);
     if (held) {
-      return Response.json({ error: held }, { status: 409 });
+      return Response.json({ error: held.message, errorCode: held.code, errorParams: held.params }, { status: 409 });
     }
     const edited = admitSheet({
       door: "library",
@@ -410,7 +419,7 @@ export async function PUT(
       ...(character.sheet.classes?.length ? { heldClasses: character.sheet.classes } : {}),
     });
     if (!edited.ok) {
-      return refusal(edited.problems);
+      return refusal(edited.problems, 400, edited.problemDetails);
     }
     edit.data.sheet = edited.sheet;
     edited.settle();
@@ -438,7 +447,7 @@ export async function PUT(
       edit.data.sheet,
     );
     if (!updated) {
-      return Response.json({ error: "Could not update the character." }, { status: 400 });
+      return Response.json({ error: "Could not update the character.", errorCode: "CHARACTER_UPDATE_FAILED" }, { status: 400 });
     }
     deleteSheetById(campaignId, context.user.id, replaced.id);
     // The seat's classes stand at a table that turned multiclassing off
@@ -484,7 +493,7 @@ export async function PUT(
     ...(existing?.classes?.length ? { heldClasses: existing.classes } : {}),
   });
   if (!replaced.ok) {
-    return refusal(replaced.problems);
+    return refusal(replaced.problems, 400, replaced.problemDetails);
   }
   deleteSheetForUser(campaignId, context.user.id);
   const libraryCharacter = createCharacter(
@@ -522,7 +531,7 @@ export async function DELETE(
   }
   const removed = deleteSheetForUser(campaignId, context.user.id);
   if (!removed) {
-    return Response.json({ error: "You have no character in this campaign." }, { status: 404 });
+    return Response.json({ error: "You have no character in this campaign.", errorCode: "NO_CHARACTER_TO_REMOVE" }, { status: 404 });
   }
   setMemberReady(campaignId, context.user.id, false);
   publishPersisted(campaignId, "member_ready", { userId: context.user.id, ready: false });
@@ -580,7 +589,7 @@ export async function PATCH(
     }
   }
   if (!sheet) {
-    return Response.json({ error: "You have no character in this campaign." }, { status: 404 });
+    return Response.json({ error: "You have no character in this campaign.", errorCode: "NO_CHARACTER_TO_REMOVE" }, { status: 404 });
   }
 
   const parsed = patchSheetSchema.safeParse(body);
@@ -607,9 +616,16 @@ export async function PATCH(
   // agent retrying after its first call went through). Refused as any other
   // edit outside a level-up is, but said as what it is.
   if (typeof parsed.data.level === "number" && !levelingUp && !companionPortrait) {
+    const alreadyAtMax = sheet.level >= 20;
     return Response.json(
       {
-        error: `${sheet.name} is already level ${sheet.level}. ${sheet.level >= 20 ? "No character passes level 20." : `A level-up names the next level, ${sheet.level + 1}.`}`,
+        error: `${sheet.name} is already level ${sheet.level}. ${alreadyAtMax ? "No character passes level 20." : `A level-up names the next level, ${sheet.level + 1}.`}`,
+        errorCode: alreadyAtMax ? "LEVEL_UP_ALREADY_AT_MAX" : "LEVEL_UP_ALREADY_TAKEN",
+        errorParams: {
+          name: sheet.name,
+          level: sheet.level,
+          ...(alreadyAtMax ? {} : { nextLevel: sheet.level + 1 }),
+        },
         level: sheet.level,
       },
       { status: 403 },
@@ -620,6 +636,7 @@ export async function PATCH(
       {
         error:
           "Only portrait, notes, backstory, and hopes for the story can be changed here outside of a level-up. Ask the party lead to adjust other stats.",
+        errorCode: "LEVEL_UP_COSMETIC_FIELDS_ONLY",
       },
       { status: 403 },
     );
@@ -665,7 +682,14 @@ export async function PATCH(
         ).total,
     });
     if ("error" in built) {
-      return Response.json({ error: built.error }, { status: built.status ?? 400 });
+      return Response.json(
+        {
+          error: built.error,
+          ...(built.errorCode ? { errorCode: built.errorCode } : {}),
+          ...(built.errorParams ? { errorParams: built.errorParams } : {}),
+        },
+        { status: built.status ?? 400 },
+      );
     }
     const leveled = patchSheet(sheet.id, built.patch);
     publishPersisted(campaignId, "sheet_updated", { sheet: leveled });

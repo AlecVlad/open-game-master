@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { capsFor, isErrorResponse, requireMember } from "@/lib/campaign-api";
 import { previewBuiltJoin, previewLibraryJoin, previewPregenJoin, type JoinPreview } from "@/lib/characters/seat-preview";
-import { companionRoleRefusal, getCharacterForUser } from "@/lib/db/characters";
+import { companionRoleRefusalDetail, getCharacterForUser } from "@/lib/db/characters";
 import { heroFell } from "@/lib/characters/fallen-logic";
 import { HERO_DOOR_SHUT, heroDoorFor } from "@/lib/characters/hero-door";
 import { getSheetForUser, listSheetsForUser } from "@/lib/db/sheets";
@@ -9,7 +9,8 @@ import { createSheetSchema } from "@/lib/schemas/sheet";
 import { olderBuilderOf } from "@/lib/srd/legality/older-builder";
 import { pregenById } from "@/lib/starter/pregens";
 import { seatPicksSchema } from "@/lib/characters/seat-picks";
-import { claimRefusal, offeredPregenFor, pregenSeatRefusal } from "@/lib/db/pregen-offers";
+import { claimRefusalDetail, offeredPregenFor, pregenSeatRefusalDetail } from "@/lib/db/pregen-offers";
+import { refusalCodes } from "@/lib/characters/admit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -49,12 +50,16 @@ export async function POST(
     return context;
   }
   if (!capsFor(context).needsCharacter) {
-    return Response.json({ error: "The GM seat plays no character." }, { status: 400 });
+    return Response.json({ error: "The GM seat plays no character.", errorCode: "GM_SEAT_NO_CHARACTER" }, { status: 400 });
   }
   const raw = await request.json().catch(() => ({}));
   const parsed = previewSchema.safeParse(raw);
   if (!parsed.success) {
-    return Response.json({ error: parsed.error.issues[0]?.message || "Pick a hero." }, { status: 400 });
+    const message = parsed.error.issues[0]?.message || "Pick a hero.";
+    return Response.json({
+      error: message,
+      ...(message === "Pick one hero." ? { errorCode: "PICK_ONE_HERO" } : {}),
+    }, { status: 400 });
   }
   const { libraryCharacterId, pregenId, offeredPregenId, sheet, flow, picks } = parsed.data;
   // A first seat is judged at the level it joins at: a fallen hero's
@@ -62,17 +67,19 @@ export async function POST(
   // A lobby switch is the table's own level, as PUT /sheet seats it.
   const door = heroDoorFor(context.campaign, context.user.id);
   const seatCampaign = flow === "join" ? door.campaign : context.campaign;
-  let fallenPick = "";
+  let fallenPick: string | null = null;
+  let fallenPickParams: { name: string } | undefined;
 
   let preview: JoinPreview;
   let alreadyHere = false;
   if (libraryCharacterId) {
     const character = getCharacterForUser(context.user.id, libraryCharacterId);
     if (!character) {
-      return Response.json({ error: "Character not found in your library." }, { status: 404 });
+      return Response.json({ error: "Character not found in your library.", errorCode: "CHARACTER_NOT_FOUND" }, { status: 404 });
     }
     if (character.role === "companion") {
-      return Response.json({ error: companionRoleRefusal(character) }, { status: 400 });
+      const refusal = companionRoleRefusalDetail(character);
+      return Response.json({ error: refusal.message, errorCode: refusal.code, errorParams: refusal.params }, { status: 400 });
     }
     preview = previewLibraryJoin(character, seatCampaign, context.user.id, picks);
     // A hero already at this table is selected again, not copied twice
@@ -85,14 +92,21 @@ export async function POST(
     alreadyHere = here !== undefined && !heroFell(here);
     if (here && heroFell(here)) {
       fallenPick = `${here.name} fell at this table. Bring in someone else.`;
+      fallenPickParams = { name: here.name };
     }
     // A copy of a DM's offered pregen does not sit where another sheet plays
     // that pregen (src/lib/db/pregen-offers.ts), as the join will say. A lobby
     // switch gives up the current sheet first, which holds nothing then.
     const replacing = flow === "replace" ? (getSheetForUser(campaignId, context.user.id)?.id ?? "") : "";
-    const held = here ? null : pregenSeatRefusal(campaignId, character, context.user.id, replacing);
+    const held = here ? null : pregenSeatRefusalDetail(campaignId, character, context.user.id, replacing);
     if (held) {
-      preview = { ...preview, ok: false, problems: [held, ...preview.problems] };
+      preview = {
+        ...preview,
+        ok: false,
+        problems: [held.message, ...preview.problems],
+        problemCodes: [held.code, ...refusalCodes(preview.problems)],
+        problemParams: [held.params, ...preview.problems.map(() => null)],
+      };
     }
   } else if (sheet) {
     preview = previewBuiltJoin(sheet, seatCampaign, context.user.id, olderBuilderOf((raw as { sheet?: unknown } | null)?.sheet));
@@ -101,20 +115,33 @@ export async function POST(
     // DM's own pregens are in their library already.
     const offer = offeredPregenFor(campaignId, offeredPregenId);
     if (!offer || offer.character.userId === context.user.id) {
-      return Response.json({ error: "No such hero." }, { status: 404 });
+      return Response.json({ error: "No such hero.", errorCode: "HERO_NOT_FOUND" }, { status: 404 });
     }
     preview = previewLibraryJoin(offer.character, seatCampaign, context.user.id, picks);
-    const refusals = [
-      ...(flow !== "join" ? ["A pregen the GM offers takes a first seat; a lobby switch is to one of your own heroes."] : []),
-      ...[claimRefusal(offer, context.user.id)].filter((line): line is string => Boolean(line)),
-    ];
+    const refusals: Array<{ message: string; code: string; params?: { name: string } }> = [];
+    if (flow !== "join") {
+      refusals.push({
+        message: "A pregen the GM offers takes a first seat; a lobby switch is to one of your own heroes.",
+        code: "OFFERED_PREGEN_JOIN_ONLY",
+      });
+    }
+    const claim = claimRefusalDetail(offer, context.user.id);
+    if (claim) {
+      refusals.push(claim);
+    }
     if (refusals.length) {
-      preview = { ...preview, ok: false, problems: [...refusals, ...preview.problems] };
+      preview = {
+        ...preview,
+        ok: false,
+        problems: [...refusals.map((entry) => entry.message), ...preview.problems],
+        problemCodes: [...refusals.map((entry) => entry.code), ...refusalCodes(preview.problems)],
+        problemParams: [...refusals.map((entry) => entry.params ?? null), ...preview.problems.map(() => null)],
+      };
     }
   } else {
     const pregen = pregenById(pregenId ?? "");
     if (!pregen) {
-      return Response.json({ error: "No such hero." }, { status: 404 });
+      return Response.json({ error: "No such hero.", errorCode: "HERO_NOT_FOUND" }, { status: 404 });
     }
     preview = previewPregenJoin(pregen, seatCampaign, context.user.id, picks);
   }
@@ -124,7 +151,17 @@ export async function POST(
   if (fallenPick) {
     // Nothing about joining applies to a hero who cannot join: no changes,
     // no picks, no other rule, only why not.
-    preview = { ...preview, ok: false, problems: [fallenPick], changes: [], owed: [], rollsHp: false, picks: undefined };
+    preview = {
+      ...preview,
+      ok: false,
+      problems: [fallenPick],
+      problemCodes: ["HERO_FELL_AT_TABLE"],
+      problemParams: [fallenPickParams ?? null],
+      changes: [],
+      owed: [],
+      rollsHp: false,
+      picks: undefined,
+    };
     return Response.json({ preview: { ...preview, alreadyHere } });
   }
   const doorProblems: string[] = [];
@@ -135,7 +172,21 @@ export async function POST(
     doorProblems.push("Characters can only be changed in the lobby.");
   }
   if (doorProblems.length) {
-    preview = { ...preview, ok: false, problems: [...doorProblems, ...preview.problems] };
+    const existingCodes = preview.problemCodes ?? refusalCodes(preview.problems);
+    const existingParams = preview.problemParams ?? preview.problems.map(() => null);
+    preview = {
+      ...preview,
+      ok: false,
+      problems: [...doorProblems, ...preview.problems],
+      problemCodes: [...refusalCodes(doorProblems), ...existingCodes],
+      problemParams: [...doorProblems.map(() => null), ...existingParams],
+    };
   }
-  return Response.json({ preview: { ...preview, alreadyHere } });
+  return Response.json({
+    preview: {
+      ...preview,
+      problemCodes: preview.problemCodes ?? refusalCodes(preview.problems),
+      alreadyHere,
+    },
+  });
 }

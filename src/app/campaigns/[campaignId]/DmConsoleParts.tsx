@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { ChevronDown, ChevronRight, X } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui";
@@ -139,6 +140,7 @@ export function OptionalNumber({
   emptyHint: string;
   size?: "sm" | "md";
 }) {
+  const { t } = useI18n();
   const floor = min ?? Number.NEGATIVE_INFINITY;
   const ceiling = max ?? Number.POSITIVE_INFINITY;
   const first = Math.min(ceiling, Math.max(floor, start ?? min ?? 0));
@@ -159,8 +161,8 @@ export function OptionalNumber({
         <button
           type="button"
           onClick={() => onChange("")}
-          aria-label={`Clear ${label}`}
-          title={`Clear: ${emptyHint}`}
+          aria-label={t("campaign.dmConsoleParts.clear.aria", { label })}
+          title={t("campaign.dmConsoleParts.clear.title", { emptyHint })}
           className={cn(ui.iconAction, "!opacity-100")}
         >
           <X className="size-3.5" aria-hidden="true" />
@@ -172,10 +174,11 @@ export function OptionalNumber({
 
 // The quiet "Close" under an open form.
 export function CloseForm({ onClick }: { onClick: () => void }) {
+  const { t } = useI18n();
   return (
     <button type="button" onClick={onClick} className={cn(ui.btnSmall, "px-2 py-1 text-[11px]")}>
       <X className="size-3" aria-hidden="true" />
-      Close
+      {t("campaign.dmConsoleParts.close")}
     </button>
   );
 }

@@ -4,9 +4,12 @@
 // lands in (docs/visual-overhaul-plan.md 7.2).
 
 import { REROLL_LOW_DEFAULT } from "@/lib/srd/ability-rerolls";
+import type { MessageKey } from "@/lib/i18n/messages/index";
+import type { Params } from "@/lib/i18n/core";
 import { hpBonusPerLevel } from "@/lib/srd/race-id";
 
 export type Rng = () => number;
+type AbilityTranslator = (key: MessageKey, params?: Params) => string;
 
 export type DieRest = { dx: string; dy: string; dr: string };
 
@@ -74,22 +77,24 @@ export function rollTier(total: number): 1 | 2 | 3 | 4 | 5 {
 // The tier in words, shown beside the colour so a reader who cannot tell red
 // from green, or hears the tray read aloud, gets the same grade.
 const TIER_WORDS = { 1: "grim", 2: "poor", 3: "fair", 4: "good", 5: "heroic" } as const;
-export function rollWord(total: number): string {
-  return TIER_WORDS[rollTier(total)];
+export function rollWord(total: number, translate?: AbilityTranslator): string {
+  if (!translate) return TIER_WORDS[rollTier(total)];
+  const key = (["", "grim", "poor", "fair", "good", "heroic"] as const)[rollTier(total)];
+  return translate(`builder.extra.ability.tier.${key}` as MessageKey);
 }
 
 // The line a remarkable throw earns, or null: an 18, four sixes in one
 // throw, a pool that sums to 80 or more. The story players retell, noticed
 // in words first, so it reads the same with the effects turned down.
-export function poolHighlight(pool: PoolEntry[]): string | null {
+export function poolHighlight(pool: PoolEntry[], translate?: AbilityTranslator): string | null {
   if (pool.some((entry) => entry.roll?.dice.every((die) => die === 6))) {
-    return "Four sixes in one throw. The dice favour you.";
+    return translate ? translate("builder.extra.ability.highlight.sixes") : "Four sixes in one throw. The dice favour you.";
   }
   if (pool.some((entry) => entry.total === 18)) {
-    return "An 18. The dice favour you.";
+    return translate ? translate("builder.extra.ability.highlight.eighteen") : "An 18. The dice favour you.";
   }
   if (poolSum(pool) >= 80) {
-    return "A heroic pool. Your table will hear about this.";
+    return translate ? translate("builder.extra.ability.highlight.heroic") : "A heroic pool. Your table will hear about this.";
   }
   return null;
 }
@@ -157,12 +162,29 @@ export type PoolEntry = { total: number; roll: PoolRoll | null };
 // hides the dice drawn inside it, so the set-aside die is named here: "Throw
 // of 14, good, from 6, 5, 3 and a 2 set aside, on Strength". A throw kept
 // from the sheet has no dice to name.
-export function throwName(entry: PoolEntry, placedOn: string | null): string {
+export function throwName(entry: PoolEntry, placedOn: string | null, translate?: AbilityTranslator): string {
   const roll = entry.roll;
   const dice = roll
     ? `, from ${roll.dice.filter((_, at) => at !== roll.dropIndex).join(", ")} and a ${roll.dice[roll.dropIndex]} set aside`
     : "";
-  return `Throw of ${entry.total}, ${rollWord(entry.total)}${dice}${placedOn ? `, on ${placedOn}` : ", not placed"}`;
+  if (!translate) {
+    return `Throw of ${entry.total}, ${rollWord(entry.total)}${dice}${placedOn ? `, on ${placedOn}` : ", not placed"}`;
+  }
+  const diceText = roll
+    ? translate("builder.extra.ability.throw.dice", {
+        kept: roll.dice.filter((_, at) => at !== roll.dropIndex).join(", "),
+        dropped: roll.dice[roll.dropIndex],
+      })
+    : "";
+  const placement = placedOn
+    ? translate("builder.extra.ability.throw.placed", { ability: placedOn })
+    : translate("builder.extra.ability.throw.notPlaced");
+  return translate("builder.extra.ability.throw.name", {
+    total: entry.total,
+    tier: rollWord(entry.total, translate),
+    dice: diceText,
+    placement,
+  });
 }
 
 export function rollPool(rng: Rng = Math.random): PoolEntry[] {
@@ -231,16 +253,22 @@ export function summaryLine({
   method: "standard" | "pointbuy" | "roll";
   best: { label: string; final: number } | null;
   who: string;
-}): string {
+}, translate?: AbilityTranslator): string {
+  if (translate) {
+    const lead = translate(`builder.extra.ability.summary.method.${method}` as MessageKey);
+    if (!best) return lead;
+    const tail = who
+      ? translate("builder.extra.ability.summary.tail.withWho", { who })
+      : translate("builder.extra.ability.summary.tail.withoutWho");
+    return translate("builder.extra.ability.summary.lead", { lead, ability: best.label, score: best.final, tail });
+  }
   const lead =
     method === "roll"
       ? "Six throws of four dice, the lowest set aside, placed your way."
       : method === "pointbuy"
         ? "Twenty-seven points, spent your way."
         : "The same six numbers every hero starts from, placed your way.";
-  if (!best) {
-    return lead;
-  }
+  if (!best) return lead;
   const as = who ? ` As ${/^[aeiou]/i.test(who) ? "an" : "a"} ${who}, that` : " That";
   return `${lead} Your highest is ${best.label} at ${best.final}.${as} is the shape of the character you just made.`;
 }

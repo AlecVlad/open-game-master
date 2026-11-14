@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { Check, Plus, X } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui";
@@ -16,14 +17,6 @@ import { addChip, chipRow } from "@/app/workshop/kit";
 // spellcasting block, the regeneration. Pick, do not type: what lands is
 // what the engine already runs for the published monster.
 
-const KIND_WORDS: Record<BorrowPart["kind"], string> = {
-  attack: "Attack",
-  ability: "Action",
-  trait: "Trait",
-  spellcasting: "Spells",
-  regeneration: "Regeneration",
-};
-
 function statsOf(entry: { source: string; name: string; data: Record<string, unknown> }): EnemyStats {
   if (entry.source === "homebrew") {
     return draftFromData(entry.name, entry.data).stats;
@@ -33,15 +26,23 @@ function statsOf(entry: { source: string; name: string; data: Record<string, unk
 }
 
 export function BorrowParts({ draft, onChange }: { draft: MonsterDraft; onChange: (draft: MonsterDraft) => void }) {
+  const { t } = useI18n();
+  const kindWords: Record<BorrowPart["kind"], string> = {
+    attack: t("workshop.monsterEditor.borrow.kind.attack"),
+    ability: t("workshop.monsterEditor.borrow.kind.ability"),
+    trait: t("workshop.monsterEditor.borrow.kind.trait"),
+    spellcasting: t("workshop.monsterEditor.borrow.kind.spellcasting"),
+    regeneration: t("workshop.monsterEditor.borrow.kind.regeneration"),
+  };
   const [source, setSource] = useState<{ name: string; parts: BorrowPart[] } | null>(null);
   const [taken, setTaken] = useState<Set<string>>(() => new Set());
   return (
     <div className="flex flex-col gap-2">
-      <SectionHead title="Borrow from the books" glyph="tab-reference" className="mb-0" />
+      <SectionHead title={t("workshop.monsterEditor.borrow.title")} glyph="tab-reference" className="mb-0" />
       <ContentPick
         kind="monsters"
-        label="Find a monster to borrow a part from"
-        placeholder="Borrow from... adult red dragon, ghoul, mage"
+        label={t("workshop.monsterEditor.borrow.find")}
+        placeholder={t("workshop.monsterEditor.borrow.placeholder")}
         onPick={(entry) => {
           setSource({ name: entry.name, parts: borrowParts(statsOf(entry)) });
           setTaken(new Set());
@@ -50,8 +51,8 @@ export function BorrowParts({ draft, onChange }: { draft: MonsterDraft; onChange
       {source ? (
         <div className="reveal flex flex-col gap-1 rounded-lg border border-stone-800 bg-stone-950/50 p-2">
           <span className="flex items-center justify-between gap-2 text-xs text-stone-300">
-            From {source.name}
-            <button type="button" aria-label="Close the borrowed monster" onClick={() => setSource(null)} className={cn(ui.iconAction, "pk-always pk-tap")}>
+            {t("workshop.monsterEditor.borrow.from", { name: source.name })}
+            <button type="button" aria-label={t("workshop.monsterEditor.borrow.close")} onClick={() => setSource(null)} className={cn(ui.iconAction, "pk-always pk-tap")}>
               <X className="size-3.5" />
             </button>
           </span>
@@ -73,7 +74,7 @@ export function BorrowParts({ draft, onChange }: { draft: MonsterDraft; onChange
                       className={cn(ui.btnSmall, addChip, "shrink-0", done && "border-emerald-500/40 text-emerald-200")}
                     >
                       {done ? <Check className="size-3" /> : <Plus className="size-3" />}
-                      {KIND_WORDS[part.kind]}
+                      {kindWords[part.kind]}
                     </button>
                     <span className="min-w-0 text-[11px] leading-snug text-stone-400">{part.label}</span>
                   </li>
@@ -81,7 +82,7 @@ export function BorrowParts({ draft, onChange }: { draft: MonsterDraft; onChange
               })}
             </ul>
           ) : (
-            <p className="text-[11px] text-stone-500">Nothing on this block travels on its own.</p>
+            <p className="text-[11px] text-stone-500">{t("workshop.monsterEditor.borrow.none")}</p>
           )}
         </div>
       ) : null}

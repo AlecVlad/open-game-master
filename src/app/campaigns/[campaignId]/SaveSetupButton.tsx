@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { appConfirm, appNotice } from "@/components/ui/ConfirmDialog";
 import { bannerButtonClass } from "@/app/campaigns/[campaignId]/SessionBanner";
-import { readWrite } from "@/lib/load-state";
+import { useI18n } from "@/lib/i18n/provider";
+import { campaignApiErrorText } from "@/lib/i18n/campaignApiError";
 import { hostOffers, useCapabilities } from "@/lib/use-capabilities";
 
 // "Save as set-up" on a test table (issue 685, src/lib/workshop/fight-setup.ts):
@@ -14,6 +15,7 @@ import { hostOffers, useCapabilities } from "@/lib/use-capabilities";
 // it. Hidden on a host that cannot save one.
 
 export function SaveSetupButton({ campaignId }: { campaignId: string }) {
+  const { t } = useI18n();
   const capabilities = useCapabilities();
   const [busy, setBusy] = useState(false);
   if (!hostOffers(capabilities, "fightSetups")) {
@@ -23,31 +25,54 @@ export function SaveSetupButton({ campaignId }: { campaignId: string }) {
   async function save() {
     if (
       !(await appConfirm(
-        "Save this moment as the fight's set-up? Every test of it then opens here: the foes and heroes as they stand now, the initiative order, and the map. At a table, the foes start as they stand now too. It replaces any set-up saved before.",
-        // A save, so the kit's own button, not the red of a deletion; the
-        // sentence above already says it replaces an earlier set-up.
-        { title: "Save as set-up", actionLabel: "Save as set-up", tone: "plain" },
+        t("workshop.testFight.setup.confirm"),
+        {
+          title: t("workshop.testFight.setup.confirmTitle"),
+          actionLabel: t("workshop.testFight.setup.confirmAction"),
+          tone: "plain",
+        },
       ))
     ) {
       return;
     }
     setBusy(true);
-    const sent = await readWrite<{ lines: string[]; keptMap: boolean }>(
-      fetch(`/api/campaigns/${campaignId}/fight-setup`, { method: "POST" }),
-      "The set-up could not be saved.",
-    );
-    setBusy(false);
-    if (sent.error !== null) {
-      await appNotice(sent.error, "Not saved");
-      return;
+    try {
+      const response = await fetch(`/api/campaigns/${campaignId}/fight-setup`, { method: "POST" });
+      const data = await response.json().catch(() => null) as
+        | { ok?: boolean; keptMap?: boolean; lines?: unknown }
+        | null;
+      if (!response.ok) {
+        await appNotice(
+          campaignApiErrorText(data, t("workshop.testFight.setup.error.saveFailed"), t),
+          t("workshop.testFight.setup.notSavedTitle"),
+        );
+        return;
+      }
+      if (!data || data.ok !== true || typeof data.keptMap !== "boolean" || !Array.isArray(data.lines)) {
+        await appNotice(
+          t("workshop.testFight.setup.error.response"),
+          t("workshop.testFight.setup.notSavedTitle"),
+        );
+        return;
+      }
+      const mapNote = data.keptMap ? ` ${t("workshop.testFight.setup.mapKept")}` : "";
+      await appNotice(
+        `${t("workshop.testFight.setup.savedNotice")}${mapNote}`,
+        t("workshop.testFight.setup.savedTitle"),
+      );
+    } catch {
+      await appNotice(
+        t("workshop.testFight.setup.error.network"),
+        t("workshop.testFight.setup.notSavedTitle"),
+      );
+    } finally {
+      setBusy(false);
     }
-    const kept = sent.payload.keptMap ? " The fight keeps this map too: it is in the workshop's maps." : "";
-    await appNotice(`${sent.payload.lines.join(" ")}${kept}`, "Set-up saved");
   }
 
   return (
     <button type="button" disabled={busy} aria-busy={busy} onClick={() => void save()} className={bannerButtonClass()} data-save-setup>
-      {busy ? "Saving..." : "Save as set-up"}
+      {busy ? t("workshop.testFight.setup.saving") : t("workshop.testFight.setup.save")}
     </button>
   );
 }

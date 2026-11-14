@@ -1,13 +1,14 @@
 "use client";
 
 import { Check, Loader2 } from "lucide-react";
+import { useI18n } from "@/lib/i18n/provider";
 import { SectionHead } from "@/components/ui/SectionHead";
 import { Select } from "@/components/ui/Select";
 import { UnofficialPackNotice } from "@/components/UnofficialPackNotice";
 import { chip, chipOn, chipRow } from "@/app/workshop/kit";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui";
-import { BUNDLE_KIND_LABELS, type BundleDependency } from "@/lib/workshop/bundle";
+import { BUNDLE_KIND_LABELS } from "@/lib/workshop/bundle";
 
 // What a bundle holds, shown before it becomes a workshop: the card both a
 // bundle file (ImportBundleButton) and an addon's import (AddonImportButton)
@@ -48,20 +49,6 @@ export function kindsOf(preview: BundlePreviewData): string[] {
   ];
 }
 
-// What the current ticks drop: every link from a ticked kind into an
-// unticked one.
-function droppedLinks(preview: BundlePreviewData, kinds: string[]): string[] {
-  return (preview.dependencies ?? [])
-    .filter((dependency) => kinds.includes(dependency.from) && !kinds.includes(dependency.to))
-    .map((dependency) =>
-      // A name leans on a monster or a Homebrew entry: left behind, it names
-      // the importer's own of that name, or nothing (workshop/bundle.ts).
-      dependency.to === "monsters" || dependency.to === "homebrew"
-        ? `${BUNDLE_KIND_LABELS[dependency.from] ?? dependency.from}: ${dependency.count} name ${BUNDLE_KIND_LABELS[dependency.to] ?? dependency.to} from this bundle. Left behind, they name your own of that name, or nothing.`
-        : `${dependency.count} link${dependency.count === 1 ? "" : "s"} from ${BUNDLE_KIND_LABELS[dependency.from] ?? dependency.from} to ${BUNDLE_KIND_LABELS[dependency.to] ?? dependency.to} ${dependency.count === 1 ? "is" : "are"} dropped while those stay behind.`,
-    );
-}
-
 export function BundlePreview({
   preview,
   kinds,
@@ -84,13 +71,30 @@ export function BundlePreview({
   // What the addon that made the bundle wants the DM to know.
   notes?: string[];
 }) {
+  const { t } = useI18n();
   const offered = kindsOf(preview);
-  const dropped = droppedLinks(preview, kinds);
+  const kindLabel = (kind: string) => {
+    const key = BUNDLE_KIND_KEYS[kind];
+    return key ? t(key as never) : BUNDLE_KIND_LABELS[kind] ?? kind;
+  };
+  const dropped = (preview.dependencies ?? [])
+    .filter((dependency) => kinds.includes(dependency.from) && !kinds.includes(dependency.to))
+    .map((dependency) => {
+      const from = kindLabel(dependency.from);
+      const to = kindLabel(dependency.to);
+      return dependency.to === "monsters" || dependency.to === "homebrew"
+        ? t("workshop.bundle.preview.droppedNames", { count: dependency.count, from, to })
+        : t((dependency.count === 1 ? "workshop.bundle.preview.droppedLink.one" : "workshop.bundle.preview.droppedLink.other") as never, {
+            count: dependency.count,
+            from,
+            to,
+          });
+    });
   return (
     <div className={`${ui.card} reveal mt-3 p-4`}>
       <SectionHead title={preview.manifest.name} glyph="system-share" />
       <p className="text-sm text-stone-400">{preview.manifest.blurb}</p>
-      {preview.manifest.author ? <p className="reveal mt-0.5 text-xs text-stone-500">by {preview.manifest.author}</p> : null}
+      {preview.manifest.author ? <p className="reveal mt-0.5 text-xs text-stone-500">{t("workshop.bundle.preview.byAuthor", { author: preview.manifest.author })}</p> : null}
 
       {/* Each kind is a tick: a DM who only wants the monsters takes the
           monsters. Unticking every one leaves an empty workshop, which the
@@ -109,7 +113,7 @@ export function BundlePreview({
               >
                 <Check className={cn("size-3.5", ticked ? "text-amber-300" : "opacity-20")} aria-hidden="true" />
                 {preview.counts[kind] === undefined ? "" : `${preview.counts[kind]} `}
-                {BUNDLE_KIND_LABELS[kind] ?? kind}
+                {kindLabel(kind)}
               </button>
             </li>
           );
@@ -130,25 +134,24 @@ export function BundlePreview({
         <div className="reveal mt-3">
           {preview.sharedHomes?.length ? (
             <>
-              <p className="mb-1 text-xs text-stone-400">The records its cards pick from &quot;{preview.dependsOn.name}&quot;:</p>
+              <p className="mb-1 text-xs text-stone-400">{t("workshop.bundle.preview.sourceRecords", { name: preview.dependsOn.name })}</p>
               <Select
-                label="Shared records"
+                label={t("workshop.bundle.preview.sharedRecords")}
                 value={sharedWorkshopId}
                 onChange={onSharedWorkshopId}
                 options={[
                   ...preview.sharedHomes.map((home) => ({
                     value: home.id,
-                    label: `Link to my "${home.title}"`,
-                    hint: `${home.found} of ${home.total} found there; the rest land here.`,
+                    label: t("workshop.bundle.preview.linkToMy", { title: home.title }),
+                    hint: t("workshop.bundle.preview.found", { found: home.found, total: home.total }),
                   })),
-                  { value: "", label: "Bring them in as this workshop's own" },
+                  { value: "", label: t("workshop.bundle.preview.ownRecords") },
                 ]}
               />
             </>
           ) : (
             <p className="text-xs text-stone-400">
-              Its records from &quot;{preview.dependsOn.name}&quot; land as this workshop&apos;s own. Import that
-              workshop&apos;s bundle first to link them to it instead.
+              {t("workshop.bundle.preview.unlinked", { name: preview.dependsOn.name })}
             </p>
           )}
         </div>
@@ -167,20 +170,20 @@ export function BundlePreview({
       ) : null}
 
       <p className="mt-3 text-xs text-stone-500">
-        This creates a new workshop of your own. Nothing is written into any campaign you already have.
+        {t("workshop.bundle.preview.safety")}
       </p>
 
       <div className="mt-3 flex gap-2">
         <button type="button" onClick={onConfirm} disabled={busy} className={ui.btnPrimary}>
           {busy ? <Loader2 className="size-4 animate-spin" /> : null}{" "}
           {kinds.length === 0
-            ? "Import an empty workshop"
+            ? t("workshop.bundle.preview.importEmpty")
             : kinds.length === offered.length
-              ? "Import it"
-              : `Import ${kinds.length} of ${offered.length} kinds`}
+              ? t("workshop.bundle.preview.importAll")
+              : t("workshop.bundle.preview.importSome", { count: kinds.length, total: offered.length })}
         </button>
         <button type="button" onClick={onCancel} className={ui.btnSecondary}>
-          Cancel
+          {t("workshop.bundle.preview.cancel")}
         </button>
       </div>
     </div>

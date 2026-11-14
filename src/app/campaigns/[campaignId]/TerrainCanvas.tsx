@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useImperativeHandle, useRef, useState, type Ref } from "react";
 import { Maximize2, Minus, Plus } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { useI18n } from "@/lib/i18n/provider";
 import { backdropRect, type Backdrop, type BackdropTransform } from "@/lib/battlemap/backdrop";
 import type { Brush as BrushName } from "@/lib/battlemap/paint";
 import type { Stamp } from "@/lib/battlemap/stamp";
@@ -166,6 +167,7 @@ export function TerrainCanvas({
   controls?: Ref<CanvasControls>;
   className?: string;
 }) {
+  const { t } = useI18n();
   const outerRef = useRef<HTMLDivElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -646,9 +648,9 @@ export function TerrainCanvas({
       </div>
       {zoomable ? (
         <div className="absolute right-1.5 top-1.5 flex flex-col gap-1">
-          <ZoomButton label="Zoom in" icon={Plus} onClick={() => zoomAt(ZOOM.step, null)} />
-          <ZoomButton label="Zoom out" icon={Minus} onClick={() => zoomAt(1 / ZOOM.step, null)} />
-          <ZoomButton label="Fit the whole map" icon={Maximize2} onClick={() => setView(FIT)} />
+          <ZoomButton label={t("workshop.maps.shell.zoomIn")} icon={Plus} onClick={() => zoomAt(ZOOM.step, null)} />
+          <ZoomButton label={t("workshop.maps.shell.zoomOut")} icon={Minus} onClick={() => zoomAt(1 / ZOOM.step, null)} />
+          <ZoomButton label={t("workshop.maps.shell.fit")} icon={Maximize2} onClick={() => setView(FIT)} />
         </div>
       ) : null}
     </div>

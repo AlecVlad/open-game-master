@@ -23,12 +23,12 @@ export async function POST(request: Request, { params }: { params: Promise<{ cam
   }
   const location = getLocation(locationId);
   if (!location || location.campaignId !== campaignId) {
-    return Response.json({ error: "No such place." }, { status: 404 });
+    return Response.json({ error: "No such place.", errorCode: "PLACE_NOT_FOUND" }, { status: 404 });
   }
   const parsed = bodySchema.safeParse(await request.json().catch(() => ({})));
   const outcome = populateSettlement(context.campaign, location, parsed.success ? parsed.data : {});
   if ("error" in outcome) {
-    return Response.json({ error: outcome.error }, { status: 409 });
+    return Response.json({ error: outcome.error, errorCode: "PLACE_ALREADY_POPULATED", errorParams: { place: location.name } }, { status: 409 });
   }
   return Response.json({ ok: true, npcs: outcome.npcs, shops: outcome.shops, layout: outcome.settlement.layoutDescription, hook: outcome.settlement.hook });
 }

@@ -4,6 +4,8 @@
 // scripts/test-builder-spell-desk.mjs can check it without React.
 import { formatModifier } from "@/lib/srd";
 import { textKey } from "@/lib/language/text-logic";
+import type { MessageKey } from "@/lib/i18n/messages/index";
+import type { Params } from "@/lib/i18n/core";
 import { preparedCapLine, type PreparedSum } from "./casting";
 
 // Which list a swap changes: the cantrips, the levelled spells (a known
@@ -13,6 +15,7 @@ export type SwapKind = "cantrip" | "spell" | "prepared";
 
 // A swap waiting for the player to say which spell goes.
 export type PendingSwap = { kind: SwapKind; name: string };
+type SpellDeskTranslator = (key: MessageKey, params?: Params) => string;
 
 // The list with `out` replaced by `into` where it stood, so the order the
 // player chose in holds.
@@ -46,8 +49,8 @@ export function swapChoices(input: {
 }
 
 // What the question over the tiles asks.
-export function swapQuestion(swap: PendingSwap, full: string): string {
-  return `${full}. Swap ${swap.name} in for:`;
+export function swapQuestion(swap: PendingSwap, full: string, translate?: SpellDeskTranslator): string {
+  return translate ? translate("builder.spells.swap.question", { full, name: swap.name }) : `${full}. Swap ${swap.name} in for:`;
 }
 
 const ORDINALS = ["", "1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th"];
@@ -59,12 +62,17 @@ export function castingNumbers(input: {
   spellSaveDc: number | null | undefined;
   spellAttack: number | null | undefined;
   spellSlots: Record<string, { max: number }>;
-}): { dc: string | null; attack: string | null; slots: Array<{ level: number; label: string; max: number }> } {
+}, translate?: SpellDeskTranslator): { dc: string | null; attack: string | null; slots: Array<{ level: number; label: string; max: number }> } {
   const slots = Object.entries(input.spellSlots)
     .map(([level, slot]) => ({ level: Number(level), max: slot.max }))
     .filter((slot) => slot.max > 0 && slot.level >= 1 && slot.level <= 9)
     .sort((a, b) => a.level - b.level)
-    .map((slot) => ({ ...slot, label: ORDINALS[slot.level] }));
+    .map((slot) => ({
+      ...slot,
+      label: translate
+        ? translate((["", "builder.spells.ordinal.1", "builder.spells.ordinal.2", "builder.spells.ordinal.3"][slot.level] ?? "builder.spells.ordinal.other") as MessageKey, { level: slot.level })
+        : ORDINALS[slot.level],
+    }));
   return {
     dc: typeof input.spellSaveDc === "number" ? String(input.spellSaveDc) : null,
     attack: typeof input.spellAttack === "number" ? formatModifier(input.spellAttack) : null,
@@ -82,27 +90,45 @@ export function capLines(input: {
   spellbookCap: number | null;
   spellCap: { label: string; count: number; sum?: PreparedSum } | null;
   known: boolean;
-}): Array<{ id: string; label: string; line: string }> {
+}, translate?: SpellDeskTranslator): Array<{ id: string; label: string; line: string }> {
   const { className, level } = input;
   const table = `from the ${className} table at level ${level}`;
   const lines: Array<{ id: string; label: string; line: string }> = [];
   if (input.cantripCap !== null) {
-    lines.push({ id: "cantrips", label: "Cantrips", line: `${input.cantripCap}, ${table}` });
+    lines.push({
+      id: "cantrips",
+      label: translate ? translate("builder.spells.cap.cantrips") : "Cantrips",
+      line: translate ? translate("builder.spells.cap.classLine", { count: input.cantripCap, className, level }) : `${input.cantripCap}, ${table}`,
+    });
   }
   if (input.spellbookCap !== null) {
     lines.push({
       id: "spellbook",
-      label: "Spellbook",
-      line: level > 1 ? `6 at level 1 + 2 a level after = ${input.spellbookCap}` : `${input.spellbookCap} at level 1`,
+      label: translate ? translate("builder.spells.cap.spellbook") : "Spellbook",
+      line: translate
+        ? translate(level > 1 ? "builder.spells.cap.spellbookProgression" : "builder.spells.cap.spellbookLine", { count: input.spellbookCap })
+        : level > 1 ? `6 at level 1 + 2 a level after = ${input.spellbookCap}` : `${input.spellbookCap} at level 1`,
     });
   }
   if (input.spellCap) {
     const { count, sum } = input.spellCap;
-    lines.push(
-      input.known || !sum
-        ? { id: "list", label: input.known ? "Known" : "Prepared", line: `${count}, ${table}` }
-        : { id: "list", label: "Prepared", line: preparedCapLine(className, sum, count) },
-    );
+    if (input.known || !sum) {
+      lines.push({
+        id: "list",
+        label: translate ? translate(input.known ? "builder.spells.cap.known" : "builder.spells.cap.prepared") : input.known ? "Known" : "Prepared",
+        line: translate ? translate("builder.spells.cap.classLine", { count, className, level }) : `${count}, ${table}`,
+      });
+    } else {
+      const ability = translate
+        ? translate((`builder.spells.ability.${sum.ability}`) as MessageKey)
+        : ({ int: "INT", wis: "WIS", cha: "CHA" } as const)[sum.ability];
+      const line = translate
+        ? translate(sum.levelPart === sum.level ? "builder.spells.cap.preparedLine" : "builder.spells.cap.preparedHalf", {
+            className, level: sum.level, levelPart: sum.levelPart, ability, modifier: formatModifier(sum.mod), count,
+          }) + (sum.mod + sum.levelPart < 1 ? translate("builder.spells.cap.minimum") : "")
+        : preparedCapLine(className, sum, count);
+      lines.push({ id: "list", label: translate ? translate("builder.spells.cap.prepared") : "Prepared", line });
+    }
   }
   return lines;
 }

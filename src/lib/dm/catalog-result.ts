@@ -11,11 +11,15 @@
 // creature an area touched.
 //
 // Pure: no I/O, so scripts/test-invoke-catalog.mjs drives it directly.
+import { translate, translatePlural, type Lang } from "../i18n/core.ts";
+import { DICTIONARIES, type MessageKey } from "../i18n/messages/index.ts";
 
 export type ResultTone = "good" | "bad" | "info";
 export type ResultLine = { text: string; tone: ResultTone };
 
 type Row = Record<string, unknown>;
+type ResultT = (key: MessageKey, params?: Record<string, string | number>) => string;
+const resultT = (lang: Lang): ResultT => (key, params) => translate(DICTIONARIES, lang, key, params);
 
 const isRecord = (value: unknown): value is Row =>
   Boolean(value) && typeof value === "object" && !Array.isArray(value);
@@ -52,9 +56,9 @@ const SENTENCE_LISTS: Array<{ key: string; tone: ResultTone }> = [
 // initiative order turned into who the table is waiting on.
 const MODEL_ORDER = /^(now call|call |narrate|telegraph)|game state|your next call/i;
 
-function forAPerson(text: string): string {
+function forAPerson(text: string, t: ResultT): string {
   const waiting = text.match(/^Now call request_roll with kind=initiative for EACH character: (.+?)\.\s/i);
-  const plain = waiting ? `Waiting on initiative from ${waiting[1]}. ${text.slice(waiting[0].length)}` : text;
+  const plain = waiting ? `${t("campaign.dmAction.result.waitingInitiative", { characters: waiting[1] })} ${text.slice(waiting[0].length)}` : text;
   return plain
     .replace(/\s*\((?:character|enemy|token|sheet)Id=[^)]*\)/g, "")
     .split(/(?<=[.!?])\s+/)
@@ -82,7 +86,7 @@ function scalar(value: unknown): string | null {
 }
 
 // One creature an area or a split touched: "Goblin 1: failed the save (8), 14 damage, dead".
-function describeRow(row: Row): ResultLine | null {
+function describeRow(row: Row, t: ResultT, lang: Lang): ResultLine | null {
   const who = scalar(row.target) ?? scalar(row.name) ?? scalar(row.character) ?? scalar(row.enemy);
   if (!who) {
     return null;
@@ -90,40 +94,40 @@ function describeRow(row: Row): ResultLine | null {
   const parts: string[] = [];
   if (typeof row.success === "boolean") {
     const rolled = typeof row.save === "number" ? ` (${row.save})` : "";
-    parts.push(row.success ? `made the save${rolled}` : `failed the save${rolled}`);
+    parts.push(`${t(row.success ? "campaign.dmAction.result.saveMade" : "campaign.dmAction.result.saveFailed")}${rolled}`);
   }
   if (typeof row.autoFailed === "string") {
-    parts.push(`failed automatically: ${row.autoFailed}`);
+    parts.push(t("campaign.dmAction.result.saveFailedAutomatically", { reason: row.autoFailed }));
   }
   const damage = typeof row.damage === "number" ? row.damage : typeof row.amount === "number" ? row.amount : null;
   if (damage !== null) {
-    parts.push(`${damage} damage`);
+    parts.push(t("campaign.dmAction.result.damage", { amount: damage }));
   }
   for (const key of ["hp", "health", "conditionApplied", "conditionRefused", "note", "resistance"]) {
     const text = scalar(row[key]);
     if (text) {
-      parts.push(key === "hp" ? `HP ${text}` : text);
+      parts.push(key === "hp" ? t("campaign.dmAction.result.hitPoints", { value: text }) : text);
     }
   }
   // Prismatic Spray: the rays each creature drew and what each did
   // (src/lib/dm/prismatic.ts), the engine's own words.
   const rays = scalar(row.rays);
   if (rays) {
-    parts.push(`${Array.isArray(row.rays) && row.rays.length > 1 ? "rays" : "ray"} ${rays}`);
+    parts.push(translatePlural(DICTIONARIES, lang, "campaign.dmAction.result.rays", Array.isArray(row.rays) ? row.rays.length : 1, { rays }));
   }
   if (Array.isArray(row.effects)) {
     parts.push(...row.effects.filter((entry): entry is string => typeof entry === "string" && entry.trim() !== ""));
   }
   if (typeof row.tempHpAbsorbed === "number" && row.tempHpAbsorbed > 0) {
-    parts.push(`temp HP absorbed ${row.tempHpAbsorbed}`);
+    parts.push(t("campaign.dmAction.result.tempHpAbsorbed", { amount: row.tempHpAbsorbed }));
   }
   if (typeof row.concentrationBroken === "string") {
-    parts.push(`concentration on ${row.concentrationBroken} broken`);
+    parts.push(t("campaign.dmAction.result.concentrationBroken", { spell: row.concentrationBroken }));
   }
   if (row.dead === true) {
-    parts.push("dead");
+    parts.push(t("campaign.dmAction.result.dead"));
   } else if (row.dropped === true) {
-    parts.push("down at 0 HP");
+    parts.push(t("campaign.dmAction.result.downAtZero"));
   }
   const bad = row.dead === true || row.dropped === true || typeof row.concentrationBroken === "string";
   // A row can say the same thing twice (its health word "dead" and its dead
@@ -135,29 +139,31 @@ function describeRow(row: Row): ResultLine | null {
     said.add(key);
     return true;
   });
-  return { text: `${who}: ${once.join(", ") || "no effect"}`, tone: bad ? "bad" : "info" };
+  return { text: `${who}: ${once.join(", ") || t("campaign.dmAction.result.noEffect")}`, tone: bad ? "bad" : "info" };
 }
 
-function concentrationLine(value: unknown): ResultLine | null {
+function concentrationLine(value: unknown, t: ResultT, lang: Lang): ResultLine | null {
   if (!isRecord(value)) {
     return null;
   }
-  const spell = scalar(value.spell) ?? "their spell";
-  const rolled = typeof value.rolled === "number" ? `rolled ${value.rolled}` : null;
-  const dc = typeof value.dc === "number" ? `DC ${value.dc}` : null;
+  const rawSpell = scalar(value.spell);
+  const spell = rawSpell ? (lang === "ru" ? `«${rawSpell}»` : rawSpell) : t("campaign.dmAction.result.defaultSpell");
+  const rolled = typeof value.rolled === "number" ? t("campaign.dmAction.result.rolled", { value: value.rolled }) : null;
+  const dc = typeof value.dc === "number" ? t("campaign.dmAction.result.dc", { value: value.dc }) : null;
   const held = value.held === true || value.kept === true || value.broken === false;
   const broken = value.held === false || value.kept === false || value.broken === true;
   const verdict = held ? "held" : broken ? "broken" : null;
-  const detail = [rolled && dc ? `${rolled} against ${dc}` : rolled ?? dc, verdict].filter(Boolean).join(", ");
+  const detail = [rolled && dc ? `${rolled} ${t("campaign.dmAction.result.against")} ${dc}` : rolled ?? dc, verdict ? t(verdict === "held" ? "campaign.dmAction.result.held" : "campaign.dmAction.result.broken") : null].filter(Boolean).join(", ");
   return {
-    text: `Concentration on ${spell}${detail ? `: ${detail}` : ""}`,
+    text: t("campaign.dmAction.result.concentrationOn", { spell, detail: detail ? `: ${detail}` : "" }),
     tone: broken ? "bad" : "info",
   };
 }
 
-export function describeAdjudicationResult(result: unknown): ResultLine[] {
+export function describeAdjudicationResult(result: unknown, lang: Lang = "en"): ResultLine[] {
+  const t = resultT(lang);
   if (!isRecord(result)) {
-    return [{ text: "Done.", tone: "good" }];
+    return [{ text: t("campaign.dmAction.result.done"), tone: "good" }];
   }
   const lines: ResultLine[] = [];
   const used = new Set<string>();
@@ -170,15 +176,15 @@ export function describeAdjudicationResult(result: unknown): ResultLine[] {
   const total = take("total");
   const success = take("success");
   if (typeof total === "number") {
-    const verdict = typeof success === "boolean" ? (success ? ", success" : ", failure") : "";
-    lines.push({ text: `Rolled ${total}${verdict}`, tone: success === false ? "bad" : "info" });
+    const verdict = typeof success === "boolean" ? t(success ? "campaign.dmAction.result.successVerdict" : "campaign.dmAction.result.failureVerdict") : "";
+    lines.push({ text: t("campaign.dmAction.result.roll", { total, verdict }), tone: success === false ? "bad" : "info" });
   } else if (typeof success === "boolean") {
-    lines.push({ text: success ? "Success" : "Failure", tone: success ? "good" : "bad" });
+    lines.push({ text: t(success ? "campaign.dmAction.result.success" : "campaign.dmAction.result.failure"), tone: success ? "good" : "bad" });
   }
   const hit = take("hit");
   if (typeof hit === "boolean") {
     const crit = take("crit") === true;
-    lines.push({ text: hit ? (crit ? "Critical hit" : "Hit") : "Miss", tone: hit ? "good" : "info" });
+    lines.push({ text: t(hit ? (crit ? "campaign.dmAction.result.criticalHit" : "campaign.dmAction.result.hit") : "campaign.dmAction.result.miss"), tone: hit ? "good" : "info" });
   }
 
   // What the hit points did.
@@ -186,11 +192,11 @@ export function describeAdjudicationResult(result: unknown): ResultLine[] {
   used.add("damageApplied");
   used.add("damageRolled");
   if (typeof damage === "number") {
-    lines.push({ text: `${damage} damage`, tone: "info" });
+    lines.push({ text: t("campaign.dmAction.result.damage", { amount: damage }), tone: "info" });
   }
   const hp = scalar(take("hp"));
   if (hp) {
-    lines.push({ text: `HP now ${hp}`, tone: "info" });
+    lines.push({ text: t("campaign.dmAction.result.hpNow", { value: hp }), tone: "info" });
   }
   const health = scalar(take("health"));
   if (health) {
@@ -198,35 +204,35 @@ export function describeAdjudicationResult(result: unknown): ResultLine[] {
   }
   const absorbed = take("tempHpAbsorbed");
   if (typeof absorbed === "number" && absorbed > 0) {
-    lines.push({ text: `Temporary hit points absorbed ${absorbed}`, tone: "info" });
+    lines.push({ text: t("campaign.dmAction.result.temporaryHitPointsAbsorbed", { amount: absorbed }), tone: "info" });
   }
   const broken = take("concentrationBroken");
   if (typeof broken === "string" && broken) {
-    lines.push({ text: `Concentration on ${broken} broken`, tone: "bad" });
+    lines.push({ text: t("campaign.dmAction.result.concentrationBroken", { spell: broken }), tone: "bad" });
   }
-  const concentration = concentrationLine(take("concentration"));
+  const concentration = concentrationLine(take("concentration"), t, lang);
   if (concentration) {
     lines.push(concentration);
   }
-  const enemyConcentration = concentrationLine(take("enemyConcentration"));
+  const enemyConcentration = concentrationLine(take("enemyConcentration"), t, lang);
   if (enemyConcentration) {
     lines.push(enemyConcentration);
   }
   if (take("dead") === true) {
-    lines.push({ text: "Dead", tone: "bad" });
+    lines.push({ text: t("campaign.dmAction.result.dead"), tone: "bad" });
   } else if (take("dropped") === true) {
-    lines.push({ text: "Down at 0 HP", tone: "bad" });
+    lines.push({ text: t("campaign.dmAction.result.downAtZero"), tone: "bad" });
   }
   const dying = scalar(take("dying"));
   if (dying) {
-    lines.push({ text: `Dying: ${dying}`, tone: "bad" });
+    lines.push({ text: t("campaign.dmAction.result.dying", { value: dying }), tone: "bad" });
   }
 
   // The save the effect forced, in the words a table uses: "DEX save, DC 15".
   const dc = take("dc");
   if (typeof dc === "number") {
     const ability = scalar(result.saveAbility);
-    lines.push({ text: ability ? `${ability.toUpperCase()} save, DC ${dc}` : `Save DC ${dc}`, tone: "info" });
+    lines.push({ text: ability ? t("campaign.dmAction.result.saveWithAbility", { ability: ability.toUpperCase(), dc }) : t("campaign.dmAction.result.saveDc", { dc }), tone: "info" });
   }
 
   // The engine's own sentences.
@@ -253,7 +259,7 @@ export function describeAdjudicationResult(result: unknown): ResultLine[] {
     const rows = take(key);
     if (Array.isArray(rows)) {
       for (const row of rows) {
-        const line = isRecord(row) ? describeRow(row) : null;
+        const line = isRecord(row) ? describeRow(row, t, lang) : null;
         if (line) {
           lines.push(line);
         }
@@ -261,13 +267,13 @@ export function describeAdjudicationResult(result: unknown): ResultLine[] {
     }
   }
   if (take("encounterOver") === true) {
-    lines.push({ text: "The fight is over.", tone: "good" });
+    lines.push({ text: t("campaign.dmAction.result.fightOver"), tone: "good" });
   }
   // A round number on its own reads as a label; with a sentence that already
   // names the round it is said once.
   const round = take("round");
-  if (typeof round === "number" && !lines.some((line) => line.text.toLowerCase().includes(`round ${round}`))) {
-    lines.push({ text: `Round ${round}`, tone: "info" });
+  if (typeof round === "number" && !lines.some((line) => line.text.toLowerCase().includes(lang === "ru" ? `раунд ${round}` : `round ${round}`))) {
+    lines.push({ text: t("campaign.dmAction.result.round", { round }), tone: "info" });
   }
 
   // Anything else a handler said in words, labelled by its key.
@@ -283,7 +289,7 @@ export function describeAdjudicationResult(result: unknown): ResultLine[] {
     }
   }
   const readable = lines
-    .map((line) => ({ ...line, text: forAPerson(line.text) }))
+    .map((line) => ({ ...line, text: forAPerson(line.text, t) }))
     .filter((line) => line.text);
-  return readable.length ? readable : [{ text: "Done.", tone: "good" }];
+  return readable.length ? readable : [{ text: t("campaign.dmAction.result.done"), tone: "good" }];
 }

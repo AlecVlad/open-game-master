@@ -6,6 +6,8 @@ import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui";
 import { NARRATOR_DEFAULTS, TTS_VOICES, voicesFirstIn } from "@/lib/tts-voices";
 import { TABLE_LANGUAGE_NAMES, type TableLanguage } from "@/lib/schemas/game-settings-options";
+import { useI18n } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages/index";
 
 // The narrator voice pickers (campaign settings, the campaign creator, the
 // cast editor) offer what this server's speech backend really has, asked of
@@ -62,10 +64,10 @@ export function useTtsVoices(): VoiceList {
 // The name a voice goes by in a summary line.
 // A voice as a person reads it. A campaign with no voice of its own uses the
 // server's, and says so: "Heart (warm female) · server default".
-export function voiceLabel(list: VoiceList, voice: string): string {
+export function voiceLabel(list: VoiceList, voice: string, t: (key: MessageKey, params?: Record<string, string | number>) => string): string {
   if (!voice.trim()) {
     const fallback = list.voices.find((entry) => entry.id === list.defaultVoice)?.label ?? list.defaultVoice;
-    return fallback ? `${fallback} · server default` : "The server's default voice";
+    return fallback ? `${fallback} · ${t("voicePicker.serverDefault")}` : t("voicePicker.serverDefaultVoice");
   }
   return list.voices.find((entry) => entry.id === voice)?.label ?? voice;
 }
@@ -93,6 +95,7 @@ export function VoicePicker({
   noneLabel?: string;
   language?: TableLanguage;
 }) {
+  const { t } = useI18n();
   const list = useTtsVoices();
   const listed = list.voices.some((voice) => voice.id === value);
   // Typing is open when asked for, and whenever the saved voice is one the
@@ -110,7 +113,7 @@ export function VoicePicker({
   const options: SelectOption<string>[] = [
     ...(noneLabel ? [{ value: "", label: noneLabel }] : []),
     ...(language ? voicesFirstIn(language, list.voices) : list.voices).map((voice) => ({ value: voice.id, label: voice.label })),
-    { value: CUSTOM, label: "Custom voice…", hint: "Type any voice this server understands" },
+    { value: CUSTOM, label: t("voicePicker.custom"), hint: t("voicePicker.customHint") },
   ];
 
   function commit() {
@@ -148,7 +151,7 @@ export function VoicePicker({
             }
           }}
           maxLength={120}
-          aria-label={`${label}: custom voice`}
+          aria-label={t("voicePicker.customAria", { label })}
           placeholder={list.provider === "openai" ? "alloy" : "af_heart(30)+af_bella(70)"}
           className={cn(ui.input, "reveal min-w-0 grow basis-40", size === "sm" && "px-2 py-1 text-xs")}
         />
@@ -162,12 +165,14 @@ export function VoicePicker({
 // sounds. Nothing on an OpenAI backend, whose voices are not by language.
 export function NarratorLanguageNote({ language }: { language: TableLanguage }) {
   const list = useTtsVoices();
+  const { t, lang } = useI18n();
+  const languageName = lang === "ru" ? TABLE_LANGUAGE_NAMES[language].native : TABLE_LANGUAGE_NAMES[language].english;
   if (list.provider === "openai" || NARRATOR_DEFAULTS[language]) {
     return null;
   }
   return (
     <p className="text-xs text-stone-500">
-      Kokoro has no {TABLE_LANGUAGE_NAMES[language].english} voice, so the narration is read by a voice of another language.
+      {t("voicePicker.narratorLanguageNote", { language: languageName })}
     </p>
   );
 }

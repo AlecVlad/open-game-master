@@ -5,6 +5,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { LoadFailed } from "@/app/campaigns/[campaignId]/PanelKit";
 import { readLoad, useLoadStatus } from "@/lib/load-state";
 import { useCallback, useEffect, useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { appConfirm } from "@/components/ui/ConfirmDialog";
 import { Plus, Search } from "lucide-react";
 import { cn } from "@/lib/cn";
@@ -25,9 +26,7 @@ import { useSearchParams } from "next/navigation";
 import { LinkedEntries, useOpenOnArrival } from "@/app/workshop/world/WorldEntryLink";
 import {
   HOMEBREW_EDITOR_KINDS,
-  KIND_BLURB,
-  KIND_LABELS,
-  KIND_SINGULAR,
+  KIND_I18N_KEYS,
   type EditorKind,
   type HomebrewEntryView,
 } from "@/app/workshop/homebrew/types";
@@ -66,6 +65,7 @@ export function HomebrewPanel({
   openOnArrival?: string | null;
   onWorldEntry?: (ref: string) => void;
 }) {
+  const { t, tp } = useI18n();
   const [entries, setEntries] = useState<HomebrewEntryView[]>([]);
   const [kind, setKind] = useState<EditorKind>("item");
   const [query, setQuery] = useState("");
@@ -101,13 +101,13 @@ export function HomebrewPanel({
 
   const load = useCallback(
     () =>
-      readLoad<{ entries?: HomebrewEntryView[] }>(fetch("/api/homebrew"), "Your homebrew").then((outcome) => {
+      readLoad<{ entries?: HomebrewEntryView[] }>(fetch("/api/homebrew"), t("workshop.homebrew.load.label")).then((outcome) => {
         settle(outcome);
         if (outcome.payload?.entries) {
           setEntries(outcome.payload.entries.filter((entry) => entry.kind !== "monster"));
         }
       }),
-    [settle],
+    [settle, t],
   );
 
   const loadForgotten = useCallback(
@@ -158,7 +158,7 @@ export function HomebrewPanel({
       if (!live) return;
       if (!answer?.ok) {
         // Not reached is not "not in the catalog".
-        setError(`Could not reach the catalog for ${page.page.title}. Open it from the rulebook again to retry.`);
+        setError(t("workshop.homebrew.error.start.connection", { name: page.page.title }));
         done();
         return;
       }
@@ -172,7 +172,7 @@ export function HomebrewPanel({
       if (row) {
         setEditing({ id: null, draft: draftFromCatalog(editorKind, { ...row, rulebook: row.rulebook ?? pageId }) });
       } else {
-        setError(`${page.page.title} is not in the catalog on this server.`);
+        setError(t("workshop.homebrew.error.start.missing", { name: page.page.title }));
       }
       done();
     })();
@@ -240,7 +240,7 @@ export function HomebrewPanel({
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError((payload as { error?: string }).error ?? "That was refused.");
+        setError((payload as { error?: string }).error ?? t("workshop.homebrew.error.refused"));
         return;
       }
       await load();
@@ -249,7 +249,7 @@ export function HomebrewPanel({
       // they fetched before is asked for again (issue #833).
       if (draft.kind === "spell" || draft.kind === "class") forgetSpellPools();
       const saved = (payload as { entry?: HomebrewEntryView }).entry;
-      setNotice(carriedNotice((payload as { carried?: Carried }).carried));
+      setNotice(carriedNotice((payload as { carried?: Carried }).carried, t, tp));
       // The form stays open and editable while the save and the shelf's
       // reload are on their way: an edit made meanwhile (a second subclass
       // choice added right after Keep) is the author's newest word, so it
@@ -263,7 +263,7 @@ export function HomebrewPanel({
             : null,
       );
     } catch {
-      setError("Could not reach the server. Nothing was saved; try again.");
+      setError(t("workshop.homebrew.error.save.connection"));
     } finally {
       setBusy(false);
     }
@@ -284,7 +284,7 @@ export function HomebrewPanel({
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError((payload as { error?: string }).error ?? "The copy was refused.");
+        setError((payload as { error?: string }).error ?? t("workshop.homebrew.error.copy.refused"));
         return;
       }
       await load();
@@ -294,7 +294,7 @@ export function HomebrewPanel({
         setEditing({ id: saved.id, draft: { kind: saved.kind as EditorKind, name: saved.name, data: saved.data }, savedName: saved.name });
       }
     } catch {
-      setError("Could not reach the server. No copy was made; try again.");
+      setError(t("workshop.homebrew.error.copy.connection"));
     } finally {
       setBusy(false);
     }
@@ -306,8 +306,8 @@ export function HomebrewPanel({
     }
     if (
       !(await appConfirm(
-        `Forget "${editing.draft.name}"? It leaves your shelf and every picker, so nothing new is made with it. Sheets, spell lists, NPCs and tables that already carry it keep it working exactly as it is now. You can bring it back from Forgotten.`,
-        { title: "Forget this entry?", actionLabel: "Forget it" },
+        t("workshop.homebrew.confirm.forget.body", { name: editing.draft.name }),
+        { title: t("workshop.homebrew.confirm.forget.title"), actionLabel: t("workshop.homebrew.confirm.forget.action") },
       ))
     ) {
       return;
@@ -318,7 +318,7 @@ export function HomebrewPanel({
       const response = await fetch(`/api/homebrew/${editing.id}`, { method: "DELETE" }).catch(() => null);
       if (!response?.ok) {
         const payload = (await response?.json().catch(() => ({}))) as { error?: string } | undefined;
-        setError(payload?.error ?? "Could not reach the server. It is still on your shelf; try again.");
+        setError(payload?.error ?? t("workshop.homebrew.error.delete.connection"));
         return;
       }
       setEditing(null);
@@ -335,7 +335,7 @@ export function HomebrewPanel({
     try {
       const response = await fetch(`/api/homebrew/${entry.id}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ restore: true }) }).catch(() => null);
       if (!response?.ok) {
-        setListError(`${entry.name} did not come back. Check the connection and try again.`);
+        setListError(t("workshop.homebrew.error.restore", { name: entry.name }));
         return;
       }
       await Promise.all([load(), loadForgotten()]);
@@ -348,8 +348,8 @@ export function HomebrewPanel({
   async function purge(entry: HomebrewEntryView) {
     if (
       !(await appConfirm(
-        `Delete "${entry.name}" for good? Anything that still carries it keeps only its name: its rules stop working at every table, and this cannot be undone.`,
-        { title: "Delete for good?", actionLabel: "Delete for good" },
+        t("workshop.homebrew.confirm.purge.body", { name: entry.name }),
+        { title: t("workshop.homebrew.confirm.purge.title"), actionLabel: t("workshop.homebrew.confirm.purge.action") },
       ))
     ) {
       return;
@@ -359,7 +359,7 @@ export function HomebrewPanel({
     try {
       const response = await fetch(`/api/homebrew/${entry.id}?purge=1`, { method: "DELETE" }).catch(() => null);
       if (!response?.ok) {
-        setListError(`${entry.name} was not deleted. Check the connection and try again.`);
+        setListError(t("workshop.homebrew.error.purge", { name: entry.name }));
         return;
       }
       await loadForgotten();
@@ -376,28 +376,28 @@ export function HomebrewPanel({
         <SegmentedControl
           options={HOMEBREW_EDITOR_KINDS.map((value) => ({
             value,
-            label: `${KIND_LABELS[value]}${entries.some((entry) => entry.kind === value) ? ` ${entries.filter((entry) => entry.kind === value).length}` : ""}`,
+            label: `${t(KIND_I18N_KEYS[value].plural)}${entries.some((entry) => entry.kind === value) ? ` ${entries.filter((entry) => entry.kind === value).length}` : ""}`,
           }))}
           value={kind}
           onChange={setKind}
           size="sm"
-          label="Kind of homebrew"
+          label={t("workshop.homebrew.kindPicker.label")}
         />
       </div>
 
-      <p className="text-xs text-stone-400">{KIND_BLURB[kind]}</p>
+      <p className="text-xs text-stone-400">{t(KIND_I18N_KEYS[kind].blurb)}</p>
 
       <label className="relative block" data-tour="homebrew-search">
         <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-stone-500" />
         <input
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          placeholder={`Search your ${KIND_LABELS[kind].toLowerCase()}`}
-          aria-label={`Search your ${KIND_LABELS[kind].toLowerCase()}`}
+          placeholder={t("workshop.homebrew.search.placeholder", { kind: t(KIND_I18N_KEYS[kind].plural).toLowerCase() })}
+          aria-label={t("workshop.homebrew.search.aria", { kind: t(KIND_I18N_KEYS[kind].plural).toLowerCase() })}
           className={`${ui.input} pl-9`}
         />
       </label>
-      <ListTally shown={shown.length} total={ofKind.length} noun={["piece", "pieces"]} sort={sort} onSort={setSort} />
+      <ListTally shown={shown.length} total={ofKind.length} noun={[t("workshop.homebrew.list.noun.one"), t("workshop.homebrew.list.noun.other")]} sort={sort} onSort={setSort} sortLabels={{ made: t("workshop.list.newestFirst"), name: t("workshop.list.byName") }} />
 
       <ul className="stagger-up grid gap-2 lg:grid-cols-2">
         {shown.map((entry) => (
@@ -438,7 +438,7 @@ export function HomebrewPanel({
               <GameIcon icon={{ kind: "glyph", key: "system-homebrew" }} size="size-10" />
               <Plus className="absolute -bottom-1 -right-1 size-4 rounded-full bg-stone-900 text-amber-300" aria-hidden="true" />
             </span>
-            <span className="font-display tracking-wide">New {KIND_SINGULAR[kind]}</span>
+            <span className="font-display tracking-wide">{t("workshop.homebrew.new", { kind: t(KIND_I18N_KEYS[kind].singular) })}</span>
           </button>
         </li>
       </ul>
@@ -451,16 +451,16 @@ export function HomebrewPanel({
             aria-expanded={showForgotten}
             className={cn(ui.btnSmall, "motion-press")}
           >
-            Forgotten ({forgottenOfKind.length})
+            {t("workshop.homebrew.forgotten", { count: forgottenOfKind.length })}
           </button>
           {showForgotten ? (
             <ul className="reveal stagger-up space-y-1">
               {forgottenOfKind.map((entry) => (
                 <li key={entry.id} className="panel flex flex-wrap items-center gap-2 rounded-lg px-3 py-2 text-sm">
                   <span className="min-w-0 flex-1 truncate text-stone-300">{entry.name}</span>
-                  <span className="text-[11px] text-stone-500">still runs where it is carried</span>
+                  <span className="text-[11px] text-stone-500">{t("workshop.homebrew.forgotten.running")}</span>
                   <button type="button" disabled={busy} onClick={() => void restore(entry)} className={cn(ui.btnSmall, "motion-press")}>
-                    Bring back
+                    {t("workshop.homebrew.restore")}
                   </button>
                   <button
                     type="button"
@@ -468,7 +468,7 @@ export function HomebrewPanel({
                     onClick={() => void purge(entry)}
                     className={cn(ui.btnSmall, "motion-press hover:border-red-500/50 hover:text-red-300")}
                   >
-                    Delete for good
+                    {t("workshop.homebrew.purge")}
                   </button>
                 </li>
               ))}
@@ -484,15 +484,15 @@ export function HomebrewPanel({
 
       {loadError ? <LoadFailed error={loadError} onRetry={() => void load()} /> : null}
       {!loaded && !loadError ? (
-        <p className="text-xs text-stone-500" aria-busy="true">Reading your shelf...</p>
+        <p className="text-xs text-stone-500" aria-busy="true">{t("workshop.homebrew.loading")}</p>
       ) : loaded && ofKind.length === 0 ? (
         <EmptyState
           art="chest"
-          title="Nothing of your own yet. Start from something in the books and change what you like."
-          hint="The character builder, shops and inventories offer what you make here beside the books' own: in your own library, and at every table you run as its owner, GM or assistant GM."
+          title={t("workshop.homebrew.empty.title")}
+          hint={t("workshop.homebrew.empty.hint")}
         />
       ) : shown.length === 0 ? (
-        <p className="live-in text-xs text-stone-500">Nothing by that name.</p>
+        <p className="live-in text-xs text-stone-500">{t("workshop.homebrew.search.empty")}</p>
       ) : null}
 
       <Sheet
@@ -502,7 +502,7 @@ export function HomebrewPanel({
             setEditing(null);
           }
         }}
-        title={editing?.id ? editing.draft.name || KIND_SINGULAR[kind] : `New ${KIND_SINGULAR[editing?.draft.kind ?? kind]}`}
+        title={editing?.id ? editing.draft.name || t(KIND_I18N_KEYS[kind].singular) : t("workshop.homebrew.editor.title", { kind: t(KIND_I18N_KEYS[editing?.draft.kind ?? kind].singular) })}
         className="top-0 h-dvh max-h-none rounded-none pt-[max(0.5rem,env(safe-area-inset-top))] lg:top-1/2 lg:h-auto lg:max-h-[92vh] lg:w-[min(96vw,56rem)] lg:rounded-xl"
       >
         {editing?.id && editing.draft.kind === "item" && campaignId && onWorldEntry ? (
@@ -536,14 +536,16 @@ export function HomebrewPanel({
 type Carried = { characters: number; entries: number; prep: number };
 
 // What a rename was carried to, in one line, or nothing when it moved none.
-function carriedNotice(carried: Carried | undefined): string {
-  if (!carried || !(carried.characters || carried.entries || carried.prep)) {
-    return "";
-  }
+function carriedNotice(
+  carried: Carried | undefined,
+  t: ReturnType<typeof useI18n>["t"],
+  tp: ReturnType<typeof useI18n>["tp"],
+): string {
+  if (!carried || !(carried.characters || carried.entries || carried.prep)) return "";
   const parts = [
-    carried.characters ? `${carried.characters} character${carried.characters === 1 ? "" : "s"}` : "",
-    carried.entries ? `${carried.entries} other entr${carried.entries === 1 ? "y" : "ies"} of yours` : "",
-    carried.prep ? `${carried.prep} NPC${carried.prep === 1 ? "" : "s"}, fight${carried.prep === 1 ? "" : "s"}, table${carried.prep === 1 ? "" : "s"} or shop${carried.prep === 1 ? "" : "s"}` : "",
+    carried.characters ? tp("workshop.homebrew.carried.characters", carried.characters) : "",
+    carried.entries ? tp("workshop.homebrew.carried.entries", carried.entries) : "",
+    carried.prep ? t("workshop.homebrew.carried.prep", { count: carried.prep }) : "",
   ].filter(Boolean);
-  return `Renamed everywhere it was used: ${parts.join(", ")} now name it by its new name.`;
+  return t("workshop.homebrew.notice.rename", { parts: parts.join(", ") });
 }

@@ -7,6 +7,7 @@
 import { abilityPlaceFor, legalityContextsFor, type ContextInput } from "@/lib/characters/catalog";
 import { spendAbilityPool, spendWealthRolls } from "@/lib/db/creation-rolls";
 import type { CreateSheetInput } from "@/lib/schemas/sheet";
+import type { GearProblemDetail } from "@/lib/srd/gear-problems";
 import { legalizeSheet } from "@/lib/srd/sheet-legality";
 
 export type Admitted =
@@ -21,7 +22,7 @@ export type Admitted =
       // spent, so the next character throws its own.
       settle: () => void;
     }
-  | { ok: false; problems: string[] };
+  | { ok: false; problems: string[]; problemDetails?: Array<GearProblemDetail | null> };
 
 export function admitSheet(
   input: Omit<ContextInput, "sheet"> & { sheet: CreateSheetInput },
@@ -36,7 +37,11 @@ export function admitSheet(
   }));
   const passed = verdicts.find((verdict) => !verdict.judged.problems.length);
   if (!passed) {
-    return { ok: false, problems: verdicts[0].judged.problems };
+    return {
+      ok: false,
+      problems: verdicts[0].judged.problems,
+      problemDetails: verdicts[0].judged.problemDetails,
+    };
   }
   const { context, judged } = passed;
   // Whether the scores needed the pool the server rolled: they did when the
@@ -60,11 +65,56 @@ export function admitSheet(
   };
 }
 
+// Only exact, fixed diagnostics receive a code. Variable messages can include
+// content-pack names and player choices, so they remain untouched until their
+// source can provide structured parameters rather than guessed text matches.
+const STABLE_REFUSAL_CODES: Readonly<Record<string, string>> = {
+  "This table turns multiclassing off; a character made here holds one class.": "MULTICLASS_DISABLED",
+  "A character holds each class once; the class list names one twice.": "DUPLICATE_CLASS",
+  "This subclass is not configured to use the third-caster spellcasting progression.": "THIRD_CASTER_NOT_CONFIGURED",
+  "You already have a character in this campaign.": "HERO_ALREADY_HAS_CHARACTER",
+  "Characters can only be changed in the lobby.": "CAMPAIGN_NOT_LOBBY",
+};
+
+// Return codes in the same order as the messages. Unknown, variable diagnostics
+// deliberately stay null until their source can provide structured parameters.
+const GEAR_REFUSAL_CODES: Readonly<Record<string, string>> = {
+  homebrew: "STARTING_GEAR_HOMEBREW",
+  magic: "STARTING_GEAR_MAGIC",
+  unpriced: "STARTING_GEAR_UNPRICED",
+  insufficientFunds: "STARTING_GEAR_INSUFFICIENT_FUNDS",
+  invalidOption: "STARTING_GEAR_INVALID_OPTION",
+  notProficient: "STARTING_GEAR_NOT_PROFICIENT",
+  invalidSlot: "STARTING_GEAR_INVALID_SLOT",
+  invalidBackgroundChoice: "STARTING_GEAR_INVALID_BACKGROUND_CHOICE",
+};
+
+export function refusalCodes(
+  problems: string[],
+  problemDetails?: Array<GearProblemDetail | null>,
+): Array<string | null> {
+  return problems.map((problem, index) => {
+    const detail = problemDetails?.[index];
+    return detail ? (GEAR_REFUSAL_CODES[detail.code] ?? null) : (STABLE_REFUSAL_CODES[problem] ?? null);
+  });
+}
+
 // The refusal every door answers with: the first problem as the message a
-// screen shows, and the whole list for one that can show more.
-export function refusal(problems: string[], status = 400): Response {
+// screen shows, and the whole list for one that can show more. Codes and
+// parameters are additive; the original English fields stay for older clients.
+export function refusal(
+  problems: string[],
+  status = 400,
+  problemDetails?: Array<GearProblemDetail | null>,
+): Response {
+  const problemParams = problems.map((_, index) => problemDetails?.[index]?.params ?? null);
   return Response.json(
-    { error: problems[0] ?? "That character is not within the rules.", problems },
+    {
+      error: problems[0] ?? "That character is not within the rules.",
+      problems,
+      problemCodes: refusalCodes(problems, problemDetails),
+      ...(problemParams.some((params) => params !== null) ? { problemParams } : {}),
+    },
     { status },
   );
 }

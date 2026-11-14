@@ -1,3 +1,6 @@
+"use client";
+
+import { useI18n } from "@/lib/i18n/provider";
 import { abilityName } from "./lineage";
 
 // A card's words with each ability code ("CON +2", "INT caster") printed as
@@ -7,7 +10,17 @@ import { abilityName } from "./lineage";
 // pointer that rests on it.
 const CODE = /\b(STR|DEX|CON|INT|WIS|CHA)\b/;
 
+const ABILITY_KEYS: Record<string, string> = {
+  STR: "charSheet.ability.str",
+  DEX: "charSheet.ability.dex",
+  CON: "charSheet.ability.con",
+  INT: "charSheet.ability.int",
+  WIS: "charSheet.ability.wis",
+  CHA: "charSheet.ability.cha",
+};
+
 export function AbilityText({ text }: { text: string }) {
+  const { t } = useI18n();
   const parts = text.split(CODE);
   if (parts.length === 1) {
     return text;
@@ -16,7 +29,8 @@ export function AbilityText({ text }: { text: string }) {
     if (index % 2 === 0) {
       return part;
     }
-    const name = abilityName(part.toLowerCase());
+    const key = ABILITY_KEYS[part];
+    const name = key ? t(key as never) : abilityName(part.toLowerCase());
     return (
       <abbr key={index} title={name} className="no-underline">
         <span aria-hidden="true">{part}</span>

@@ -2,6 +2,7 @@
 
 import { ChevronDown } from "lucide-react";
 import { useId, useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/cn";
 import { formatModifier } from "@/lib/srd";
 import { FIGHTING_STYLES } from "@/lib/srd/feature-effects";
@@ -31,6 +32,7 @@ export function LevelProgressionTable({
   className?: string;
   defaultOpen?: boolean;
 }) {
+  const { t } = useI18n();
   const captionId = useId();
   const boxId = useId();
   const [open, setOpen] = useState(defaultOpen);
@@ -43,15 +45,21 @@ export function LevelProgressionTable({
       <span aria-hidden="true" className="text-stone-600">
         -
       </span>
-      <span className="sr-only">None</span>
+      <span className="sr-only">{t("builder.levelProgression.none")}</span>
     </>
   );
-  const toChoose = <span className="text-amber-300">Still to choose</span>;
+  const toChoose = <span className="text-amber-300">{t("builder.levelProgression.stillChoose")}</span>;
+  const spellListLabel = (label: string) =>
+    label === "Known"
+      ? t("builder.spells.cap.known")
+      : label === "Prepared"
+        ? t("builder.spells.cap.prepared")
+        : label;
   return (
-    <StepPanel title="Level by level" className={cn("border-amber-500/20", className)}>
+    <StepPanel title={t("builder.levelProgression.title")} className={cn("border-amber-500/20", className)}>
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
         <p className="min-w-0 flex-1 text-xs text-stone-500">
-          What each level from 1 to {last} grants, with {who}&apos;s pick where there is one.
+          {t("builder.levelProgression.description", { last, who })}
         </p>
         <button
           type="button"
@@ -61,7 +69,7 @@ export function LevelProgressionTable({
           data-level-table-toggle=""
           className="inline-flex min-h-10 items-center gap-1 rounded-md px-2 text-sm text-sky-300 transition-colors hover:bg-stone-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-400"
         >
-          {open ? "Hide the levels" : "Show each level"}
+          {open ? t("builder.levelProgression.action.hide") : t("builder.levelProgression.action.show")}
           <ChevronDown aria-hidden="true" className={cn("size-4 transition-transform", open && "rotate-180")} />
         </button>
       </div>
@@ -78,42 +86,42 @@ export function LevelProgressionTable({
       >
         <table data-level-table="" className="w-full min-w-[36rem] border-collapse text-xs text-stone-300">
           <caption id={captionId} className="sr-only">
-            {who}&apos;s levels, 1 to {last}
+            {t("builder.levelProgression.caption", { who, last })}
           </caption>
           <thead className="bg-stone-950/60">
             <tr>
               <th scope="col" className={cn(head, "sticky left-0 bg-stone-950")}>
-                Level
+                {t("builder.levelProgression.header.level")}
               </th>
               {columns.classes ? (
                 <th scope="col" className={head}>
-                  Class
+                  {t("builder.levelProgression.header.class")}
                 </th>
               ) : null}
               <th scope="col" className={head}>
-                Proficiency bonus
+                {t("builder.levelProgression.header.proficiency")}
               </th>
               <th scope="col" className={head}>
-                Features
+                {t("builder.levelProgression.header.features")}
               </th>
               {columns.subclass ? (
                 <th scope="col" className={head}>
-                  Subclass
+                  {t("builder.levelProgression.header.subclass")}
                 </th>
               ) : null}
               <th scope="col" className={head}>
-                Ability score improvement or feat
+                {t("builder.levelProgression.header.improvement")}
               </th>
               {columns.casting ? (
                 <>
                   <th scope="col" className={head}>
-                    Cantrips
+                    {t("builder.levelProgression.header.cantrips")}
                   </th>
                   <th scope="col" className={head}>
-                    Spells
+                    {t("builder.levelProgression.header.spells")}
                   </th>
                   <th scope="col" className={head}>
-                    Spell slots
+                    {t("builder.levelProgression.header.slots")}
                   </th>
                 </>
               ) : null}
@@ -149,7 +157,7 @@ export function LevelProgressionTable({
                         row.mark === "next" ? "border-amber-500/50 text-amber-200" : "border-stone-600 text-stone-300",
                       )}
                     >
-                      {row.mark === "next" ? "New" : "Now"}
+                      {row.mark === "next" ? t("builder.levelProgression.status.new") : t("builder.levelProgression.status.now")}
                     </span>
                   ) : null}
                 </th>
@@ -161,7 +169,7 @@ export function LevelProgressionTable({
                 ) : null}
                 <td className={cell}>
                   {row.improvement
-                    ? (row.improvement.pick ?? (row.improvement.takenInPlay ? "Taken in play, already in the scores" : toChoose))
+                    ? (row.improvement.pick ?? (row.improvement.takenInPlay ? t("builder.levelProgression.taken") : toChoose))
                     : none}
                 </td>
                 {columns.casting ? (
@@ -176,14 +184,14 @@ export function LevelProgressionTable({
                         row.casters
                           .map((caster) =>
                             caster.spells
-                              ? `${caster.name}: ${caster.spells.count} ${caster.spells.label}${caster.spells.spellbook ? `, ${caster.spells.spellbook} in the spellbook` : ""}`
+                              ? `${caster.name}: ${caster.spells.count} ${spellListLabel(caster.spells.label)}${caster.spells.spellbook ? `, ${caster.spells.spellbook} ${t("builder.levelProgression.spellbook")}` : ""}`
                               : `${caster.name}: none yet`,
                           )
                           .join("; ")
                       ) : row.spells ? (
                         <>
-                          {row.spells.count} {row.spells.label}
-                          {row.spells.spellbook ? `, ${row.spells.spellbook} in the spellbook` : ""}
+                          {row.spells.count} {spellListLabel(row.spells.label)}
+                          {row.spells.spellbook ? `, ${row.spells.spellbook} ${t("builder.levelProgression.spellbook")}` : ""}
                         </>
                       ) : (
                         none
@@ -192,8 +200,8 @@ export function LevelProgressionTable({
                     <td className={cn(cell, "whitespace-nowrap")}>
                       {row.slots.length || row.pact ? (
                         <>
-                          {row.slots.length ? slotWords(row.slots) : null}
-                          {row.pact ? `${row.slots.length ? "; " : ""}pact ${row.pact.count} at ${ordinal(row.pact.level)}` : null}
+                          {row.slots.length ? slotWords(row.slots, t) : null}
+                          {row.pact ? `${row.slots.length ? "; " : ""}${t("builder.levelProgression.pact", { count: row.pact.count, level: ordinal(row.pact.level, t) })}` : null}
                         </>
                       ) : (
                         none
@@ -258,14 +266,15 @@ export function BuilderLevelTable({
   derived: BuilderDerived;
   klass: ClassOption | undefined;
 }) {
+  const { t } = useI18n();
   // A first-level build is one row, with nothing yet to compare it to.
   if (!klass || derived.effectiveLevel <= 1) {
     return null;
   }
   return (
     <LevelProgressionTable
-      rows={levelProgressionRows(builderProgressionInput(state, derived, klass))}
-      who={state.name.trim() || "your hero"}
+      rows={levelProgressionRows(builderProgressionInput(state, derived, klass), t)}
+      who={state.name.trim() || t("builder.screen.levelup.hero")}
     />
   );
 }

@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages";
 import { GameIcon } from "@/components/ui/GameIcon";
 import { cn } from "@/lib/cn";
 import { EASY_CLASSES, PLAYSTYLES, playstyleSuggestions, type PlaystyleId } from "./playstyles";
@@ -18,8 +20,8 @@ export function PlaystylePicker({
   onChoose,
   style: heldStyle,
   onStyle,
-  intro = "Not sure which class? Start from your job in a fight.",
-  question = "In a fight, what's your job?",
+  intro,
+  question,
   onHelpMeBuild,
 }: {
   offered: Array<{ id: string; name: string; roles: string[]; playsLike: string }>;
@@ -32,14 +34,15 @@ export function PlaystylePicker({
   question?: string;
   onHelpMeBuild?: (style: PlaystyleId | null) => void;
 }) {
+  const { t } = useI18n();
   const [ownStyle, setOwnStyle] = useState<PlaystyleId | null>(null);
   const style = onStyle ? (heldStyle ?? null) : ownStyle;
   const setStyle = onStyle ?? setOwnStyle;
   const suggestions = style ? playstyleSuggestions(style, offered) : [];
   return (
     <div className="space-y-2.5" data-playstyle>
-      <p className="text-xs text-stone-400">{intro}</p>
-      <div data-pill-group="" className="flex flex-wrap gap-1.5" role="radiogroup" aria-label={question}>
+      <p className="text-xs text-stone-400">{intro ?? t("builder.intro.new")}</p>
+      <div data-pill-group="" className="flex flex-wrap gap-1.5" role="radiogroup" aria-label={question ?? t("builder.question.fight")}>
         {PLAYSTYLES.map((entry) => (
           <button
             key={entry.id}
@@ -48,10 +51,10 @@ export function PlaystylePicker({
             aria-checked={style === entry.id}
             data-on={style === entry.id ? "" : undefined}
             onClick={() => setStyle(style === entry.id ? null : entry.id)}
-            title={entry.blurb}
+            title={t(`builder.extra.playstyle.${entry.id}.blurb` as MessageKey)}
             className="session-subtab motion-press"
           >
-            {entry.label} <strong className="font-semibold">({entry.tag})</strong>
+            {t(`builder.extra.playstyle.${entry.id}.label` as MessageKey)} <strong className="font-semibold">({t(`builder.extra.playstyle.${entry.id}.tag` as MessageKey)})</strong>
           </button>
         ))}
       </div>
@@ -59,21 +62,21 @@ export function PlaystylePicker({
         <div className="flex flex-wrap items-center gap-2 text-xs text-stone-400" data-quick-door="">
           <span className="min-w-0 flex-1">
             {style
-              ? "Or answer three more questions and get a whole character, ready to change before you save."
-              : "Or answer four questions and get a whole character, ready to change before you save."}
+              ? t("builder.extra.playstyle.more3")
+              : t("builder.extra.playstyle.more4")}
           </span>
           <button
             type="button"
             onClick={() => onHelpMeBuild(style)}
             className="motion-press rounded-md border border-sky-500/50 px-2 py-1 text-sky-100 transition-colors hover:bg-sky-500/10"
           >
-            Help me build
+            {t("builder.extra.playstyle.help")}
           </button>
         </div>
       ) : null}
       {style ? (
         <div key={style} className="reveal-height space-y-1.5">
-          <p className="text-xs text-stone-500">{PLAYSTYLES.find((entry) => entry.id === style)?.blurb}</p>
+          <p className="text-xs text-stone-500">{t(`builder.extra.playstyle.${style}.blurb` as MessageKey)}</p>
           {suggestions.length ? (
             <ul className="stagger-up grid gap-2 sm:grid-cols-3">
               {suggestions.map((id) => {
@@ -94,11 +97,15 @@ export function PlaystylePicker({
                       <GameIcon icon={{ kind: "family", key: `class-${id}` }} size="size-8" className="shrink-0" />
                       <span className="min-w-0 flex-1">
                         <span className="block font-display text-sm tracking-wide text-amber-50">{entry.name}</span>
-                        <span className="block text-[0.875rem] text-stone-500">{entry.roles.join(" / ")}</span>
+                        <span className="block text-[0.875rem] text-stone-500">{entry.roles.map((role) => {
+                          const key = `builder.extra.playstyle.classRole.${role.toLowerCase()}` as MessageKey;
+                          const translated = t(key);
+                          return translated === key ? role : translated;
+                        }).join(" / ")}</span>
                       </span>
                       {EASY_CLASSES.has(id) ? (
                         <span className="shrink-0 rounded-full border border-emerald-400/40 bg-emerald-400/10 px-1.5 py-0.5 text-[0.875rem] text-emerald-200">
-                          Easy to learn
+                          {t("builder.extra.playstyle.easy")}
                         </span>
                       ) : null}
                     </button>
@@ -107,7 +114,7 @@ export function PlaystylePicker({
               })}
             </ul>
           ) : (
-            <p className="text-xs text-stone-500">No class here fits that exactly; every class is in the grid below.</p>
+            <p className="text-xs text-stone-500">{t("builder.extra.playstyle.noFit")}</p>
           )}
         </div>
       ) : null}

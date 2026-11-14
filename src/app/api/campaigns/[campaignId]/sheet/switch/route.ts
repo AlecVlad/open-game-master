@@ -26,15 +26,15 @@ export async function POST(request: Request, { params }: { params: Promise<{ cam
   // replacement joined: then the player picks which of the two plays on
   // (src/lib/characters/fallen-logic.ts switchesHeroes).
   if (!switchesHeroes(mine, multiCharacter)) {
-    return Response.json({ error: "This table plays one character each." }, { status: 400 });
+    return Response.json({ error: "This table plays one character each.", errorCode: "ONE_CHARACTER_PER_PLAYER" }, { status: 400 });
   }
   const parsed = bodySchema.safeParse(await request.json().catch(() => ({})));
   if (!parsed.success) {
-    return Response.json({ error: "Say which character." }, { status: 400 });
+    return Response.json({ error: "Say which character.", errorCode: "CHARACTER_ID_REQUIRED" }, { status: 400 });
   }
   const own = mine.find((sheet) => sheet.id === parsed.data.characterId && !sheet.isCompanion);
   if (!own) {
-    return Response.json({ error: "That is not one of your characters." }, { status: 404 });
+    return Response.json({ error: "That is not one of your characters.", errorCode: "CHARACTER_NOT_OWNED" }, { status: 404 });
   }
   if (multiCharacter === "off" && heroFell(own)) {
     return Response.json({ error: `${own.name} has fallen; play on with your living hero.` }, { status: 400 });
@@ -44,7 +44,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ cam
   const encounter = getActiveEncounter(campaignId);
   const fielded = getSheetForUser(campaignId, context.user.id);
   if (multiCharacter === "one_active" && encounter && encounter.kind !== "scene" && fielded?.id !== own.id && !(fielded && heroFell(fielded))) {
-    return Response.json({ error: "Wait until the fight ends to change your fielded character." }, { status: 409 });
+    return Response.json({ error: "Wait until the fight ends to change your fielded character.", errorCode: "COMBAT_SWITCH_LOCKED" }, { status: 409 });
   }
   setMemberActiveCharacter(campaignId, context.user.id, own.id);
   publishEphemeral(campaignId, "roster_updated", { userId: context.user.id, activeSheetId: own.id, at: Date.now() });

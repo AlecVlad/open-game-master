@@ -6,6 +6,8 @@ import { BrushPalette, StampPalette } from "@/app/campaigns/[campaignId]/MapTool
 import { DoorHint, LabelDial, LightDial, PropDial, ZoneDial } from "@/app/campaigns/[campaignId]/MapSceneTools";
 import { MODES, isPaintMode, type MapTools, type SurfaceCaps } from "@/app/campaigns/[campaignId]/MapToolbox";
 import { Blurb, FinePrint, PanelHead } from "@/app/campaigns/[campaignId]/mapUi";
+import { MAP_TOOL_HINT_KEYS, MAP_TOOL_LABEL_KEYS } from "@/app/campaigns/[campaignId]/mapI18n";
+import { useI18n } from "@/lib/i18n/provider";
 
 // The options column (docs/visual-overhaul-plan.md 4.3): the held tool's
 // name, what it does, and the dial the toolbox has for it. The same content
@@ -48,16 +50,17 @@ export function MapOptions({
   rollPanel?: ReactNode;
   backdropPanel?: ReactNode;
 }) {
+  const { t } = useI18n();
   const set = (patch: Partial<MapTools>) => onTools({ ...tools, ...patch });
   const entry = MODES.find((mode) => mode.mode === tools.mode);
 
   if (!entry) {
     return (
       <div className="space-y-2">
-        <PanelHead>Tools</PanelHead>
-        <Blurb>Pick a tool from the rail and draw on the map.</Blurb>
+        <PanelHead>{t("workshop.maps.options.tools")}</PanelHead>
+        <Blurb>{t("workshop.maps.options.chooseTool")}</Blurb>
         <FinePrint>
-          Pick a tool. Keys 1 to 6 pick a brush, Escape puts the tool down, Ctrl+Z takes back the last edit.
+          {t("workshop.maps.options.keysHint")}
         </FinePrint>
       </div>
     );
@@ -66,8 +69,8 @@ export function MapOptions({
   return (
     // Keyed by mode so the column slides in afresh for each tool.
     <div key={entry.mode} className="map-panel-in space-y-2.5">
-      <PanelHead aside={entry.key}>{entry.label}</PanelHead>
-      <Blurb>{entry.hint}</Blurb>
+      <PanelHead aside={entry.key}>{t(MAP_TOOL_LABEL_KEYS[entry.mode] as never)}</PanelHead>
+      <Blurb>{t(MAP_TOOL_HINT_KEYS[entry.mode] as never)}</Blurb>
 
       {isPaintMode(tools.mode) ? (
         <BrushPalette
@@ -117,12 +120,12 @@ export function MapOptions({
         />
       ) : null}
 
-      {tools.mode === "pick" ? <FinePrint>Tap a tile to pick up whatever brush painted it.</FinePrint> : null}
+      {tools.mode === "pick" ? <FinePrint>{t("workshop.maps.options.pickTile")}</FinePrint> : null}
       {tools.mode === "pan" ? (
-        <FinePrint>Drag to move. Pinch or scroll to zoom; the corner buttons do the same.</FinePrint>
+        <FinePrint>{t("workshop.maps.options.dragZoom")}</FinePrint>
       ) : null}
       {tools.mode === "select" ? (
-        <FinePrint>What you select shows in the inspector, with everything that can be done to it.</FinePrint>
+        <FinePrint>{t("workshop.maps.options.selectionInspector")}</FinePrint>
       ) : null}
       {tools.mode === "roll" ? rollPanel : null}
       {tools.mode === "backdrop" ? backdropPanel : null}

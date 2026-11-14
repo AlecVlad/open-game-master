@@ -83,7 +83,7 @@ export async function POST(request: Request) {
     return unauthorized();
   }
   if (user.mustChangePassword) {
-    return Response.json({ error: "Set a new password to continue." }, { status: 403 });
+    return Response.json({ error: "Set a new password to continue.", errorCode: "PASSWORD_CHANGE_REQUIRED" }, { status: 403 });
   }
   if (!canCreateCampaigns(user)) {
     return campaignCreationRefusal();
@@ -92,7 +92,7 @@ export async function POST(request: Request) {
   const raw = await request.json().catch(() => ({}));
   const parsed = createCampaignSchema.safeParse(raw);
   if (!parsed.success) {
-    return Response.json({ error: "Invalid campaign settings." }, { status: 400 });
+    return Response.json({ error: "Invalid campaign settings.", errorCode: "INVALID_CAMPAIGN_SETTINGS" }, { status: 400 });
   }
 
   // A create that says nothing about narration (an app shell's, a script's)
@@ -125,7 +125,7 @@ export async function POST(request: Request) {
   if (!namedSeat) {
     gameSettings.dmMode = storyteller ? "ai" : "human";
   } else if (narratorIsAi(gameSettings.dmMode ?? "ai") && !storyteller) {
-    return Response.json({ error: NO_STORYTELLER_MESSAGE, reason: "no_storyteller" }, { status: 409 });
+    return Response.json({ error: NO_STORYTELLER_MESSAGE, reason: "no_storyteller", errorCode: "NO_STORYTELLER" }, { status: 409 });
   }
   const campaign = createCampaign(user.id, { ...parsed.data, gameSettings });
   return Response.json({ campaign: publicCampaign(campaign) }, { status: 201 });

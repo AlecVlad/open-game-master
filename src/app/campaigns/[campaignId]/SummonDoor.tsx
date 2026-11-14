@@ -2,6 +2,7 @@
 
 import { Loader2 } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui";
 import { replayAnimation } from "@/lib/motion/replay";
@@ -25,6 +26,7 @@ import type { CharacterSheet } from "@/lib/schemas/sheet";
 // casts it at a table the AI runs, the GM resolves it as played at one a
 // person runs.
 export function SummonDoor({ sheet, mine, inCombat }: { sheet: CharacterSheet; mine: boolean; inCombat: boolean }) {
+  const { t, tp } = useI18n();
   const offered = hostOffers(useCapabilities(), "summonPicker");
   const catalogues = useHandSummons(mine && offered ? sheet : null, mine && offered);
   // The table's own spell facts, which the cast guard's refusals read.
@@ -38,6 +40,12 @@ export function SummonDoor({ sheet, mine, inCombat }: { sheet: CharacterSheet; m
   if (!mine || !offered || !rows.length) return null;
 
   const pickOf = (row: SummonDoorRow) => choices[row.spell] ?? {};
+  const disabledReason = (reason: string | null): string | null => {
+    if (!reason) return null;
+    const match = reason.match(/^No spell slot of level (\d+) or higher is left/);
+    if (!match) return reason;
+    return t(reason.includes("can still be cast as a ritual") ? "campaign.summonDoor.noSlotRitual" : "campaign.summonDoor.noSlot", { level: Number(match[1]) });
+  };
   const update = (row: SummonDoorRow, next: Partial<SummonChoices>) => setChoices((current) => ({ ...current, [row.spell]: { ...current[row.spell], ...next } }));
 
   async function send(row: SummonDoorRow, asRitual: boolean) {
@@ -62,40 +70,33 @@ export function SummonDoor({ sheet, mine, inCombat }: { sheet: CharacterSheet; m
         data = (await response.json().catch(() => ({}))) as { error?: string };
       }
       if (!response.ok) {
-        setRefusal(data.error || "The casting was refused.");
+        setRefusal(data.error || t("campaign.summonDoor.error.refused"));
         replayAnimation(refusalRef.current, "shake-x var(--dur-beat) var(--ease-snap) both");
         return;
       }
       setSent(row.spell);
       setChoices((current) => ({ ...current, [row.spell]: {} }));
     } catch {
-      setRefusal("Could not reach the server.");
+      setRefusal(t("campaign.summonDoor.error.server"));
     } finally {
       setBusy(null);
     }
   }
 
   return (
-    <section className="reveal mt-3 space-y-3" aria-label="Summoning">
+    <section className="reveal mt-3 space-y-3" aria-label={t("campaign.summonDoor.aria")}>
       {rows.map((row) => {
         const pick = pickOf(row);
         const card = { name: row.spell, summon: row.pick?.summon, choice: row.pick?.choice };
         const ready = row.state === "begin" || summonReady(card, pick);
-        const label = row.state === "begin" ? "Begin casting" : row.state === "finish" ? "Finish casting" : "Cast";
+        const label = t(row.state === "begin" ? "campaign.summonDoor.begin" : row.state === "finish" ? "campaign.summonDoor.finish" : "campaign.summonDoor.cast");
+        const stateText = row.state === "casting" ? tp("campaign.summonDoor.roundsLeft", row.roundsLeft ?? 0) : row.state === "begin" ? t("campaign.summonDoor.longCasting") : row.state === "finish" ? t("campaign.summonDoor.castingDone") : row.slotLevel ? t("campaign.summonDoor.slotLevel", { level: row.slotLevel }) : "";
         return (
           <div key={row.spell} className="rounded-lg border border-stone-700/60 p-2.5">
             <div className="flex flex-wrap items-center gap-2">
               <span className="font-display text-sm text-amber-100">{row.spell}</span>
               <span className="text-xs text-stone-400">
-                {row.state === "casting"
-                  ? `Casting: ${row.roundsLeft ?? 0} rounds left.`
-                  : row.state === "begin"
-                    ? "Takes a minute or more: begun with your action, the creature chosen when it is done."
-                    : row.state === "finish"
-                      ? "The casting is done: choose what it brings."
-                      : row.slotLevel
-                        ? `Level ${row.slotLevel} slot.`
-                        : ""}
+                {stateText}
               </span>
             </div>
             {row.pick && row.state !== "begin" ? (
@@ -113,7 +114,7 @@ export function SummonDoor({ sheet, mine, inCombat }: { sheet: CharacterSheet; m
                 <button
                   type="button"
                   disabled={!ready || row.blocked !== null || row.disabled !== null || busy !== null}
-                  title={row.blocked ?? row.disabled ?? (ready ? undefined : "Choose the creature first.")}
+                  title={row.blocked ?? disabledReason(row.disabled) ?? (ready ? undefined : t("campaign.summonDoor.chooseCreature"))}
                   onClick={() => void send(row, false)}
                   className={cn(ui.btnSmall, "min-h-10 sm:min-h-8")}
                 >
@@ -124,18 +125,18 @@ export function SummonDoor({ sheet, mine, inCombat }: { sheet: CharacterSheet; m
                   <button
                     type="button"
                     disabled={!ready || row.blocked !== null || busy !== null}
-                    title={row.blocked ?? "Ten minutes longer, and no spell slot spent."}
+                    title={row.blocked ?? t("campaign.summonDoor.ritualTitle")}
                     onClick={() => void send(row, true)}
                     className={cn(ui.btnSmall, "min-h-10 sm:min-h-8")}
                   >
                     {busy === `${row.spell}:true` ? <Loader2 className="size-3 animate-spin" /> : null}
-                    Cast as a ritual
+                    {t("campaign.summonDoor.ritual")}
                   </button>
                 ) : null}
-                {row.blocked || row.disabled ? <span className="text-[11px] text-stone-400">{row.blocked ?? row.disabled}</span> : null}
+                {row.blocked || row.disabled ? <span className="text-[11px] text-stone-400">{row.blocked ?? disabledReason(row.disabled)}</span> : null}
                 {sent === row.spell ? (
                   <span role="status" className="animate-fade-up text-[11px] text-sky-200/90">
-                    Sent.
+                    {t("campaign.summonDoor.sent")}
                   </span>
                 ) : null}
               </div>

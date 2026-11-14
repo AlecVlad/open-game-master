@@ -3,11 +3,12 @@
 import { FolderOpen, FolderPlus, Plus, Search, Trash2, Wand2, X } from "lucide-react";
 import { useDeferredValue, useMemo, useState } from "react";
 import { cn } from "@/lib/cn";
+import { useI18n } from "@/lib/i18n/provider";
 import { ui } from "@/lib/ui";
 import { appConfirm } from "@/components/ui/ConfirmDialog";
 import { useTourPrepare } from "@/lib/tours/prepare";
 import { KitButton, PanelError } from "@/app/campaigns/[campaignId]/PanelKit";
-import { SHELF_LABELS, newId } from "@/lib/worldforge/model";
+import { newId } from "@/lib/worldforge/model";
 import { folderAndBelow, folderTree, removeFolder } from "@/lib/worldforge/tree";
 import type { WorldApi, WorldState } from "./useWorld";
 import { EntityPage } from "./EntityPage";
@@ -59,6 +60,7 @@ export function WikiView({
   canPaint: boolean;
   campaignId: string;
 }) {
+  const { t } = useI18n();
   const { doc, entities } = world;
   const [query, setQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
@@ -120,7 +122,7 @@ export function WikiView({
 
   async function dropFolder(id: string) {
     const target = doc.folders.find((entry) => entry.id === id);
-    if (!target || !(await appConfirm(`Its entries and folders move up a level; nothing in it is deleted.`, { title: `Remove the folder ${target.name}?`, actionLabel: "Remove" }))) return;
+    if (!target || !(await appConfirm(t("workshop.world.wiki.folder.remove.body"), { title: t("workshop.world.wiki.folder.remove.title", { name: target.name }), actionLabel: t("workshop.world.wiki.remove") }))) return;
     const { folders, heir } = removeFolder(doc.folders, id);
     await api.patch({ folders, moveFolder: { from: id, to: heir } });
     if (folder === id) setFolder("");
@@ -128,9 +130,9 @@ export function WikiView({
 
   return (
     <div className="grid gap-4 @2xl:grid-cols-[17rem_minmax(0,1fr)]">
-      <aside className={cn("flex min-w-0 flex-col gap-2", open && "hidden @2xl:flex")} aria-label="Entries">
+      <aside className={cn("flex min-w-0 flex-col gap-2", open && "hidden @2xl:flex")} aria-label={t("workshop.world.wiki.entries")}>
         <KitButton tone="primary" onClick={() => setMaking((value) => !value)} data-tour="world-new-entry">
-          <Plus className="size-3.5" /> New entry
+          <Plus className="size-3.5" /> {t("workshop.world.wiki.newEntry")}
         </KitButton>
         {making ? (
           <form
@@ -140,22 +142,22 @@ export function WikiView({
               if (newName.trim()) void make();
             }}
           >
-            <div className="flex flex-wrap gap-1" role="radiogroup" aria-label="Type">
+            <div className="flex flex-wrap gap-1" role="radiogroup" aria-label={t("workshop.world.wiki.type")}>
               {doc.types.map((type) => (
                 <button key={type.id} type="button" role="radio" aria-checked={newType === type.id} onClick={() => setNewType(type.id)} className={cn("rounded-md border px-1.5 py-0.5 text-[11px] motion-press", newType === type.id ? "text-stone-950" : "text-stone-300")} style={newType === type.id ? { background: type.color, borderColor: type.color } : { borderColor: tint(type.color, 0.4) }}>
                   {type.name}
                 </button>
               ))}
             </div>
-            <p className="text-[11px] text-stone-500">Lands in {SHELF_LABELS[chosenType.shelf]}{chosenType.shelf === "lore" ? ` (${chosenType.loreCategory})` : ""}.</p>
-            <input className={cn(ui.input, "text-sm")} placeholder={`A ${chosenType.name.toLowerCase()}'s name`} aria-label="Name" maxLength={80} value={newName} onChange={(event) => setNewName(event.target.value)} autoFocus />
+            <p className="text-[11px] text-stone-500">{t("workshop.world.wiki.landsIn", { shelf: t(`workshop.world.wiki.shelf.${chosenType.shelf}`), category: chosenType.shelf === "lore" ? ` (${t(`workshop.world.wiki.loreCategory.${chosenType.loreCategory}`)})` : "" })}</p>
+            <input className={cn(ui.input, "text-sm")} placeholder={t("workshop.world.wiki.namePlaceholder", { type: chosenType.name.toLowerCase() })} aria-label={t("workshop.world.wiki.name")} maxLength={80} value={newName} onChange={(event) => setNewName(event.target.value)} autoFocus />
             {api.error ? <PanelError>{api.error}</PanelError> : null}
             <div className="flex justify-end gap-1.5">
               <KitButton tone="small" onClick={() => setMaking(false)}>
-                <X className="size-3.5" /> Cancel
+                <X className="size-3.5" /> {t("workshop.cancel")}
               </KitButton>
               <KitButton tone="primary" type="submit" busy={api.saving} disabled={!newName.trim() || api.saving}>
-                Make it
+                {t("workshop.world.wiki.makeEntry")}
               </KitButton>
             </div>
           </form>
@@ -165,8 +167,8 @@ export function WikiView({
           <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-stone-500" />
           <input
             className={cn(ui.input, "pl-8 text-xs")}
-            placeholder="Find by name, a word or a field"
-            aria-label="Find an entry"
+            placeholder={t("workshop.world.wiki.search.placeholder")}
+            aria-label={t("workshop.world.wiki.search.aria")}
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             onKeyDown={(event) => {
@@ -177,9 +179,9 @@ export function WikiView({
           />
         </label>
 
-        <div className="flex flex-wrap gap-1" aria-label="Types">
+        <div className="flex flex-wrap gap-1" aria-label={t("workshop.world.wiki.types")}>
           <button type="button" onClick={() => setTypeFilter("")} className={cn("rounded-md border border-stone-700 px-1.5 py-0.5 text-[11px] motion-press", !typeFilter ? "bg-amber-400/10 text-amber-100" : "text-stone-400")}>
-            All {entities.length}
+            {t("workshop.world.wiki.allEntries", { count: entities.length })}
           </button>
           {doc.types.map((type) => {
             const count = typeCounts.get(type.id) ?? 0;
@@ -191,29 +193,29 @@ export function WikiView({
           })}
         </div>
 
-        <div className="flex flex-col gap-0.5" aria-label="Folders">
+        <div className="flex flex-col gap-0.5" aria-label={t("workshop.world.wiki.folders")}>
           <div className="flex items-center justify-between">
-            <span className="eyebrow text-[10px] text-stone-500">Folders</span>
-            <KitButton tone="icon" always aria-label="New folder" onClick={() => setFolderName(folderName === null ? "" : null)}>
+            <span className="eyebrow text-[10px] text-stone-500">{t("workshop.world.wiki.folders")}</span>
+            <KitButton tone="icon" always aria-label={t("workshop.world.wiki.folder.new")} onClick={() => setFolderName(folderName === null ? "" : null)}>
               <FolderPlus className="size-3.5" />
             </KitButton>
           </div>
           {folderName !== null ? (
             <form className="motion-pop flex gap-1" onSubmit={(event) => { event.preventDefault(); void addFolder(); }}>
-              <input className={cn(ui.input, "py-1 text-xs")} placeholder="Townsfolk" aria-label="Folder name" maxLength={60} value={folderName} onChange={(event) => setFolderName(event.target.value)} autoFocus />
-              <KitButton tone="small" type="submit" disabled={!folderName.trim()}>Add</KitButton>
+              <input className={cn(ui.input, "py-1 text-xs")} placeholder={t("workshop.world.wiki.folder.exampleName")} aria-label={t("workshop.world.wiki.folder.name")} maxLength={60} value={folderName} onChange={(event) => setFolderName(event.target.value)} autoFocus />
+              <KitButton tone="small" type="submit" disabled={!folderName.trim()}>{t("workshop.world.wiki.add")}</KitButton>
             </form>
           ) : null}
           {/* A big world's folders scroll on their own, so the entry list
               below them stays in sight (audit WF-24). */}
           <div className="flex max-h-48 flex-col gap-0.5 overflow-y-auto pr-1" data-testid="world-folders">
-            {[{ id: "", name: "Everything", depth: 0 }, ...folderTree(doc.folders).map(({ folder: entry, depth }) => ({ id: entry.id, name: entry.name, depth })), ...(doc.folders.length ? [{ id: "__none", name: "In no folder", depth: 0 }] : [])].map((entry) => (
+            {[{ id: "", name: t("workshop.world.wiki.folder.everything"), depth: 0 }, ...folderTree(doc.folders).map(({ folder: entry, depth }) => ({ id: entry.id, name: entry.name, depth })), ...(doc.folders.length ? [{ id: "__none", name: t("workshop.world.wiki.folder.none"), depth: 0 }] : [])].map((entry) => (
               <div key={entry.id || "all"} className="group flex shrink-0 items-center">
                 <button type="button" onClick={() => setFolder(entry.id)} className={cn("flex flex-1 items-center gap-1.5 rounded-md px-1.5 py-1 text-left text-xs motion-press", folder === entry.id ? "bg-amber-400/10 text-amber-100" : "text-stone-400 hover:text-stone-200")} style={{ paddingLeft: `${0.375 + entry.depth * 0.75}rem` }}>
                   <FolderOpen className="size-3.5 shrink-0" /> {entry.name}
                 </button>
                 {entry.id && entry.id !== "__none" ? (
-                  <KitButton tone="iconDanger" aria-label={`Remove the folder ${entry.name}`} onClick={() => dropFolder(entry.id)}>
+                  <KitButton tone="iconDanger" aria-label={t("workshop.world.wiki.folder.remove.aria", { name: entry.name })} onClick={() => dropFolder(entry.id)}>
                     <Trash2 className="size-3" />
                   </KitButton>
                 ) : null}
@@ -231,21 +233,21 @@ export function WikiView({
           toList={toList}
           empty={
             <>
-              {shown.length === 0 ? <p className="px-1 py-2 text-xs text-stone-500">{entities.length ? "Nothing matches." : atTable ? "No entries yet. Make one, or bring a workshop's world in from Settings." : "No entries yet. Make one, or open a WorldForge file."}</p> : null}
+              {shown.length === 0 ? <p className="px-1 py-2 text-xs text-stone-500">{t(entities.length ? "workshop.world.wiki.nothingMatches" : atTable ? "workshop.world.wiki.noEntries.table" : "workshop.world.wiki.noEntries.workshop")}</p> : null}
               {!entities.length && onCreate ? (
                 // An empty world is where an author most expects WorldForge to
                 // make anything; Create says where each thing is made instead.
                 <div className="flex flex-col items-start gap-2 px-1 py-1" data-testid="world-empty-create">
-                  <p className="text-xs text-stone-400">WorldForge keeps the story: its people, places, factions and lore. A monster to fight, an item to hold or a map to stand on is made in its own tool, and Create takes you there; an entry here can then link to it.</p>
+                  <p className="text-xs text-stone-400">{t("workshop.world.wiki.empty.createExplanation")}</p>
                   <div className="flex flex-wrap gap-2">
                     {onDraftWorld ? (
                       <button type="button" onClick={onDraftWorld} className={ui.btnSmall} data-testid="world-empty-outline">
-                        <Wand2 className="size-4" /> Draft a world from an idea
+                        <Wand2 className="size-4" /> {t("workshop.world.wiki.draftFromIdea")}
                       </button>
                     ) : null}
                     <CreateButton onClick={onCreate} />
                   </div>
-                  {!onDraftWorld && !atTable ? <p className="text-[11px] text-stone-500">Drafting a world from an idea needs a text model. An admin adds one under Admin &gt; Text model defaults; until then, entries are written by hand or opened from a WorldForge file.</p> : null}
+                  {!onDraftWorld && !atTable ? <p className="text-[11px] text-stone-500">{t("workshop.world.wiki.textModelNeeded")}</p> : null}
                 </div>
               ) : null}
             </>
@@ -258,9 +260,9 @@ export function WikiView({
           <EntityPage key={open.ref} campaignId={campaignId} api={api} world={world} entity={open} onFocus={onFocus} onBack={() => onFocus(null)} onOpenSystem={onOpenSystem} onOpenPrep={onOpenPrep} canWrite={canWrite} canPaint={canPaint} />
         ) : (
           <div className="panel flex min-h-48 flex-col items-center justify-center gap-2 rounded-xl p-6 text-center animate-fade-up">
-            <p className="font-display text-lg text-amber-100">The world, entry by entry</p>
+            <p className="font-display text-lg text-amber-100">{t("workshop.world.wiki.empty.title")}</p>
             <p className="max-w-md text-sm text-stone-400">
-              Every Cast member, place, faction and lore entry of this {atTable ? "campaign" : "workshop"} is an entry here. Open one to write its article, link it to the rest, give it the fields its type keeps and the truth only you know.
+              {t("workshop.world.wiki.empty.description", { cast: t("workshop.world.wiki.shelf.npc"), scope: t(atTable ? "workshop.world.wiki.scope.campaign" : "workshop.world.wiki.scope.workshop") })}
             </p>
           </div>
         )}

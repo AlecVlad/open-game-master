@@ -1,11 +1,13 @@
 "use client";
 
 import { usePackArt } from "@/lib/worlds/use-pack-art";
+import { useT } from "@/lib/i18n/provider";
 
 // The pictures a world pack carries for its places and factions, as a strip
 // under the world's name. Renders nothing at all for a pack with no art, so
 // a table on a plain pack sees exactly what it saw before.
 export function WorldPackGallery({ packId }: { packId: string }) {
+  const t = useT();
   const art = usePackArt(packId);
   if (!art.pack) {
     return null;
@@ -21,8 +23,8 @@ export function WorldPackGallery({ packId }: { packId: string }) {
   }
   return (
     <div className="space-y-2">
-      {places.length ? <Strip label="Places" entries={places} wide /> : null}
-      {factions.length ? <Strip label="Factions" entries={factions} /> : null}
+      {places.length ? <Strip label={t("worldPackGallery.places")} entries={places} wide /> : null}
+      {factions.length ? <Strip label={t("worldPackGallery.factions")} entries={factions} /> : null}
     </div>
   );
 }

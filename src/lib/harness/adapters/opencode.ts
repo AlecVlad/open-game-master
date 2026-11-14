@@ -389,13 +389,13 @@ function readAdminConfig(env: Record<string, string>): AdminOpencodeConfig {
     path.join(env.XDG_CONFIG_HOME || path.join(env.HOME || os.homedir(), ".config"), "opencode");
   let admin: AdminOpencodeConfig = { provider: {}, providers: {} };
   for (const name of ["opencode.json", "opencode.jsonc"]) {
-    const file = path.join(dir, name);
-    if (!existsSync(file)) {
+    const file = path.join(/*turbopackIgnore: true*/ dir, name);
+    if (!existsSync(/*turbopackIgnore: true*/ file)) {
       continue;
     }
     let read: AdminOpencodeConfig;
     try {
-      read = adminOpencodeConfig(readFileSync(file, "utf8"));
+      read = adminOpencodeConfig(readFileSync(/*turbopackIgnore: true*/ file, "utf8"));
     } catch (error) {
       const why =
         error instanceof OpencodeConfigError
@@ -440,7 +440,7 @@ export function staleOdmSessions(
         session.metadata?.openDungeonMaster !== SESSION_TAG.openDungeonMaster ||
         !directory ||
         !path.basename(directory).startsWith(RUN_DIR_PREFIX) ||
-        options.canonical(path.dirname(path.resolve(directory))) !== options.tmpdir
+        options.canonical(path.dirname(path.resolve(/*turbopackIgnore: true*/ directory))) !== options.tmpdir
       ) {
         return false;
       }

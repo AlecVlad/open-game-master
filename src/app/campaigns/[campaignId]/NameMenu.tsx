@@ -12,13 +12,13 @@ import {
   type RefObject,
 } from "react";
 import { createPortal } from "react-dom";
+import { useI18n } from "@/lib/i18n/provider";
 import { GameIcon } from "@/components/ui/GameIcon";
 import { overlayRoot } from "@/lib/overlay-root";
 import { haptic } from "@/lib/effects-mode";
 import {
   insertName,
   matchNames,
-  NAME_GROUP_LABEL,
   nameMenuAt,
   type NameChoice,
   type NameGroup,
@@ -31,6 +31,11 @@ import {
 // phone's keyboard stays up through a pick.
 
 const GROUP_GLYPH: Record<NameGroup, string> = { party: "system-party", people: "system-cast", places: "system-region" };
+const GROUP_LABEL_KEY: Record<NameGroup, string> = {
+  party: "campaign.nameMenu.group.party",
+  people: "campaign.nameMenu.group.people",
+  places: "campaign.nameMenu.group.places",
+};
 
 export type NameMenuState = ReturnType<typeof useNameMenu>;
 
@@ -162,6 +167,7 @@ export function useNameMenu({
 // clip (a staged fight's desk scrolls at 62dvh) and the apps confine the
 // game's styles to .game-root (src/lib/overlay-root.ts).
 export function NameMenu({ menu, anchor }: { menu: NameMenuState; anchor: RefObject<HTMLElement | null> }) {
+  const { t } = useI18n();
   const [box, setBox] = useState<{ left: number; top: number; width: number; room: number } | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const { open, matches, active } = menu;
@@ -214,25 +220,26 @@ export function NameMenu({ menu, anchor }: { menu: NameMenuState; anchor: RefObj
       <div className="name-menu panel panel-smoke ctx-menu flex flex-col overflow-hidden rounded-xl p-0" style={{ maxHeight: Math.max(Math.min(box.room, 440), 120) }}>
         {/* Reachable by key when it has to scroll (above a phone's keyboard),
             though the arrows in the box already walk it. */}
-        <div ref={listRef} id={menu.listId} role="listbox" aria-label="Names at this table" tabIndex={0} className={matches.length ? "palette-list min-h-0 flex-1 overflow-y-auto p-1.5" : "hidden"}>
+        <div ref={listRef} id={menu.listId} role="listbox" aria-label={t("campaign.nameMenu.list.aria")} tabIndex={0} className={matches.length ? "palette-list min-h-0 flex-1 overflow-y-auto p-1.5" : "hidden"}>
           {matches.map((choice, index) => (
             <NameRow
               key={`${choice.group}:${choice.name}`}
               id={menu.optionId(index)}
               choice={choice}
-              heading={choice.group !== matches[index - 1]?.group ? NAME_GROUP_LABEL[choice.group] : null}
+              heading={choice.group !== matches[index - 1]?.group ? t(GROUP_LABEL_KEY[choice.group] as never) : null}
               selected={index === active}
               onHover={() => menu.setActive(index)}
               onPick={() => menu.choose(choice)}
+              unmetLabel={t("campaign.nameMenu.unmet")}
             />
           ))}
         </div>
-        {!matches.length ? <p className="reveal px-3 py-2.5 text-sm text-stone-500">No known name matches.</p> : null}
+        {!matches.length ? <p className="reveal px-3 py-2.5 text-sm text-stone-500">{t("campaign.nameMenu.empty")}</p> : null}
         {matches.length ? (
           <p className="hidden flex-wrap items-center gap-x-3 gap-y-1 border-t border-amber-400/10 px-3 py-1.5 text-[11px] text-stone-500 [@media(pointer:fine)]:flex">
-            <span><span className="kbd-key">↑</span> <span className="kbd-key">↓</span> choose</span>
-            <span><span className="kbd-key">Enter</span> or <span className="kbd-key">Tab</span> write it</span>
-            <span><span className="kbd-key">Esc</span> close</span>
+            <span><span className="kbd-key">↑</span> <span className="kbd-key">↓</span> {t("campaign.nameMenu.keyboard.choose")}</span>
+            <span><span className="kbd-key">Enter</span> {t("campaign.nameMenu.keyboard.or")} <span className="kbd-key">Tab</span> {t("campaign.nameMenu.keyboard.insert")}</span>
+            <span><span className="kbd-key">Esc</span> {t("campaign.nameMenu.keyboard.close")}</span>
           </p>
         ) : null}
       </div>
@@ -248,6 +255,7 @@ function NameRow({
   selected,
   onHover,
   onPick,
+  unmetLabel,
 }: {
   id: string;
   choice: NameChoice;
@@ -255,6 +263,7 @@ function NameRow({
   selected: boolean;
   onHover: () => void;
   onPick: () => void;
+  unmetLabel: string;
 }) {
   return (
     <>
@@ -272,7 +281,7 @@ function NameRow({
         <GameIcon icon={{ kind: "glyph", key: GROUP_GLYPH[choice.group] }} size="size-7" />
         <span className="min-w-0 flex-1">
           <span className="block truncate">{choice.name}</span>
-          {choice.unmet ? <span className="block truncate text-xs text-stone-500">Not introduced yet</span> : null}
+          {choice.unmet ? <span className="block truncate text-xs text-stone-500">{unmetLabel}</span> : null}
         </span>
       </div>
     </>

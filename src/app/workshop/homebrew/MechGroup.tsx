@@ -13,7 +13,7 @@ export type Mech = Record<string, unknown>;
 export type MechProps = { mech: Mech; setMech: (patch: Mech) => void };
 
 export const ABILITY_OPTIONS = [
-  { value: "", label: "none" },
+  { value: "", label: "—" },
   ...(["str", "dex", "con", "int", "wis", "cha"] as const).map((value) => ({ value, label: value.toUpperCase() })),
 ];
 

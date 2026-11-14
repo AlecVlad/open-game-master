@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useT } from "@/lib/i18n/provider";
 import { Loader2, Search } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui";
@@ -17,6 +18,7 @@ import { textKey } from "@/lib/language/text-logic";
 type Row = { name?: string; data?: { traits?: unknown }; table?: { traits?: unknown } };
 
 export function SpeciesTraitPicker({ traits, onChange }: { traits: string; onChange: (traits: string) => void }) {
+  const t = useT();
   const [catalog, setCatalog] = useState<PublishedTrait[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [failed, setFailed] = useState(false);
@@ -64,7 +66,7 @@ export function SpeciesTraitPicker({ traits, onChange }: { traits: string; onCha
 
   return (
     <div ref={container} className="space-y-1" data-species-trait-picker>
-      <FieldLabel>Published traits</FieldLabel>
+      <FieldLabel>{t("workshop.homebrew.traits.heading")}</FieldLabel>
       <div className="relative">
         <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-stone-500" />
         <input
@@ -74,16 +76,16 @@ export function SpeciesTraitPicker({ traits, onChange }: { traits: string; onCha
             load();
           }}
           onFocus={load}
-          placeholder="Add a published trait: Draconic Ancestry, Darkvision, Lucky..."
-          aria-label="Search the published species traits"
+          placeholder={t("workshop.homebrew.traits.search.placeholder")}
+          aria-label={t("workshop.homebrew.traits.search.aria")}
           className={cn(ui.input, "pl-9")}
         />
         {loading ? <Loader2 className="absolute right-3 top-1/2 size-3.5 -translate-y-1/2 animate-spin text-stone-500" /> : null}
       </div>
       {failed ? (
-        <p className="live-in text-xs text-amber-300">The published traits could not be read just now. Click the search again to retry.</p>
+        <p className="live-in text-xs text-amber-300">{t("workshop.homebrew.traits.error")}</p>
       ) : open && catalog && !shown.length ? (
-        <p className="live-in text-xs text-stone-500">No published trait matched &quot;{query.trim()}&quot;.</p>
+        <p className="live-in text-xs text-stone-500">{t("workshop.homebrew.traits.empty", { query: query.trim() })}</p>
       ) : null}
       {/* In the flow, like "Start from": the editor scrolls, and an overlay
           would cover the Traits text it writes into. */}
@@ -101,7 +103,7 @@ export function SpeciesTraitPicker({ traits, onChange }: { traits: string; onCha
                 >
                   <span className="truncate">{trait.name}</span>
                   <span className="shrink-0 text-[11px] text-stone-500">
-                    {has ? "Already here" : `${trait.from.slice(0, 2).join(", ")}${trait.from.length > 2 ? ` +${trait.from.length - 2}` : ""}`}
+                    {has ? t("workshop.homebrew.traits.already") : `${trait.from.slice(0, 2).join(", ")}${trait.from.length > 2 ? ` +${trait.from.length - 2}` : ""}`}
                   </span>
                 </button>
                 <InfoButton label={trait.name} text={trait.text || `${trait.name}, as ${trait.from[0]} has it.`} />

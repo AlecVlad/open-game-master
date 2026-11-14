@@ -4,6 +4,7 @@ import { EmptyState } from "@/components/EmptyState";
 import * as AlertDialog from "@radix-ui/react-alert-dialog";
 import { Dices, Flag, Hourglass, Loader2, RotateCcw, ScrollText, Star, Swords } from "lucide-react";
 import { useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/cn";
 import { offerCorrectionReason } from "@/lib/correction-offer";
 import { milestoneLine } from "@/lib/dm/story-panel-logic";
@@ -31,6 +32,7 @@ function ConfirmUndoDialog({
   onConfirm: () => void;
   onCancel: () => void;
 }) {
+  const { t } = useI18n();
   return (
     <AlertDialog.Root open onOpenChange={(open) => !open && onCancel()}>
       <AlertDialog.Portal>
@@ -42,12 +44,12 @@ function ConfirmUndoDialog({
           )}
         >
           <AlertDialog.Title className="font-display text-lg tracking-wide text-amber-50">
-            {turn ? "Revert this turn anyway?" : "Undo anyway?"}
+            {turn ? t("campaign.session.eventLog.confirm.revertTitle") : t("campaign.session.eventLog.confirm.undoTitle")}
           </AlertDialog.Title>
           <AlertDialog.Description className="mt-2 text-xs text-stone-400">
             {turn
-              ? "This puts the character sheets, the clock and the fight back as they were before the turn: hit points, conditions, creatures that came or fell, tokens, areas on the board, effects and whose turn it is. A fight the turn began goes; the fight's prepared events are armed again, a test's forced dice given back and a card resolved as played waits again. World events and companions who left stay; rewinding the chapter takes those back."
-              : "Newer changes touched the same fields; undoing will overwrite them."}
+              ? t("campaign.session.eventLog.confirm.revertDescription")
+              : t("campaign.session.eventLog.confirm.undoDescription")}
           </AlertDialog.Description>
           <ul className="mt-2 space-y-1">
             {warnings.slice(0, 5).map((warning, index) => (
@@ -57,9 +59,9 @@ function ConfirmUndoDialog({
             ))}
           </ul>
           <div className="mt-4 flex justify-end gap-2">
-            <AlertDialog.Cancel className={ui.btnSmall}>Cancel</AlertDialog.Cancel>
+            <AlertDialog.Cancel className={ui.btnSmall}>{t("campaign.session.eventLog.cancel")}</AlertDialog.Cancel>
             <button type="button" onClick={onConfirm} disabled={busy} aria-busy={busy} className={ui.btnPrimary}>
-              {busy ? <Loader2 className="size-4 animate-spin" /> : null} Undo anyway
+              {busy ? <Loader2 className="size-4 animate-spin" /> : null} {t("campaign.session.eventLog.undoAnyway")}
             </button>
           </div>
         </AlertDialog.Content>
@@ -93,6 +95,7 @@ export function EventLog({
   turnChanges?: TurnChangeView[];
   steersStory?: boolean;
 }) {
+  const { t } = useI18n();
   const [busyId, setBusyId] = useState("");
   // The server's sentence for an undo it refused, under the row it was for
   // (U:UC10). Before, anything but a 409 was dropped and the row just sat
@@ -105,7 +108,7 @@ export function EventLog({
   } | null>(null);
 
   const nameForCharacter = (characterId: string) =>
-    sheets.find((sheet) => sheet.id === characterId)?.name ?? "Someone";
+    sheets.find((sheet) => sheet.id === characterId)?.name ?? t("campaign.session.eventLog.someone");
   const nameFor = (entry: AuditEntry) =>
     entry.characterName ?? nameForCharacter(entry.characterId);
 
@@ -180,7 +183,7 @@ export function EventLog({
 
   if (!feed.length) {
     return (
-      <EmptyState size="sm" art="scrolls" title="No stat changes yet. Damage, loot, XP, conditions, and milestones the GM applies will show here." />
+      <EmptyState size="sm" art="scrolls" title={t("campaign.session.eventLog.empty")} />
     );
   }
 
@@ -202,7 +205,7 @@ export function EventLog({
           type="button"
           disabled={busyId === `turn:${turnId}`}
           onClick={() => revertTurn(turnId)}
-          title="Put the character sheets, the clock and the fight back as they were before this GM turn: hit points, conditions, creatures, tokens, areas, effects and whose turn it is, with the prepared events it fired, a test's forced dice and a card resolved as played. World events and companions who left stay; rewinding the chapter takes those back."
+          title={t("campaign.session.eventLog.revertTurnTitle")}
           // A finger's height on a touch screen; a thin rule with a mouse.
           className="flex w-full items-center justify-center gap-1 rounded border border-dashed border-stone-700 py-0.5 text-[10px] text-stone-500 hover:bg-stone-900 hover:text-amber-300 pointer-coarse:min-h-10"
         >
@@ -211,7 +214,7 @@ export function EventLog({
           ) : (
             <RotateCcw className="size-3" />
           )}
-          {changes ? `Revert this turn (${changes})` : "Revert this turn"}
+          {changes ? t("campaign.session.eventLog.revertTurnCount", { count: changes }) : t("campaign.session.eventLog.revertTurn")}
         </button>
         {errors[`turn:${turnId}`] ? (
           <p role="alert" className="motion-shake text-[11px] text-red-300">{errors[`turn:${turnId}`]}</p>
@@ -315,8 +318,8 @@ export function EventLog({
                       type="button"
                       disabled={busyId === entry.id}
                       onClick={() => undoEntry(entry)}
-                      title="Undo this change (restores the sheet fields it touched)"
-                      aria-label="Undo this change"
+                      title={t("campaign.session.eventLog.undoTitle")}
+                      aria-label={t("campaign.session.eventLog.undoLabel")}
                       className="-my-1.5 -mr-1.5 inline-flex size-8 shrink-0 items-center justify-center rounded-md text-stone-600 hover:text-amber-300 motion-nudge"
                     >
                       {busyId === entry.id ? (

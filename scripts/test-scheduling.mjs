@@ -98,11 +98,22 @@ test("sessionWhen renders the wire time readably", () => {
 
 test("notifications land unread, are listed newest first, and mark read", () => {
   notifyUsers([player.id], { campaignId: campaign.id, kind: "session_scheduled", body: "first" });
-  notifyUsers([player.id], { campaignId: campaign.id, kind: "session_updated", body: "second" });
+  notifyUsers([player.id], {
+    campaignId: campaign.id,
+    kind: "session_updated",
+    body: "second",
+    params: { campaignTitle: "Test Table", sessionTitle: "The bridge", startsAt: inAWeek },
+  });
   assert.equal(unreadCount(player.id), 2);
   assert.equal(unreadCount(gm.id), 0);
   const inbox = listNotifications(player.id);
   assert.equal(inbox[0].body, "second");
+  assert.deepEqual(inbox[0].params, {
+    campaignTitle: "Test Table",
+    sessionTitle: "The bridge",
+    startsAt: inAWeek,
+  });
+  assert.equal(inbox[1].params, undefined);
   markNotificationsRead(player.id, inbox[0].id);
   assert.equal(unreadCount(player.id), 1);
   markNotificationsRead(player.id);

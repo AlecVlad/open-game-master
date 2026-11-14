@@ -11,6 +11,7 @@ import type { ClassOption, RaceOption } from "../useBuilderOptions";
 import type { BuilderDerived } from "../useBuilderDerived";
 import type { BuilderState } from "../useBuilderState";
 import { PickForMe } from "./shared";
+import { useI18n } from "@/lib/i18n/provider";
 
 // What the health explainer works from, shared with the Max HP line on the
 // last step: both read derived.hp (builderHp.ts), the figure the server
@@ -37,6 +38,7 @@ export function hpExplainerInput(
 // fighter who cannot hit. Point buy is left to the player: it is chosen by
 // people who want the shape themselves.
 function PlaceForClass({ state, klass }: { state: BuilderState; klass: ClassOption }) {
+  const { t } = useI18n();
   const pool = state.rollPool;
   if (state.method === "pointbuy" || (state.method === "roll" && !pool)) {
     return null;
@@ -45,8 +47,8 @@ function PlaceForClass({ state, klass }: { state: BuilderState; klass: ClassOpti
   const keys = keyAbilities(klass);
   const named = new Set(keys.flat());
   const then = abilityPriority(klass).find((ability) => !named.has(ability));
-  const needs = keys.map((group) => group.map(words).join(" and ")).join(" or ");
-  const article = /^[aeiou]/i.test(klass.name) ? "An" : "A";
+  const needs = keys.map((group) => group.map(words).join(t("builder.abil.and"))).join(t("builder.abil.or"));
+  const an = /^[aeiou]/i.test(klass.name);
   function place() {
     if (state.method === "standard") {
       state.setScores(standardFor(klass, STANDARD_ARRAY));
@@ -59,11 +61,14 @@ function PlaceForClass({ state, klass }: { state: BuilderState; klass: ClassOpti
   return (
     <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-lg border border-stone-800 bg-stone-950/40 px-3 py-2 text-xs text-stone-300">
       <span className="min-w-0 flex-1">
-        {article} {klass.name.toLowerCase()} leans on {needs}
-        {then ? `, then ${words(then)}` : ""}.
+        {t(an ? "builder.abil.leans.an" : "builder.abil.leans.a", {
+          klass: klass.name.toLowerCase(),
+          needs,
+          then: then ? t("builder.abil.then", { ability: words(then) }) : "",
+        })}
       </span>
       <button type="button" onClick={place} className={ui.btnSmall}>
-        Place them for {article.toLowerCase()} {klass.name}
+        {t(an ? "builder.abil.place.an" : "builder.abil.place.a", { klass: klass.name })}
       </button>
     </div>
   );
@@ -88,6 +93,7 @@ export function AbilitiesStep({
   // the cards stay blank until it is pressed.
   onPickForMe?: (target: "asi") => void;
 }) {
+  const { t, tp } = useI18n();
   const { asiSlotLevels, activeAsiChoices, asiTakenInPlay, asiBaseAbilities, effectiveLevel } = derived;
   const asiToPick = asiTakenInPlay.filter((taken) => !taken).length;
   const asiOpen = activeAsiChoices.filter((choice, index) => choice === null && !asiTakenInPlay[index]).length;
@@ -119,10 +125,12 @@ export function AbilitiesStep({
         {onPickForMe && asiOpen > 0 ? (
           <p className="mb-2 flex flex-wrap items-center gap-2 text-xs text-stone-400">
             <span className="grow">
-              {asiOpen === 1 ? "One improvement is" : `${asiOpen} improvements are`} still to choose. Pick for me adds
-              the points to {klass ? `a ${klass.name.toLowerCase()}'s` : "the"} main scores, never a feat.
+              {tp("builder.abil.asi", asiOpen, {
+                count: asiOpen,
+                owner: klass ? t("builder.abil.owner.klass", { klass: klass.name.toLowerCase() }) : t("builder.abil.owner.none"),
+              })}
             </span>
-            <PickForMe what={asiOpen === 1 ? "the improvement" : "the improvements"} onPick={() => onPickForMe("asi")} />
+            <PickForMe what={asiOpen === 1 ? t("builder.abil.what.one") : t("builder.abil.what.plural")} onPick={() => onPickForMe("asi")} />
           </p>
         ) : null}
         <AsiFeatEditor

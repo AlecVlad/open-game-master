@@ -4,6 +4,7 @@ import { X } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui";
+import { useI18n } from "@/lib/i18n/provider";
 import { SessionBanner, bannerButtonClass } from "@/app/campaigns/[campaignId]/SessionBanner";
 
 // Lead-only banner after a mid-game joiner creates their character: write
@@ -19,6 +20,7 @@ export function NewAdventurerBanner({
   onWriteIntro: () => void;
   onDismiss: () => void;
 }) {
+  const { t } = useI18n();
   const [sending, setSending] = useState(false);
 
   async function letDmIntroduce() {
@@ -43,11 +45,11 @@ export function NewAdventurerBanner({
   return (
     <SessionBanner
       glyph="system-party"
-      title="A new adventurer"
+      title={t("campaign.session.newAdventurer.title")}
       actions={
         <>
           <button type="button" onClick={onWriteIntro} className={bannerButtonClass(true)}>
-            Write intro
+            {t("campaign.session.newAdventurer.writeIntro")}
           </button>
           <button
             type="button"
@@ -55,13 +57,13 @@ export function NewAdventurerBanner({
             disabled={sending}
             className={bannerButtonClass()}
           >
-            Let the GM do it
+            {t("campaign.session.newAdventurer.letGm")}
           </button>
           <button
             type="button"
             onClick={onDismiss}
-            title="Dismiss"
-            aria-label="Dismiss"
+            title={t("campaign.session.newAdventurer.dismiss")}
+            aria-label={t("campaign.session.newAdventurer.dismiss")}
             className={cn(ui.iconAction, "opacity-100")}
           >
             <X className="size-4" />

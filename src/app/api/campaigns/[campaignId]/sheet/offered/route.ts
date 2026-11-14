@@ -7,7 +7,7 @@ import { announceMidGameJoin } from "@/lib/characters/mid-game-join";
 import { HERO_DOOR_SHUT, heroDoorFor } from "@/lib/characters/hero-door";
 import { seatAddedSheet } from "@/lib/character-seat";
 import { createCharacter, setPregenOrigin } from "@/lib/db/characters";
-import { claimPregen, claimRefusal, offeredPregenFor } from "@/lib/db/pregen-offers";
+import { claimPregen, claimRefusalDetail, offeredPregenFor } from "@/lib/db/pregen-offers";
 import { createSheet } from "@/lib/db/sheets";
 import { publishPersisted } from "@/lib/events";
 import { queueLibraryPortrait } from "@/lib/portrait";
@@ -40,16 +40,20 @@ export async function POST(
     return context;
   }
   if (!capsFor(context).needsCharacter) {
-    return Response.json({ error: "The GM seat plays no character." }, { status: 400 });
+    return Response.json({ error: "The GM seat plays no character.", errorCode: "GM_SEAT_NO_CHARACTER" }, { status: 400 });
   }
   const door = heroDoorFor(context.campaign, context.user.id);
   if (!door.open) {
-    return Response.json({ error: HERO_DOOR_SHUT }, { status: 409 });
+    return Response.json({ error: HERO_DOOR_SHUT, errorCode: "HERO_ALREADY_HAS_CHARACTER" }, { status: 409 });
   }
   const parsed = bodySchema.safeParse(await request.json().catch(() => ({})));
   if (!parsed.success) {
+    const picksInvalid = parsed.error.issues.some((issue) => issue.path[0] === "picks");
     return Response.json(
-      { error: parsed.error.issues.some((issue) => issue.path[0] === "picks") ? "Those picks could not be read." : "Pick a hero." },
+      {
+        error: picksInvalid ? "Those picks could not be read." : "Pick a hero.",
+        errorCode: picksInvalid ? "PICKS_COULD_NOT_BE_READ" : "PICK_ONE_HERO",
+      },
       { status: 400 },
     );
   }
@@ -57,16 +61,16 @@ export async function POST(
   // A DM's own pregens are in their own library, where they take them from.
   const offer = offeredPregenFor(campaignId, parsed.data.id);
   if (!offer || offer.character.userId === context.user.id) {
-    return Response.json({ error: "No such hero." }, { status: 404 });
+    return Response.json({ error: "No such hero.", errorCode: "HERO_NOT_FOUND" }, { status: 404 });
   }
-  const taken = claimRefusal(offer, context.user.id);
+  const taken = claimRefusalDetail(offer, context.user.id);
   if (taken) {
-    return Response.json({ error: taken }, { status: 409 });
+    return Response.json({ error: taken.message, errorCode: taken.code, errorParams: taken.params }, { status: 409 });
   }
   const level = door.level;
   const admitted = admitLibraryForSeat(offer.character, door.campaign, context.user.id, level, parsed.data.picks);
   if (!admitted.ok) {
-    return refusal(admitted.problems);
+    return refusal(admitted.problems, 400, admitted.problemDetails);
   }
   const libraryCharacter = createCharacter(context.user.id, level, admitted.sheet);
   // The copy is the pregen's wherever it goes: seated again, edited in the

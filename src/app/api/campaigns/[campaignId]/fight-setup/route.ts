@@ -21,7 +21,7 @@ export async function POST(
   }
   const saved = saveTestAsSetup(context.campaign, context.user.id);
   if (!saved.ok) {
-    return Response.json({ error: saved.error }, { status: 409 });
+    return Response.json({ error: saved.error, errorCode: saved.errorCode }, { status: 409 });
   }
   return Response.json({
     ok: true,

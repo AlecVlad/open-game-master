@@ -185,38 +185,73 @@ export function subclassChoicePickKept<T extends PickFeature>(
 // choice. Empty when they can. Only what the request makes is judged: a
 // stored pick gone stale (its option deleted) is the regrant's to drop and
 // never blocks a save or a level.
-export function subclassChoicePickProblems(sent: Picks, classes: Entry[], extras?: SubclassExtras): string[] {
+export type SubclassChoicePickProblemDetail = {
+  code:
+    | "LEVEL_UP_SUBCLASS_CHOICE_OPTION_NOT_OFFERED"
+    | "LEVEL_UP_SUBCLASS_CHOICE_TOO_EARLY"
+    | "LEVEL_UP_SUBCLASS_CHOICE_MULTIPLE";
+  params: Record<string, string | number>;
+};
+
+export type SubclassChoicePickVerdict = {
+  problems: string[];
+  problemDetails: Array<SubclassChoicePickProblemDetail | null>;
+};
+
+// Structured counterpart for the level-up path. The legacy function below
+// continues to return the original text array for older callers.
+export function subclassChoicePickVerdict(sent: Picks, classes: Entry[], extras?: SubclassExtras): SubclassChoicePickVerdict {
   const problems: string[] = [];
+  const problemDetails: Array<SubclassChoicePickProblemDetail | null> = [];
+  const addProblem = (message: string, detail: SubclassChoicePickProblemDetail) => {
+    problems.push(message);
+    problemDetails.push(detail);
+  };
   const made = new Map<string, string>();
   for (const feature of sent) {
-    if (feature.source !== "choice") {
-      continue;
-    }
+    if (feature.source !== "choice") continue;
     for (const entry of classes) {
       const stored = (entry.subclass ?? "").trim();
       const extra = stored ? extraSubclassFor(entry.id, stored, extras) : null;
       const choice = (extra?.choices ?? []).find((held) => optionOfPick(held, feature) !== undefined);
-      if (!extra || !choice) {
-        continue;
-      }
+      if (!extra || !choice) continue;
       const option = optionOfPick(choice, feature);
       if (!option) {
         const named = parseSubclassChoicePick(feature.name)?.option ?? feature.name;
-        problems.push(`"${named}" is not one of ${extra.name}'s ${choice.label} options; pick one of ${choice.options.map((entry) => entry.name).join(", ")}.`);
+        addProblem(
+          `"${named}" is not one of ${extra.name}'s ${choice.label} options; pick one of ${choice.options.map((entry) => entry.name).join(", ")}.`,
+          {
+            code: "LEVEL_UP_SUBCLASS_CHOICE_OPTION_NOT_OFFERED",
+            params: { subclass: extra.name, choice: choice.label, option: named, offered: choice.options.map((entry) => entry.name).join(",") },
+          },
+        );
       } else if (choice.level > entry.level) {
-        problems.push(`${extra.name}'s ${choice.label} is chosen at class level ${choice.level}; this character is level ${entry.level} in that class.`);
+        addProblem(
+          `${extra.name}'s ${choice.label} is chosen at class level ${choice.level}; this character is level ${entry.level} in that class.`,
+          {
+            code: "LEVEL_UP_SUBCLASS_CHOICE_TOO_EARLY",
+            params: { subclass: extra.name, choice: choice.label, requiredLevel: choice.level, classLevel: entry.level },
+          },
+        );
       } else {
         const key = `${entry.id}|${choice.id}`;
-        const before = made.get(key);
-        if (before && before !== option.name) {
-          problems.push(`${extra.name}'s ${choice.label} is one pick; ${before} and ${option.name} were both chosen.`);
+        const previous = made.get(key);
+        if (previous && previous !== option.name) {
+          addProblem(
+            `${extra.name}'s ${choice.label} is one pick; ${previous} and ${option.name} were both chosen.`,
+            { code: "LEVEL_UP_SUBCLASS_CHOICE_MULTIPLE", params: { subclass: extra.name, choice: choice.label, firstOption: previous, secondOption: option.name } },
+          );
         }
-        made.set(key, before ?? option.name);
+        made.set(key, previous ?? option.name);
       }
       break;
     }
   }
-  return problems;
+  return { problems, problemDetails };
+}
+
+export function subclassChoicePickProblems(sent: Picks, classes: Entry[], extras?: SubclassExtras): string[] {
+  return subclassChoicePickVerdict(sent, classes, extras).problems;
 }
 
 // What the held options train the character in, one grant per choice,

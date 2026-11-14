@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { ScheduleSection } from "@/components/ScheduleSection";
 import { Dialog } from "@/components/ui/Dialog";
 import { GameIcon } from "@/components/ui/GameIcon";
 import { SessionBanner, bannerButtonClass } from "@/app/campaigns/[campaignId]/SessionBanner";
 import {
-  nextSessionWords,
   pickNextSession,
   sessionWhenLocal,
   type NextSession,
@@ -51,11 +51,18 @@ export function SessionHoldBanner({
   mayStart: boolean;
   onStart: () => Promise<void>;
 }) {
+  const { t, tp, lang } = useI18n();
+  const locale = lang === "ru" ? "ru-RU" : "en-US";
   const [top, setTop] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
   const [scheduleOpen, setScheduleOpen] = useState(false);
   const [next, setNext] = useState<NextSession | null | undefined>(undefined);
   const held = hold !== null;
+  const nextLine = next === undefined
+    ? " "
+    : next
+      ? tp("campaign.sessionHold.next", next.coming, { when: sessionWhenLocal(next.startsAt, locale) })
+      : t("campaign.sessionHold.none");
   // Under the session header, whatever its height (TableBreakBanner.tsx).
   useEffect(() => {
     if (!held) {
@@ -112,7 +119,7 @@ export function SessionHoldBanner({
       >
         <SessionBanner
           glyph="rest-long"
-          title={`Session ${hold.number} is over`}
+          title={t("campaign.sessionHold.title", { number: hold.number })}
           className="session-hold-banner pointer-events-auto w-full max-w-xl shadow-elev-2"
           actions={
             <>
@@ -122,7 +129,7 @@ export function SessionHoldBanner({
                 className={bannerButtonClass(!mayStart)}
                 data-session-schedule=""
               >
-                Next session
+                {t("campaign.sessionHold.nextButton")}
               </button>
               {mayStart ? (
                 <button
@@ -132,24 +139,24 @@ export function SessionHoldBanner({
                   className={bannerButtonClass(true)}
                   data-session-start=""
                 >
-                  Start session {hold.number + 1}
+                  {t("campaign.sessionHold.startButton", { number: hold.number + 1 })}
                 </button>
               ) : null}
             </>
           }
         >
           <span role="status" className="block text-sm text-stone-300" data-session-next="">
-            {next === undefined ? " " : nextSessionWords(next, next ? sessionWhenLocal(next.startsAt) : "")}
+            {nextLine}
           </span>
           <span className="block text-xs text-stone-400">
-            The story waits where it stopped. Sheets, the chronicle and OOC table talk stay open.
+            {t("campaign.sessionHold.body")}
           </span>
         </SessionBanner>
       </div>
       <Dialog
         open={scheduleOpen}
         onOpenChange={setScheduleOpen}
-        title="The schedule"
+        title={t("campaign.sessionHold.schedule")}
         icon={<GameIcon icon={{ kind: "glyph", key: "tab-session" }} size="size-6" />}
       >
         <ScheduleSection

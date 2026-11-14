@@ -18,6 +18,7 @@ import { hpExplainerInput } from "./AbilitiesStep";
 import { Chip, Field, StepPanel } from "./shared";
 import { SummaryPanel } from "./SummaryPanel";
 import { BuilderLevelTable } from "../LevelProgressionTable";
+import { useI18n } from "@/lib/i18n/provider";
 
 export type BuilderRole = "pc" | "companion";
 
@@ -59,6 +60,7 @@ export function FinishStep({
   // here, at the end, because it changes nothing on the sheet.
   role?: { value: BuilderRole; onChange: (role: BuilderRole) => void };
 }) {
+  const { t } = useI18n();
   const { preview, acInfo, ac, effectiveLevel } = derived;
   const hp = hpExplainerInput(derived, klass);
   // Hit points, armor class and coin are the server's to work out, so they
@@ -74,9 +76,9 @@ export function FinishStep({
           kept: preview.hpKept,
           atTable: Boolean(table.rules),
           ...(derived.multiclass ? { dice: [klass.hitDie, ...derived.extras.map((entry) => entry.klass.hitDie)] } : {}),
-        })
+        }, { t })
       : null;
-  const acLine = armorClassLine(acInfo?.ac ?? ac, acInfo?.parts);
+  const acLine = armorClassLine(acInfo?.ac ?? ac, acInfo?.parts, { t });
   const purse = purseViewFor({
     purse: derived.purse,
     keepsStoredGear: state.keepsStoredGear,
@@ -85,7 +87,7 @@ export function FinishStep({
     classId: klass?.id ?? "",
     className: klass?.name ?? "character",
     table,
-  });
+  }, { t });
   // Feats come with Ability Score Improvements (picked on the Abilities
   // step) or, for a variant human, with the race (picked on the Ancestry
   // step, issue #124). What is left here is what the character already
@@ -98,12 +100,12 @@ export function FinishStep({
       <SummaryPanel rows={summary} onEdit={(key) => onEdit?.(key)} onFix={onFix} />
 
       {preview && race ? (
-        <StepPanel title="Derived stats" ornate className="border-amber-500/30">
+        <StepPanel title={t("builder.finish.derived")} ornate className="border-amber-500/30">
           <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm text-stone-300 sm:grid-cols-4">
             <Field
               label={
                 <span className="flex items-center gap-0.5">
-                  Max HP
+                  {t("builder.finish.hp")}
                   {hp ? <HpExplainerButton hp={hp} compact /> : null}
                 </span>
               }
@@ -113,30 +115,30 @@ export function FinishStep({
               </span>
               <span className="mt-1 block text-sm text-stone-500">{hpLine?.reason}</span>
             </Field>
-            <Field label="AC">
+            <Field label={t("builder.finish.ac")}>
               <span key={acLine.value} className="reveal font-mono text-base text-amber-100">
                 {acLine.value}
               </span>
               <span className="mt-1 block text-sm text-stone-500">{acLine.reason}</span>
             </Field>
-            <Field label="Gold" className="col-span-2">
+            <Field label={t("builder.finish.gold")} className="col-span-2">
               <span key={`${purse.gold}-${purse.copper}`} className="reveal font-mono text-base text-amber-100">
                 {formatPrice(purseCopper(purse))}
               </span>
               <span className="mt-1 block text-sm text-stone-500">
                 {purse.wealth?.rolled
-                  ? `Rolled by the server: ${purse.wealth.rolled.gold} gp on ${purse.wealth.dice}. `
+                  ? t("builder.finish.rolled", { gold: purse.wealth.rolled.gold, dice: purse.wealth.dice })
                   : ""}
                 {purse.source}
               </span>
             </Field>
-            <span className="self-end">Speed {race.speed} ft</span>
-            <span className="self-end">Prof {formatModifier(proficiencyBonus(effectiveLevel))}</span>
-            <span>Initiative {formatModifier(preview.derived.initiative)}</span>
-            <span>Passive Perception {preview.derived.passivePerception}</span>
-            {preview.derived.spellSaveDc ? <span>Spell DC {preview.derived.spellSaveDc}</span> : null}
+            <span className="self-end">{t("builder.finish.speed", { n: race.speed })}</span>
+            <span className="self-end">{t("builder.finish.prof", { n: formatModifier(proficiencyBonus(effectiveLevel)) })}</span>
+            <span>{t("builder.finish.init", { n: formatModifier(preview.derived.initiative) })}</span>
+            <span>{t("builder.finish.pp", { n: preview.derived.passivePerception })}</span>
+            {preview.derived.spellSaveDc ? <span>{t("builder.finish.dc", { n: preview.derived.spellSaveDc })}</span> : null}
             {preview.derived.spellAttack !== null ? (
-              <span>Spell attack {formatModifier(preview.derived.spellAttack)}</span>
+              <span>{t("builder.finish.atk", { n: formatModifier(preview.derived.spellAttack) })}</span>
             ) : null}
           </div>
         </StepPanel>
@@ -148,29 +150,29 @@ export function FinishStep({
       <BuilderLevelTable state={state} derived={derived} klass={klass} />
 
       {role ? (
-        <StepPanel title="Their place at the table" help="It changes nothing on the sheet, only how they join a campaign.">
+        <StepPanel title={t("builder.finish.place")} help={t("builder.finish.place.help")}>
           <SegmentedControl
-            label="Their place at the table"
+            label={t("builder.finish.place")}
             value={role.value}
             onChange={role.onChange}
             options={[
-              { value: "pc", label: "A character I play" },
-              { value: "companion", label: "An ally the GM plays" },
+              { value: "pc", label: t("builder.finish.pc") },
+              { value: "companion", label: t("builder.finish.ally") },
             ]}
             className="w-full sm:max-w-md"
           />
           <p className="mt-1.5 text-xs text-stone-500">
             {role.value === "companion"
-              ? "Companions are offered when a party adds one, at whatever level that table plays at. Nobody has to roll them up again."
-              : "Joins a campaign as yours to control."}
+              ? t("builder.finish.ally.note")
+              : t("builder.finish.pc.note")}
           </p>
         </StepPanel>
       ) : null}
 
       {!racialFeat && state.feats.length ? (
         <StepPanel
-          title="Feats"
-          help="Feats this character already holds. New feats come with an ability score improvement."
+          title={t("builder.finish.feats")}
+          help={t("builder.finish.feats.help")}
         >
           <div className="mt-2 flex flex-wrap gap-1.5">
             {state.feats.map((feat) => (
@@ -189,7 +191,7 @@ export function FinishStep({
         <p role="alert" className="reveal flex flex-wrap items-center gap-2 rounded-lg border border-amber-500/30 bg-amber-950/20 px-3 py-2 text-xs text-amber-100">
           {table.rulesError}
           <button type="button" onClick={table.retryRules} className={ui.btnSmall}>
-            Try again
+            {t("builder.finish.retry")}
           </button>
         </p>
       ) : null}
@@ -197,7 +199,7 @@ export function FinishStep({
         // Every reason the server gave, not just the first (U:UB8).
         error.includes("\n") ? (
           <div className="motion-shake text-sm text-red-400" role="alert">
-            <p>The server did not save the character:</p>
+            <p>{t("builder.finish.refused")}</p>
             <ul className="stagger mt-1 list-disc space-y-0.5 pl-5">
               {error.split("\n").map((line) => (
                 <li key={line}>{line}</li>

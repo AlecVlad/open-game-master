@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Dialog } from "@/components/ui/Dialog";
 import { ui } from "@/lib/ui";
+import { useT } from "@/lib/i18n/provider";
 
 // One line of text asked for in the app's own dialog. window.prompt was
 // the previous answer, and Electron does not implement it: the desktop
@@ -15,6 +16,7 @@ type PromptProps = {
   placeholder?: string;
   maxLength?: number;
   submitLabel?: string;
+  cancelLabel?: string;
   // A pin with no label is a plain marker, so some prompts accept nothing.
   allowEmpty?: boolean;
   onSubmit: (value: string) => void;
@@ -29,11 +31,15 @@ function PromptForm({
   defaultValue = "",
   placeholder,
   maxLength = 80,
-  submitLabel = "Save",
+  submitLabel,
+  cancelLabel,
   allowEmpty = false,
   onSubmit,
   onClose,
 }: PromptProps) {
+  const t = useT();
+  const saveLabel = submitLabel ?? t("promptDialog.save");
+  const dismissLabel = cancelLabel ?? t("promptDialog.cancel");
   const [value, setValue] = useState(defaultValue);
   const trimmed = value.trim();
   const canSubmit = allowEmpty || trimmed.length > 0;
@@ -63,10 +69,10 @@ function PromptForm({
       </label>
       <div className="flex justify-end gap-2">
         <button type="button" onClick={onClose} className={ui.btnSecondary}>
-          Cancel
+          {dismissLabel}
         </button>
         <button type="submit" disabled={!canSubmit} className={ui.btnPrimary}>
-          {submitLabel}
+          {saveLabel}
         </button>
       </div>
     </form>

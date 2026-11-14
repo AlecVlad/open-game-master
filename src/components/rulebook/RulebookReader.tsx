@@ -4,6 +4,7 @@ import "@/app/styles/rulebook.css";
 import { Bookmark, ChevronLeft, ChevronRight, List } from "lucide-react";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/cn";
+import { useI18n } from "@/lib/i18n/provider";
 import type { RulebookContents as Contents, RulebookPageResponse } from "@/lib/rulebook/types";
 import { RulebookContents, type OpenFromContents } from "./RulebookContents";
 import { RulebookPage } from "./RulebookPage";
@@ -65,6 +66,7 @@ export function RulebookReader({
   embedded?: boolean;
   onPageChange?: (id: string, at?: string) => void;
 }) {
+  const { t } = useI18n();
   const [contents, setContents] = useState<Contents | null>(null);
   const [contentsFailed, setContentsFailed] = useState(false);
   const [shown, setShown] = useState<Shown | null>(null);
@@ -329,13 +331,13 @@ export function RulebookReader({
         data-view={view}
         data-enter={enter ?? undefined}
       >
-        <section className="rb-leaf rb-left" aria-label="Contents and search">
+        <section className="rb-leaf rb-left" aria-label={t("rulebook.contentsAndSearch")}>
           <div className="rb-leaf-scroll">
             {contentsFailed ? (
               <div className="rb-trouble">
-                <p>The rulebook could not be opened just now.</p>
+                <p>{t("rulebook.error.contents")}</p>
                 <button type="button" className="rb-chip motion-press" onClick={() => void loadContents()}>
-                  Try again
+                  {t("rulebook.tryAgain")}
                 </button>
               </div>
             ) : (
@@ -348,7 +350,7 @@ export function RulebookReader({
 
         <section
           className="rb-leaf rb-right"
-          aria-label={shown ? shown.data.page.title : "The Rulebook"}
+          aria-label={shown ? shown.data.page.title : t("rulebook.title")}
           onTouchStart={(event) => {
             const point = event.touches[0];
             touch.current = point ? { x: point.clientX, y: point.clientY } : null;
@@ -365,13 +367,13 @@ export function RulebookReader({
         >
           <div className="rb-toolbar">
             <button type="button" className="rb-tool rb-tool-contents" onClick={goContents}>
-              <List className="size-4" aria-hidden="true" /> Contents
+              <List className="size-4" aria-hidden="true" /> {t("rulebook.section.contents")}
             </button>
             <span className="rb-toolbar-space" />
             <button
               type="button"
               className="rb-tool rb-tool-step"
-              aria-label="Previous page"
+              aria-label={t("rulebook.previousPage")}
               disabled={!shown?.data.prev}
               onClick={() => step("back")}
             >
@@ -380,7 +382,7 @@ export function RulebookReader({
             <button
               type="button"
               className="rb-tool rb-tool-step"
-              aria-label="Next page"
+              aria-label={t("rulebook.nextPage")}
               disabled={!shown?.data.next}
               onClick={() => step("forward")}
             >
@@ -391,8 +393,8 @@ export function RulebookReader({
                 type="button"
                 className="rb-tool rb-tool-mark"
                 aria-pressed={marked}
-                aria-label={marked ? "Remove the bookmark" : "Bookmark this page"}
-                title={marked ? "Remove the bookmark" : "Bookmark this page"}
+                aria-label={marked ? t("rulebook.removeBookmark") : t("rulebook.bookmarkPage")}
+                title={marked ? t("rulebook.removeBookmark") : t("rulebook.bookmarkPage")}
                 onClick={toggleMark}
               >
                 <Bookmark className="size-4" fill={marked ? "currentColor" : "none"} />
@@ -403,7 +405,7 @@ export function RulebookReader({
           <div ref={leafRef} className="rb-leaf-scroll">
             {pageFailed && !shown ? (
               <div className="rb-trouble">
-                <p>That page could not be found in the book.</p>
+                <p>{t("rulebook.error.pageNotFound")}</p>
               </div>
             ) : shown ? (
               <div key={shown.data.page.id} className="rb-page-in" data-no-motion>
@@ -437,15 +439,15 @@ export function RulebookReader({
         <button
           type="button"
           className="rb-cover"
-          aria-label="Open the book"
+          aria-label={t("rulebook.openBook")}
           onClick={(event) => event.currentTarget.classList.add("rb-cover-now")}
           onAnimationEnd={(event) => {
             if (event.animationName === "rb-cover-open") setCoverOn(false);
           }}
         >
           <span className="rb-cover-frame" aria-hidden="true" />
-          <span className="rb-cover-title">The Rulebook</span>
-          <span className="rb-cover-sub">Fifth Edition</span>
+          <span className="rb-cover-title">{t("rulebook.title")}</span>
+          <span className="rb-cover-sub">{t("rulebook.fifthEdition")}</span>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/assets/ui/wax-seal-gold.webp" alt="" className="rb-cover-seal" />
         </button>
@@ -455,28 +457,25 @@ export function RulebookReader({
 }
 
 function Frontispiece({ onBegin }: { onBegin: () => void }) {
+  const { t } = useI18n();
   return (
     <div className="rb-frontis">
       <p className="rb-running">Open Game Master</p>
-      <h1 className="rb-frontis-title">The Rulebook</h1>
-      <p className="rb-frontis-sub">Fifth Edition &middot; System Reference Document 5.1</p>
+      <h1 className="rb-frontis-title">{t("rulebook.title")}</h1>
+      <p className="rb-frontis-sub">{t("rulebook.edition")}</p>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src="/assets/ui/divider-rule.webp" alt="" width={512} height={33} className="rb-divider" />
       <p className="rb-frontis-text">
-        Every rule of the game in one volume: the races and classes, equipment, how to use ability scores,
-        adventuring, combat, spellcasting, every spell, magic item and monster, and the conditions they inflict.
+{t("rulebook.frontispiece.summary")}
       </p>
       <p className="rb-frontis-text">
-        Three books are bound here: the players&apos;, the Game Master&apos;s and the monsters&apos;, each
-        holding all that the reference document opens of the Player&apos;s Handbook, the Dungeon Master&apos;s
-        Guide and the Monster Manual.
+{t("rulebook.frontispiece.books")}
       </p>
       <p className="rb-frontis-text">
-        Search from the contents page, or open a chapter. The arrow keys turn the pages, and a bookmark keeps a
-        page one tap away.
+{t("rulebook.frontispiece.navigation")}
       </p>
       <button type="button" className="rb-chip rb-begin motion-press" onClick={onBegin}>
-        Begin at chapter I
+        {t("rulebook.beginAtChapterOne")}
       </button>
     </div>
   );

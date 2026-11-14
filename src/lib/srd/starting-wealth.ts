@@ -16,6 +16,7 @@ import { formatPrice, packCostCopper } from "@/lib/srd/currency";
 import { magicItemNamed } from "@/lib/srd/magic-items";
 import { textKey } from "@/lib/language/text-logic";
 import { magicItemBonus } from "@/lib/srd/item-row";
+import type { GearProblemDetail } from "@/lib/srd/gear-problems";
 
 export const STARTING_WEALTH_METHODS = ["equipment", "rolled"] as const;
 export type StartingWealthMethod = (typeof STARTING_WEALTH_METHODS)[number];
@@ -159,6 +160,7 @@ export type GearItem = { name: string; qty: number; slug?: string };
 
 export type GearVerdict = {
   problems: string[];
+  problemDetails: GearProblemDetail[];
   // What the gear cost, in copper; the purse is the coin less this.
   spentCopper: number;
 };
@@ -174,6 +176,11 @@ export function judgeStartingGear(input: {
   priceOf: PriceLookup;
 }): GearVerdict {
   const problems: string[] = [];
+  const problemDetails: GearProblemDetail[] = [];
+  const addProblem = (message: string, detail: GearProblemDetail) => {
+    problems.push(message);
+    problemDetails.push(detail);
+  };
   const free = new Map<string, number>();
   for (const name of input.freeKit) {
     free.set(key(name), (free.get(key(name)) ?? 0) + 1);
@@ -190,30 +197,41 @@ export function judgeStartingGear(input: {
       continue;
     }
     if (item.slug?.startsWith("homebrew:")) {
-      problems.push(
+      addProblem(
         `${item.name} is homebrew gear, which whoever runs the table grants in play; a new character starts with listed gear only.`,
+        { code: "homebrew", params: { name: item.name } },
       );
       continue;
     }
     const price = input.priceOf(item.name);
     if (price.magic) {
-      problems.push(
+      addProblem(
         `${item.name} is a magic item, and those are found in play; a new character starts with mundane gear.`,
+        { code: "magic", params: { name: item.name } },
       );
       continue;
     }
     if (price.copper === null) {
-      problems.push(
+      addProblem(
         `${item.name} has no listed price, so it cannot be bought at creation; ask whoever runs the table to grant it in play.`,
+        { code: "unpriced", params: { name: item.name } },
       );
       continue;
     }
     spentCopper += price.copper * bought;
   }
   if (!problems.length && spentCopper > input.coinCopper) {
-    problems.push(
+    addProblem(
       `That gear costs ${formatPrice(spentCopper)} beyond the starting kit and the character has ${formatPrice(input.coinCopper)} to spend; remove ${formatPrice(spentCopper - input.coinCopper)} of it.`,
+      {
+        code: "insufficientFunds",
+        params: {
+          cost: formatPrice(spentCopper),
+          available: formatPrice(input.coinCopper),
+          shortfall: formatPrice(spentCopper - input.coinCopper),
+        },
+      },
     );
   }
-  return { problems, spentCopper };
+  return { problems, problemDetails, spentCopper };
 }

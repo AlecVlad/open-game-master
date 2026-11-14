@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { Listed, PanelError } from "@/app/campaigns/[campaignId]/PanelKit";
 import { readLoad, readWrite, useLoadStatus } from "@/lib/load-state";
 import {
@@ -73,6 +74,7 @@ export function DmNpcForgePanel({
   openId?: string | null;
   onWorldEntry?: (id: string) => void;
 }) {
+  const { t } = useI18n();
   const [npcs, setNpcs] = useState<Npc[]>([]);
   const [graph, setGraph] = useState<RelationGraph>({ nodes: [], edges: [] });
   const [showGraph, setShowGraph] = useState(false);
@@ -118,7 +120,7 @@ export function DmNpcForgePanel({
   const { loaded, loadError, settle } = useLoadStatus();
   const load = useCallback(
     () =>
-      readLoad<{ npcs: Npc[]; graph: RelationGraph; genre?: string; knownBeforeOpen?: boolean }>(fetch(`/api/campaigns/${campaignId}/dm/npcs`), "The cast").then(
+      readLoad<{ npcs: Npc[]; graph: RelationGraph; genre?: string; knownBeforeOpen?: boolean }>(fetch(`/api/campaigns/${campaignId}/dm/npcs`), t("campaign.dmNpcForge.resource")).then(
         (outcome) => {
           if (outcome.payload) {
             setNpcs(outcome.payload.npcs);
@@ -129,7 +131,7 @@ export function DmNpcForgePanel({
           settle(outcome);
         },
       ),
-    [campaignId, settle],
+    [campaignId, settle, t],
   );
 
   useEffect(() => {
@@ -200,7 +202,7 @@ export function DmNpcForgePanel({
   // answer the change may have landed, so the cast is read again; a second
   // create of the same name is refused by the server, never doubled.
   function failed(sent: { error: string; unanswered: boolean }) {
-    setError(sent.unanswered ? `${sent.error} The cast was read again; check it before you try again.` : sent.error);
+    setError(sent.unanswered ? t("campaign.dmNpcForge.error.retryRead", { error: sent.error }) : sent.error);
     if (sent.unanswered) void load();
   }
 
@@ -217,7 +219,7 @@ export function DmNpcForgePanel({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ draft }),
         }),
-        "That did not save.",
+        t("campaign.dmNpcForge.error.save"),
       );
       if (sent.error !== null) {
         failed(sent);
@@ -245,7 +247,7 @@ export function DmNpcForgePanel({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
         }),
-        "That did not save.",
+        t("campaign.dmNpcForge.error.save"),
       );
       if (sent.error !== null) {
         failed(sent);
@@ -264,7 +266,7 @@ export function DmNpcForgePanel({
     setBusy(true);
     setError("");
     try {
-      const sent = await readWrite(fetch(`/api/campaigns/${campaignId}/dm/npcs/${selected.id}`, { method: "DELETE" }), "That could not be deleted.");
+      const sent = await readWrite(fetch(`/api/campaigns/${campaignId}/dm/npcs/${selected.id}`, { method: "DELETE" }), t("campaign.dmNpcForge.error.delete"));
       if (sent.error !== null) {
         failed(sent);
         return;
@@ -295,7 +297,7 @@ export function DmNpcForgePanel({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ draft: { ...base, name: `${base.name} (copy)`.slice(0, 80) } }),
         }),
-        "That could not be copied.",
+        t("campaign.dmNpcForge.error.copy"),
       );
       if (sent.error !== null) {
         failed(sent);
@@ -331,7 +333,7 @@ export function DmNpcForgePanel({
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError((payload as { error?: string }).error ?? "The model had nothing to say.");
+        setError((payload as { error?: string }).error ?? t("campaign.dmNpcForge.error.suggest"));
         return;
       }
       setDraft((current) => applyGeneratedField(current, field, String(payload.text ?? "")));
@@ -352,12 +354,12 @@ export function DmNpcForgePanel({
       });
       const payload = await upload.json().catch(() => ({}));
       if (!upload.ok) {
-        setError(payload.error || "That image would not upload.");
+        setError(payload.error || t("campaign.dmNpcForge.error.upload"));
         return;
       }
       await patch({ portraitUrl: payload.url });
     } catch {
-      setError("That image would not upload.");
+      setError(t("campaign.dmNpcForge.error.upload"));
     } finally {
       setBusy(false);
     }
@@ -369,7 +371,7 @@ export function DmNpcForgePanel({
       <button
         type="button"
         disabled={generating !== "" || busy}
-        title={`Ask the model for ${FIELD_LABELS[field].toLowerCase()}`}
+        title={t("campaign.dmNpcForge.suggest")}
         onClick={() => void suggest(field)}
         className={cn(ui.btnSmall, "shrink-0 gap-1 px-2 py-1 text-[10px]")}
       >
@@ -378,7 +380,7 @@ export function DmNpcForgePanel({
         ) : (
           <Sparkles className="size-3" />
         )}
-        Suggest
+        {t("campaign.dmNpcForge.suggest")}
       </button>
     ) : null;
 
@@ -406,7 +408,7 @@ export function DmNpcForgePanel({
           data-tour="cast-save"
           className={ui.btnPrimary}
         >
-          {busy ? <Loader2 className="size-4 animate-spin" /> : null} Save them
+          {busy ? <Loader2 className="size-4 animate-spin" /> : null} {t("campaign.dmNpcForge.save")}
         </button>
         {selected ? (
           <>
@@ -429,28 +431,28 @@ export function DmNpcForgePanel({
               onClick={() => fileRef.current?.click()}
               className={cn(ui.btnSmall, "min-h-9 gap-1 px-2 py-1 text-xs")}
             >
-              <ImageIcon className="size-3" /> {selected.portraitUrl ? "Replace face" : "Add a face"}
+              <ImageIcon className="size-3" /> {t(selected.portraitUrl ? "campaign.dmNpcForge.portrait.replace" : "campaign.dmNpcForge.portrait.add")}
             </button>
             {canPaint ? (
               <button
                 type="button"
                 disabled={busy} aria-busy={busy}
-                title="Render one on the shared media queue"
+                title={t("campaign.dmNpcForge.portrait.paintTitle")}
                 onClick={() => void patch({ draft, generatePortrait: true })}
                 className={cn(ui.btnSmall, "min-h-9 gap-1 px-2 py-1 text-xs")}
               >
-                <Sparkles className="size-3" /> Paint one
+                <Sparkles className="size-3" /> {t("campaign.dmNpcForge.portrait.paint")}
               </button>
             ) : null}
             {selected.portraitUrl ? (
               <button
                 type="button"
                 disabled={busy} aria-busy={busy}
-                title="Take the picture away and show the stand-in for their role instead"
+                title={t("campaign.dmNpcForge.portrait.removeTitle")}
                 onClick={() => void patch({ portraitUrl: "" })}
                 className={cn(ui.btnSmall, "min-h-9 gap-1 px-2 py-1 text-xs")}
               >
-                <ImageOff className="size-3" /> Use placeholder
+                <ImageOff className="size-3" /> {t("campaign.dmNpcForge.portrait.placeholder")}
               </button>
             ) : null}
             <button
@@ -458,30 +460,30 @@ export function DmNpcForgePanel({
               disabled={busy} aria-busy={busy}
               title={
                 selected.archived
-                  ? "Put them back in the GM's prompt"
-                  : "Keep them, but take them out of the GM's prompt"
+                  ? t("campaign.dmNpcForge.archive.restoreTitle")
+                  : t("campaign.dmNpcForge.archive.setAsideTitle")
               }
               onClick={() => void patch({ archived: !selected.archived })}
               className={cn(ui.btnSmall, "min-h-9 gap-1 px-2 py-1 text-xs")}
             >
               {selected.archived ? (
                 <>
-                  <ArchiveRestore className="size-3" /> Bring back
+                  <ArchiveRestore className="size-3" /> {t("campaign.dmNpcForge.archive.restore")}
                 </>
               ) : (
                 <>
-                  <Archive className="size-3" /> Set aside
+                  <Archive className="size-3" /> {t("campaign.dmNpcForge.archive.setAside")}
                 </>
               )}
             </button>
             <button
               type="button"
               disabled={busy} aria-busy={busy}
-              aria-label={`Duplicate ${selected.name}`}
+              aria-label={t("campaign.dmNpcForge.duplicateAria", { name: selected.name })}
               onClick={() => void duplicate()}
               className={cn(ui.btnSmall, "min-h-9 gap-1 px-2 py-1 text-xs")}
             >
-              <Copy className="size-3" /> Duplicate
+              <Copy className="size-3" /> {t("campaign.dmNpcForge.duplicate")}
             </button>
             <button
               type="button"
@@ -489,7 +491,7 @@ export function DmNpcForgePanel({
               onClick={() => void remove()}
               className={cn(ui.btnSmall, "ml-auto min-h-9 gap-1 px-2 py-1 text-xs hover:border-red-400/50 hover:text-red-300")}
             >
-              <Trash2 className="size-3" /> Forget them
+              <Trash2 className="size-3" /> {t("campaign.dmNpcForge.forget")}
             </button>
           </>
         ) : null}
@@ -511,7 +513,7 @@ export function DmNpcForgePanel({
         className={cn(ui.btnSmall, "min-h-9 px-2 py-1 text-xs", showGraph && "border-amber-500/70 bg-amber-400/10 text-amber-100")}
       >
         <GameIcon icon={{ kind: "glyph", key: "tab-bonds" }} size="size-5" />
-        {showGraph ? "Hide who knows whom" : "Who knows whom"}
+        {t(showGraph ? "campaign.dmNpcForge.graph.hide" : "campaign.dmNpcForge.graph.show")}
       </button>
       {showGraph ? (
         <RelationGraphView
@@ -533,13 +535,13 @@ export function DmNpcForgePanel({
     return (
       <div className="space-y-3">
         {graphView}
-        <Listed loaded={loaded} error={loadError} onRetry={() => void load()} loading="Calling the cast...">
+        <Listed loaded={loaded} error={loadError} onRetry={() => void load()} loading={t("campaign.dmNpcForge.loading")}>
           <CastRows npcs={npcs} onOpen={open} factionNames={new Map(factions.map((faction) => [faction.id, faction.name]))} />
         </Listed>
         <Sheet
           open={editorOpen}
           onOpenChange={setEditorOpen}
-          title={selected ? selected.name : "Someone new"}
+          title={selected ? selected.name : t("campaign.dmNpcForge.newNpc")}
           className="lg:w-[min(92vw,40rem)]"
         >
           {editor}

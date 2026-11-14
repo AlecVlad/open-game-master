@@ -8,6 +8,7 @@ import { cn } from "@/lib/cn";
 import type { ModelChoices, RegistryModel, RegistryProvider } from "@/lib/model-registry/registry";
 import type { ModelRole } from "@/lib/model-registry/catalog-logic";
 import { ui } from "@/lib/ui";
+import { useI18n } from "@/lib/i18n/provider";
 
 // A model field that lists what the backend serves (POST /api/admin/models):
 // the server's own list, each row with the catalog's word on it, and the
@@ -79,6 +80,7 @@ export function modelLine(model: RegistryModel | undefined): string {
 }
 
 export function ModelChoiceField(props: ModelChoiceProps) {
+  const { t, tp } = useI18n();
   const { label, hint, role, provider, baseUrl = "", apiKey = "", harnessId, value, onChange, blankLabel, narrow, preselect, onListing } = props;
   const [choices, setChoices] = useState<ModelChoices | null>(null);
   const [loading, setLoading] = useState(false);
@@ -154,10 +156,10 @@ export function ModelChoiceField(props: ModelChoiceProps) {
     ...(blank ? [{ value: BLANK, label: blank }] : []),
     ...[...models.filter((model) => model.id === recommended), ...models.filter((model) => model.id !== recommended)].map((model) => ({
       value: model.id,
-      label: `${model.label}${model.id === recommended ? " (recommended)" : ""}${model.listed === false ? " (not listed)" : ""}${model.verdict.fit === "unfit" ? " (unfit)" : ""}`,
+      label: `${model.label}${model.id === recommended ? t("admin.model.recommended", { label: "" }).trimEnd() : ""}${model.listed === false ? t("admin.model.notListed", { label: "" }).trimEnd() : ""}${model.verdict.fit === "unfit" ? t("admin.model.unfit", { label: "" }).trimEnd() : ""}`,
       hint: [model.note, model.verdict.summary].filter(Boolean).join(" · "),
     })),
-    { value: TYPE_OWN, label: "Type a model id…" },
+    { value: TYPE_OWN, label: t("admin.model.typeOwn") },
   ];
 
   return (
@@ -197,46 +199,45 @@ export function ModelChoiceField(props: ModelChoiceProps) {
           }}
           disabled={loading}
           aria-busy={loading}
-          title="List the backend's models again"
+          title={t("admin.model.again.title")}
           className={cn(ui.btnSmall, "shrink-0")}
         >
           {loading ? <Loader2 className="size-4 animate-spin" /> : <RefreshCw className="size-4" />}
-          Look again
+          {t("admin.model.again")}
         </button>
       </div>
       {choices && choices.reachable === false ? (
-        <p className="mt-1 text-[11px] leading-4 text-amber-300">{choices.error || "The backend did not answer."}</p>
+        <p className="mt-1 text-[11px] leading-4 text-amber-300">{choices.error || t("admin.model.noAnswer")}</p>
       ) : null}
       {chosen ? (
         <p className={cn("mt-1 text-[11px] leading-4", modelTone(chosen))}>{modelLine(chosen)}</p>
       ) : value && choices && !loading ? (
-        <p className="mt-1 text-[11px] leading-4 text-stone-500">Not in the catalog; ODM will try it as typed.</p>
+        <p className="mt-1 text-[11px] leading-4 text-stone-500">{t("admin.model.notInCatalog")}</p>
       ) : null}
       {unfit.length ? (
         <p className="mt-1 text-[11px] leading-4 text-stone-500">
-          {unfit.length} {unfit.length === 1 ? "model" : "models"} the backend lists cannot run the {role === "image" ? "painter" : "storyteller"}
-          {showUnfit ? "" : " and " + (unfit.length === 1 ? "is" : "are") + " left off the list"}.{" "}
+          {tp(showUnfit ? "admin.model.unfitShown" : "admin.model.unfitHidden", unfit.length, { count: unfit.length, role: t(role === "image" ? "admin.model.role.painter" : "admin.model.role.storyteller") })}{" "}
           <button type="button" className="underline hover:text-stone-300" onClick={() => setShowUnfit((on) => !on)}>
-            {showUnfit ? "Hide them" : "Show them"}
+            {showUnfit ? t("admin.model.hide") : t("admin.model.show")}
           </button>
         </p>
       ) : null}
       {narrow && (hidden || showAll) ? (
         <p className="mt-1 text-[11px] leading-4 text-stone-500">
-          {showAll ? `Showing every model the server lists. ` : `${hidden} more ${hidden === 1 ? "model" : "models"} the server lists ${hidden === 1 ? "does" : "do"} not look like ${narrow.kind}. `}
+          {showAll ? t("admin.model.showingAll") : tp("admin.model.moreHidden", hidden, { count: hidden, kind: narrow.kind })}
           <button type="button" className="underline hover:text-stone-300" onClick={() => setShowAll((on) => !on)}>
-            {showAll ? `Only ${narrow.kind}` : "Show all"}
+            {showAll ? t("admin.model.only", { kind: narrow.kind }) : t("admin.model.showAll")}
           </button>
         </p>
       ) : null}
       {choices ? (
         <p className="mt-1 text-[11px] leading-4 text-stone-600">
-          {choices.hardware ? `This machine: ${choices.hardware.summary}. ` : ""}
-          {choices.reachable === true ? `${all.filter((model) => model.listed).length} listed by the backend. ` : ""}
-          Catalog: {choices.catalog.models} models
-          {choices.catalog.fetchedAt ? ` as of ${choices.catalog.fetchedAt.slice(0, 10)}` : ""}
-          {choices.catalog.source === "snapshot" ? " (bundled copy)" : ""}
-          {choices.catalog.error ? `; last refresh failed: ${choices.catalog.error}` : ""}.
+          {choices.hardware ? t("admin.model.machine", { summary: choices.hardware.summary }) : ""}
+          {choices.reachable === true ? t("admin.model.listedBy", { count: all.filter((model) => model.listed).length }) : ""}
+          {t("admin.model.catalog", { count: choices.catalog.models })}
+          {choices.catalog.fetchedAt ? t("admin.model.asOf", { date: choices.catalog.fetchedAt.slice(0, 10) }) : ""}
+          {choices.catalog.source === "snapshot" ? t("admin.model.bundled") : ""}
+          {choices.catalog.error ? t("admin.model.refreshFailed", { error: choices.catalog.error }) : ""}.
         </p>
       ) : null}
     </Field>

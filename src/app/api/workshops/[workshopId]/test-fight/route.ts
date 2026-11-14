@@ -62,11 +62,14 @@ export async function GET(
   const { user, workshop } = resolved;
   const readiness = await testFightReadiness(workshop);
   const party = workshop.gameSettings.targetParty;
+  const mayStart = canCreateCampaigns(user);
   return Response.json({
     ready: readiness.ready,
     reason: readiness.reason,
+    reasonCode: readiness.ready ? null : "no-ai",
     // Said before the button, so the sheet never offers a start it refuses.
-    refused: canCreateCampaigns(user) ? "" : TEST_FIGHT_REFUSED,
+    refused: mayStart ? "" : TEST_FIGHT_REFUSED,
+    refusedCode: mayStart ? null : "admin-only",
     standIns: { size: party.size, level: party.level, classes: standInClasses(party.size) },
     open: testFightsOf(workshop.id, user.id)[0] ?? null,
   });

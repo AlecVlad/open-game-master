@@ -2,6 +2,7 @@
 
 import { AlertTriangle, Loader2, Trash2 } from "lucide-react";
 import { useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui";
 import { SectionHead } from "@/components/ui/SectionHead";
@@ -9,13 +10,10 @@ import { Select } from "@/components/ui/Select";
 import { Field, chip, chipOn, chipRow } from "@/app/workshop/kit";
 import {
   BEAT_KINDS,
-  BEAT_LABELS,
   BODY_MAX,
   ROUTE_KINDS,
-  ROUTE_LABELS,
   ROUTE_LABEL_MAX,
   TITLE_MAX,
-  originLine,
   type Beat,
   type BeatKind,
   type BeatLinks,
@@ -27,7 +25,8 @@ import {
 import { KIND_GLYPH, LINK_FIELDS, LINK_GLYPH } from "@/app/workshop/storyboard/beat-fields";
 import { DictateField } from "@/components/DictateField";
 import { appendDictation } from "@/lib/dictation";
-import { checkProse, overflowLine } from "@/lib/workshop/prose-check";
+import { checkProse } from "@/lib/workshop/prose-check";
+import { beatLabel, linkLabel, originText, routeLabel } from "@/app/workshop/storyboard/storyboard-i18n";
 
 // One card, open for editing: its kind and title, what happens, who and
 // where it involves, and which cards it leads to and how. Split out of
@@ -67,12 +66,29 @@ export function BeatEditor({
   onSave: () => void;
   onDelete?: () => void;
 }) {
+  const { t, tp, lang } = useI18n();
   // Over the cap is said here, with what would be lost, and the save is
   // held until it fits (issue #302): the server refuses it the same way.
   // The readability note is a heuristic the author may dismiss; the text
   // is never changed.
-  const overflow = overflowLine("This card's text", edit.body.trim(), BODY_MAX);
+  const trimmedBody = edit.body.trim();
+  const overflow = trimmedBody.length > BODY_MAX;
+  const lost = trimmedBody.slice(BODY_MAX).trim();
+  const shownLoss = lost.length > 60 ? lost.slice(0, 60).trimEnd() + "..." : lost;
+  const overflowText = overflow
+    ? t("campaign.storyboard.overflow", {
+        length: tp("campaign.storyboard.characters", trimmedBody.length, { count: trimmedBody.length.toLocaleString(lang) }),
+        max: tp("campaign.storyboard.characters", BODY_MAX, { count: BODY_MAX.toLocaleString(lang) }),
+        lost: shownLoss ? (lang === "ru" ? `: «${shownLoss}»` : `: "${shownLoss}"`) : "",
+      })
+    : "";
   const prose = checkProse(edit.body);
+  const proseMessages = prose.map((warning) => {
+    const count = Number(warning.message.match(/^\d+/)?.[0] ?? 0);
+    if (warning.kind === "joined-sentences") return tp("campaign.storyboard.prose.joined", count);
+    if (warning.kind === "long-run") return tp("campaign.storyboard.prose.longRun", count, { letters: 28 });
+    return t("campaign.storyboard.prose.fewSpaces");
+  });
   const [dismissed, setDismissed] = useState("");
   const proseKey = prose.map((warning) => warning.kind).join(",");
   const saveButton = (
@@ -83,72 +99,74 @@ export function BeatEditor({
       className={cn(ui.btnPrimary, "w-fit")}
     >
       {busy ? <Loader2 className="size-3.5 animate-spin" /> : null}
-      Save the card
+      {t("campaign.storyboard.saveCard")}
     </button>
   );
 
   return (
     <>
-      <SectionHead title="The card" glyph={KIND_GLYPH[edit.kind]} className="mb-0" />
+      <SectionHead title={t("campaign.storyboard.card")} glyph={KIND_GLYPH[edit.kind]} className="mb-0" />
       {origin ? (
         <p className="text-[11px] text-stone-500" data-testid="card-origin">
-          {originLine(origin)}
+          {originText(t, origin)}
         </p>
       ) : null}
       <div className="flex flex-wrap gap-2">
         <span className="w-full sm:w-52">
           <Select<BeatKind>
-            label="Kind of card"
+            label={t("campaign.storyboard.kindLabel")}
             value={edit.kind}
             onChange={(kind) => onChange({ ...edit, kind })}
-            options={BEAT_KINDS.map((kind) => ({ value: kind, label: BEAT_LABELS[kind], icon: { kind: "glyph" as const, key: KIND_GLYPH[kind] } }))}
+            options={BEAT_KINDS.map((kind) => ({ value: kind, label: beatLabel(t, kind), icon: { kind: "glyph" as const, key: KIND_GLYPH[kind] } }))}
           />
         </span>
         <input
           value={edit.title}
-          aria-label="Title"
+          aria-label={t("campaign.storyboard.title")}
           onChange={(event) =>
             onChange({ ...edit, title: event.target.value.slice(0, TITLE_MAX) })
           }
           className={cn(ui.input, "min-w-40 flex-1")}
         />
       </div>
-      <DictateField label="What happens" onTranscript={(text) => onChange({ ...edit, body: appendDictation(edit.body, text) })}>
+      <DictateField label={t("campaign.storyboard.whatHappens")} onTranscript={(text) => onChange({ ...edit, body: appendDictation(edit.body, text) })}>
         <textarea
           value={edit.body}
           onChange={(event) => onChange({ ...edit, body: event.target.value })}
           rows={3}
-          placeholder="What actually happens, and what it means if the party is not there."
-          aria-label="What happens"
+          placeholder={t("campaign.storyboard.body.placeholder")}
+          aria-label={t("campaign.storyboard.whatHappens")}
           className={cn(ui.input, "resize-y")}
         />
       </DictateField>
       <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1 text-[11px]">
         <span className={cn("font-mono", overflow ? "text-red-400" : edit.body.length > BODY_MAX * 0.8 ? "text-amber-300" : "text-stone-500")} data-testid="card-length">
-          {edit.body.length.toLocaleString("en-US")} / {BODY_MAX.toLocaleString("en-US")}
+          {edit.body.length.toLocaleString(lang)} / {BODY_MAX.toLocaleString(lang)}
         </span>
         {overflow ? (
           <span className="motion-shake w-full text-red-400" role="alert">
-            {overflow} Shorten it to save.
+            {overflowText} {t("campaign.storyboard.shortenToSave")}
           </span>
         ) : null}
         {prose.length && dismissed !== proseKey ? (
           <span className="reveal flex w-full items-start gap-1.5 text-amber-300/90" data-testid="prose-warning">
             <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
             <span>
-              This may read oddly: {prose.map((warning) => warning.message).join(" ")}
-              {prose[0].samples[0] ? ` For example: ${prose[0].samples[0]}` : ""} It may have been written this way; nothing is changed.{" "}
+              {t("campaign.storyboard.prose.intro")} {proseMessages.join(" ")}
+              {prose[0].samples[0] ? ` ${t("campaign.storyboard.prose.example", { sample: prose[0].samples[0] })}` : ""} {t("campaign.storyboard.prose.keptUnchanged")}{" "}
               <button type="button" onClick={() => setDismissed(proseKey)} className="underline">
-                Dismiss
+                {t("campaign.storyboard.dismiss")}
               </button>
             </span>
           </span>
         ) : null}
       </div>
 
-      <SectionHead title="Who and where" glyph="system-cast" className="mb-0 pt-1" />
+      <SectionHead title={t("campaign.storyboard.whoAndWhere")} glyph="system-cast" className="mb-0 pt-1" />
       <div className="stagger-up grid gap-2 sm:grid-cols-2">
-        {LINK_FIELDS.map(([field, bucket, label]) => (
+        {LINK_FIELDS.map(([field, bucket]) => {
+          const label = linkLabel(t, field);
+          return (
           <Field key={field} label={label}>
             <Select
               label={label}
@@ -160,33 +178,32 @@ export function BeatEditor({
                 })
               }
               options={[
-                { value: "", label: "nobody in particular" },
+                { value: "", label: t("campaign.storyboard.nobodyInParticular") },
                 ...(broken.includes(field) && edit.links[field]
-                  ? [{ value: edit.links[field] as string, label: "Missing: no longer in this workshop or its shared one", disabled: true }]
+                  ? [{ value: edit.links[field] as string, label: t("campaign.storyboard.missingLinkOption"), disabled: true }]
                   : []),
                 ...inventory[bucket].map((entry) => ({
                   value: entry.id,
                   label: entry.name,
                   icon: { kind: "glyph" as const, key: LINK_GLYPH[field] },
-                  ...(entry.from ? { group: `From ${entry.from}` } : {}),
+                  ...(entry.from ? { group: t("campaign.storyboard.fromWorkshop", { name: entry.from }) } : {}),
                 })),
               ]}
             />
             {broken.includes(field) ? (
               <p className="reveal mt-1 text-[11px] text-amber-300/80">
-                What this card picked is gone. Pick again, or clear it.
+                {t("campaign.storyboard.brokenLinkHelp")}
               </p>
             ) : null}
           </Field>
-        ))}
+          );
+        })}
       </div>
 
       <div className="flex flex-col gap-1">
-        <SectionHead title="Leads to" glyph="pace-normal" className="mb-1 pt-1" />
+        <SectionHead title={t("campaign.storyboard.leadsToTitle")} glyph="pace-normal" className="mb-1 pt-1" />
         <p className="text-[11px] leading-snug text-stone-500">
-          An arrow is &quot;then&quot; unless you say otherwise. Mark the routes the party chooses
-          between, or a scene that only happens if something holds; those arrive in a campaign
-          as moments the storyteller can run or drop, not as beats it waits on.
+          {t("campaign.storyboard.routesHelp")}
         </p>
         <div className={cn("stagger-pop", chipRow)}>
           {others.map((other) => {
@@ -236,12 +253,12 @@ export function BeatEditor({
                   <span className="min-w-28 flex-1 truncate text-stone-300">{target.title}</span>
                   <span className="w-full sm:w-48">
                     <Select<"then" | RouteKind>
-                      label={`How "${target.title}" follows`}
+                      label={t("campaign.storyboard.routeLabel", { title: target.title })}
                       value={route?.kind ?? "then"}
                       onChange={(kind) => setRoute(kind)}
                       options={(["then", ...ROUTE_KINDS] as const).map((kind) => ({
                         value: kind,
-                        label: ROUTE_LABELS[kind],
+                        label: routeLabel(t, kind),
                       }))}
                     />
                   </span>
@@ -249,8 +266,8 @@ export function BeatEditor({
                     <input
                       value={route.label}
                       onChange={(event) => setRoute(route.kind, event.target.value)}
-                      placeholder={route.kind === "choice" ? "if they side with the guild" : "if they search the cellar"}
-                      aria-label={`When the party takes the route to "${target.title}"`}
+                      placeholder={route.kind === "choice" ? t("campaign.storyboard.choicePlaceholder") : t("campaign.storyboard.optionalPlaceholder")}
+                      aria-label={t("campaign.storyboard.routeCondition", { title: target.title })}
                       className={cn(ui.input, "reveal min-w-40 flex-1 py-1 text-xs")}
                     />
                   ) : null}
@@ -268,10 +285,10 @@ export function BeatEditor({
             type="button"
             disabled={busy}
             onClick={onDelete}
-            aria-label={`Delete ${edit.title}`}
+            aria-label={t("campaign.storyboard.deleteCard", { title: edit.title })}
             className={cn(ui.btnSmall, "ml-auto hover:border-red-500/50 hover:text-red-300")}
           >
-            <Trash2 className="size-3.5" /> Delete
+            <Trash2 className="size-3.5" /> {t("campaign.storyboard.delete")}
           </button>
         </div>
       ) : (

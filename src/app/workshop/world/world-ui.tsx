@@ -2,6 +2,7 @@
 
 import { BookOpen, Flag, MapPin, Search, UserRound, type LucideIcon } from "lucide-react";
 import { useMemo, useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui";
 import type { Shelf, WorldDoc, WorldType } from "@/lib/worldforge/model";
@@ -75,6 +76,7 @@ export function EntityPicker({
   label: string;
   autoFocus?: boolean;
 }) {
+  const { t } = useI18n();
   const [query, setQuery] = useState("");
   const groups = useMemo(() => {
     const words = textKey(query);
@@ -93,15 +95,15 @@ export function EntityPicker({
         <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-stone-500" />
         <input
           className={cn(ui.input, "pl-8 text-xs")}
-          placeholder={`Find ${label}`}
-          aria-label={`Find ${label}`}
+          placeholder={t("workshop.world.entityPicker.find", { label })}
+          aria-label={t("workshop.world.entityPicker.find", { label })}
           value={query}
           autoFocus={autoFocus}
           onChange={(event) => setQuery(event.target.value)}
         />
       </label>
       <div className="max-h-64 overflow-y-auto pr-1" role="listbox" aria-label={label}>
-        {groups.length === 0 ? <p className="px-1 py-2 text-xs text-stone-500">Nothing by that name.</p> : null}
+        {groups.length === 0 ? <p className="px-1 py-2 text-xs text-stone-500">{t("workshop.world.entityPicker.none")}</p> : null}
         {groups.map(({ type, rows }) => (
           <div key={type.id} className="mb-2">
             <p className="eyebrow mb-1 px-1 text-[10px]" style={{ color: type.color }}>

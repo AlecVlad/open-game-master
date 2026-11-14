@@ -31,7 +31,7 @@ export async function PATCH(
   const raw: unknown = await request.json().catch(() => ({}));
   const parsed = gameSettingsSchema.safeParse(layOver(context.campaign.gameSettings, raw));
   if (!parsed.success) {
-    return Response.json({ error: "Invalid game settings." }, { status: 400 });
+    return Response.json({ error: "Invalid game settings.", errorCode: "INVALID_GAME_SETTINGS" }, { status: 400 });
   }
   // Only the settings the body named are written back, so a change that lands
   // between the read above and the write below keeps its value.

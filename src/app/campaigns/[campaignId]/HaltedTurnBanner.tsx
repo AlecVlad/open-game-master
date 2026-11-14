@@ -2,6 +2,7 @@
 
 import { Loader2, RotateCcw } from "lucide-react";
 import { useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/cn";
 import { offerCorrectionReason } from "@/lib/correction-offer";
 import { ui } from "@/lib/ui";
@@ -27,6 +28,7 @@ export function HaltedTurnBanner({
   content: string;
   canRetry: boolean;
 }) {
+  const { t } = useI18n();
   const [retrying, setRetrying] = useState(false);
   const [error, setError] = useState("");
   // The reason follows "The DM ran into a problem: " in the transcript, so
@@ -48,14 +50,14 @@ export function HaltedTurnBanner({
       });
       if (!response.ok) {
         const payload = (await response.json().catch(() => null)) as { error?: string } | null;
-        setError(payload?.error || "Could not restart that turn.");
+        setError(payload?.error || t("campaign.session.halted.restartFailed"));
       } else {
         offerCorrectionReason(campaignId, await response.json().catch(() => null));
       }
       // On success nothing else is done here: the banner goes away when the
       // message_updated event lands, and the narration streams in as usual.
     } catch {
-      setError("Could not reach the server.");
+      setError(t("campaign.session.halted.serverUnreachable"));
     } finally {
       setRetrying(false);
     }
@@ -63,14 +65,14 @@ export function HaltedTurnBanner({
 
   return (
     <div className="panel ornate session-banner-card reveal-banner rounded-xl">
-      <SectionHead title="GM halted, context preserved" glyph="cue-bell" level="h4" className="mb-1.5" />
+      <SectionHead title={t("campaign.session.halted.title")} glyph="cue-bell" level="h4" className="mb-1.5" />
       <p className="text-sm text-stone-400">{reason}</p>
       {canRetry ? (
         <button
           type="button"
           onClick={retry}
           disabled={retrying}
-          title="Send the GM back into this turn with everything it already had"
+          title={t("campaign.session.halted.retryHint")}
           className={cn(ui.btnSmall, "mt-2.5")}
         >
           {retrying ? (
@@ -78,11 +80,11 @@ export function HaltedTurnBanner({
           ) : (
             <RotateCcw className="size-3.5" />
           )}
-          {retrying ? "Picking the thread back up..." : "Retry the turn"}
+          {retrying ? t("campaign.session.halted.retrying") : t("campaign.session.halted.retry")}
         </button>
       ) : (
         <p className="mt-1 text-xs text-stone-500">
-          The party lead can send the GM back in from here.
+          {t("campaign.session.halted.leadCanRetry")}
         </p>
       )}
       {error ? <p className="motion-shake mt-1 text-xs text-red-400">{error}</p> : null}

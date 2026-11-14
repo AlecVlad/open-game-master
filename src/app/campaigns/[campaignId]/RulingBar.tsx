@@ -2,6 +2,7 @@
 
 import { Check, Scale, Users, X } from "lucide-react";
 import { useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/cn";
 import { offerCorrectionReason } from "@/lib/correction-offer";
 import { GameIcon } from "@/components/ui/GameIcon";
@@ -27,6 +28,7 @@ export function RulingBar({
   meUserId: string;
   steersStory: boolean;
 }) {
+  const { t } = useI18n();
   const [busyId, setBusyId] = useState("");
   const [error, setError] = useState("");
 
@@ -45,7 +47,7 @@ export function RulingBar({
       });
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        setError(String(data.error ?? "That did not work."));
+        setError(String(data.error ?? t("campaign.session.ruling.error")));
       } else {
         offerCorrectionReason(campaignId, await response.json().catch(() => null));
       }
@@ -54,7 +56,7 @@ export function RulingBar({
     }
   }
 
-  const nameOf = (userId: string) => members.find((member) => member.userId === userId)?.username ?? "A player";
+  const nameOf = (userId: string) => members.find((member) => member.userId === userId)?.username ?? t("campaign.session.ruling.unknownPlayer");
 
   return (
     <div className="stagger mx-3 mb-2 space-y-1.5" data-tour="ruling-bar">
@@ -76,50 +78,50 @@ export function RulingBar({
           >
             <GameIcon icon={{ kind: "glyph", key: "system-rules" }} size="size-6" className="shrink-0" />
             <span className="min-w-0 flex-1">
-              <span className="font-medium">{nameOf(dispute.raisedByUserId)}</span> disputes the ruling
+              <span className="font-medium">{t("campaign.session.ruling.raised", { name: nameOf(dispute.raisedByUserId) })}</span>
               {dispute.reason ? <span className="text-stone-400">: {dispute.reason}</span> : null}
               {voting ? (
                 <span className="ml-1 text-stone-500">
-                  (vote open, {cast} of {dispute.voterIds.length} in)
+                  {t("campaign.session.ruling.voteProgress", { cast, total: dispute.voterIds.length })}
                 </span>
               ) : null}
             </span>
             {voting && canCast ? (
               <span className="flex shrink-0 items-center gap-1.5">
                 <KitButton tone={myVote === "uphold" ? "primary" : undefined} onClick={() => act(dispute.id, "cast", "uphold")} disabled={busy} busy={busy}>
-                  <Check className="size-3.5" /> Stands
+                  <Check className="size-3.5" /> {t("campaign.session.ruling.stands")}
                 </KitButton>
                 <KitButton tone={myVote === "overrule" ? "primary" : undefined} onClick={() => act(dispute.id, "cast", "overrule")} disabled={busy}>
-                  <X className="size-3.5" /> Overrule
+                  <X className="size-3.5" /> {t("campaign.session.ruling.overrule")}
                 </KitButton>
                 {steersStory ? (
                   <KitButton onClick={() => act(dispute.id, "tally")} disabled={busy}>
-                    <Scale className="size-3.5" /> Count now
+                    <Scale className="size-3.5" /> {t("campaign.session.ruling.countNow")}
                   </KitButton>
                 ) : null}
               </span>
             ) : voting && steersStory ? (
               <KitButton onClick={() => act(dispute.id, "tally")} disabled={busy} busy={busy}>
-                <Scale className="size-3.5" /> Count now
+                <Scale className="size-3.5" /> {t("campaign.session.ruling.countNow")}
               </KitButton>
             ) : steersStory ? (
               <span className="flex shrink-0 items-center gap-1.5">
                 <KitButton tone="primary" onClick={() => act(dispute.id, "uphold")} disabled={busy} busy={busy}>
-                  {busy ? null : <Check className="size-3.5" />} Uphold
+                  {busy ? null : <Check className="size-3.5" />} {t("campaign.session.ruling.uphold")}
                 </KitButton>
                 <KitButton onClick={() => act(dispute.id, "overrule")} disabled={busy}>
-                  <X className="size-3.5" /> Overrule
+                  <X className="size-3.5" /> {t("campaign.session.ruling.overrule")}
                 </KitButton>
                 <KitButton onClick={() => act(dispute.id, "vote")} disabled={busy}>
-                  <Users className="size-3.5" /> Put to a vote
+                  <Users className="size-3.5" /> {t("campaign.session.ruling.putToVote")}
                 </KitButton>
               </span>
             ) : mine ? (
               <KitButton onClick={() => act(dispute.id, "withdraw")} disabled={busy} busy={busy}>
-                {busy ? null : <X className="size-3.5" />} Withdraw
+                {busy ? null : <X className="size-3.5" />} {t("campaign.session.ruling.withdraw")}
               </KitButton>
             ) : (
-              <span className="shrink-0 text-[11px] italic text-stone-500">waiting on the steerer</span>
+              <span className="shrink-0 text-[11px] italic text-stone-500">{t("campaign.session.ruling.waiting")}</span>
             )}
           </div>
         );

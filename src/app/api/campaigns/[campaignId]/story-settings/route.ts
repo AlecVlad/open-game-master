@@ -76,7 +76,7 @@ export async function PATCH(
   const parsed = patchSchema.safeParse(raw);
   if (!parsed.success) {
     return Response.json(
-      { error: parsed.error.issues[0]?.message || "Invalid story settings." },
+      { error: parsed.error.issues[0]?.message || "Invalid story settings.", errorCode: "INVALID_STORY_SETTINGS" },
       { status: 400 },
     );
   }
@@ -90,11 +90,11 @@ export async function PATCH(
   ) {
     const offer = harnessOfferFor(context.campaign);
     if (!offer.offered) {
-      return Response.json({ error: offer.reason ?? "The server's agent is not available." }, { status: 403 });
+      return Response.json({ error: offer.reason ?? "The server's agent is not available.", errorCode: "STORY_AGENT_NOT_AVAILABLE" }, { status: 403 });
     }
     if (parsed.data.imageBackend === "harness" && !offer.pictures) {
       return Response.json(
-        { error: "The server's agent has not been cleared to make pictures yet." },
+        { error: "The server's agent has not been cleared to make pictures yet.", errorCode: "STORY_AGENT_IMAGES_NOT_ALLOWED" },
         { status: 403 },
       );
     }
@@ -106,7 +106,7 @@ export async function PATCH(
   const patch = context.user.isAdmin ? parsed.data : withoutAdminOnlyFields(parsed.data);
   const settings = updateStorySettings(campaignId, patch);
   if (!settings) {
-    return Response.json({ error: "Campaign not found." }, { status: 404 });
+    return Response.json({ error: "Campaign not found.", errorCode: "CAMPAIGN_NOT_FOUND" }, { status: 404 });
   }
 
   // campaign_updated merges its payload into every open table's snapshot, so

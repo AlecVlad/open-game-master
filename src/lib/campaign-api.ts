@@ -21,11 +21,11 @@ export async function requireMember(
   if (user.mustChangePassword) {
     // Admin reset a temp password for this account; nothing else works until
     // the user sets their own via /api/auth/change-password.
-    return Response.json({ error: "Set a new password to continue." }, { status: 403 });
+    return Response.json({ error: "Set a new password to continue.", errorCode: "PASSWORD_CHANGE_REQUIRED" }, { status: 403 });
   }
   const campaign = getCampaignForUser(campaignId, user.id);
   if (!campaign) {
-    return Response.json({ error: "Campaign not found." }, { status: 404 });
+    return Response.json({ error: "Campaign not found.", errorCode: "CAMPAIGN_NOT_FOUND" }, { status: 404 });
   }
   // Everything this request goes on to ask of a model, a painter or a
   // speech server is this campaign's in the usage ledger.
@@ -120,11 +120,13 @@ export async function requirePrepAuthority(campaignId: string): Promise<MemberCo
     return context;
   }
   if (!hasPrepAuthority(context)) {
+    const gameMasterRequired = Boolean(context.campaign.dmUserId);
     return Response.json(
       {
-        error: context.campaign.dmUserId
+        error: gameMasterRequired
           ? "Only the Game Master can do that."
           : "Only the party lead can do that.",
+        errorCode: gameMasterRequired ? "STORY_GAME_MASTER_REQUIRED" : "STORY_PARTY_LEAD_REQUIRED",
       },
       { status: 403 },
     );

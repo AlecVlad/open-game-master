@@ -6,6 +6,7 @@ import { InfoButton } from "@/components/ui/InfoDialog";
 import { cn } from "@/lib/cn";
 import { describeContentEntry, spellSummary } from "@/lib/help";
 import { useContentSearch, type PickerEntry } from "@/app/characters/builder/useContentSearch";
+import { useI18n } from "@/lib/i18n/provider";
 
 // Search-and-pick over the content pack (/api/content/<kind>): spells,
 // items, monsters, conditions. The list opens on focus with a browsable
@@ -38,6 +39,7 @@ export function ContentPick({
   className?: string;
   extraParams?: Record<string, string>;
 }) {
+  const { t } = useI18n();
   const { query, setQuery, results, open, setOpen, loading, unavailable, failed } = useContentSearch(
     kind,
     extraParams ?? {},
@@ -77,11 +79,11 @@ export function ContentPick({
       </div>
       {failed ? (
         <p role="alert" className="reveal mt-1 rounded-lg border border-amber-900/50 bg-amber-950/20 px-3 py-1.5 text-[11px] text-amber-200/80">
-          Could not reach the server to search. Type again to retry.
+          {t("common.contentPick.searchFailed")}
         </p>
       ) : open && !results.length && query.trim() && !loading ? (
         <p className="reveal mt-1 rounded-lg border border-stone-800 bg-stone-950/60 px-3 py-1.5 text-[11px] text-stone-500">
-          Nothing matched &quot;{query.trim()}&quot;. Try fewer letters.
+          {t("common.contentPick.noMatches", { query: query.trim() })}
         </p>
       ) : null}
       {open && results.length ? (
@@ -99,7 +101,7 @@ export function ContentPick({
               >
                 <span className={cn(entry.source === "homebrew" && "text-amber-300")}>{entry.name}</span>
                 <span className="text-[11px] text-stone-500">
-                  {entry.level !== undefined ? `level ${entry.level}` : entry.rarity || entry.kind || ""}
+                  {entry.level !== undefined ? t("common.contentPick.level", { level: entry.level }) : entry.rarity || entry.kind || ""}
                 </span>
               </button>
               <InfoButton

@@ -2,6 +2,7 @@
 
 import { Check, Loader2, Search } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui";
 import { GameIcon } from "@/components/ui/GameIcon";
@@ -13,10 +14,9 @@ import { useTtsVoices, voiceLabel } from "@/components/VoicePicker";
 import { CharacterVoices } from "@/app/campaigns/[campaignId]/CharacterVoices";
 import { DetailGroup } from "@/app/create-campaign/fields";
 import type { GameSettings } from "@/lib/schemas/game-settings";
-import { describeTableReroll } from "@/lib/srd/ability-rerolls";
 import { useServerRerollBelow } from "@/app/characters/builder/useTableRules";
 import { transcribesVoice, useCapabilities } from "@/lib/use-capabilities";
-import { COMPANION_LABELS, CAMPAIGN_LENGTH_LABELS, CONSCIENCE_LABELS } from "@/lib/schemas/game-settings-options";
+
 import {
   AiGroup,
   AtmosphereGroup,
@@ -24,13 +24,11 @@ import {
   BondsGroup,
   CharacterGroup,
   ConsoleGroup,
-  HP_METHOD_SHORT,
   MemoryGroup,
   NarrationGroup,
   PlayersGroup,
   SafetyGroup,
   VoiceChatGroup,
-  WEALTH_SHORT,
   WorldGroup,
 } from "@/app/campaigns/[campaignId]/GameSettingsGroups";
 import {
@@ -122,6 +120,7 @@ export function GameSettingsPanel({
   // "Table settings" twice.
   heading?: boolean;
 }) {
+  const { t } = useI18n();
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const voices = useTtsVoices();
   // Narration switched off server-wide (Admin > Speech, or setup's text
@@ -151,11 +150,17 @@ export function GameSettingsPanel({
   // What "the server's rule" for rolled stats is, so neither the lead's
   // choice nor a player's summary leaves it unnamed.
   const serverRerollBelow = useServerRerollBelow();
+  const serverRerollLabel = serverRerollBelow === null
+    ? t("campaign.gameSettings.summary.stats.serverUnknown")
+    : serverRerollBelow <= 0
+      ? t("campaign.gameSettings.summary.stats.keep")
+      : serverRerollBelow >= 108
+        ? t("campaign.gameSettings.summary.stats.free")
+        : t("campaign.gameSettings.summary.stats.threshold", { limit: serverRerollBelow });
   // A server that cannot transcribe holds the Transcription switch off; the
   // table's stored choice is kept, so transcription added later brings it
   // back.
   const transcribes = transcribesVoice(capabilities);
-  const serverRerollLabel = describeTableReroll(null, serverRerollBelow).toLowerCase();
 
   // Installed world packs, so the lead can switch worlds after creation. An
   // empty list simply hides the row.
@@ -214,13 +219,13 @@ export function GameSettingsPanel({
       });
       if (!response.ok) {
         const data = (await response.json().catch(() => ({}))) as { error?: string };
-        setError(data.error ?? "That change was not saved.");
+        setError(data.error ?? t("campaign.gameSettings.error.notSaved"));
         setSaveState("error");
         return;
       }
       setSaveState("saved");
     } catch {
-      setError("Could not reach the server.");
+      setError(t("campaign.session.networkError"));
       setSaveState("error");
     }
   }
@@ -231,96 +236,108 @@ export function GameSettingsPanel({
   if (!steersStory) {
     return (
       <section className="panel mb-6 rounded-xl p-4" data-table-settings="read">
-        {heading ? <SectionHead title="Table settings" glyph="tab-settings" level="h2" /> : null}
+        {heading ? <SectionHead title={t("campaign.gameSettings.title")} glyph="tab-settings" level="h2" /> : null}
         <p className="mb-2 text-xs text-stone-500">
-          {settings.dmMode === "ai" ? "The party lead" : "The GM"} sets these for everyone at this table.
+          {settings.dmMode === "ai" ? t("campaign.gameSettings.readOnly.lead") : t("campaign.gameSettings.readOnly.gm")}
         </p>
         <div className="stagger flex flex-wrap gap-x-5 gap-y-1.5 text-xs text-stone-300">
           <span className="flex items-center gap-1.5">
             <GameIcon icon={{ kind: "glyph", key: "system-region" }} size="size-5" />
             {selectedPack?.name ?? preset.name}
-            {settings.dmMode === "human" ? " · human GM" : settings.dmMode === "steered" ? " · AI narrates, a person steers" : ""}
-            {settings.dmMode !== "human" && settings.aiStorySetup ? " · AI story setup" : ""}
+            {settings.dmMode === "human" ? ` · ${t("campaign.gameSettings.summary.dm.human")}` : settings.dmMode === "steered" ? ` · ${t("campaign.gameSettings.summary.dm.steered")}` : ""}
+            {settings.dmMode !== "human" && settings.aiStorySetup ? ` · ${t("campaign.gameSettings.summary.aiStorySetup")}` : ""}
             {settings.dmMode !== "human"
-              ? ` · ${CAMPAIGN_LENGTH_LABELS[settings.campaignLength].split(" (")[0]} campaign`
+              ? ` · ${t(`campaign.gameSettings.summary.length.${settings.campaignLength}`)}`
               : ""}
           </span>
           <span className="flex items-center gap-1.5">
             <GameIcon icon={{ kind: "glyph", key: "tab-dice" }} size="size-5" />
-            {settings.dicePolicy === "real_allowed" ? "Real dice allowed" : "Digital dice only"}
+            {t(settings.dicePolicy === "real_allowed" ? "campaign.gameSettings.summary.dice.real" : "campaign.gameSettings.summary.dice.digital")}
           </span>
           <span className="flex items-center gap-1.5">
             <GameIcon icon={{ kind: "glyph", key: "cue-bell" }} size="size-5" />
             {narrating
-              ? `Narration on (${voiceLabel(voices, settings.ttsVoice)})`
+              ? t("campaign.gameSettings.summary.narration.on", { voice: voiceLabel(voices, settings.ttsVoice, t) })
               : narrationOff
-                ? "Narration off on this server"
-                : "Narration off"}
+                ? t("campaign.gameSettings.summary.narration.serverOff")
+                : t("campaign.gameSettings.summary.narration.off")}
           </span>
           <span className="flex items-center gap-1.5">
             <GameIcon icon={{ kind: "glyph", key: "tab-ambience" }} size="size-5" />
             {settings.ambienceEnabled
-              ? `Ambience on${settings.ambienceAuto ? " (follows the scene)" : ""}`
-              : "Ambience off"}
+              ? settings.ambienceAuto ? t("campaign.gameSettings.summary.ambience.auto") : t("campaign.gameSettings.summary.ambience.on")
+              : t("campaign.gameSettings.summary.ambience.off")}
           </span>
           <span className="flex items-center gap-1.5">
             <GameIcon icon={{ kind: "glyph", key: "tab-map" }} size="size-5" />
-            {settings.mapsEnabled ? "Maps on" : "Maps off"}
+            {t(settings.mapsEnabled ? "campaign.gameSettings.summary.maps.on" : "campaign.gameSettings.summary.maps.off")}
           </span>
           <span className="flex items-center gap-1.5">
             <GameIcon icon={{ kind: "glyph", key: "rest-level-up" }} size="size-5" />
-            {settings.multiclassingEnabled ? "Multiclassing allowed" : "Multiclassing off"}
+            {t(settings.multiclassingEnabled ? "campaign.gameSettings.summary.multiclass.on" : "campaign.gameSettings.summary.multiclass.off")}
           </span>
           <span className="flex items-center gap-1.5">
             <GameIcon icon={{ kind: "glyph", key: "rest-hp" }} size="size-5" />
-            {HP_METHOD_SHORT[settings.hpMethod ?? "average"]}
+            {t(`campaign.gameSettings.summary.hp.${settings.hpMethod ?? "average"}`)}
           </span>
           <span className="flex items-center gap-1.5">
             <GameIcon icon={{ kind: "glyph", key: "coin-gp" }} size="size-5" />
-            {WEALTH_SHORT[settings.startingWealth ?? "equipment"]}
+            {t(`campaign.gameSettings.summary.wealth.${settings.startingWealth ?? "equipment"}`)}
           </span>
           <span className="flex items-center gap-1.5">
             <GameIcon icon={{ kind: "glyph", key: "die-d6" }} size="size-5" />
-            Stats: {describeTableReroll(settings.abilityRerollBelow, serverRerollBelow).toLowerCase()}
+            {(() => {
+              const setting = settings.abilityRerollBelow;
+              const rule = typeof setting === "number" ? setting : serverRerollBelow;
+              if (rule === null) return t("campaign.gameSettings.summary.stats.serverUnknown");
+              const description = rule <= 0
+                ? t("campaign.gameSettings.summary.stats.keep")
+                : rule >= 108
+                  ? t("campaign.gameSettings.summary.stats.free")
+                  : t("campaign.gameSettings.summary.stats.threshold", { limit: rule });
+              return typeof setting === "number"
+                ? t("campaign.gameSettings.summary.stats.label", { rule: description })
+                : t("campaign.gameSettings.summary.stats.server", { rule: description });
+            })()}
           </span>
           <span className="flex items-center gap-1.5">
             <GameIcon icon={{ kind: "glyph", key: "tab-friends" }} size="size-5" />
-            {settings.midGameJoinOpen ? "Mid-game joining open" : "Mid-game joining closed"}
+            {t(settings.midGameJoinOpen ? "campaign.gameSettings.summary.join.open" : "campaign.gameSettings.summary.join.closed")}
           </span>
           <span className="flex items-center gap-1.5">
             <GameIcon icon={{ kind: "glyph", key: "rest-initiative" }} size="size-5" />
-            {settings.holdSubmissions ? "Lead opens responses each turn" : "Responses always open"}
+            {t(settings.holdSubmissions ? "campaign.gameSettings.summary.responses.held" : "campaign.gameSettings.summary.responses.open")}
           </span>
           <span className="flex items-center gap-1.5">
             <GameIcon icon={{ kind: "glyph", key: "system-storyboard" }} size="size-5" />
-            {settings.worldSimulation ? "Living world on" : "Living world off"}
+            {t(settings.worldSimulation ? "campaign.gameSettings.summary.world.on" : "campaign.gameSettings.summary.world.off")}
           </span>
           <span className="flex items-center gap-1.5">
             <GameIcon icon={{ kind: "glyph", key: "tab-loot" }} size="size-5" />
-            {settings.inventoryApprovals && settings.vitalsApprovals
-              ? "Item and vitals changes need approval"
+            {t(settings.inventoryApprovals && settings.vitalsApprovals
+              ? "campaign.gameSettings.summary.approvals.both"
               : settings.inventoryApprovals
-                ? "Item offers need approval"
+                ? "campaign.gameSettings.summary.approvals.items"
                 : settings.vitalsApprovals
-                  ? "Vitals changes need approval"
-                  : "Item changes auto-apply"}
+                  ? "campaign.gameSettings.summary.approvals.vitals"
+                  : "campaign.gameSettings.summary.approvals.none")}
           </span>
           <span className="flex items-center gap-1.5">
             <GameIcon icon={{ kind: "glyph", key: "tab-bonds" }} size="size-5" />
-            {settings.relationships === "off"
-              ? "Bonds off"
+            {t(settings.relationships === "off"
+              ? "campaign.gameSettings.summary.bonds.off"
               : settings.romance !== "off"
-                ? "Bonds and romance tracked"
-                : "Bonds tracked, romance off"}
+                ? "campaign.gameSettings.summary.bonds.romance"
+                : "campaign.gameSettings.summary.bonds.on")}
           </span>
           <span className="flex items-center gap-1.5">
             <GameIcon icon={{ kind: "glyph", key: "system-party" }} size="size-5" />
-            AI companions: {COMPANION_LABELS[settings.companions]}
+            t("campaign.gameSettings.summary.companions", { mode: t(`campaign.gameSettings.option.companions.${settings.companions}`) })
           </span>
           {conscienceShown(settings, lastingCompanions) ? (
             <span className="flex items-center gap-1.5" data-conscience-setting>
               <GameIcon icon={{ kind: "glyph", key: "tab-bonds" }} size="size-5" />
-              Companion conscience: {CONSCIENCE_LABELS[settings.companionConscience ?? "leave"]}
+              t("campaign.gameSettings.summary.conscience", { mode: t(`campaign.gameSettings.option.conscience.${settings.companionConscience ?? "leave"}`) })
             </span>
           ) : null}
         </div>
@@ -329,24 +346,39 @@ export function GameSettingsPanel({
     );
   }
 
+  const ownRerollRule = settings.abilityRerollBelow;
+  const effectiveRerollRule = ownRerollRule ?? serverRerollBelow;
+  const rerollDescription = effectiveRerollRule === null
+    ? t("campaign.gameSettings.summary.stats.serverUnknown")
+    : effectiveRerollRule <= 0
+      ? t("campaign.gameSettings.summary.stats.keep")
+      : effectiveRerollRule >= 108
+        ? t("campaign.gameSettings.summary.stats.free")
+        : t("campaign.gameSettings.summary.stats.threshold", { limit: effectiveRerollRule });
+  const statsRule = ownRerollRule === null
+    ? effectiveRerollRule === null
+      ? rerollDescription
+      : t("campaign.gameSettings.summary.stats.server", { rule: rerollDescription })
+    : t("campaign.gameSettings.summary.stats.label", { rule: rerollDescription });
   const context = {
     packName: selectedPack?.name ?? null,
     genreName: preset.name,
-    voiceName: voiceLabel(voices, settings.ttsVoice),
+    voiceName: voiceLabel(voices, settings.ttsVoice, t),
     narrationOff,
-    statsRule: describeTableReroll(settings.abilityRerollBelow, serverRerollBelow).toLowerCase(),
+    statsRule,
     lastingCompanions,
   };
+  const translate: Parameters<typeof tableGroups>[1] = (key, params) => t(key, params);
   const searching = find.trim().length > 0;
-  const visible = tableGroups(settings)
-    .map((group) => ({ ...group, summary: tableGroupSummary(group.id, settings, context) }))
+  const visible = tableGroups(settings, translate)
+    .map((group) => ({ ...group, summary: tableGroupSummary(group.id, settings, context, translate) }))
     .filter((group) => groupMatches(group, group.summary, find));
   const base = { settings, patch: (update: Partial<GameSettings>) => void patch(update) };
 
   function body(id: TableGroupId) {
     switch (id) {
       case "world":
-        return <WorldGroup {...base} packs={packs} selectedPack={selectedPack} preset={preset} />;
+        return <WorldGroup {...base} packs={packs} selectedPack={selectedPack} />;
       case "character":
         return <CharacterGroup {...base} serverRerollLabel={serverRerollLabel} />;
       case "narration":
@@ -374,16 +406,16 @@ export function GameSettingsPanel({
 
   return (
     <section className="panel mb-6 rounded-xl p-4" data-table-settings="edit">
-      {heading ? <SectionHead title="Table settings" glyph="tab-settings" level="h2" /> : null}
+      {heading ? <SectionHead title={t("campaign.gameSettings.title")} glyph="tab-settings" level="h2" /> : null}
       <p className="mb-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-stone-500" aria-live="polite">
-        <span>Applies to everyone at this table. Each change saves as you make it.</span>
+        <span>{t("campaign.gameSettings.save.explanation")}</span>
         {saveState === "saving" ? (
           <span key="saving" className="live-in inline-flex items-center gap-1 text-stone-400">
-            <Loader2 className="size-3 animate-spin" /> Saving
+            <Loader2 className="size-3 animate-spin" /> {t("campaign.gameSettings.save.saving")}
           </span>
         ) : saveState === "saved" ? (
           <span key="saved" className="live-in inline-flex items-center gap-1 text-emerald-400">
-            <Check className="tick-in size-3" /> Saved
+            <Check className="tick-in size-3" /> {t("campaign.gameSettings.save.saved")}
           </span>
         ) : null}
       </p>
@@ -392,8 +424,8 @@ export function GameSettingsPanel({
         <input
           value={find}
           onChange={(event) => setFind(event.target.value)}
-          placeholder="Find a setting"
-          aria-label="Find a table setting"
+          placeholder={t("campaign.gameSettings.search.placeholder")}
+          aria-label={t("campaign.gameSettings.search.aria")}
           className={cn(ui.input, "h-9 pl-9 text-xs")}
         />
       </div>
@@ -413,7 +445,7 @@ export function GameSettingsPanel({
             {body(group.id)}
           </DetailGroup>
         ))}
-        {!visible.length ? <p className="text-stone-500">No setting by that name.</p> : null}
+        {!visible.length ? <p className="text-stone-500">{t("campaign.gameSettings.search.empty")}</p> : null}
       </div>
     </section>
   );

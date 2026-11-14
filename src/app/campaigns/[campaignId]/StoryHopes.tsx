@@ -4,6 +4,7 @@ import { useId, useState } from "react";
 import { SheetBlock } from "@/components/sheet/SheetParts";
 import { LengthNote } from "@/components/ui/LengthNote";
 import { cn } from "@/lib/cn";
+import { useI18n } from "@/lib/i18n/provider";
 import type { CharacterSheet } from "@/lib/schemas/sheet";
 import { ui } from "@/lib/ui";
 import { hostOffers, useCapabilities } from "@/lib/use-capabilities";
@@ -20,6 +21,7 @@ const HOPES_MAX = 500;
 // (src/lib/dm/prompt.ts describeSheet), so the owner can change it as the
 // story changes; the builder's Identity step writes the first one.
 export function StoryHopes({ sheet, mine }: { sheet: CharacterSheet; mine: boolean }) {
+  const { t } = useI18n();
   const hopes = sheet.hopes ?? "";
   const [draft, setDraft] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -35,7 +37,7 @@ export function StoryHopes({ sheet, mine }: { sheet: CharacterSheet; mine: boole
   // Someone else's hopes reach this viewer only at a DM seat: read, not edit.
   if (!mine) {
     return hopes ? (
-      <SheetBlock className="mt-4" title="Their player's hopes for this story" aside="for the GM">
+      <SheetBlock className="mt-4" title={t("charSheet.hopes.otherTitle")} aside={t("charSheet.hopes.forGm")}>
         <p className="whitespace-pre-wrap font-serif text-sm leading-relaxed text-stone-300">{hopes}</p>
       </SheetBlock>
     ) : null;
@@ -52,30 +54,29 @@ export function StoryHopes({ sheet, mine }: { sheet: CharacterSheet; mine: boole
       });
       if (!response.ok) {
         const data = (await response.json().catch(() => ({}))) as { error?: string };
-        setError(data.error ?? "Could not save your hopes.");
+        setError(data.error ?? t("charSheet.hopes.saveError"));
         return;
       }
       setDraft(null);
     } catch {
-      setError("Could not reach the server.");
+      setError(t("charSheet.hopes.network"));
     } finally {
       setSaving(false);
     }
   }
 
   return (
-    <SheetBlock className="mt-4" title="Hopes for this story" aside="only you and the GM see these">
+    <SheetBlock className="mt-4" title={t("charSheet.hopes.title")} aside={t("charSheet.hopes.private")}>
       {draft === null ? (
         <div className="space-y-2">
           {hopes ? (
             <p className="whitespace-pre-wrap font-serif text-sm leading-relaxed text-stone-300">{hopes}</p>
           ) : (
             <p className="text-xs text-stone-400">
-              Tell the GM what you would love to see happen: a romance, a rival, a redemption. They read it every
-              turn and steer toward it when the story allows.
+              {t("charSheet.hopes.emptyHelp")}
             </p>
           )}
-          <KitButton onClick={() => setDraft(hopes)}>{hopes ? "Change hopes" : "Write your hopes"}</KitButton>
+          <KitButton onClick={() => setDraft(hopes)}>{hopes ? t("charSheet.hopes.change") : t("charSheet.hopes.write")}</KitButton>
         </div>
       ) : (
         <div className="space-y-2">
@@ -85,15 +86,15 @@ export function StoryHopes({ sheet, mine }: { sheet: CharacterSheet; mine: boole
             rows={3}
             maxLength={HOPES_MAX}
             autoFocus
-            placeholder="A romance with the companion who travels with us, and a reckoning with the knight who betrayed me..."
-            aria-label="Hopes for this story"
+            placeholder={t("charSheet.hopes.placeholder")}
+            aria-label={t("charSheet.hopes.aria")}
             aria-describedby={`${fieldId}-length`}
             className={cn(ui.input, "w-full resize-y")}
           />
           <LengthNote id={`${fieldId}-length`} length={draft.length} max={HOPES_MAX} from={0.75} />
           <div className="flex flex-wrap justify-end gap-2">
             <KitButton onClick={() => setDraft(null)} disabled={saving}>
-              Cancel
+              {t("charSheet.hopes.cancel")}
             </KitButton>
             <KitButton
               onClick={() => void save(draft)}
@@ -101,7 +102,7 @@ export function StoryHopes({ sheet, mine }: { sheet: CharacterSheet; mine: boole
               busy={saving}
               className="border-amber-500/50 text-amber-100"
             >
-              Save hopes
+              {t("charSheet.hopes.save")}
             </KitButton>
           </div>
           {error ? (

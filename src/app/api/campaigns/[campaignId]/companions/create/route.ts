@@ -55,6 +55,12 @@ export async function POST(
       {
         error: `A companion cannot join the party here yet. ${blocked.reason} ${blocked.remedy}`,
         code: blocked.code,
+        errorCode: ({
+          off: "COMPANION_SETTING_OFF",
+          guests: "COMPANION_GUESTS_ONLY",
+          "auto-guests": "COMPANION_AUTO_GUESTS",
+          "full-roster": "COMPANION_ROSTER_FULL",
+        } as const)[blocked.code],
         reason: blocked.reason,
         remedy: blocked.remedy,
       },
@@ -96,7 +102,7 @@ export async function POST(
   const fromId = "libraryCharacterId" in parsed.data ? parsed.data.libraryCharacterId : parsed.data.fromLibraryCharacterId;
   const from = fromId ? getCharacterForUser(context.user.id, fromId) : null;
   if (fromId && (!from || from.role !== "companion")) {
-    return Response.json({ error: "That companion is not in your library." }, { status: 404 });
+    return Response.json({ error: "That companion is not in your library.", errorCode: "COMPANION_NOT_IN_LIBRARY" }, { status: 404 });
   }
   // One copy of a kept companion per table: two of the same person in one
   // party would share a name every lookup reads. One who left or fell here
@@ -104,11 +110,11 @@ export async function POST(
   // (issue 661), since a fresh copy would take over the row they left.
   const seen = from ? libraryCompanionsOfCampaign(campaignId).get(from.id) : undefined;
   if (from && seen === "here") {
-    return Response.json({ error: `${from.name} is already at this table.` }, { status: 409 });
+    return Response.json({ error: `${from.name} is already at this table.`, errorCode: "COMPANION_ALREADY_HERE", errorParams: { name: from.name } }, { status: 409 });
   }
   if (from && seen === "gone") {
     return Response.json(
-      { error: `${from.name} has left this party. Only the story can bring them back to this table.` },
+      { error: `${from.name} has left this party. Only the story can bring them back to this table.`, errorCode: "COMPANION_LEFT_PARTY", errorParams: { name: from.name } },
       { status: 409 },
     );
   }
@@ -136,10 +142,10 @@ export async function POST(
       olderBuilder: olderBuilderOf((raw as { sheet?: unknown } | null)?.sheet),
     });
   } else {
-    return Response.json({ error: "Invalid companion sheet." }, { status: 400 });
+    return Response.json({ error: "Invalid companion sheet.", errorCode: "INVALID_COMPANION_SHEET" }, { status: 400 });
   }
   if (!admitted.ok) {
-    return refusal(admitted.problems);
+    return refusal(admitted.problems, 400, admitted.problemDetails);
   }
   const input = admitted.sheet;
   // A test fight is played on copies (src/lib/workshop/test-fight.ts):

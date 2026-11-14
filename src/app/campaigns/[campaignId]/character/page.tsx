@@ -4,6 +4,7 @@ import { ChevronLeft } from "lucide-react";
 import { GameIcon } from "@/components/ui/GameIcon";
 import { PageSkeleton } from "@/components/PageSkeleton";
 import { useSearchParams } from "next/navigation";
+import { useI18n } from "@/lib/i18n/provider";
 import { Suspense, use, useEffect, useState } from "react";
 import { cn } from "@/lib/cn";
 import { PIXEL_ICONS, PixelTile, ui } from "@/lib/ui";
@@ -31,6 +32,7 @@ type LibraryCharacter = ChooserCharacter;
 // clearing the ready flag; an edit keeps the existing portrait unless the
 // builder's regenerate control cleared it).
 function CampaignCharacterPageInner({ campaignId }: { campaignId: string }) {
+  const { t } = useI18n();
   // join = first character; edit = rebuild the current one in place;
   // replace = switch to another or a brand-new one.
   const search = useSearchParams();
@@ -131,14 +133,14 @@ function CampaignCharacterPageInner({ campaignId }: { campaignId: string }) {
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError(refusalText(data, "Could not save the character."));
+        setError(refusalText(data, t("campaign.session.characterJoin.error.save"), t));
         return;
       }
       // Seated: an unfinished character kept for this table is done with.
       clearBuilderDraft(builderDraftKey("table", campaignId));
       navigateTo(`/campaigns/${campaignId}`);
     } catch {
-      setError("Could not reach the server.");
+      setError(t("campaign.session.characterJoin.error.server"));
     } finally {
       setBusy(false);
     }
@@ -174,29 +176,31 @@ function CampaignCharacterPageInner({ campaignId }: { campaignId: string }) {
     <main className="mx-auto w-full max-w-3xl flex-1 p-4 sm:p-6">
       <header className="mb-5">
         <a href={`/campaigns/${campaignId}`} className={cn(ui.btnSmall, "text-xs")}>
-          <ChevronLeft className="size-3.5" /> {inPlay ? "Back to the table" : "Back to the lobby"}
+          <ChevronLeft className="size-3.5" /> {t(inPlay ? "campaign.session.characterJoin.back.table" : "campaign.session.characterJoin.back.lobby")}
         </a>
         <div className="mt-2 flex items-center gap-3">
           <PixelTile src={PIXEL_ICONS.characters} />
           <div>
             <h1 className="gold-title font-display text-2xl">
-              {flow === "edit"
-                ? "Edit your character"
-                : flow === "replace"
-                  ? "Switch your character"
-                  : mode === "choose"
-                    ? "Choose your character"
-                    : "Create your character"}
+              {t(
+                flow === "edit"
+                  ? "campaign.session.characterJoin.heading.edit"
+                  : flow === "replace"
+                    ? "campaign.session.characterJoin.heading.replace"
+                    : mode === "choose"
+                      ? "campaign.session.characterJoin.heading.choose"
+                      : "campaign.session.characterJoin.heading.create",
+              )}
             </h1>
             <p className="text-sm text-stone-400">
               {fallen
-                ? `${fallen.name} has fallen. Your new hero joins at level ${level}, the level ${fallen.name} reached.`
-                : `This campaign starts at level ${level}.`}
-              {flow !== "join" ? " Changing your character clears your ready status." : ""}
+                ? t("campaign.session.characterJoin.intro.fallen", { name: fallen.name, level })
+                : t("campaign.session.characterJoin.intro.campaignLevel", { level })}
+              {flow !== "join" ? ` ${t("campaign.session.characterJoin.status.cleared")}` : ""}
             </p>
             {flow === "edit" && editCharacter && libraryLevel !== null && libraryLevel !== level ? (
               <p className="reveal mt-1 text-xs text-amber-200">
-                {editCharacter.name} stays level {libraryLevel} in your library; these changes are for this table.
+                {t("campaign.session.characterJoin.libraryLevel", { name: editCharacter.name, libraryLevel })}
               </p>
             ) : null}
           </div>
@@ -207,7 +211,9 @@ function CampaignCharacterPageInner({ campaignId }: { campaignId: string }) {
         <>
           {companionCount > 0 ? (
             <p className="reveal mb-4 text-xs text-stone-400">
-              {companionCount === 1 ? "One ally the GM plays is" : `${companionCount} allies the GM plays are`} not listed here: whoever runs the story brings them in from the party panel, under Build a companion.
+              {companionCount === 1
+                ? t("campaign.session.characterJoin.companions.one")
+                : t("campaign.session.characterJoin.companions.other", { count: companionCount })}
             </p>
           ) : null}
           {/* Every hero this seat can take, on one screen, each through the
@@ -236,7 +242,7 @@ function CampaignCharacterPageInner({ campaignId }: { campaignId: string }) {
           <div className="mb-4 flex flex-wrap items-center gap-2">
             {flow !== "edit" ? (
               <button type="button" onClick={() => setMode("choose")} className={ui.btnSmall}>
-                <ChevronLeft className="size-3.5" /> Back to every hero
+                <ChevronLeft className="size-3.5" /> {t("campaign.session.characterJoin.choose.back")}
               </button>
             ) : null}
             {/* Building is the long way to a seat: the short one stays a tap
@@ -248,7 +254,7 @@ function CampaignCharacterPageInner({ campaignId }: { campaignId: string }) {
                 aria-expanded={quick}
                 className={ui.btnSmall}
               >
-                <GameIcon icon={{ kind: "glyph", key: "ui-quickstart" }} size="size-5" /> In a hurry? Take a ready-made hero
+                <GameIcon icon={{ kind: "glyph", key: "ui-quickstart" }} size="size-5" /> {t("campaign.session.characterJoin.quickStart")}
               </button>
             ) : null}
           </div>
@@ -266,10 +272,10 @@ function CampaignCharacterPageInner({ campaignId }: { campaignId: string }) {
             initialLevel={flow === "edit" ? editCharacter?.level : undefined}
             submitLabel={
               flow === "edit"
-                ? "Save changes"
+                ? t("campaign.session.characterJoin.submit.save")
                 : flow === "replace"
-                  ? "Replace your character"
-                  : "Join the party"
+                  ? t("campaign.session.characterJoin.submit.replace")
+                  : t("campaign.session.characterJoin.submit.join")
             }
             onSubmit={submitNew}
             busy={busy}

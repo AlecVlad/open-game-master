@@ -41,15 +41,21 @@ import {
   type BlockerTarget,
   type BuilderResult,
   type StepBlock,
+  type GearProblemFormatter,
+  type BuilderBlockFormatter,
 } from "./submit";
 import { clearBuilderDraft, readBuilderDraft, writeBuilderDraft, type BuilderDraft } from "./builderDraft";
 import { builderActions, extraClassRows, useBuilderDerived } from "./useBuilderDerived";
 import { classSplitWords } from "./multiclassBuild";
 import { BuildMathPanel } from "./BuildMathPanel";
+import { gearProblemText } from "./gearProblemText";
+import { featOwedText } from "./featOwedText";
+import { featPrerequisiteText } from "./featPrereqText";
+import { multiclassPrerequisiteText } from "./multiclassPrereqText";
 import { useArchetypeOptions, useBuilderOptions, useWorldPack, type OptionListKind } from "./useBuilderOptions";
 import { TableScopeNote } from "./TableScopeNote";
 import { UndoChangeBar } from "./UndoChangeBar";
-import { putBackMessage, undoMessage } from "./buildUndo";
+import { undoNounKey } from "./buildUndo";
 import { summaryRows, type SummaryRowKey } from "./summary";
 import { ALIGNMENT_LABELS } from "./usePickerGroups";
 import { listWords, unofferedPicks } from "./unoffered";
@@ -65,11 +71,26 @@ import { QuickBuildQuiz, type QuizVoice } from "./QuickBuildQuiz";
 import { QuickBuildReadback } from "./QuickBuildReadback";
 import { useQuickFill, type FillRequest } from "./useQuickFill";
 import { useTableRules } from "./useTableRules";
-import { hitDieChip } from "./lineage";
 import { useShowNumbers } from "./numbersPref";
 import { withPoolSupply } from "./spellSupply";
+import { useI18n } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages";
 
 export type { BuilderResult } from "./submit";
+
+function localizedHitDieChip(hitDie: number, numbers: boolean, t: ReturnType<typeof useI18n>["t"]): string {
+  const key = (hitDie >= 12
+    ? "builder.multi.hitDie.veryHigh"
+    : hitDie >= 10
+      ? "builder.multi.hitDie.high"
+      : hitDie >= 8
+        ? "builder.multi.hitDie.medium"
+        : hitDie >= 6
+          ? "builder.multi.hitDie.low"
+          : "builder.multi.hitDie.veryLow") as MessageKey;
+  return `${t(key)}${numbers ? `, d${hitDie}` : ""}`;
+}
+
 
 // The step each pick is made on, by the block that collects it, so a notice
 // about a dropped pick can take the player to where it is made again.
@@ -142,18 +163,20 @@ function droppedName(drop: DroppedPick): string {
 // Ancestry step." The notice says what went, never that it must be picked
 // again: a language dropped because the new race has fewer slots is not
 // owed, and the step's own gate knows which picks are.
-function droppedMessage({ because, drops }: DroppedNotice, stepLabel: string | undefined): string {
+function droppedMessage({ because, drops }: DroppedNotice, stepLabel: string | undefined, { t, tp }: ReturnType<typeof useI18n>): string {
   const list = drops.map((drop) => `${drop.label} ${droppedName(drop)}`);
+  const and = t("builder.and");
   const named =
-    list.length <= 2 ? list.join(" and ") : `${list.slice(0, -1).join(", ")} and ${list[list.length - 1]}`;
-  const where = stepLabel ? ` Anything still owed is asked for on the ${stepLabel} step.` : "";
+    list.length <= 2 ? list.join(and) : `${list.slice(0, -1).join(", ")}${and}${list[list.length - 1]}`;
+  const where = stepLabel ? t("builder.dropped.where", { step: stepLabel }) : "";
   if (because === "stored character") {
-    return `${list.length === 1 ? "A stored pick is" : "Stored picks are"} no longer on offer: ${named}.${where}`;
+    return tp("builder.dropped.stored", list.length, { named, where });
   }
   if (because === "content pack") {
-    return `The content pack's rows set aside ${named}.${where}`;
+    return t("builder.dropped.pack", { named, where });
   }
-  return `Changing the ${because} set aside ${named}: ${list.length === 1 ? "it no longer fits" : "they no longer fit"}.${where}`;
+  const known = `builder.because.${because}` as MessageKey;
+  return tp("builder.dropped.change", list.length, { because: t(known) === known ? because : t(known), named, where });
 }
 
 // Full character creation flow as a six-step wizard: class, ancestry and
@@ -243,6 +266,19 @@ function CharacterBuilderForm({
   openQuiz?: boolean;
   className?: string;
 }) {
+  const i18n = useI18n();
+  const { t, tp } = i18n;
+  const formatGearProblem: GearProblemFormatter = (detail, fallback, more) => {
+    const first = detail ? gearProblemText(detail, t) : fallback;
+    return more > 0 ? first + " " + tp("builder.gear.problem.more", more, { count: more }) : first;
+  };
+  const formatStepBlock: BuilderBlockFormatter = (entry) => {
+    if (!entry.detail) return entry.message;
+    if (entry.detail.key === "builder.block.feat.choices") return featOwedText(entry.detail.params, t);
+    if (entry.detail.key === "builder.block.feat.prerequisite") return featPrerequisiteText(entry.detail.params, t);
+    if (entry.detail.key === "builder.block.abilities.multiclassPrerequisite") return multiclassPrerequisiteText(entry.detail.params, t);
+    return t(entry.detail.key, entry.detail.params);
+  };
   // creator.css stills its loops under <html data-effects="low">, which only
   // the table's session view set; the library and join pages build
   // characters outside it.
@@ -366,7 +402,9 @@ function CharacterBuilderForm({
   } else if (state.undo && undoAt && undoAt.step !== step) {
     state.clearUndo();
   }
-  const undoSaid = state.undo ? undoMessage(state.undo) : putBackSaid;
+  const undoSaid = state.undo
+    ? t("builder.extra.undo.message", { noun: t(undoNounKey(state.undo.because) as MessageKey), from: state.undo.from, to: state.undo.to })
+    : putBackSaid;
   function putBack() {
     if (!state.undo) {
       return;
@@ -379,7 +417,7 @@ function CharacterBuilderForm({
     document
       .querySelector<HTMLElement>(`[data-builder-root="${rootId}"] section[data-active] .wizard-step-heading`)
       ?.focus({ preventScroll: true });
-    setPutBackSaid(putBackMessage(state.undo));
+    setPutBackSaid(t("builder.extra.undo.putBack", { from: state.undo.from }));
     state.putBack();
   }
   const [cameFrom, setCameFrom] = useState<SummaryRowKey | null>(null);
@@ -496,7 +534,7 @@ function CharacterBuilderForm({
   }
   const gate = (blocked: StepBlock | null) => ({
     canContinue: !blocked,
-    blocker: blocked?.message ?? null,
+    blocker: blocked ? formatStepBlock(blocked) : null,
     onBlocked: blocked ? () => locate(blocked.target) : undefined,
   });
 
@@ -504,7 +542,11 @@ function CharacterBuilderForm({
   // chosen. The save waits until the player picks on purpose (issue 229).
   const unoffered = initial && loaded ? unofferedPicks(initial, state, races, classes, backgrounds) : [];
   const unofferedText = unoffered.length
-    ? `This builder does not offer ${initial?.name || "this character"}'s ${listWords(unoffered.map((entry) => entry.what))}: a table's own content, or a row this server no longer has. The save waits until you pick on purpose. Leave without saving to keep ${initial?.name || "them"} as stored.`
+    ? t("builder.unoffered", {
+        who: initial?.name || t("builder.thisChar"),
+        list: listWords(unoffered.map((entry) => entry.what)),
+        them: initial?.name || t("builder.them"),
+      })
     : "";
 
   function submit() {
@@ -513,7 +555,7 @@ function CharacterBuilderForm({
       return;
     }
     const input = { state, derived, race, klass, background, initial, featJudge };
-    const problem = validateBuilder(input);
+    const problem = validateBuilder(input, formatGearProblem, formatStepBlock);
     if (problem) {
       if (problem.kind === "spellWarning") {
         state.setSpellWarningAck(true);
@@ -568,7 +610,7 @@ function CharacterBuilderForm({
   // Each gate mirrors a rule the final check enforces, so a player learns
   // about a missing pick on the step where they can fix it. The gate is the
   // first pick owed; the step's "choices left" line names them all.
-  const gear = gearBlocker(derived);
+  const gear = gearBlocker(derived, formatGearProblem);
   const owed = {
     // The name alone: nothing before this step waits on it (backlog F4).
     identity: identityBlocks(state),
@@ -626,7 +668,7 @@ function CharacterBuilderForm({
     klass: derived.multiclass ? classSplitWords(derived.classList, (id) => classes.find((entry) => entry.id === id)?.name ?? id) : klass?.name,
     subclass: state.subclass || undefined,
     level: derived.effectiveLevel,
-    gender: state.gender || undefined,
+    gender: state.gender ? t(`builder.gender.${state.gender}` as MessageKey) : undefined,
     abilities: derived.shownAbilities,
     casts,
     cantrips: state.cantrips,
@@ -637,7 +679,7 @@ function CharacterBuilderForm({
     appearance: Boolean(state.appearance.trim()),
     backstory: Boolean(state.backstory.trim()),
     owed,
-  });
+  }, i18n);
 
   // Each step's title is the task in plain words; its label is the short
   // name printed under its diamond and said with it, and the one the notices
@@ -645,9 +687,9 @@ function CharacterBuilderForm({
   const steps: WizardStep[] = [
     {
       key: "calling",
-      label: "Class",
-      title: "Choose how you fight or use magic",
-      blurb: "The class decides how this character plays.",
+      label: t("builder.step.calling.label"),
+      title: t("builder.step.calling.title"),
+      blurb: t("builder.step.calling.blurb"),
       ...gate(blockers.calling),
       content: (
         <>
@@ -679,8 +721,8 @@ function CharacterBuilderForm({
                 : {
                     value: playstyle,
                     onChange: setPlaystyle,
-                    question: quizVoice === "party" ? "What does the party need?" : "In a fight, what's your job?",
-                    intro: "New to this? Pick what sounds fun. It suggests a class and a background, and nothing is chosen until you choose it.",
+                    question: quizVoice === "party" ? t("builder.question.party") : t("builder.question.fight"),
+                    intro: t("builder.intro.new"),
                     onHelpMeBuild: (role) => setQuiz({ role }),
                   }
             }
@@ -691,11 +733,11 @@ function CharacterBuilderForm({
     },
     {
       key: "ancestry",
-      label: "Ancestry",
-      title: "Choose where your hero comes from",
-      blurb: "Their people and their past, and what each grants.",
+      label: t("builder.step.ancestry.label"),
+      title: t("builder.step.ancestry.title"),
+      blurb: t("builder.step.ancestry.blurb"),
       ...gate(blockers.ancestry),
-      continueLabel: race ? `Continue as ${race.name}` : undefined,
+      continueLabel: race ? t("builder.continueAs", { name: race.name }) : undefined,
       content: (
         <>
           {undoBar("ancestry")}
@@ -734,9 +776,9 @@ function CharacterBuilderForm({
     },
     {
       key: "abilities",
-      label: "Abilities",
-      title: "Set what your hero is good at",
-      blurb: "How do you roll?",
+      label: t("builder.step.abilities.label"),
+      title: t("builder.step.abilities.title"),
+      blurb: t("builder.step.abilities.blurb"),
       ...gate(blockers.abilities),
       content: (
         <>
@@ -754,9 +796,9 @@ function CharacterBuilderForm({
     },
     {
       key: "spells-gear",
-      label: casts ? "Spells" : "Gear",
-      title: casts ? "Choose spells and gear" : "Choose your gear",
-      blurb: casts ? "Pick what they can cast, then arm your hero." : "Arm your hero.",
+      label: casts ? t("builder.step.spells.label") : t("builder.step.gear.label"),
+      title: casts ? t("builder.step.spells.title") : t("builder.step.gear.title"),
+      blurb: casts ? t("builder.step.spells.blurb") : t("builder.step.gear.blurb"),
       ...gate(blockers.spells),
       content: (
         <>
@@ -776,9 +818,9 @@ function CharacterBuilderForm({
     },
     {
       key: "identity",
-      label: "Hero",
-      title: "Name your hero and tell their story",
-      blurb: "Who they are. None of it changes a number on the sheet.",
+      label: t("builder.step.identity.label"),
+      title: t("builder.step.identity.title"),
+      blurb: t("builder.step.identity.blurb"),
       ...gate(blockers.identity),
       content: (
         <>
@@ -799,11 +841,11 @@ function CharacterBuilderForm({
     },
     {
       key: "finish",
-      label: "Finish",
-      title: "Check your hero and finish",
-      blurb: "Who have you made?",
+      label: t("builder.step.finish.label"),
+      title: t("builder.step.finish.title"),
+      blurb: t("builder.step.finish.blurb"),
       canContinue: !busy && !firstOwed,
-      blocker: firstOwed?.message ?? null,
+      blocker: firstOwed ? formatStepBlock(firstOwed) : null,
       onBlocked: firstOwed ? () => changePick(firstOwed.target) : undefined,
       content: (
         <FinishStep
@@ -834,7 +876,7 @@ function CharacterBuilderForm({
     ? steps.map((entry, index) =>
         index === STEP_ORDER.length - 1
           ? entry
-          : { ...entry, secondary: { label: "Back to summary", onClick: () => backToSummary(entry.key) } },
+          : { ...entry, secondary: { label: t("builder.toSummary"), onClick: () => backToSummary(entry.key) } },
       )
     : steps;
 
@@ -852,7 +894,7 @@ function CharacterBuilderForm({
       }
     : dropped
     ? {
-        message: droppedMessage(dropped, droppedStep >= 0 ? steps[droppedStep].label : undefined),
+        message: droppedMessage(dropped, droppedStep >= 0 ? steps[droppedStep].label : undefined, i18n),
         step: droppedStep >= 0 ? droppedStep : undefined,
         onShow: () => locate(dropped.drops[0].target),
         onDismiss: state.dismissDropped,
@@ -874,15 +916,15 @@ function CharacterBuilderForm({
       {draftOffer ? (
         <div role="status" className="reveal mb-3 flex shrink-0 flex-wrap items-center gap-2 rounded-lg border border-amber-500/30 bg-amber-950/20 px-3 py-2 text-xs text-amber-100">
           <span className="min-w-0 flex-1">
-            You have an unfinished character here
+            {t("builder.draft.head")}
             {draftOffer.fields.name.trim() ? <>: <span className="font-medium">{draftOffer.fields.name.trim()}</span></> : null}
-            , left on step {draftStepIndex(draftOffer) + 1} of {steps.length}.
+            {t("builder.draft.tail", { n: draftStepIndex(draftOffer) + 1, total: steps.length })}
           </span>
           <button type="button" onClick={resumeDraft} className={ui.btnSmall}>
-            Resume
+            {t("builder.resume")}
           </button>
           <button type="button" onClick={discardDraft} className={cn(ui.btnSmall, "text-stone-400")}>
-            Start fresh
+            {t("builder.fresh")}
           </button>
         </div>
       ) : null}
@@ -904,10 +946,10 @@ function CharacterBuilderForm({
         // character is saved or another fill starts.
         <p data-quick-kept="" className="mb-3 flex shrink-0 flex-wrap items-center gap-2 rounded-lg border border-stone-800 px-3 py-1.5 text-xs text-stone-400">
           <span className="min-w-0 flex-1">
-            {fill.kept.filled.length} {fill.kept.filled.length === 1 ? "choice was" : "choices were"} picked for you.
+            {tp("builder.kept", fill.kept.filled.length, { count: fill.kept.filled.length })}
           </span>
           <button type="button" onClick={fill.reopen} className="text-sky-300 underline-offset-2 hover:underline">
-            Show what was picked
+            {t("builder.showKept")}
           </button>
         </p>
       ) : null}
@@ -937,7 +979,7 @@ function CharacterBuilderForm({
         step={step}
         onStepChange={setStep}
         // The name is asked last (backlog F4); until then the hero is "Your hero".
-        title={state.name.trim() || "Your hero"}
+        title={state.name.trim() || t("builder.yourHero")}
         variant="diamonds"
         stepNames
         // The wipe paces a first build; an edit of a stored character moves
@@ -963,8 +1005,8 @@ function CharacterBuilderForm({
                 ]
                   .filter(Boolean)
                   .join(" "),
-                `level ${derived.effectiveLevel}`,
-                ...(klass ? [hitDieChip(klass.hitDie, numbers)] : []),
+                t("builder.aside.level", { n: derived.effectiveLevel }),
+                ...(klass ? [localizedHitDieChip(klass.hitDie, numbers, t)] : []),
               ].map((part, index) => (
                 <Fragment key={part}>
                   {index ? " · " : ""}
@@ -1002,7 +1044,7 @@ function CharacterBuilderForm({
       )}
       {cropping ? (
         <AvatarCropDialog
-          title={`Portrait for ${state.name.trim() || "your character"}`}
+          title={t("builder.portraitFor", { name: state.name.trim() || t("builder.yourChar") })}
           onUploaded={(image) => {
             setCropping(false);
             state.setPortrait({ id: image.id, name: image.name, type: image.type, url: image.url });

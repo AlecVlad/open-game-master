@@ -18,6 +18,7 @@ import {
 import { subclassNamed } from "@/lib/srd/subclass-name";
 import { SRD_WEAPONS, defaultLoadout } from "@/lib/srd/weapons";
 import { textKey } from "@/lib/language/text-logic";
+import type { GearProblemDetail } from "@/lib/srd/gear-problems";
 
 export type { ClassKit, KitItem, KitOption, KitSlot } from "@/lib/srd/starting-kit-data";
 
@@ -97,6 +98,7 @@ export type ResolvedKit = {
   // named, so a sheet stored with them reopens exactly.
   choices: KitChoices;
   problems: string[];
+  problemDetails: GearProblemDetail[];
 };
 
 // Adds items to a list, one row per name.
@@ -125,6 +127,11 @@ export function resolveKit(
   className = "class",
 ): ResolvedKit {
   const problems: string[] = [];
+  const problemDetails: GearProblemDetail[] = [];
+  const addProblem = (message: string, detail: GearProblemDetail) => {
+    problems.push(message);
+    problemDetails.push(detail);
+  };
   const options: number[] = [];
   const picks: string[] = [];
   const sentPicks = sent?.picks ?? [];
@@ -133,15 +140,24 @@ export function resolveKit(
     const asked = sent?.options?.[index];
     let chosen = typeof asked === "number" ? asked : 0;
     if (!line.options[chosen]) {
-      problems.push(
+      addProblem(
         `The ${className}'s starting equipment offers ${line.options.map((option) => option.label).join(" or ")}; choose one of them.`,
+        { code: "invalidOption", params: { className, options: line.options.map((option) => option.label).join(", ") } },
       );
       chosen = 0;
     }
     const option = line.options[chosen];
     if (!optionAllowed(option, who)) {
-      problems.push(
+      addProblem(
         `The ${className}'s starting equipment gives ${option.label} only to a character trained for it; choose ${line.options.filter((other) => other !== option && optionAllowed(other, who)).map((other) => other.label).join(" or ")}.`,
+        {
+          code: "notProficient",
+          params: {
+            className,
+            option: option.label,
+            alternatives: line.options.filter((other) => other !== option && optionAllowed(other, who)).map((other) => other.label).join(", "),
+          },
+        },
       );
     }
     options.push(chosen);
@@ -151,8 +167,18 @@ export function resolveKit(
       const allowed = slotChoices(slot);
       const match = named ? allowed.find((name) => textKey(name) === textKey(named)) : slot.default;
       if (!match) {
-        problems.push(
+        addProblem(
           `${named} is not ${describeSlot(slot)}, which is what the ${className}'s "${option.label}" gives; choose one from the weapon table.`,
+          {
+            code: "invalidSlot",
+            params: {
+              name: named,
+              slotFilter: slot.filter,
+              except: (slot.except ?? []).join(", "),
+              className,
+              option: option.label,
+            },
+          },
         );
       }
       const name = match ?? slot.default;
@@ -160,7 +186,7 @@ export function resolveKit(
       items = mergeItems(items, [{ name, qty: 1 }]);
     }
   });
-  return { items, choices: { options, picks }, problems };
+  return { items, choices: { options, picks }, problems, problemDetails };
 }
 
 // The kit a class starts with for a caller that holds a class row: its
@@ -183,7 +209,7 @@ export function startingKitFor(
     name: item.name,
     qty: 1,
   }));
-  return { items, choices: { options: [], picks: [] }, problems: [], tabled: false };
+  return { items, choices: { options: [], picks: [] }, problems: [], problemDetails: [], tabled: false };
 }
 
 // One name per piece, the way the purse check counts a free kit.

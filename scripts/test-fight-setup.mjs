@@ -170,6 +170,13 @@ await test("Save as set-up keeps the moment on the workshop's fight, and the gen
   const row = list.json.templates.find((entry) => entry.id === ambush.id);
   assert.ok(row.setup?.length, "the fight's row does not show its set-up");
   assert.deepEqual(row.setupParty, { kind: "stand-ins", size: 2, level: 3 });
+  assert.deepEqual(row.setupReadout.party, { kind: "stand-ins", size: 2, level: 3 });
+  assert.ok(row.setupReadout.foes.some((foe) => foe.name === g1.displayName && foe.hp === 2));
+  assert.ok(!JSON.stringify(row.setupReadout).includes(first), "the public readout leaked the test campaign id");
+  const detail = await call(route.setup, "GET", undefined, { campaignId: workshop.id, templateId: ambush.id });
+  assert.equal(detail.status, 200, JSON.stringify(detail.json));
+  assert.deepEqual(detail.json.readout, row.setupReadout);
+  assert.ok(detail.json.lines.length, "the legacy setup lines disappeared");
 });
 
 await test("the next test opens on the saved moment, on the kept map, with the same party unasked", async () => {
@@ -231,7 +238,17 @@ await test("another party at the test starts fresh, and is told so; the foes sti
   assert.deepEqual(seat.conditions, []);
   const [g1] = goblinsOf(out.json.campaignId);
   assert.equal(g1.currentHp, 2);
-  assert.ok(note(out.json.campaignId, /another party than the set-up was saved with/), "the table was not told");
+  assert.ok(note(out.json.campaignId, /another party than the set-up was saved with/), "the legacy table note disappeared");
+  const storedNotice = getDatabase().prepare(
+    "SELECT fight_setup_json FROM campaign_messages WHERE campaign_id = ? AND author_type = 'system' AND fight_setup_json IS NOT NULL ORDER BY seq DESC LIMIT 1",
+  ).get(out.json.campaignId);
+  assert.ok(storedNotice?.fight_setup_json, "the localized display payload was not persisted");
+  const structured = logic.parseFightSetupNotice(JSON.parse(storedNotice.fight_setup_json));
+  assert.ok(structured, "the localized display payload is unreadable");
+  assert.equal(structured.partyStartsFresh, true);
+  assert.equal(structured.initiativeOrderReplacesOpeningRolls, false);
+  assert.ok(structured.readout.foes.some((foe) => foe.name === g1.displayName && foe.hp === 2));
+  assert.ok(!JSON.stringify(structured).includes(mine.id), "the notice leaked a library character id");
 });
 
 // A scenario travels as a file: the workshop's bundle carries the fight's
@@ -305,11 +322,13 @@ await test("what Save as set-up refuses: another's test, a table that is no test
   world.signIn(author);
   const live = await call(route.save, "POST", undefined, { campaignId: world.campaignId });
   assert.equal(live.status, 409);
+  assert.equal(live.json.errorCode, "FIGHT_SETUP_NOT_TEST_AUTHOR");
   assert.match(live.json.error, /test fight's author/);
   const fight = getActiveEncounter(first);
   saveEncounter({ ...fight, orderReady: false });
   const early = await call(route.save, "POST", undefined, { campaignId: first });
   assert.equal(early.status, 409);
+  assert.equal(early.json.errorCode, "FIGHT_SETUP_INITIATIVE_NOT_READY");
   assert.match(early.json.error, /every initiative is in/);
   assert.equal(templates.getTemplateSetup(ambush.id), null, "a refused save wrote a set-up");
 });

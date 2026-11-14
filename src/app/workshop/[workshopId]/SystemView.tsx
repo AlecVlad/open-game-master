@@ -41,6 +41,8 @@ import type { WorkshopSummary } from "@/app/workshop/types";
 import { parseRef, refOf } from "@/lib/worldforge/model";
 import type { RecordVersions } from "@/app/workshop/[workshopId]/useWorkshopVersions";
 import { CreateButton } from "@/app/workshop/[workshopId]/CreateChooser";
+import { SYSTEM_I18N_KEYS } from "@/app/workshop/[workshopId]/systems";
+import { useI18n } from "@/lib/i18n/provider";
 
 // One system, open. A way back to the hub, the system's name with its count,
 // a sideways rail to hop to a neighbour, and then the panel itself.
@@ -103,13 +105,14 @@ export function SystemView({
   // when its own kind's moves.
   versions: RecordVersions;
 }) {
+  const { t, tp } = useI18n();
   const current = WORKSHOP_SYSTEMS.find((entry) => entry.id === system) ?? WORKSHOP_SYSTEMS[0];
-  const count = systemCount(current.id, workshop, bestiary, homebrew, pregens, plugin, world);
+  const count = systemCount(current.id, workshop, bestiary, homebrew, pregens, plugin, world, { t, tp });
   const items: IconRailItem<SystemId>[] = WORKSHOP_SYSTEMS.map((entry) => {
     const entryCount = systemCount(entry.id, workshop, bestiary, homebrew, pregens, plugin, world);
     return {
       value: entry.id,
-      label: entry.label,
+      label: t(SYSTEM_I18N_KEYS[entry.id].label),
       icon: entry.icon,
       badge: entryCount.total || undefined,
       tour: `system-tab-${entry.id}`,
@@ -127,13 +130,13 @@ export function SystemView({
       </button>
       <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-1">
         <GameIcon icon={systemGlyph(current.id)} size="size-9" />
-        <h2 className="gold-title font-display text-xl tracking-wide">{current.label}</h2>
+        <h2 className="gold-title font-display text-xl tracking-wide">{t(SYSTEM_I18N_KEYS[current.id].label)}</h2>
         <span className="text-sm text-stone-500">{count.phrase}</span>
         <CreateButton onClick={onCreate} className="ml-auto" />
         <button
           type="button"
-          aria-label={`How ${current.label} works`}
-          title="Guide and tour for this tool"
+          aria-label={t("workshop.hub.system.help.aria", { name: t(SYSTEM_I18N_KEYS[current.id].label) })}
+          title={t("workshop.hub.system.help.title")}
           onClick={onHelp}
           data-tour="system-help"
           className={cn(ui.iconAction, headIcon)}

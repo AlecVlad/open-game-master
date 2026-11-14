@@ -83,15 +83,15 @@ export async function PATCH(
   }
   const parsed = commandSchema.safeParse(await request.json().catch(() => ({})));
   if (!parsed.success) {
-    return Response.json({ error: "Say who commands them in fights: a player, or nobody for the GM." }, { status: 400 });
+    return Response.json({ error: "Say who commands them in fights: a player, or nobody for the GM.", errorCode: "INVALID_COMPANION_COMMAND" }, { status: 400 });
   }
   const sheet = getSheetById(characterId);
   if (!sheet || sheet.campaignId !== campaignId || !commandable(sheet)) {
-    return Response.json({ error: "That is not a companion at this table." }, { status: 404 });
+    return Response.json({ error: "That is not a companion at this table.", errorCode: "COMPANION_NOT_FOUND" }, { status: 404 });
   }
   const commander = parsed.data.commandedBy;
   if (commander && !commandingPlayers(context.campaign).includes(commander)) {
-    return Response.json({ error: "Only a player at the table can command a companion." }, { status: 400 });
+    return Response.json({ error: "Only a player at the table can command a companion.", errorCode: "COMPANION_COMMAND_PLAYER_REQUIRED" }, { status: 400 });
   }
   // Where companions may turn, one who has warned the party takes nobody's
   // orders until its conscience climbs back (issue 503).
@@ -103,7 +103,7 @@ export async function PATCH(
   }
   const updated = setCompanionCommander(sheet.id, commander);
   if (!updated) {
-    return Response.json({ error: "Could not change who commands them." }, { status: 500 });
+    return Response.json({ error: "Could not change who commands them.", errorCode: "COMPANION_COMMAND_CHANGE_FAILED" }, { status: 500 });
   }
   publishPersisted(campaignId, "sheet_updated", { sheet: updated });
   const encounter = getActiveEncounter(campaignId);
