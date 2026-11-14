@@ -30,7 +30,6 @@ export const ruBuilderScreens: Partial<Record<keyof typeof enBuilderScreens, str
   "builder.screen.hp.includes.feature": "Включает +{bonus} от «Драконьей стойкости».",
   "builder.screen.hp.help.button": "Как рассчитываются мои хиты?",
 
-  "builder.screen.levelup.hero": "Ваш герой",
   "builder.screen.levelup.title": "Что даёт {level}-й уровень",
   "builder.screen.levelup.hp.label": "Хиты:",
   "builder.screen.levelup.hp.pending": "расчёт появится после обработки сборки персонажа.",

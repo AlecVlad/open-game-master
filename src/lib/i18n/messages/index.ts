@@ -500,6 +500,12 @@ export const MESSAGE_ALIASES = {
   "builder.finish.retry": "builder.extra.tableScope.retry",
   "builder.set.gender": "builder.id.gender",
   "builder.set.gender.none": "builder.id.gender.none",
+  "builder.asi.mode.ability": "builder.target.asi",
+  "builder.asi.mode.feat": "builder.target.racialFeat",
+  "builder.id.name": "builder.target.name",
+  "builder.race.title": "builder.screen.levelup.raceChoices",
+  "builder.screen.levelup.hero": "builder.yourHero",
+  "builder.sum.abilities.label": "builder.extra.ability.title",
 } as const satisfies Record<string, keyof typeof en>;
 export type MessageKey = keyof typeof en | keyof typeof MESSAGE_ALIASES;
 

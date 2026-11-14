@@ -4,7 +4,6 @@ import type { enBuilderIdentity } from "../en/builderIdentity.ts";
 
 export const ruBuilderIdentity: Partial<Record<keyof typeof enBuilderIdentity, string>> & Record<string, string> = {
   "builder.id.name.title": "Назовите героя",
-  "builder.id.name": "Имя",
   "builder.id.roll": "Бросить кости на имя",
   "builder.id.details": "Подробности",
   "builder.id.gender": "Пол",

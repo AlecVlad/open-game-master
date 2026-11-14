@@ -18,7 +18,6 @@ export const ruBuilderSummary: Partial<Record<keyof typeof enBuilderSummary, str
   "builder.sum.ancestry.none": "Происхождение не выбрано",
   "builder.sum.background.line": "Предыстория: {b}",
   "builder.sum.background.none": "Предыстория не выбрана",
-  "builder.sum.abilities.label": "Характеристики",
   "builder.sum.abilities.none": "Пока не заданы",
   "builder.sum.spellsGear.label": "Заклинания и снаряжение",
   "builder.sum.cantrips": "Заговоры: {names}",

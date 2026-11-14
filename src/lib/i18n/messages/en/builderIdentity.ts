@@ -1,7 +1,6 @@
 // English, the source language: the builder identity step.
 export const enBuilderIdentity = {
   "builder.id.name.title": "Name your hero",
-  "builder.id.name": "Name",
   "builder.id.roll": "Roll a name",
   "builder.id.details": "Details",
   "builder.id.gender": "Gender",

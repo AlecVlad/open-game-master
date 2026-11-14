@@ -255,7 +255,6 @@ export const enBuilderRemaining = {
   "builder.asi.feat.raise": ", {ability} {from} to {to} ({modifier})",
   "builder.asi.summary.ability": "{ability} {from} to {to} ({modifier})",
 
-  "builder.race.title": "{race} choices",
   "builder.race.variant.explainer": "{label}: it changes what your {race} gets",
   "builder.race.variant.choose": "Choose one...",
   "builder.race.ability.term": "Ability score increase",
@@ -294,8 +293,6 @@ export const enBuilderRemaining = {
   "builder.race.feat.raises": "{feat} raises by 1",
   "builder.race.tool.help": "Tool proficiency",
 
-  "builder.asi.mode.feat": "Feat",
-  "builder.asi.mode.ability": "Ability score improvement",
   "builder.asi.description": "Choose how to spend this ability score improvement: increase an ability score, or take a feat.",
   "builder.asi.plusTwo": "+2 to",
   "builder.asi.firstPlusOne": "First +1",

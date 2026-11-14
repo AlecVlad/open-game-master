@@ -26,7 +26,6 @@ export const enBuilderScreens = {
   "builder.screen.hp.includes.feature": "Includes +{bonus} from Draconic Resilience.",
   "builder.screen.hp.help.button": "How is my health worked out?",
 
-  "builder.screen.levelup.hero": "Your hero",
   "builder.screen.levelup.title": "What level {level} brings",
   "builder.screen.levelup.hp.label": "Hit points:",
   "builder.screen.levelup.hp.pending": "worked out once the build is read.",

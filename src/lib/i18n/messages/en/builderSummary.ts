@@ -15,7 +15,6 @@ export const enBuilderSummary = {
   "builder.sum.ancestry.none": "No ancestry chosen",
   "builder.sum.background.line": "{b} background",
   "builder.sum.background.none": "No background chosen",
-  "builder.sum.abilities.label": "Ability scores",
   "builder.sum.abilities.none": "Not set yet",
   "builder.sum.spellsGear.label": "Spells and gear",
   "builder.sum.cantrips": "Cantrips: {names}",
