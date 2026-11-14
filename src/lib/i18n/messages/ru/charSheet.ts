@@ -670,6 +670,7 @@ export const ruCharSheet: Partial<Record<keyof typeof enCharSheet, string>> & Re
   "charSheet.pdfSheet.weapons": "Оружие",
   "charSheet.pdfSheet.tools": "Инструменты",
   "charSheet.pdfSheet.languages": "Языки",
+  "charSheet.pdfSheet.feat": "Черта",
 };
   "charSheet.levelUp.class.advance": "{name} достигает {level}-го уровня{classLine}.",
   "charSheet.levelUp.multiclass.grants": "Даёт: {grant}",
