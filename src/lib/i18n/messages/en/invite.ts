@@ -53,7 +53,6 @@ export const enInvite = {
   "invite.online.description": "Friends anywhere can join with the link below while the app runs.",
   "invite.online.failed": "Sharing online failed",
   "invite.online.notShared": "Not shared online",
-  "invite.online.tryAgain": "Try again",
   "invite.online.share": "Share online",
   "invite.online.lanOnly": "Only friends on your Wi-Fi can reach {url} until you share online.",
   "invite.online.shareHint": "Share online and friends anywhere can join with the link below.",

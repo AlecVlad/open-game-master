@@ -9,7 +9,6 @@ export const enPdfImport = {
   "pdfImport.import.pages": "has {received} of {total} pages",
   "pdfImport.action.review": "Review it",
   "pdfImport.action.follow": "Follow it",
-  "pdfImport.action.retry": "Try again",
   "pdfImport.action.pickAgain": "Pick the PDF again",
   "pdfImport.action.discard": "Discard",
   "pdfImport.action.stop": "Stop",

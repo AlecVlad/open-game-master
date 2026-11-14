@@ -11,7 +11,6 @@ export const ruPdfImport: Partial<Record<keyof typeof enPdfImport, string>> & Re
   "pdfImport.import.pages": "получено страниц: {received} из {total}",
   "pdfImport.action.review": "Проверить",
   "pdfImport.action.follow": "Открыть ход импорта",
-  "pdfImport.action.retry": "Повторить",
   "pdfImport.action.pickAgain": "Выбрать PDF ещё раз",
   "pdfImport.action.discard": "Удалить",
   "pdfImport.action.stop": "Остановить",

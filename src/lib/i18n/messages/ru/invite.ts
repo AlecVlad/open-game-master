@@ -55,7 +55,6 @@ export const ruInvite: Partial<Record<keyof typeof enInvite, string>> = {
   "invite.online.description": "Пока приложение запущено, друзья смогут подключаться по ссылке ниже.",
   "invite.online.failed": "Не удалось открыть доступ через интернет",
   "invite.online.notShared": "Доступ через интернет не открыт",
-  "invite.online.tryAgain": "Повторить",
   "invite.online.share": "Открыть доступ через интернет",
   "invite.online.lanOnly": "Пока доступ через интернет не открыт, подключиться к адресу {url} смогут только устройства в вашей Wi-Fi-сети.",
   "invite.online.shareHint": "Откройте доступ через интернет, чтобы друзья могли подключиться по ссылке ниже.",
