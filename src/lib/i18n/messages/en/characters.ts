@@ -5,8 +5,6 @@ export const enCharacters = {
   "charDetail.err.queue": "Could not queue the portrait.",
   "charDetail.notfound": "Character not found.",
   "charDetail.backLib": "Back to your library",
-  "charDetail.pdf.busy": "Preparing...",
-  "charDetail.pdf": "Download PDF",
   "charDetail.pdf.hint": "Download this character sheet as a fillable PDF",
   "charDetail.export": "Export",
   "charDetail.export.hint": "Save this character as a file you can import on another device or server",

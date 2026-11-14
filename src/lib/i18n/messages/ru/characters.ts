@@ -7,8 +7,6 @@ export const ruCharacters: Partial<Record<keyof typeof enCharacters, string>> & 
   "charDetail.err.queue": "Не удалось поставить портрет в очередь.",
   "charDetail.notfound": "Персонаж не найден.",
   "charDetail.backLib": "Назад в библиотеку",
-  "charDetail.pdf.busy": "Подготовка...",
-  "charDetail.pdf": "Скачать PDF",
   "charDetail.pdf.hint": "Скачать этот лист персонажа как заполняемый PDF",
   "charDetail.export": "Экспорт",
   "charDetail.export.hint": "Сохранить персонажа в файл, который можно импортировать на другом устройстве или сервере",
