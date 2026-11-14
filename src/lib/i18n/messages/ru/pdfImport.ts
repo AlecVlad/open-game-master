@@ -185,4 +185,6 @@ export const ruPdfImport: Partial<Record<keyof typeof enPdfImport, string>> & Re
   "pdfImport.error.networkContinue": "Не удалось связаться с сервером. Прогресс сохранён; выберите PDF ещё раз, чтобы продолжить.",
   "pdfImport.error.serverRefused": "Сервер не принял запрос. Попробуйте ещё раз.",
   "pdfImport.error.cancelled": "Импорт остановлен.",
+  "pdfImport.error.campaignAdminOnly": "На этом сервере кампании и мастерские создаёт администратор. Попросите у него код комнаты, чтобы присоединиться.",
+  "pdfImport.error.storageLow": "На сервере почти закончилось место, поэтому он временно не принимает загрузки.",
 };
