@@ -21,7 +21,7 @@ import { PdfMatches, type MatchChoice } from "./PdfMatches";
 
 function kindLabel(kind: RecordKind, count: number, tp: (key: string, count: number) => string): string {
   const key = `pdfImport.kind.${kind}`;
-  return tp(count === 1 ? `${key}.one` : key, count);
+  return tp(key, count);
 }
 
 const ORDER: RecordKind[] = ["beat", "location", "npc", "faction", "monster", "encounter", "item", "spell", "table", "map", "art", "lore"];
@@ -144,7 +144,7 @@ export function PdfReview({
       ) : null}
       {toCheck ? (
         <p className="mt-2 flex items-center gap-1.5 text-xs text-amber-200/90">
-          <TriangleAlert className="size-3.5" aria-hidden="true" /> {tp("pdfImport.review.toCheck", toCheck)}
+          <TriangleAlert className="size-3.5" aria-hidden="true" /> {t("pdfImport.review.toCheck", { count: toCheck })}
         </p>
       ) : null}
 

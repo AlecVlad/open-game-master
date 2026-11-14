@@ -58,7 +58,7 @@ export const ruPdfImport: Partial<Record<keyof typeof enPdfImport, string>> & Re
   "pdfImport.review.newWorkshopOnly": "Этот контент можно перенести только в новую мастерскую",
   "pdfImport.review.omittedCreature": "Существо, которое вы исключили, всё равно попадёт в импорт, если оно используется в оставленном вами сражении или персонаже.",
   "pdfImport.review.workshopOnlyNotice": "Карты, подготовленные сражения и таблицы бросков добавляются только при создании новой мастерской (кнопка ниже).",
-  "pdfImport.review.toCheck": "Нужно проверить записей: {count}. Они отмечены ниже.",
+  "pdfImport.review.toCheck": "На проверку отмечено записей: {count}. Они выделены ниже.",
   "pdfImport.review.privateUse": "Только для вашей игровой группы. Мастерскую, импортированную из книги, нельзя превратить в пакет мира или установить другим пользователям: текст и изображения книги принадлежат её издателю.",
   "pdfImport.review.blockedOne": "Сначала подтвердите соответствие с SRD 5.1 выше.",
   "pdfImport.review.blockedMany": "Сначала подтвердите соответствия {count} существ с SRD 5.1 выше.",

@@ -56,7 +56,7 @@ export const enPdfImport = {
   "pdfImport.review.newWorkshopOnly": "This content can only be brought in with a new workshop",
   "pdfImport.review.omittedCreature": "A creature you leave out still comes in if a fight or person you keep uses it.",
   "pdfImport.review.workshopOnlyNotice": "Maps, prepared fights and roll tables can only be added through a new workshop (the button below).",
-  "pdfImport.review.toCheck": "{count} items to check, marked below.",
+  "pdfImport.review.toCheck": "Items for review: {count}. They are marked below.",
   "pdfImport.review.privateUse": "For your own table. A workshop imported from a book cannot become a world pack or be installed for others: the book’s words and pictures belong to its publisher.",
   "pdfImport.review.blockedOne": "Confirm the SRD 5.1 match above first.",
   "pdfImport.review.blockedMany": "Confirm the SRD 5.1 matches for {count} creatures above first.",
