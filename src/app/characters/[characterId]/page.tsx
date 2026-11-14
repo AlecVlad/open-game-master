@@ -95,7 +95,7 @@ export default function CharacterDetailPage({
     try {
       // The PDF builder (pdf-lib) loads on demand; see lib/pdf/download.
       const { libraryToPdfCharacter } = await import("@/lib/pdf/character-sheet-pdf");
-      await downloadCharacterSheetPdf(libraryToPdfCharacter(character));
+      await downloadCharacterSheetPdf(libraryToPdfCharacter(character), (key, params) => t(key as never, params as never));
     } finally {
       setPdfBusy(false);
     }
