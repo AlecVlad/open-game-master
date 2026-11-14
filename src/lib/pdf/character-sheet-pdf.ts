@@ -133,11 +133,16 @@ function titleCase(value: string): string {
 // Standard fonts encode WinAnsi only; swap the smart punctuation player text
 // tends to carry and drop anything left that would throw on setText.
 function sanitize(value: string): string {
-  // The PDF embeds Liberation Sans through fontkit, so Cyrillic and other
-  // supported Unicode characters must survive. Strip control characters only.
+  // Liberation Sans covers Latin-1 and basic Cyrillic. Omit unsupported
+  // symbols (such as emoji) rather than failing the entire PDF export.
   return (value ?? "")
     .replace(/\r\n?/g, "\n")
-    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "");
+    .replace(/[‘’‛]/g, "'")
+    .replace(/[“”]/g, '"')
+    .replace(/[–—−]/g, "-")
+    .replace(/…/g, "...")
+    .replace(/№/g, "N")
+    .replace(/[^\x09\x0A\x0D\x20-\xFF\u0400-\u04FF]/g, "");
 }
 
 // One drawing context bundles the page, form, fonts, and a counter that keeps
