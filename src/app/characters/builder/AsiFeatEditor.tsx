@@ -137,7 +137,7 @@ export default function AsiFeatEditor({
                 className="rounded-lg border border-stone-800 bg-stone-950/60 p-3"
               >
                 <div className="mb-2 flex flex-wrap items-center gap-2">
-                  <span className="text-stone-300">Level {slotLevel} improvement</span>
+                  <span className="text-stone-300">{t("builder.asi.level.improvement", { level: slotLevel })}</span>
                   <div className="flex rounded-md border border-stone-700 p-0.5 text-xs">
                     {MODES.map(([mode, label]) => (
                       <button
@@ -180,7 +180,7 @@ export default function AsiFeatEditor({
                       className="w-full"
                       options={ABILITY_KEYS.map((ability) => ({
                         value: ability,
-                        label: `${ABILITY_LABELS[ability]} (${current[ability]}${current[ability] >= ABILITY_SCORE_CAP ? ", at cap" : ""})`,
+                        label: `${t(`builder.extra.ability.${ability}` as MessageKey)} (${current[ability]}${current[ability] >= ABILITY_SCORE_CAP ? `, ${t("builder.asi.cap")}` : ""})`,
                         disabled: current[ability] >= ABILITY_SCORE_CAP && ability !== choice.ability,
                       }))}
                     />
@@ -205,7 +205,7 @@ export default function AsiFeatEditor({
                           className="w-full"
                           options={ABILITY_KEYS.map((ability) => ({
                             value: ability,
-                            label: `${ABILITY_LABELS[ability]} (${current[ability]}${current[ability] >= ABILITY_SCORE_CAP ? ", at cap" : ""})`,
+                            label: `${t(`builder.extra.ability.${ability}` as MessageKey)} (${current[ability]}${current[ability] >= ABILITY_SCORE_CAP ? `, ${t("builder.asi.cap")}` : ""})`,
                             disabled:
                               (current[ability] >= ABILITY_SCORE_CAP && ability !== choice.abilities[half]) ||
                               ability === choice.abilities[half === 0 ? 1 : 0],
