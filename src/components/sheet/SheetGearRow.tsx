@@ -2,12 +2,13 @@
 
 import { GameIcon } from "@/components/ui/GameIcon";
 import { cn } from "@/lib/cn";
-import { WIELD_LABEL, changeWears, gearWornState, isWeaponRow, isWornGear, itemStatus } from "@/components/sheet/sheet-state";
+import { changeWears, gearWornState, isWeaponRow, isWornGear, itemStatus } from "@/components/sheet/sheet-state";
 import { armorChangeMinutes } from "@/lib/dm/don-doff";
 import { guessStands, matchArmor } from "@/lib/srd/armor";
 import { matchMagicItem } from "@/lib/srd/magic-items";
 import { swapQuestion, wearConflict, type WearConflict } from "@/lib/srd/wear-slots";
 import type { CharacterSheet, EquipmentItem } from "@/lib/schemas/sheet";
+import { useT } from "@/lib/i18n/provider";
 
 // One wearable item on the character sheet: its charges, whether it is
 // attuning or cursed, and the wear and attune toggles with the engine's
@@ -49,6 +50,7 @@ export function SheetGearRow({
   onLayer?: () => void;
   onDismiss?: () => void;
 }) {
+  const t = useT();
   // Magic gear works only while worn, so every row here can
   // be put on; only body armor is barred in a fight.
   const isArmor = matchArmor(item) !== null;
@@ -65,13 +67,13 @@ export function SheetGearRow({
   const weaponHint = !isWeapon
     ? undefined
     : weaponLocked
-      ? "Drawing or stowing a weapon happens on your own turn; it is not your turn."
+      ? t("charSheet.gear.weaponNotYourTurn")
       : guessStands(sheet.equipment)
-        ? "Nobody has said which weapon is out yet, so the first change is free."
+        ? t("charSheet.gear.weaponFirstFree")
         : inCombat
-          ? "Drawing or stowing a weapon takes your free object interaction, on your own turn."
+          ? t("charSheet.gear.weaponFreeInteraction")
           : undefined;
-  const wearLabel = isWeapon ? WIELD_LABEL[worn ? "in-hand" : "stowed"] : worn ? "worn" : "wear";
+  const wearLabel = isWeapon ? t(worn ? "charSheet.gear.inHand" : "charSheet.gear.packed") : worn ? t("charSheet.gear.worn") : t("charSheet.gear.wear");
   const status = itemStatus(sheet, item);
   // Only an item that asks for attunement offers it; plain
   // armor and "+1" gear work without one, and the server
@@ -88,12 +90,12 @@ export function SheetGearRow({
       <GameIcon icon={{ kind: "item", key: item.name, family: "item-gear" }} size="size-6" />
       <span className="min-w-0 grow truncate">{item.name}</span>
       {idle ? (
-        <span className="motion-pop shrink-0 rounded-full border border-stone-700 px-1.5 text-[10px] text-stone-400" title={`Worn, but a character wears ${idle} at a time, so its magic does not count.`}>
-          not in effect
+        <span className="motion-pop shrink-0 rounded-full border border-stone-700 px-1.5 text-[10px] text-stone-400" title={t("charSheet.gear.wornNotEffective", { item: idle })}>
+          {t("charSheet.gear.notInEffect")}
         </span>
       ) : item.layered && worn ? (
-        <span className="motion-pop shrink-0 rounded-full border border-amber-800/60 px-1.5 text-[10px] text-amber-300" title="Worn beside another of its kind, on the GM's say.">
-          beside another
+        <span className="motion-pop shrink-0 rounded-full border border-amber-800/60 px-1.5 text-[10px] text-amber-300" title={t("charSheet.gear.wornLayered")}>
+          {t("charSheet.gear.besideAnother")}
         </span>
       ) : null}
       {status.charges ? (
@@ -102,15 +104,15 @@ export function SheetGearRow({
         </span>
       ) : null}
       {status.attuning ? (
-        <span className="motion-pop shrink-0 rounded-full border border-sky-800/60 px-1.5 text-[10px] text-sky-300" title="Attuning takes a short rest; the next rest completes it.">
+        <span className="motion-pop shrink-0 rounded-full border border-sky-800/60 px-1.5 text-[10px] text-sky-300" title={t("charSheet.gear.attuneRestTitle")}>
           {/* A phone's row has no room for the whole sentence beside a name; the sheet's item chip above says it in full. */}
-          <span className="sm:hidden">attuning</span>
-          <span className="hidden sm:inline">attunes at the next rest</span>
+          <span className="sm:hidden">{t("charSheet.gear.attuningShort")}</span>
+          <span className="hidden sm:inline">{t("charSheet.gear.attuning")}</span>
         </span>
       ) : null}
       {status.cursed ? (
-        <span className="motion-pop shrink-0 rounded-full border border-red-800/60 px-1.5 text-[10px] text-red-300" title={status.attuneRefusal ?? "Cursed"}>
-          cursed
+        <span className="motion-pop shrink-0 rounded-full border border-red-800/60 px-1.5 text-[10px] text-red-300" title={status.attuneRefusal ?? t("charSheet.gear.cursedTitle")}>
+          {t("charSheet.gear.cursed")}
         </span>
       ) : null}
       {/* Only what is worn or wielded offers it: a wand is held, a potion carried. */}
@@ -119,10 +121,10 @@ export function SheetGearRow({
         type="button"
         disabled={busy || armorLocked || shieldLocked || weaponLocked || dead}
         aria-busy={busy}
-        aria-label={isWeapon ? `${item.name}: ${wearLabel}. ${worn ? "Pack it away" : "Take it in hand"}.` : undefined}
+        aria-label={isWeapon ? t("charSheet.gear.weaponToggleAria", { item: item.name, status: wearLabel, action: t(worn ? "charSheet.gear.packAway" : "charSheet.gear.takeInHand") }) : undefined}
         title={
           dead
-            ? `${sheet.name} is dead and cannot change what they wear or are attuned to.`
+            ? t("charSheet.gear.deadTitle", { name: sheet.name })
             : weaponHint
               ? weaponHint
               : !inCombat
@@ -132,9 +134,9 @@ export function SheetGearRow({
                 ? undefined
                 : isShield
                   ? shieldLocked
-                    ? "A shield takes your action, on your own turn; it is not your turn."
-                    : "A shield takes your action, on your own turn"
-                  : "Armor takes minutes to change, so not during a fight"
+                    ? t("charSheet.gear.shieldActionNotTurn")
+                    : t("charSheet.gear.shieldAction")
+                  : t("charSheet.gear.armorCombat")
         }
         onClick={() => onGear({ equipped: !worn })}
         className={cn(
@@ -156,7 +158,7 @@ export function SheetGearRow({
         // the three-item cap, who may attune).
         title={
           inCombat
-            ? "Attuning to an item, or ending it, takes a short rest, so not during a fight."
+            ? t("charSheet.gear.attuneCombat")
             : (status.attuneRefusal ??
               // Ending it on purpose moves the clock an hour (don-doff.ts).
               (item.attuned
@@ -171,25 +173,25 @@ export function SheetGearRow({
             : "border-stone-700 text-stone-400",
         )}
       >
-        {item.attuned ? "attuned" : item.attuning ? "cancel" : "attune"}
+        {item.attuned ? t("charSheet.gear.attuned") : item.attuning ? t("charSheet.gear.cancel") : t("charSheet.gear.attune")}
       </button>
       ) : null}
     </div>
     {status.stored ? <p className="ml-8 text-[11px] text-stone-400">{status.stored}</p> : null}
     {conflict ? (
-      <div role="group" aria-label={`Wear ${item.name}?`} className="reveal ml-8 space-y-1.5 rounded border border-amber-800/60 bg-amber-950/30 px-2 py-1.5 text-[11px] text-amber-100">
+      <div role="group" aria-label={t("charSheet.gear.swap.aria", { item: item.name })} className="reveal ml-8 space-y-1.5 rounded border border-amber-800/60 bg-amber-950/30 px-2 py-1.5 text-[11px] text-amber-100">
         <p>{swapQuestion(conflict)}</p>
         <div className="flex flex-wrap gap-1.5">
           <button type="button" disabled={busy} onClick={onSwap} className="motion-press rounded border border-amber-700/70 bg-amber-950/40 px-1.5 py-0.5 text-amber-200 disabled:opacity-40">
-            Take off {conflict.wearing.join(" and ")}, wear {item.name}
+            {t("charSheet.gear.swap.takeOff", { wearing: conflict.wearing.join(", "), item: item.name })}
           </button>
           {canLayer ? (
-            <button type="button" disabled={busy} onClick={onLayer} title="The SRD's exception, the GM's call: a circlet under a helmet, two cloaks layered." className="motion-press rounded border border-stone-600 px-1.5 py-0.5 text-stone-200 disabled:opacity-40">
-              Wear both (GM&apos;s call)
+            <button type="button" disabled={busy} onClick={onLayer} title={t("charSheet.gear.swap.bothTitle")} className="motion-press rounded border border-stone-600 px-1.5 py-0.5 text-stone-200 disabled:opacity-40">
+              {t("charSheet.gear.swap.both")}
             </button>
           ) : null}
           <button type="button" onClick={onDismiss} className="motion-press rounded border border-stone-700 px-1.5 py-0.5 text-stone-400">
-            Keep as is
+            {t("charSheet.gear.swap.keep")}
           </button>
         </div>
       </div>

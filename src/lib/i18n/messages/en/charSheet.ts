@@ -617,4 +617,12 @@ export const enCharSheet = {
   "charSheet.background.sailor": "Sailor",
   "charSheet.background.soldier": "Soldier",
   "charSheet.background.urchin": "Urchin",
+  "charSheet.gear.inHand": "In hand",
+  "charSheet.gear.packed": "Packed",
+  "charSheet.gear.packAway": "Pack it away",
+  "charSheet.gear.takeInHand": "Take it in hand",
+  "charSheet.gear.weaponNotYourTurn": "Drawing or stowing a weapon happens on your own turn; it is not your turn.",
+  "charSheet.gear.weaponFirstFree": "Nobody has said which weapon is out yet, so the first change is free.",
+  "charSheet.gear.weaponFreeInteraction": "Drawing or stowing a weapon takes your free object interaction, on your own turn.",
+  "charSheet.gear.weaponToggleAria": "{item}: {status}. {action}.",
 } satisfies Record<string, string>;

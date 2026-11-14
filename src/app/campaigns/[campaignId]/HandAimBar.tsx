@@ -2,6 +2,8 @@
 
 import { ArrowLeft, Loader2, Minus, PencilLine, Plus, X } from "lucide-react";
 import { useEffect, useRef, type CSSProperties } from "react";
+import { useI18n, useT } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages/index";
 import { cn } from "@/lib/cn";
 import { replayAnimation } from "@/lib/motion/replay";
 import { ui } from "@/lib/ui";
@@ -36,25 +38,37 @@ function HandShares({
   shares: HandShare[];
   onShare: (target: HandTargetChip, delta: 1 | -1) => void;
 }) {
+  const { t, tp } = useI18n();
   const rule = card.shares!;
   const list = shareList(card, aim, { shares });
   const count = (id: string) => list.find((share) => share.id === id)?.count ?? 0;
   const others = targets.filter((target) => target.id !== aim.id);
   const left = rule.stack ? count(aim.id) - 1 : rule.count - list.length;
-  const unit = (n: number) => `${rule.unit}${n === 1 ? "" : "s"}`;
+  const unit = (n: number) => tp(`campaign.session.hand.share.unit.${rule.unit}` as MessageKey, n, { count: n });
+  const collective = t(`campaign.session.hand.share.unit.${rule.unit}.collective` as MessageKey);
   // Infectious Fury's attack: the second pick is whom the aimed creature
   // attacks. Worded as "1 more may join", it read as a second target of the
   // curse, and the card would not go until it was picked.
   const struck = rule.attacks ? others.find((target) => count(target.id) > 0) : undefined;
   const summary = rule.attacks
-    ? struck ? `${aim.name} attacks ${struck.name}.` : `Pick the creature ${aim.name} attacks.`
+    ? struck
+      ? t("campaign.session.hand.aim.share.attacks", { attacker: aim.name, target: struck.name })
+      : t("campaign.session.hand.aim.share.pickAttack", { attacker: aim.name })
     : rule.stack
-      ? `${aim.kind === "self" ? "You take" : `${aim.name} takes`} ${count(aim.id)} ${unit(count(aim.id))}.`
-      : `${left ? `${left} more may join ${aim.kind === "self" ? "you" : aim.name}.` : "Every place is taken."}`;
-  const label = rule.attacks ? `The creature ${aim.name} attacks` : rule.stack ? `Share out the ${unit(2)}` : "Who else it takes";
+      ? aim.kind === "self"
+        ? t("campaign.session.hand.aim.share.youTake", { count: count(aim.id), unit: unit(count(aim.id)) })
+        : t("campaign.session.hand.aim.share.targetTakes", { name: aim.name, count: count(aim.id), unit: unit(count(aim.id)) })
+      : left
+        ? t("campaign.session.hand.aim.share.moreMayJoin", { count: left, name: aim.kind === "self" ? t("campaign.session.hand.aim.share.you") : aim.name })
+        : t("campaign.session.hand.aim.share.everyPlaceTaken");
+  const label = rule.attacks
+    ? t("campaign.session.hand.aim.share.attacksLabel", { name: aim.name })
+    : rule.stack
+      ? t("campaign.session.hand.share.distribute", { unit: collective })
+      : t("campaign.session.hand.share.whoElse", { count: rule.count });
   return (
     <div className="hand-choice mt-2 flex flex-wrap items-center gap-1.5" role="group" aria-label={label}>
-      <span className="text-[11px] uppercase tracking-wider text-stone-500">{rule.attacks ? "It attacks" : rule.stack ? `${rule.count} ${unit(rule.count)}` : `Up to ${rule.count}`}</span>
+      <span className="text-[11px] uppercase tracking-wider text-stone-500">{rule.attacks ? t("campaign.session.hand.share.attack") : rule.stack ? `${rule.count} ${unit(rule.count)}` : t("campaign.session.hand.share.upTo", { count: rule.count })}</span>
       <span key={summary} className="motion-pop text-xs text-stone-400">
         {summary}
       </span>
@@ -76,7 +90,7 @@ function HandShares({
                 taken ? "border-amber-400/70 bg-amber-500/20 text-amber-100" : "border-stone-600 text-stone-300 hover:border-amber-500/60",
               )}
             >
-              {target.kind === "self" ? `${target.name} (you)` : target.name}
+              {target.kind === "self" ? t("campaign.session.hand.aim.targetSelf", { name: target.name }) : target.name}
             </button>
           );
         }
@@ -91,7 +105,7 @@ function HandShares({
           >
             <button
               type="button"
-              aria-label={`One fewer ${rule.unit} on ${target.name}`}
+              aria-label={t("campaign.session.hand.share.fewer", { unit: unit(mine), name: target.name })}
               disabled={!mine}
               onClick={() => onShare(target, -1)}
               className="hand-option motion-press inline-flex size-10 items-center justify-center rounded-full hover:bg-stone-800 disabled:opacity-40 sm:size-7"
@@ -104,7 +118,7 @@ function HandShares({
             </span>
             <button
               type="button"
-              aria-label={`One more ${rule.unit} on ${target.name}`}
+              aria-label={t("campaign.session.hand.share.moreOne", { unit: unit(mine + 1), name: target.name, count: mine })}
               disabled={left <= 0}
               onClick={() => onShare(target, 1)}
               className="hand-option motion-press inline-flex size-10 items-center justify-center rounded-full hover:bg-stone-800 disabled:opacity-40 sm:size-7"
@@ -172,6 +186,7 @@ function HandOptionChip({
 // Closed until asked for: Wish's runs to pages, and it would push the Play
 // button off a phone.
 export function HandFullText({ card }: { card: HandCard }) {
+  const t = useT();
   // Less the rules line written just above (hand-full-text-logic.ts).
   const text = cardFullText(card);
   if (!text) return null;
@@ -193,7 +208,7 @@ export function HandFullText({ card }: { card: HandCard }) {
       }}
     >
       <summary className="hand-full-text-toggle inline-flex min-h-10 cursor-pointer items-center rounded-md px-1 text-xs uppercase tracking-wider text-amber-200/80 hover:text-amber-100 sm:min-h-8">
-        Full text
+        {t("campaign.session.hand.fullText")}
       </summary>
       <p className="hand-full-text-body mt-1 max-h-60 overflow-y-auto whitespace-pre-line font-serif text-sm leading-snug text-stone-300">{text}</p>
     </details>
@@ -205,19 +220,20 @@ export function HandFullText({ card }: { card: HandCard }) {
 // could not read what the card does. It opens this instead, under the rail,
 // which stays: the reason is still said on the Hand's notice line below it.
 export function HandReadPanel({ card, onClose }: { card: HandCard; onClose: () => void }) {
+  const t = useT();
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     ref.current?.scrollIntoView({ block: "nearest" });
   }, [card.id]);
   return (
-    <div ref={ref} className="hand-aim hand-read mt-1 rounded-xl border border-stone-600/60 bg-stone-950/80 p-2.5 shadow-elev-1" role="region" aria-label={`${card.name}, cannot be played now`}>
+    <div ref={ref} className="hand-aim hand-read mt-1 rounded-xl border border-stone-600/60 bg-stone-950/80 p-2.5 shadow-elev-1" role="region" aria-label={t("campaign.session.hand.read.aria", { name: card.name })}>
       <div className="flex min-w-0 items-center gap-2">
         <span className="hand-type-chip" style={{ "--chip-tone": typeTone(card.type) } as CSSProperties}>
-          {typeLabel(card.type)}
+          {typeLabel(card.type, t)}
         </span>
         <span className="min-w-0 truncate font-display text-sm font-semibold text-amber-100">{card.name}</span>
         <button type="button" onClick={onClose} className={cn(ui.btnSmall, "ml-auto min-h-10 shrink-0")}>
-          <X className="size-4" /> Close
+          <X className="size-4" /> {t("campaign.session.hand.board.close")}
         </button>
       </div>
       {card.rules ? <p className="hand-aim-rules mt-1.5 font-serif text-sm leading-snug text-stone-300">{card.rules}</p> : null}
@@ -297,6 +313,7 @@ export function HandAimBar({
   onEdit: () => void;
   onCommit: () => void;
 }) {
+  const t = useT();
   const toggles = options.filter((option) => !option.group);
   const grouped = options.filter((option) => option.group);
   const needsTarget = card.target === "enemy" || card.target === "ally";
@@ -317,26 +334,26 @@ export function HandAimBar({
     }
   }, [ready, aim]);
   const hint = needsTrigger
-    ? "Say what you wait for."
+    ? t("campaign.session.hand.aim.sayTrigger")
     : areaPicked && !aim
       // A move (Mantle of Inspiration's stride) goes to its square; an area is laid.
-      ? `${card.area?.move ? "Moving" : "Laid"} ${describePick(card.area!, areaPick)}.`
+      ? card.area?.move ? t("campaign.session.hand.aim.movingArea", { area: describePick(card.area!, areaPick) }) : t("campaign.session.hand.aim.laidArea", { area: describePick(card.area!, areaPick) })
     : !needsTarget
     ? card.compose
-      ? "Finish the line in the box below."
-      : "Ready when you are."
+      ? t("campaign.session.hand.aim.finishLine")
+      : t("campaign.session.hand.aim.ready")
     : aim
-      ? `Lined up on ${aim.kind === "self" ? "yourself" : aim.name}.`
+      ? aim.kind === "self" ? t("campaign.session.hand.aim.linedUpSelf") : t("campaign.session.hand.aim.linedUpName", { name: aim.name })
       : card.area && card.area.pick !== "none"
-        ? "Pick a target here, or tap the board where it goes."
+        ? t("campaign.session.hand.aim.pickTargetArea")
       : card.target === "enemy"
-        ? "Pick a target, here or on the board."
-        : "Pick who it is for.";
+        ? t("campaign.session.hand.aim.pickTargetBoard")
+        : t("campaign.session.hand.aim.pickWho");
   return (
     <div className="hand-aim mt-1 rounded-xl border border-amber-500/30 bg-stone-950/80 p-2.5 shadow-elev-1">
       <div className="flex min-w-0 items-center gap-2">
         <span className="hand-type-chip" style={{ "--chip-tone": typeTone(card.type) } as CSSProperties}>
-          {typeLabel(card.type)}
+          {typeLabel(card.type, t)}
         </span>
         <span className="min-w-0 truncate font-display text-sm font-semibold text-amber-100">{card.name}</span>
         <span className="ml-auto min-w-0 truncate text-xs text-stone-400">{hint}</span>
@@ -349,7 +366,7 @@ export function HandAimBar({
       <HandFullText card={card} />
 
       {needsTarget ? (
-        <div className="mt-2 flex flex-wrap gap-1.5" role="group" aria-label="Targets">
+        <div className="mt-2 flex flex-wrap gap-1.5" role="group" aria-label={t("campaign.session.hand.aim.targets")}>
           {targets.length ? (
             targets.map((target, index) => (
               <button
@@ -372,7 +389,7 @@ export function HandAimBar({
               </button>
             ))
           ) : (
-            <span className="text-xs text-stone-500">Nobody to aim at. Type your move instead.</span>
+            <span className="text-xs text-stone-500">{t("campaign.session.hand.aim.noTargets")}</span>
           )}
         </div>
       ) : null}
@@ -384,8 +401,8 @@ export function HandAimBar({
       {/* An area spell: where it is laid, picked on the board, which draws
           the squares as the pointer moves (BoardAreaAim.tsx). */}
       {card.area ? (
-        <div className="hand-choice mt-2 flex flex-wrap items-center gap-1.5" role="group" aria-label="Where the area is laid">
-          <span className="text-[11px] uppercase tracking-wider text-stone-500">Area</span>
+        <div className="hand-choice mt-2 flex flex-wrap items-center gap-1.5" role="group" aria-label={t("campaign.session.hand.aim.whereArea")}>
+          <span className="text-[11px] uppercase tracking-wider text-stone-500">{t("campaign.session.hand.aim.area")}</span>
           {areaPicked ? (
             <span
               key={describePick(card.area, areaPick)}
@@ -399,18 +416,18 @@ export function HandAimBar({
             <button
               type="button"
               onClick={onClearArea}
-              aria-label="Clear the square picked for the area"
+              aria-label={t("campaign.session.hand.aim.clearAreaLabel")}
               className="hand-option motion-press inline-flex min-h-8 items-center gap-1 rounded-full border border-stone-600 px-2.5 text-xs text-stone-300 hover:border-amber-500/60"
             >
-              <X className="size-3" /> Clear
+              <X className="size-3" /> {t("campaign.session.hand.aim.clear")}
             </button>
           ) : null}
         </div>
       ) : null}
 
       {toggles.length ? (
-        <div className="mt-2 flex flex-wrap items-center gap-1.5" role="group" aria-label="Attack options">
-          <span className="text-[11px] uppercase tracking-wider text-stone-500">With it</span>
+        <div className="mt-2 flex flex-wrap items-center gap-1.5" role="group" aria-label={t("campaign.session.hand.aim.attackOptions")}>
+          <span className="text-[11px] uppercase tracking-wider text-stone-500">{t("campaign.session.hand.aim.withIt")}</span>
           {toggles.map((option, index) => (
             <HandOptionChip
               key={option.id}
@@ -428,8 +445,8 @@ export function HandAimBar({
           pick (src/lib/motion/pill.ts), and a second press takes it back. */}
       {grouped.length ? (
         <div className="mt-2 flex flex-wrap items-center gap-1.5">
-          <span className="text-[11px] uppercase tracking-wider text-stone-500">Open Hand</span>
-          <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Open Hand Technique" data-pill-group>
+          <span className="text-[11px] uppercase tracking-wider text-stone-500">{t("campaign.session.hand.aim.openHand")}</span>
+          <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label={t("campaign.session.hand.aim.openHandTechnique")} data-pill-group>
             {grouped.map((option, index) => (
               <HandOptionChip
                 key={option.id}
@@ -480,7 +497,7 @@ export function HandAimBar({
 
       {trigger !== null ? (
         <label className="hand-trigger mt-2 flex flex-col gap-1 text-[11px] uppercase tracking-wider text-stone-500">
-          Trigger
+          {t("campaign.session.hand.aim.trigger")}
           <input
             type="text"
             value={trigger}
@@ -493,7 +510,7 @@ export function HandAimBar({
                 onCommit();
               }
             }}
-            placeholder="the ogre steps through the door"
+            placeholder={t("campaign.session.hand.aim.triggerPlaceholder")}
             className={cn(ui.input, "normal-case tracking-normal")}
           />
         </label>
@@ -501,13 +518,13 @@ export function HandAimBar({
 
       {riders.length ? (
         <div className="mt-2 flex flex-wrap items-center gap-1.5">
-          <span className="text-[11px] uppercase tracking-wider text-stone-500">Riding it</span>
+          <span className="text-[11px] uppercase tracking-wider text-stone-500">{t("campaign.session.hand.aim.riding")}</span>
           {riders.map((rider) => (
             <button
               key={rider.id}
               type="button"
               onClick={() => onDropRider(rider)}
-              aria-label={`Take ${rider.name} off this attack`}
+              aria-label={t("campaign.session.hand.aim.removeRider", { name: rider.name })}
               className="hand-rider inline-flex min-h-8 items-center gap-1 rounded-full border border-amber-500/50 bg-amber-500/10 px-2.5 text-xs text-amber-100"
             >
               {rider.name} {rider.dice}
@@ -523,30 +540,30 @@ export function HandAimBar({
         </div>
         <div className="flex min-w-0 flex-col justify-between gap-2">
           <p className="font-serif text-sm italic leading-snug text-stone-300">
-            <span className="not-italic text-stone-500">Sends: </span>
+            <span className="not-italic text-stone-500">{t("campaign.session.hand.aim.sends")} </span>
             {sentence}
           </p>
           <div className="flex flex-wrap items-center justify-end gap-2">
             <button type="button" onClick={onBack} className={cn(ui.btnSmall, "min-h-10")}>
-              <ArrowLeft className="size-4" /> Back
+              <ArrowLeft className="size-4" /> {t("campaign.session.hand.aim.back")}
             </button>
-            <Tooltip content="Put this sentence in the message box so you can change it before sending.">
+            <Tooltip content={t("campaign.session.hand.aim.editHint")}>
               <button type="button" onClick={onEdit} className={cn(ui.btnSmall, "min-h-10")}>
-                <PencilLine className="size-4" /> Edit
+                <PencilLine className="size-4" /> {t("campaign.session.hand.aim.edit")}
               </button>
             </Tooltip>
             <Tooltip
               content={
                 blocked ??
                 (ready
-                  ? "Send this to the Game Master."
+                  ? t("campaign.session.hand.aim.sendHint")
                   : needsTrigger
-                    ? "Name the trigger first."
+                    ? t("campaign.session.hand.aim.nameTrigger")
                     : card.summon
-                      ? "Choose the creature first."
+                      ? t("campaign.session.hand.aim.chooseCreature")
                     : card.area
-                      ? "Pick a target, or a square on the board."
-                      : "Pick a target first.")
+                      ? t("campaign.session.hand.aim.pickSquare")
+                      : t("campaign.session.hand.aim.pickTargetFirst"))
               }
             >
               <button
@@ -557,7 +574,7 @@ export function HandAimBar({
                 className={cn(ui.btnPrimary, "max-w-full")}
               >
                 {sending ? <Loader2 className="size-4 animate-spin" /> : null}
-                <span className="truncate">{card.compose ? "Write it" : card.name}</span>
+                <span className="truncate">{card.compose ? t("campaign.session.hand.aim.write") : card.name}</span>
               </button>
             </Tooltip>
           </div>

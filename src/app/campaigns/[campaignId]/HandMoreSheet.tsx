@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, type CSSProperties, type ReactNode } from "react";
+import { useT } from "@/lib/i18n/provider";
 import { GameIcon } from "@/components/ui/GameIcon";
 import { handCardArtwork } from "@/lib/battlemap/card-art";
 import { Sheet } from "@/components/ui/Sheet";
@@ -16,8 +17,8 @@ import {
   type HandFilter,
   type HandUnit,
 } from "@/lib/battlemap/hand-groups";
-import { costLabel, previewRows, type HandAim } from "@/lib/battlemap/hand-play";
-import { HandPreviewRows, typeLabel, WIELD_LABEL } from "@/app/campaigns/[campaignId]/HandCardFace";
+import { previewRows, type HandAim } from "@/lib/battlemap/hand-play";
+import { HandPreviewRows, costLabel, typeLabel, wieldLabel } from "@/app/campaigns/[campaignId]/HandCardFace";
 import { HandFindTools } from "@/app/campaigns/[campaignId]/HandGroups";
 
 // The cards past the ninth (docs/visual-overhaul-plan.md 5.2): the same
@@ -76,6 +77,7 @@ export function HandMoreSheet({
   freshIds: Set<string>;
   genre?: string | null;
 }) {
+  const t = useT();
   const [filter, setFilter] = useState<HandFilter>(NO_FILTER);
   const all = useMemo(() => units.flatMap((unit) => (isGroup(unit) ? unit.cards : [unit])), [units]);
   const chips = useMemo(() => (all.length > GROUP_SEARCH_OVER ? filterChips(all) : []), [all]);
@@ -108,43 +110,45 @@ export function HandMoreSheet({
         if (!next) setFilter(NO_FILTER);
         onOpenChange(next);
       }}
-      title={arranging ? "Customize your hand" : "The rest of your hand"}
+      title={t(arranging ? "campaign.session.hand.more.title.customize" : "campaign.session.hand.more.title.rest")}
     >
       {arranging ? (
         arrange
       ) : (
         <>
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-            <span className="text-xs text-stone-400">Choose which cards stay in your hand, for this character.</span>
+            <span className="text-xs text-stone-400">{t("campaign.session.hand.more.description")}</span>
             <button type="button" onClick={() => onArrange(true)} className="hand-arrange-move motion-press">
-              Customize Hand
+              {t("campaign.session.hand.more.customize")}
             </button>
           </div>
           {displaced.length ? (
             <p role="status" className="reveal mb-3 rounded-lg border border-amber-500/25 bg-amber-500/5 px-3 py-2 text-sm text-amber-100/90">
-              {urgent.map((card) => card.name).join(" and ")} took a seat for now; {displaced.map((card) => card.name).join(", ")}{" "}
-              {displaced.length === 1 ? "waits" : "wait"} here until {urgent.length === 1 ? "it is" : "they are"} no longer needed. Your arrangement is kept.
+              {t("campaign.session.hand.more.displaced", {
+                urgent: urgent.map((card) => card.name).join(", "),
+                displaced: displaced.map((card) => card.name).join(", "),
+              })}
             </p>
           ) : null}
           {waitingNote ? (
             <p role="status" className="reveal mb-3 rounded-lg border border-amber-500/25 bg-amber-500/5 px-3 py-2 text-sm text-amber-100/90">
-              {waitingNote} Read them over and plan your turn in the meantime.
+              {waitingNote} {t("campaign.session.hand.more.waiting")}
             </p>
           ) : (
-            <p className="mb-3 text-sm text-stone-400">Pick one and it takes a seat in your hand, ready to aim.</p>
+            <p className="mb-3 text-sm text-stone-400">{t("campaign.session.hand.more.pickOne")}</p>
           )}
           <HandFindTools
             chips={chips}
             filter={filter}
             onFilter={setFilter}
             search={all.length > GROUP_SEARCH_OVER}
-            label="your cards"
+            label={t("campaign.session.hand.more.cardsLabel")}
             className="mb-3"
           />
           {searching ? (
             <>
               <p role="status" className="mb-2 text-xs text-stone-400">
-                {found.length ? `${found.length} of ${all.length} cards` : "No card matches."}
+                {found.length ? t("campaign.session.hand.more.searchCount", { found: found.length, total: all.length }) : t("campaign.session.hand.more.noMatches")}
               </p>
               <ul className="-mx-1 flex min-h-0 flex-col gap-1.5 px-1 pb-1">{found.map(row)}</ul>
             </>
@@ -199,6 +203,7 @@ function MoreRow({
   conditions: string[];
   onPick: (card: HandCard) => void;
 }) {
+  const t = useT();
   const artwork = handCardArtwork(card, genre);
   const rows = previewRows(card, card.intent.card === "reaction" ? null : aim, conditions);
   const facts = [card.dice, card.roll, card.range].filter(Boolean).join(" · ");
@@ -217,21 +222,21 @@ function MoreRow({
         <span className="min-w-0 flex-1">
           <span className="flex items-baseline gap-2">
             <span className="truncate font-display text-sm font-semibold text-stone-100">{card.name}</span>
-            <span className="shrink-0 text-[10px] uppercase tracking-wider text-stone-500">{typeLabel(card.type)}</span>
+            <span className="shrink-0 text-[10px] uppercase tracking-wider text-stone-500">{typeLabel(card.type, t)}</span>
             {fresh ? (
               <span className="shrink-0 rounded-full border border-emerald-400/50 bg-emerald-400/10 px-1.5 py-px text-[10px] uppercase tracking-wider text-emerald-200">
-                New
+                {t("campaign.session.hand.new")}
               </span>
             ) : null}
             <span className="hand-cost ml-auto shrink-0" data-cost={card.cost}>
-              {costLabel(card.cost)}
+              {costLabel(card.cost, t)}
             </span>
           </span>
           {facts ? <span className="block font-mono text-[11px] text-stone-400">{facts}</span> : null}
           {card.rules ? <span className="mt-1 block text-xs leading-snug text-stone-300">{card.rules}</span> : null}
           {card.resource || card.condition || card.wield ? (
             <span className="mt-0.5 block text-[11px] text-stone-500">
-              {[card.wield ? WIELD_LABEL[card.wield] : "", card.resource, card.condition].filter(Boolean).join(" · ")}
+              {[card.wield ? wieldLabel(card.wield, t) : "", card.resource, card.condition].filter(Boolean).join(" · ")}
             </span>
           ) : null}
           {rows.length ? (

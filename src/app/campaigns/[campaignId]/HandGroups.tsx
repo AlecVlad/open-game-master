@@ -3,6 +3,9 @@
 import { ArrowLeft, Search, X } from "lucide-react";
 import { memo, useEffect, useId, useMemo, useRef, useState } from "react";
 import type { CSSProperties, KeyboardEvent } from "react";
+import { useI18n } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages/index";
+import { costLabel } from "@/app/campaigns/[campaignId]/HandCardFace";
 import { GameIcon } from "@/components/ui/GameIcon";
 import { cardArtwork } from "@/lib/battlemap/card-art";
 import type { HandCard } from "@/lib/battlemap/hand";
@@ -12,7 +15,6 @@ import {
   filterCards,
   filterChips,
   filtering,
-  groupSummary,
   sectionLine,
   type FilterChip,
   type HandFilter,
@@ -26,7 +28,37 @@ import { HandCardFace } from "@/app/campaigns/[campaignId]/HandCardFace";
 // actions, and the group opened as a hand of its own, with a Back spine to
 // the main hand. Styles in src/app/styles/hand-groups.css.
 
-const costWord: Record<string, string> = { action: "action", bonus: "bonus action", reaction: "reaction" };
+const costWord: Record<string, MessageKey> = {
+  action: "campaign.session.hand.cost.action",
+  bonus: "campaign.session.hand.cost.bonus",
+  reaction: "campaign.session.hand.cost.reaction",
+};
+
+const GROUP_NAME_KEYS: Record<string, MessageKey> = {
+  Spells: "campaign.session.hand.group.name.spells",
+  Items: "campaign.session.hand.group.name.items",
+  Actions: "campaign.session.hand.group.name.actions",
+  Ki: "campaign.session.hand.group.name.ki",
+  "Superiority dice": "campaign.session.hand.group.name.superiority",
+  "Channel Divinity": "campaign.session.hand.group.name.channelDivinity",
+  "Psionic Energy": "campaign.session.hand.group.name.psionic",
+  "Sorcery points": "campaign.session.hand.group.name.sorcery",
+};
+const GROUP_COUNT_KEYS: Record<string, MessageKey> = {
+  spell: "campaign.session.hand.group.count.spell",
+  card: "campaign.session.hand.group.count.card",
+  action: "campaign.session.hand.group.count.action",
+  technique: "campaign.session.hand.group.count.technique",
+  maneuver: "campaign.session.hand.group.count.maneuver",
+  option: "campaign.session.hand.group.count.option",
+  use: "campaign.session.hand.group.count.use",
+};
+
+function groupCount(noun: string, count: number, tp: ReturnType<typeof useI18n>["tp"]): string {
+  const key = GROUP_COUNT_KEYS[noun];
+  return key ? tp(key, count, { count }) : `${count} ${noun}${count === 1 ? "" : "s"}`;
+}
+
 
 // The fan's lean for this many cards, as the main hand works it out.
 export function fanStep(count: number): number {
@@ -62,10 +94,17 @@ function HandGroupFaceInner({
   onOpen: (group: HandGroup) => void;
   genre?: string | null;
 }) {
+  const { t, tp } = useI18n();
   const quiet = Boolean(group.disabled) && !waiting;
   const names = group.cards.map((card) => card.name);
-  const open = group.costs.filter((entry) => entry.open).map((entry) => costWord[entry.cost]);
-  const label = `${group.name}: ${groupSummary(group)}.${open.length ? ` Has ${open.join(", ")} cards ready.` : ""} Open`;
+  const title = GROUP_NAME_KEYS[group.name] ? t(GROUP_NAME_KEYS[group.name]) : group.name;
+  const open = group.costs.filter((entry) => entry.open).map((entry) => t(costWord[entry.cost]));
+  const summary = [groupCount(group.noun[0], group.cards.length, tp), group.left].filter(Boolean).join(", ");
+  const label = t("campaign.session.hand.group.aria", {
+    name: title,
+    summary,
+    ready: open.length ? t("campaign.session.hand.group.hasReady", { costs: open.join(", ") }) : "",
+  });
   return (
     <div className="hand-slot" style={slotStyle(index, offset, step)}>
       <button
@@ -85,7 +124,7 @@ function HandGroupFaceInner({
         <span className="hand-card-foil" />
         <span className="hand-card-sheen" />
         <span className="hand-card-ribbon">
-          {group.cards.length} {group.cards.length === 1 ? group.noun[0] : group.noun[1]}
+          {groupCount(group.noun[0], group.cards.length, tp)}
         </span>
         <span className="hand-card-corner" data-at="tl" />
         <span className="hand-card-corner" data-at="br" />
@@ -96,7 +135,7 @@ function HandGroupFaceInner({
                 <span key={entry.cost} className="hand-cost-dot" data-cost={entry.cost} data-open={entry.open ? "true" : undefined} />
               ))}
             </span>
-            {fresh ? <span className="hand-group-new">New</span> : <span className="hand-range">Open</span>}
+            {fresh ? <span className="hand-group-new">{t("campaign.session.hand.new")}</span> : <span className="hand-range">{t("campaign.session.hand.group.open")}</span>}
           </span>
           <span className="hand-art hand-group-art" aria-hidden="true">
             {group.icons.map((icon, at) => {
@@ -108,7 +147,7 @@ function HandGroupFaceInner({
               );
             })}
           </span>
-          <span className="hand-name">{group.name}</span>
+          <span className="hand-name">{title}</span>
           <span className="hand-numbers">
             <span className="hand-roll">{sectionLine(group) || names.slice(0, 3).join(" · ")}</span>
           </span>
@@ -121,14 +160,14 @@ function HandGroupFaceInner({
       {/* What it holds, section by section, over the card on hover. */}
       <span className="hand-preview" aria-hidden="true">
         <span className="hand-preview-head">
-          <span className="hand-preview-name">{group.name}</span>
+          <span className="hand-preview-name">{title}</span>
         </span>
         <span className="hand-rows">
           {group.sections.map((section, at) => (
             <span key={section.id} className="hand-row" style={{ "--i": at } as CSSProperties}>
-              <span className="hand-row-key">{group.sections.length > 1 ? section.label : `${section.cards.length} ${group.noun[1]}`}</span>
+              <span className="hand-row-key">{group.sections.length > 1 ? section.label : groupCount(group.noun[0], section.cards.length, tp)}</span>
               <span className="hand-row-value" data-tone={section.note ? "cost" : "muted"}>
-                {group.sections.length > 1 ? [section.cards.length, section.note].filter(Boolean).join(" · ") : section.note || "Open to choose"}
+                {group.sections.length > 1 ? [section.cards.length, section.note].filter(Boolean).join(" · ") : section.note || t("campaign.session.hand.group.openToChoose")}
               </span>
             </span>
           ))}
@@ -159,6 +198,7 @@ export function HandFindTools({
   label: string;
   className?: string;
 }) {
+  const { t } = useI18n();
   if (!chips.length && !search) return null;
   const toggle = (chip: FilterChip) => {
     if (chip.id === "concentration") {
@@ -171,7 +211,7 @@ export function HandFindTools({
   return (
     <div className={`hand-find ${className ?? ""}`}>
       {chips.length ? (
-        <span className="hand-find-chips" role="group" aria-label={`Filter ${label}`}>
+        <span className="hand-find-chips" role="group" aria-label={t("campaign.session.hand.group.filter", { label })}>
           {chips.map((chip) => {
             const on = chip.id === "concentration" ? filter.concentration : filter.costs.includes(chip.id);
             return (
@@ -181,10 +221,10 @@ export function HandFindTools({
                 className="hand-chip"
                 data-cost={chip.id}
                 aria-pressed={on}
-                aria-label={`${chip.label}: ${chip.count}`}
+                aria-label={t("campaign.session.hand.group.filterChip", { label: chip.id === "concentration" ? t("campaign.session.hand.group.filterConcentration") : costLabel(chip.id as import("@/lib/battlemap/hand").HandCard["cost"], t), count: chip.count })}
                 onClick={() => toggle(chip)}
               >
-                {chip.short}
+                {chip.id === "concentration" ? t("campaign.session.hand.group.filterConcentration") : costLabel(chip.id as import("@/lib/battlemap/hand").HandCard["cost"], t)}
                 <span className="hand-chip-count" aria-hidden="true">{chip.count}</span>
               </button>
             );
@@ -198,8 +238,8 @@ export function HandFindTools({
             type="search"
             value={filter.query}
             onChange={(event) => onFilter({ ...filter, query: event.target.value })}
-            placeholder="Find by name or damage"
-            aria-label={`Search ${label}`}
+            placeholder={t("campaign.session.hand.group.searchPlaceholder")}
+            aria-label={t("campaign.session.hand.group.search", { label })}
             maxLength={60}
             enterKeyHint="search"
             autoComplete="off"
@@ -249,6 +289,7 @@ export function HandGroupView({
   onBack: () => void;
   genre?: string | null;
 }) {
+  const { t, tp } = useI18n();
   const [sectionId, setSectionId] = useState(() => openingSection(group));
   const [filter, setFilter] = useState<HandFilter>(NO_FILTER);
   const backRef = useRef<HTMLButtonElement>(null);
@@ -276,23 +317,24 @@ export function HandGroupView({
 
   const middle = shown.length / 2;
   const step = fanStep(shown.length);
-  const panelLabel = searching ? `${group.name} found` : tabs ? `${group.name}, ${section?.label}` : group.name;
+  const title = GROUP_NAME_KEYS[group.name] ? t(GROUP_NAME_KEYS[group.name]) : group.name;
+  const panelLabel = searching ? t("campaign.session.hand.group.found", { name: title }) : tabs ? `${title}, ${section?.label}` : title;
   return (
     <div className="hand-group" data-group-key={group.key}>
       <div className="hand-group-bar">
         <span className="hand-group-title">
-          <span className="font-display">{group.name}</span>
+          <span className="font-display">{title}</span>
           {group.left ? <span className="hand-group-left">{group.left}</span> : null}
         </span>
         {searching ? (
           <p className="hand-group-found" role="status">
-            {shown.length ? `${shown.length} of ${group.cards.length} ${group.noun[1]}` : `No ${group.noun[1]} match`}
+            {shown.length ? t("campaign.session.hand.group.searchCount", { found: shown.length, items: group.cards.length }) : t("campaign.session.hand.group.noMatches")}
             <button type="button" className="hand-group-clear" onClick={() => setFilter(NO_FILTER)}>
-              <X aria-hidden="true" className="size-3" /> Clear
+              <X aria-hidden="true" className="size-3" /> {t("campaign.session.hand.group.clear")}
             </button>
           </p>
         ) : tabs ? (
-          <div role="tablist" aria-label={`${group.name} by ${group.key === "items" ? "item" : "level"}`} className="hand-group-tabs">
+          <div role="tablist" aria-label={t("campaign.session.hand.group.tablist", { name: title })} className="hand-group-tabs">
             {group.sections.map((entry, at) => {
               const chosen = entry.id === section?.id;
               return (
@@ -310,7 +352,7 @@ export function HandGroupView({
                   onKeyDown={(event) => onTabKey(event, at)}
                 >
                   <span className="hand-group-tab-label">{entry.label}</span>
-                  <span className="hand-group-tab-note">{entry.note || `${entry.cards.length} ${entry.cards.length === 1 ? group.noun[0] : group.noun[1]}`}</span>
+                  <span className="hand-group-tab-note">{entry.note || groupCount(group.noun[0], entry.cards.length, tp)}</span>
                 </button>
               );
             })}
@@ -321,7 +363,7 @@ export function HandGroupView({
           filter={filter}
           onFilter={setFilter}
           search={group.cards.length > GROUP_SEARCH_OVER}
-          label={group.name}
+          label={title}
         />
       </div>
       <div
@@ -339,10 +381,10 @@ export function HandGroupView({
           type="button"
           className="hand-back"
           onClick={onBack}
-          aria-label={`Back to your hand from ${group.name}`}
+          aria-label={t("campaign.session.hand.group.backToHand", { name: title })}
         >
           <ArrowLeft aria-hidden="true" className="hand-back-arrow" />
-          <span className="hand-back-word">Your hand</span>
+          <span className="hand-back-word">{t("campaign.session.hand.group.yourHand")}</span>
         </button>
         {shown.map((card, index) => (
           <HandCardFace

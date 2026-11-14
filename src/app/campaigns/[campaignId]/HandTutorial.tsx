@@ -3,35 +3,36 @@
 import { X } from "lucide-react";
 import type { TourEnd } from "@/lib/tours/account-logic";
 import { ui } from "@/lib/ui";
+import { useT } from "@/lib/i18n/provider";
 
 // The first fight's two-row card (docs/visual-overhaul-plan.md 5.7): play a
 // card, or type your move. Shown once per account through the tours' record
 // (src/lib/tours/tour-store.ts), and brought back by the Hand's question mark.
 export { HAND_TUTORIAL_ID } from "@/lib/tours/registry";
 
-const ROWS = [
-  {
-    tag: "Card",
-    title: "Play a card",
-    body: "Pick one, then pick who it lands on. Your spells, items and basic actions each wait under one card: open it to choose. A card's coloured corner is the pip it spends. Spent cards dim and say why when you press them.",
-    className: "border-amber-500/45 bg-amber-500/10",
-    tagClassName: "border-amber-400/60 text-amber-200",
-  },
-  {
-    tag: "Type",
-    title: "Or type your move",
-    body: "The message box still takes prose for anything the cards do not cover. Both land in the same chronicle, and the Game Master rules on both the same way.",
-    className: "border-stone-600/50 bg-stone-950/60",
-    tagClassName: "border-stone-500/60 text-stone-300",
-  },
-];
-
 export function HandTutorial({ onDismiss }: { onDismiss: (how: TourEnd) => void }) {
+  const t = useT();
+  const rows = [
+    {
+      tag: t("campaign.session.hand.tutorial.tag.card"),
+      title: t("campaign.session.hand.tutorial.title.card"),
+      body: t("campaign.session.hand.tutorial.body.card"),
+      className: "border-amber-500/45 bg-amber-500/10",
+      tagClassName: "border-amber-400/60 text-amber-200",
+    },
+    {
+      tag: t("campaign.session.hand.tutorial.tag.type"),
+      title: t("campaign.session.hand.tutorial.title.type"),
+      body: t("campaign.session.hand.tutorial.body.type"),
+      className: "border-stone-600/50 bg-stone-950/60",
+      tagClassName: "border-stone-500/60 text-stone-300",
+    },
+  ];
   return (
-    <div className="mb-2 animate-fade-up rounded-xl border border-stone-700/60 bg-stone-950/80 p-2.5" role="note" aria-label="How the hand works">
+    <div className="mb-2 animate-fade-up rounded-xl border border-stone-700/60 bg-stone-950/80 p-2.5" role="note" aria-label={t("campaign.session.hand.tutorial.aria")}>
       <div className="mb-2 flex items-center justify-between gap-2">
-        <span className="font-display text-xs uppercase tracking-[0.14em] text-amber-200/90">Your turn, two ways</span>
-        <button type="button" onClick={() => onDismiss("ended")} aria-label="Close the hand tutorial" className="flex size-9 items-center justify-center rounded-lg text-stone-500 hover:text-amber-200">
+        <span className="font-display text-xs uppercase tracking-[0.14em] text-amber-200/90">{t("campaign.session.hand.tutorial.heading")}</span>
+        <button type="button" onClick={() => onDismiss("ended")} aria-label={t("campaign.session.hand.tutorial.close")} className="flex size-9 items-center justify-center rounded-lg text-stone-500 hover:text-amber-200">
           <X className="size-4" />
         </button>
       </div>
@@ -50,7 +51,7 @@ export function HandTutorial({ onDismiss }: { onDismiss: (how: TourEnd) => void 
       </div>
       <div className="mt-2 flex justify-end">
         <button type="button" onClick={() => onDismiss("done")} className={ui.btnSmall}>
-          Got it
+          {t("campaign.session.hand.tutorial.gotIt")}
         </button>
       </div>
     </div>
