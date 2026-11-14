@@ -36,4 +36,8 @@ export const enCharDetail = {
   "charDetail.st.export": "Exporting...",
   "charDetail.st.copy": "Copying...",
   "charDetail.st.paint": "Painting the portrait...",
+  "charDetail.edit": "Edit build",
+  "charDetail.dup": "Duplicate",
+  "charDetail.dupEdit": "Duplicate and edit",
+  "charDetail.portrait.upload": "Upload portrait",
 } satisfies Record<string, string>;

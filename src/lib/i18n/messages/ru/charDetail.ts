@@ -39,4 +39,8 @@ export const ruCharDetail: Partial<Record<keyof typeof enCharDetail, string>> & 
   "charDetail.st.export": "Экспорт...",
   "charDetail.st.copy": "Копирование...",
   "charDetail.st.paint": "Рисуется портрет...",
+  "charDetail.edit": "Изменить сборку",
+  "charDetail.dup": "Дублировать",
+  "charDetail.dupEdit": "Дублировать и изменить",
+  "charDetail.portrait.upload": "Загрузить портрет",
 };
