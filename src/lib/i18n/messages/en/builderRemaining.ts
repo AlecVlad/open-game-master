@@ -293,6 +293,7 @@ export const enBuilderRemaining = {
   "builder.race.expertise.help": "Expertise: a skill or tool you are proficient in, its proficiency bonus doubled",
   "builder.race.expertise.label": "Expertise",
   "builder.race.expertise.placeholder": "Choose a skill or tool...",
+  "builder.race.feat.browseHint": "Browse the feats listed here (tap ⓘ to read what each does), or search by name.",
 }; choose {count} other skills in their place",
   "builder.race.repeat.label": "Skill in place of a repeated one {index}",
   "builder.race.repeat.placeholder": "Choose a skill...",
