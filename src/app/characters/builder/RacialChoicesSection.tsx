@@ -285,7 +285,7 @@ export function RacialChoicesSection({
               { value: "", label: t("builder.race.draconic.placeholder") },
               ...DRACONIC_ANCESTRIES.map((entry) => ({
                 value: entry.id,
-                label: `${entry.dragon} (${entry.damageType}, ${entry.area}, ${abilityName(entry.save as Ability)} saving throw)`,
+                label: t("builder.race.draconic.save", { dragon: entry.dragon, damage: entry.damageType, area: entry.area, save: abilityName(entry.save as Ability) }),
               })),
             ]}
           />
@@ -331,8 +331,7 @@ export function RacialChoicesSection({
           </span>
           <p className="mb-1.5 text-xs text-stone-500">
             {t("builder.race.feat.description", { race: race.name })}
-            Browse the list (tap ⓘ to read what each does), or search by name if you already have
-            one in mind.
+            {t("builder.race.feat.browseHint")}
           </p>
           {feats.length ? (
             <div className="mb-1.5 flex flex-wrap gap-1.5">
@@ -476,7 +475,7 @@ export function RacialChoicesSection({
             label={t("builder.race.expertise.label")}
             placeholder={t("builder.race.expertise.placeholder")}
             options={[
-              { value: "", label: "Choose a skill or tool..." },
+              { value: "", label: t("builder.race.expertise.placeholder") },
               ...[...new Set([...grantedSkills, ...skills.filter(Boolean), ...training.filter((pick) => (ALL_SKILLS as readonly string[]).includes(pick))])].map((skill) => ({
                 value: skill,
                 label: skillName(skill),
