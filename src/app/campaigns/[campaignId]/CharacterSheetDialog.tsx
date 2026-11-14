@@ -273,12 +273,12 @@ export function CharacterSheetDialog({
                   glyph: "rest-ac",
                   label: <GameTerm id="armor_class">Armor class</GameTerm>,
                   value: sheet.ac,
-                  title: sheet.acOverride ? "Set by hand; armor does not change it." : armor.parts.join(" + "),
+                  title: sheet.acOverride ? t("charSheet.ac.pinned") : armor.parts.join(" + "),
                 },
                 {
                   glyph: "rest-speed",
                   label: t("charSheet.speed"),
-                  value: `${speed} ft`,
+                  value: t("charSheet.ft", { n: speed }),
                   title: [speedNote, ...otherSpeedsLine(derived.speeds)].join(" "),
                   tone: speed < speedState.base ? "warn" : "plain",
                 },
@@ -337,15 +337,14 @@ export function CharacterSheetDialog({
           {sheet.wildShape ? (
             <div className="reveal mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border border-lime-800/60 bg-lime-950/40 px-3 py-2 text-sm text-lime-200">
               <span className="flex items-center gap-1.5 font-medium capitalize">
-                <PawPrint className="size-4" /> Wild Shaped: {sheet.wildShape.form}
+                <PawPrint className="size-4" /> {t("charSheet.wildShape.title", { form: sheet.wildShape.form })}
               </span>
               <span className="font-mono text-xs">
-                {sheet.wildShape.beastHp}/{sheet.wildShape.beastMaxHp} beast HP
+                {t("charSheet.wildShape.hp", { current: sheet.wildShape.beastHp, maximum: sheet.wildShape.beastMaxHp })}
               </span>
-              <span className="font-mono text-xs">AC {sheet.wildShape.beastAc}</span>
+              <span className="font-mono text-xs">{t("charSheet.wildShape.ac", { ac: sheet.wildShape.beastAc })}</span>
               <span className="w-full text-xs text-lime-400/80">
-                Damage hits the beast&apos;s hit points first. The {sheet.currentHp}/{hp.max} HP
-                above is what {sheet.name} returns to when the form breaks.
+                {t("charSheet.wildShape.damageNote", { name: sheet.name, current: sheet.currentHp, maximum: hp.max })}
               </span>
             </div>
           ) : null}
@@ -399,14 +398,14 @@ export function CharacterSheetDialog({
               title={t("charSheet.spellcasting")}
               hint={
                 derived.parts.spellSaveDc.length
-                  ? `Save DC: ${explainParts(derived.parts.spellSaveDc)}. To hit: ${explainParts(derived.parts.spellAttack)}`
+                  ? t("charSheet.spellcasting.hint", { save: explainParts(derived.parts.spellSaveDc), attack: explainParts(derived.parts.spellAttack) })
                   : undefined
               }
               aside={
                 <>
                   {sheet.spellcasting.ability.toUpperCase()}
-                  {derived.spellSaveDc ? ` · DC ${derived.spellSaveDc}` : ""}
-                  {derived.spellAttack !== null ? ` · ${formatModifier(derived.spellAttack)} to hit` : ""}
+                  {derived.spellSaveDc ? ` · ${t("charSheet.spellcasting.dc", { dc: derived.spellSaveDc })}` : ""}
+                  {derived.spellAttack !== null ? ` · ${t("charSheet.spellcasting.toHit", { modifier: formatModifier(derived.spellAttack) })}` : ""}
                 </>
               }
             >
@@ -532,9 +531,9 @@ export function CharacterSheetDialog({
               {spends ? (
                 <p className="reveal mt-1.5 text-[11px] text-stone-500">
                   {corrects
-                    ? "Minus spends, plus hands a use back as a correction."
-                    : "Minus marks a use spent. Uses come back at rests; the GM or the party lead corrects a wrong count."}{" "}
-                  Changes are logged to the session event log.
+                    ? t("charSheet.resources.correction")
+                    : t("charSheet.resources.player")}{" "}
+                  {t("charSheet.resources.logged")}
                 </p>
               ) : null}
               {refusal?.at === "usage" ? (
@@ -557,19 +556,18 @@ export function CharacterSheetDialog({
               {(mine || corrects) && wearable.length ? (
                 <div className="reveal mt-2 space-y-1">
                   <p className="text-[11px] text-stone-500">
-                    Worn gear sets {mine ? "your" : "their"} AC ({sheet.acOverride ? "pinned by hand" : armor.parts.join(" + ")}
-                    ). Attuned {attunedCount}/{attunementSlotsFor(sheet)}.
+                    {t("charSheet.gear.wornSummary", { ac: sheet.acOverride ? t("charSheet.gear.pinned") : armor.parts.join(" + "), count: attunedCount, max: attunementSlotsFor(sheet) })}
                   </p>
                   {magic.sources.length ? (
                     <p className="reveal text-[11px] text-sky-400/80">
-                      Active magic:{" "}
+                      {t("charSheet.gear.activeMagic")}:{" "}
                       {[
-                        magic.acBonus ? `+${magic.acBonus} AC` : null,
-                        magic.saveBonus ? `+${magic.saveBonus} saves` : null,
+                        magic.acBonus ? t("charSheet.gear.acBonus", { bonus: magic.acBonus }) : null,
+                        magic.saveBonus ? t("charSheet.gear.saveBonus", { bonus: magic.saveBonus }) : null,
                         ...Object.entries(magic.abilitySet).map(
                           ([ability, score]) => `${ability.toUpperCase()} ${score}`,
                         ),
-                        magic.resistances.length ? `resist ${magic.resistances.join(", ")}` : null,
+                        magic.resistances.length ? t("charSheet.gear.resistances", { types: magic.resistances.join(", ") }) : null,
                       ]
                         .filter(Boolean)
                         .join(" \u00b7 ") || "worn"}
