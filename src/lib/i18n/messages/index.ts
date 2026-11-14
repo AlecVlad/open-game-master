@@ -487,6 +487,20 @@ export const MESSAGE_ALIASES = {
   "campaign.session.turnTrace.button": "campaign.session.turnTrace.title",
   "campaign.session.turnTrace.outcome.ok": "campaign.session.turnTrace.status.done",
   "campaign.session.turnTrace.outcome.waiting": "campaign.session.turnTrace.status.waiting",
+  "createCampaign.dialog.heading.review": "createCampaign.dialog.step.review",
+  "createCampaign.dialog.draft.players": "createCampaign.review.cover.partySize.players",
+  "createCampaign.identity.optional": "common.label.optional",
+  "createCampaign.experience.optional": "common.label.optional",
+  "createCampaign.essentials.optional": "common.label.optional",
+  "createCampaign.review.row.setting": "createCampaign.identity.setting",
+  "createCampaign.review.row.difficulty": "createCampaign.party.difficulty",
+  "createCampaign.review.row.dice": "createCampaign.party.dice",
+  "createCampaign.experience.narration.allies.mode.off": "createCampaign.summary.voice.off",
+  "createCampaign.experience.variants.infoLabel": "createCampaign.experience.variants.title",
+  "createCampaign.experience.variantRules.title": "createCampaign.experience.variants.title",
+  "createCampaign.summary.common.on": "createCampaign.experience.variantRules.on",
+  "createCampaign.summary.common.off": "createCampaign.experience.variantRules.off",
+  "createCampaign.review.prep.workshop": "createCampaign.summary.prep.workshop",
 } as const satisfies Record<string, keyof typeof en>;
 export type MessageKey = keyof typeof en | keyof typeof MESSAGE_ALIASES;
 
