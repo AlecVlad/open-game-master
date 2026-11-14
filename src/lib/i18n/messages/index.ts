@@ -511,6 +511,9 @@ export const MESSAGE_ALIASES = {
   "builder.levelProgression.header.level": "builder.set.level",
   "builder.levelProgression.header.spells": "builder.spells.title",
   "builder.levelProgression.header.subclass": "builder.screen.levelup.subclass.title",
+  "builder.anc.core": "builder.call.core",
+  "builder.anc.f.book": "builder.call.facet.book",
+  "builder.anc.f.size": "builder.extra.lineage.fact.size",
 } as const satisfies Record<string, keyof typeof en>;
 export type MessageKey = keyof typeof en | keyof typeof MESSAGE_ALIASES;
 
