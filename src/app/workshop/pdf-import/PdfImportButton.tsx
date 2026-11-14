@@ -95,7 +95,7 @@ function importText(value: string, t: Translate): string {
   if (value === "This import lost its draft. Read the book again.") return t("pdfImport.error.draftLost");
   if (value === "That is not something an import can do.") return t("pdfImport.error.invalidAction");
   if (value === "Stopped.") return t("pdfImport.error.cancelled");
-  const tooMany = value.match(/^You have (\\d+) imports open already\\. Finish or discard one where you began it \\(the Workshop page, or the WorldForge you began it in\\), then try again\\.$/);
+  const tooMany = value.match(/^You have (\d+) imports open already\. Finish or discard one where you began it \(the Workshop page, or the WorldForge you began it in\), then try again\.$/);
   if (tooMany) return t("pdfImport.error.tooManyImports", { count: Number(tooMany[1]) });
   if (value === "This import cannot be read again.") return t("pdfImport.error.cannotRestart");
   if (value === "The WorldForge this import was begun in is gone. Bring it in as a new workshop instead.") return t("pdfImport.error.worldGone");
