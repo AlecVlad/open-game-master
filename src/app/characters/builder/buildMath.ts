@@ -366,7 +366,6 @@ export function knownSoFarRows({
         bonuses.push(pluralMsg(messages, "builder.extra.buildMath.working.ancestryOwed", owed, { amount: choice.amount, more: bonuses.length ? (messages?.t?.("builder.extra.buildMath.working.ancestryMore") ?? "more ") : "" }, `+${choice.amount} to ${COUNT_WORDS[owed] ?? owed} ${bonuses.length ? "more " : ""}of your choice`));
       }
     }
-    }
   }
   const variant = race?.variants ? pickedVariant(race) : null;
   const skills = proficientSkills.flatMap((id) => {
