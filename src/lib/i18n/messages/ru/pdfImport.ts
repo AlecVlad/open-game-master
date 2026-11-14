@@ -169,4 +169,5 @@ export const ruPdfImport: Partial<Record<keyof typeof enPdfImport, string>> & Re
   "pdfImport.model.note.unreadable": "ИИ не смог прочитать книгу ({reason}). В импорт вошло только то, что удалось извлечь из её структуры.",
   "pdfImport.model.note.partial": "ИИ не смог прочитать {failed} из {total} частей книги ({reason}). Их содержимое осталось в лоре ведущего.",
   "pdfImport.model.note.partialNoReason": "ИИ не смог прочитать {failed} из {total} частей книги. Их содержимое осталось в лоре ведущего.",
+  "pdfImport.review.selectedCount": "{selected} из {total}",
 };
