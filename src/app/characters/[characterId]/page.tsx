@@ -372,7 +372,7 @@ export default function CharacterDetailPage({
               />
             ) : portraitPending ? (
               <span
-                title="Painting portrait..."
+                title={t("charDetail.painting")}
                 className="flex size-20 shrink-0 items-center justify-center rounded-xl border border-amber-500/30 bg-stone-900 sm:size-24"
               >
                 <Loader2 className="size-5 animate-spin text-amber-200" />
@@ -399,7 +399,7 @@ export default function CharacterDetailPage({
             <p className="mt-1 text-sm text-stone-400">
               <span className="mr-1.5 inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-400/10 py-0.5 pl-0.5 pr-2 text-[11px] text-amber-200">
                 <GameIcon icon={{ kind: "glyph", key: "rest-level-up" }} size="size-5" />
-                Level {character.level}
+                {t("charDetail.level", { level: character.level })}
               </span>
               {character.raceLabel ?? titleCase(character.race)}{" "}
               {classWordsAfterLevel({ ...character, classes: character.sheet?.classes }, (id) => workshopClassName(id) ?? titleCase(id))}
@@ -407,7 +407,7 @@ export default function CharacterDetailPage({
               {character.background ? ` · ${character.backgroundLabel ?? titleCase(character.background)}` : ""}
             </p>
             {!sheet.portrait && character.portraitStatus === "failed" ? (
-              <p className="reveal mt-1 text-xs text-stone-500">Portrait couldn&apos;t be generated.</p>
+              <p className="reveal mt-1 text-xs text-stone-500">{t("charDetail.failed")}</p>
             ) : null}
             {/* Each campaign holds its own copy of this sheet, so one library
                 entry can be at several tables at once. Naming them is what
@@ -432,7 +432,7 @@ export default function CharacterDetailPage({
                   </Link>
                 ))
               ) : (
-                <span className="text-xs text-stone-500">Not in a campaign yet.</span>
+                <span className="text-xs text-stone-500">{t("charDetail.notInCampaign")}</span>
               )}
             </div>
           </div>
@@ -444,7 +444,7 @@ export default function CharacterDetailPage({
               share the next without their glyphs. */}
           <button type="button" onClick={() => setSeating(true)} className={cn(ui.btnPrimary, "order-1 min-w-0 flex-1 basis-[calc(100%-3rem)] sm:order-none sm:flex-none sm:basis-auto")}>
             <GameIcon icon={{ kind: "glyph", key: "tab-campaigns" }} size="size-6" />{" "}
-            {character.role === "companion" ? "Bring to a campaign" : "Use in a campaign"}
+            {t(character.role === "companion" ? "charDetail.bring" : "charDetail.use")}
           </button>
           {/* Levelling is the change made most often; it opens the level-up
               sheet (backlog F7), only what the next level brings, instead of
@@ -460,7 +460,7 @@ export default function CharacterDetailPage({
             </Link>
           ) : null}
           <Link href={`/characters/${characterId}/edit`} className={cn(ui.btnSecondary, "order-3 min-w-0 flex-1 basis-[calc(50%-0.25rem)] sm:order-none sm:flex-none sm:basis-auto")}>
-            <GameIcon icon={{ kind: "glyph", key: "ui-edit" }} size="size-6" className="hidden sm:inline-flex" /> Edit build
+            <GameIcon icon={{ kind: "glyph", key: "ui-edit" }} size="size-6" className="hidden sm:inline-flex" /> {t("charDetail.edit")}
           </Link>
           <span className="order-2 inline-flex sm:order-none">
             <KebabMenu
@@ -505,7 +505,7 @@ export default function CharacterDetailPage({
 
       {cropping ? (
         <AvatarCropDialog
-          title={`Portrait for ${character.name}`}
+          title={t("charDetail.portrait.title", { name: character.name })}
           onUploaded={(image) => void handlePortraitUploaded(image)}
           onClose={() => setCropping(false)}
         />
