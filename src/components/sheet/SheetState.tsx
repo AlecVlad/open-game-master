@@ -4,6 +4,7 @@ import { Dices, Loader2 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { cn } from "@/lib/cn";
+import { useT } from "@/lib/i18n/provider";
 import { ui } from "@/lib/ui";
 import { Tooltip } from "@/components/ui/Tooltip";
 import { GameIcon } from "@/components/ui/GameIcon";
@@ -36,10 +37,11 @@ const GLYPH: Record<StateTag["id"], string> = {
 };
 
 export function StateTags({ sheet, className }: { sheet: CharacterSheet; className?: string }) {
+  const t = useT();
   const tags = stateTags(sheet);
   if (!tags.length) return null;
   return (
-    <div className={cn("stagger-pop flex flex-wrap gap-1.5", className)} aria-label="Combat state">
+    <div className={cn("stagger-pop flex flex-wrap gap-1.5", className)} aria-label={t("charSheet.state.aria")}>
       {tags.map((tag, index) => (
         <Tooltip key={tag.id} content={tag.note}>
           <span
@@ -62,19 +64,20 @@ export function StateTags({ sheet, className }: { sheet: CharacterSheet; classNa
 // Resistances and immunities the engine applies to damage (pcResistances,
 // pcImmunities): race, features, rage, spells, worn magic items.
 export function DefensesLine({ sheet }: { sheet: CharacterSheet }) {
+  const t = useT();
   const { resist, immune } = defensesView(sheet);
   if (!resist && !immune) return null;
   return (
     <p className="reveal mt-2 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-stone-300">
       {resist ? (
         <span>
-          <span className="text-stone-500">Resists </span>
+          <span className="text-stone-500">{t("charSheet.defenses.resists")} </span>
           {resist}
         </span>
       ) : null}
       {immune ? (
         <span>
-          <span className="text-stone-500">Immune to </span>
+          <span className="text-stone-500">{t("charSheet.defenses.immune")} </span>
           {immune}
         </span>
       ) : null}
@@ -100,6 +103,7 @@ function HitDieFaces({
   busy: boolean;
   onSpend: (faces?: Array<number | "digital">) => void;
 }) {
+  const t = useT();
   const entry = useFaceEntry(ask.expression, true);
   const { faces, complete, fullyAutomatic, values, submissionDice } = entry;
   // Dice that fill themselves (a Pixels die, a shape the player has the
@@ -120,13 +124,13 @@ function HitDieFaces({
   const flat = flatTotalOf(ask.expression);
   const one = faces.length === 1;
   return (
-    <div role="group" aria-label="Your hit die roll" className="hit-dice-entry animate-fade-up rounded-lg border border-stone-800 bg-stone-950/40 px-2.5 py-2">
+    <div role="group" aria-label={t("charSheet.hitDice.rollGroup")} className="hit-dice-entry animate-fade-up rounded-lg border border-stone-800 bg-stone-950/40 px-2.5 py-2">
       <p className="text-xs text-stone-300">
         {fullyAutomatic
-          ? `Roll ${entry.diceSummary}. Your assigned dice fill in on their own.`
-          : `Roll ${entry.diceSummary} at your table and enter ${one ? "it" : "each die"} below.`}
-        {flat ? ` Enter the bare die number${one ? "" : "s"}; your Constitution's ${flat > 0 ? `+${flat}` : flat} is added for you.` : ""}
-        {ask.extras.map((extra) => ` The ${extra.die} is from ${extra.from}.`).join("")}
+          ? t("charSheet.hitDice.rollAutomatic", { dice: entry.diceSummary })
+          : t("charSheet.hitDice.rollManual", { dice: entry.diceSummary, target: t(one ? "charSheet.hitDice.rollTarget.one" : "charSheet.hitDice.rollTarget.many") })}
+        {flat ? ` ${t("charSheet.hitDice.rollBare", { modifier: flat > 0 ? `+${flat}` : flat })}` : ""}
+        {ask.extras.map((extra) => ` ${t("charSheet.hitDice.rollExtra", { die: extra.die, from: extra.from })}`).join("")}
       </p>
       <div className="mt-1.5 flex flex-wrap items-end gap-2">
         <FaceInputs entry={entry} dimClass="text-stone-400" />
@@ -137,10 +141,10 @@ function HitDieFaces({
           className={cn(ui.btnSmall, "hit-dice-submit min-h-10 border-amber-500/50 text-amber-100 sm:min-h-8")}
         >
           {busy ? <Loader2 className="size-3.5 animate-spin" /> : null}
-          Heal with this roll
+          {t("charSheet.hitDice.healWithRoll")}
         </button>
         <button type="button" disabled={busy} onClick={() => onSpend()} className={cn(ui.btnSmall, "hit-dice-digital min-h-10 sm:min-h-8")}>
-          Roll digitally instead
+          {t("charSheet.hitDice.rollDigital")}
         </button>
       </div>
     </div>
@@ -162,6 +166,7 @@ export function HitDiceSpend({
   mine: boolean;
   inCombat: boolean;
 }) {
+  const t = useT();
   const rows = hitDiceRows(sheet);
   const left = rows.reduce((sum, row) => sum + row.left, 0);
   const [windowOpen, setWindowOpen] = useState(false);
@@ -234,17 +239,17 @@ export function HitDiceSpend({
       const data = (await response.json().catch(() => ({}))) as { error?: string; healed?: number; hp?: string };
       if (!response.ok) {
         // The route's own sentence (not resting, a fight on, none left).
-        setSaid({ text: data.error ?? "The hit die was not spent.", tone: "refused" });
+        setSaid({ text: data.error ?? t("charSheet.hitDice.notSpent"), tone: "refused" });
         check();
         return;
       }
       setSaid({
-        text: typeof data.healed === "number" ? `Rolled: ${data.healed} hit points back${data.hp ? ` (now ${data.hp})` : ""}.` : "Hit die spent.",
+        text: typeof data.healed === "number" ? t("charSheet.hitDice.result", { healed: data.healed, current: data.hp ? t("charSheet.hitDice.result.current", { hp: data.hp }) : "" }) : t("charSheet.hitDice.spent"),
         tone: "ok",
       });
       setEntering(false);
     } catch {
-      setSaid({ text: "The spend did not reach the server.", tone: "refused" });
+      setSaid({ text: t("charSheet.hitDice.network"), tone: "refused" });
     } finally {
       setBusy(false);
     }
@@ -258,7 +263,7 @@ export function HitDiceSpend({
             key={`${row.label}-${row.die}`}
             className="motion-pop inline-flex items-center gap-1 rounded-lg border border-stone-800 px-2 py-0.5 font-mono text-[11px] text-stone-300"
             style={{ animationDelay: `${index * 45}ms` }}
-            title={`${row.label}: ${row.left} of ${row.total} ${row.die} left`}
+            title={t("charSheet.hitDice.rowTitle", { label: row.label, left: row.left, total: row.total, die: row.die })}
           >
             <GameIcon icon={{ kind: "glyph", key: `die-${row.die}` }} size="size-4" />
             {rows.length > 1 ? <span className="capitalize text-stone-500">{row.label}</span> : null}
@@ -275,16 +280,10 @@ export function HitDiceSpend({
             aria-expanded={ask ? entering : undefined}
             disabled={busy || left <= 0}
             className={cn(ui.btnSmall, "hit-dice-spend motion-pop min-h-8")}
-            title={
-              left <= 0
-                ? "No hit dice left until a long rest."
-                : ask
-                  ? "Roll one hit die with your own dice and enter it here. Your Constitution is added, and you heal that much."
-                  : "Roll one hit die, add your Constitution, and heal that much."
-            }
+            title={left <= 0 ? t("charSheet.hitDice.noneTitle") : ask ? t("charSheet.hitDice.rollOwnTitle") : t("charSheet.hitDice.rollTitle")}
           >
             {busy ? <Loader2 className="size-3.5 animate-spin" /> : <Dices className="size-3.5" />}
-            Spend a hit die
+            {t("charSheet.hitDice.spendButton")}
           </button>
         ) : null}
       </div>
