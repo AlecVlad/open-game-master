@@ -311,13 +311,11 @@ export function CharacterSheetDialog({
                   // Past the capacity (Strength x 15) the load can only be
                   // dragged at 5 feet, whatever the table's encumbrance rule
                   // (src/lib/dm/load-rules.ts, speedFor).
-                  title: `${
-                    load.overCapacity
-                      ? `Past their carrying capacity of ${load.capacityLb} lb: they can only drag this load, at a speed of 5 feet, and nothing more can be given to them.`
-                      : encumbranceRule
-                        ? `${load.note ?? "Not encumbered"}. Capacity ${load.capacityLb} lb.`
-                        : `Carrying capacity ${load.capacityLb} lb. Encumbrance is off for this table, so weight up to the capacity costs nothing.`
-                  }${load.unweighed ? ` ${load.unweighed} item${load.unweighed === 1 ? "" : "s"} of unknown weight are not counted.` : ""}`,
+                  title: load.overCapacity
+                    ? t("charSheet.load.overCapacity", { capacity: load.capacityLb, note: load.note ?? "", unweighed: load.unweighed, unweighedWord: t(load.unweighed === 1 ? "charSheet.load.item" : "charSheet.load.items") })
+                    : encumbranceRule
+                      ? t("charSheet.load.encumbered", { capacity: load.capacityLb, note: load.note ?? t("charSheet.load.notEncumbered"), unweighed: load.unweighed, unweighedWord: t(load.unweighed === 1 ? "charSheet.load.item" : "charSheet.load.items") })
+                      : t("charSheet.load.unencumbered", { capacity: load.capacityLb, note: t("charSheet.load.notEncumbered"), unweighed: load.unweighed, unweighedWord: t(load.unweighed === 1 ? "charSheet.load.item" : "charSheet.load.items") }),
                   onOpen: () => setLoadOpen(true),
                   opens: t("charSheet.load.showBreakdown"),
                 },
@@ -570,7 +568,7 @@ export function CharacterSheetDialog({
                         magic.resistances.length ? t("charSheet.gear.resistances", { types: magic.resistances.join(", ") }) : null,
                       ]
                         .filter(Boolean)
-                        .join(" \u00b7 ") || "worn"}
+                        .join(" \u00b7 ") || t("charSheet.gear.worn")}
                     </p>
                   ) : null}
                   <SheetGearRows
