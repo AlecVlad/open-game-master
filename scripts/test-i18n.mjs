@@ -11,7 +11,7 @@ import {
   translate,
   translatePlural,
 } from "../src/lib/i18n/core.ts";
-import { DICTIONARIES, MESSAGE_ALIASES } from "../src/lib/i18n/messages/index.ts";
+import { DICTIONARIES, MESSAGE_ALIASES, en as EN_MESSAGES, ru as RU_MESSAGES } from "../src/lib/i18n/messages/index.ts";
 import { localizeStoryboardError } from "../src/lib/workshop/storyboard-api-i18n.ts";
 import { gearProblemText } from "../src/app/characters/builder/gearProblemText.ts";
 import { refusalText } from "../src/app/characters/builder/refusal.ts";
@@ -23,8 +23,11 @@ import { featPrerequisiteText } from "../src/app/characters/builder/featPrereqTe
 import { multiclassPrerequisiteText } from "../src/app/characters/builder/multiclassPrereqText.ts";
 import { findOptionByFeatureName, optionReqProblem, optionReqVerdict, pickInSpellbook } from "../src/lib/srd/options.ts";
 
-// Aliased UI strings share one canonical translation in every language.
+// Aliased UI strings share one canonical translation in every language and are absent from the source dictionaries.
 for (const [alias, canonical] of Object.entries(MESSAGE_ALIASES)) {
+  assert.equal(Object.prototype.hasOwnProperty.call(EN_MESSAGES, alias), false, `i18n alias ${alias} remains duplicated in the EN source dictionary`);
+  assert.equal(Object.prototype.hasOwnProperty.call(RU_MESSAGES, alias), false, `i18n alias ${alias} remains duplicated in the RU source dictionary`);
+  assert.equal(Object.prototype.hasOwnProperty.call(EN_MESSAGES, canonical), true, `i18n canonical key ${canonical} is missing from EN`);
   for (const lang of LANGS) {
     assert.equal(DICTIONARIES[lang][alias], DICTIONARIES[lang][canonical], `i18n alias ${alias} does not match ${canonical} in ${lang}`);
   }
