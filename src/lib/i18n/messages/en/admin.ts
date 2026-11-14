@@ -15,4 +15,9 @@ export const enAdmin = {
   "admin.tab.usage": "Usage",
   "admin.tab.reports": "Reports",
   "admin.tab.log": "Server log",
+  "admin.shared.auto": "Auto ({value})",
+  "admin.shared.serverBase": "Server base URL",
+  "admin.shared.model": "Model",
+  "admin.shared.apiKey": "API key",
+  "admin.shared.apiKeyEnv": "An env-var key is also set; this one wins when filled.",
 } satisfies Record<string, string>;

@@ -402,6 +402,16 @@ export const MESSAGE_ALIASES = {
   "workshop.monsterEditor.kit.shield": "workshop.monsterEditor.kit.catalog.armour.shield",
   "campaign.session.encounterEvents.condition.option.exhaustion": "workshop.monsterEditor.defence.condition.exhaustion",
   "campaign.session.encounterEvents.condition.option.unconscious": "workshop.monsterEditor.defence.condition.unconscious",
+  "admin.speech.opt.auto": "admin.shared.auto",
+  "admin.images.opt.auto": "admin.shared.auto",
+  "admin.speech.base.label": "admin.shared.serverBase",
+  "admin.images.openai.base": "admin.shared.serverBase",
+  "admin.speech.model": "admin.shared.model",
+  "admin.images.openai.model": "admin.shared.model",
+  "admin.speech.key": "admin.shared.apiKey",
+  "admin.images.openai.key": "admin.shared.apiKey",
+  "admin.speech.key.env": "admin.shared.apiKeyEnv",
+  "admin.images.openai.key.env": "admin.shared.apiKeyEnv",
 } as const satisfies Record<string, keyof typeof en>;
 export type MessageKey = keyof typeof en | keyof typeof MESSAGE_ALIASES;
 

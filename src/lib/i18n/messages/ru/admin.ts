@@ -17,4 +17,9 @@ export const ruAdmin: Partial<Record<keyof typeof enAdmin, string>> = {
   "admin.tab.usage": "Использование",
   "admin.tab.reports": "Отчёты",
   "admin.tab.log": "Журнал сервера",
+  "admin.shared.auto": "Авто ({value})",
+  "admin.shared.serverBase": "Базовый адрес сервера",
+  "admin.shared.model": "Модель",
+  "admin.shared.apiKey": "Ключ API",
+  "admin.shared.apiKeyEnv": "Ключ также задан переменной окружения; если заполнить это поле, он имеет приоритет.",
 };
