@@ -121,9 +121,6 @@ function FloorControl({
 }
 
 // The floor's state in a word, for the card's corner.
-const FLOOR_STATUS = {
-} as const;
-
 // The console rail: the catalog's own categories, plus three tabs that are
 // not adjudications at all. "assist" answers questions and applies nothing;
 // "tables" is the DM's own reference shelf; "maps" is the prep bench, where
