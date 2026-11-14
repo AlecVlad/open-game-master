@@ -5662,4 +5662,5 @@ export const enCampaignPanels = {
   "campaign.storyPanel.event.deadline": "Deadline",
   "campaign.storyPanel.event.discovery": "Discovery",
   "campaign.storyPanel.event.setpiece": "Set piece",
+  "campaign.storyPanel.label.chapters": "The chapters",
 };
