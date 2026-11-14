@@ -3,6 +3,7 @@
 import { EmptyState } from "@/components/EmptyState";
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/cn";
+import { useT } from "@/lib/i18n/provider";
 import { ui } from "@/lib/ui";
 import { GameIcon } from "@/components/ui/GameIcon";
 import { Ribbon } from "@/components/ui/Ribbon";
@@ -51,6 +52,7 @@ function FloorControl({
   campaignId: string;
   mode: "open" | "hold" | "spotlight" | "initiative";
 }) {
+  const t = useT();
   const [busy, setBusy] = useState(false);
 
   async function set(next: "open" | "hold") {
@@ -71,18 +73,18 @@ function FloorControl({
 
   return (
     <DeskCard
-      title="The floor"
+      title={t("campaign.dmConsole.floor.title")}
       glyph="tab-session"
       aside={
         <span key={mode} className="count-pop rounded-full border border-amber-500/40 bg-amber-400/10 px-2 py-0.5 text-[11px] text-amber-100">
-          {FLOOR_STATUS[mode]}
+          {t(`campaign.dmConsole.floor.status.${mode}` as never)}
         </span>
       }
     >
       {mode === "initiative" ? (
         <p className="reveal flex items-center gap-2 text-xs text-stone-400">
           <GameIcon icon={{ kind: "glyph", key: "rest-initiative" }} size="size-5" className="shrink-0" />
-          The initiative order has it while the fight runs.
+          {t("campaign.dmConsole.floor.initiativeHelp")}
         </p>
       ) : (
         <div data-pill-group="" className="flex flex-wrap gap-1.5">
@@ -99,17 +101,17 @@ function FloorControl({
               )}
             >
               <GameIcon icon={{ kind: "glyph", key: option === "open" ? "tab-chat" : "cue-bell" }} size="size-5" />
-              {option === "open" ? "Anyone may act" : "Hold everyone"}
+              {t(option === "open" ? "campaign.dmConsole.floor.action.open" : "campaign.dmConsole.floor.action.hold")}
             </button>
           ))}
           {mode === "spotlight" ? (
             <span className="inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-amber-500/70 bg-amber-400/10 px-3 text-xs text-amber-100">
               <GameIcon icon={{ kind: "glyph", key: "tab-lead" }} size="size-5" />
-              Spotlight
+              {t("campaign.dmConsole.floor.spotlight")}
             </span>
           ) : (
             <span className="basis-full text-[11px] leading-snug text-stone-500">
-              Give the floor to named players with Give the floor, under Story.
+              {t("campaign.dmConsole.floor.help")}
             </span>
           )}
         </div>
@@ -120,10 +122,6 @@ function FloorControl({
 
 // The floor's state in a word, for the card's corner.
 const FLOOR_STATUS = {
-  open: "Open",
-  hold: "Held",
-  spotlight: "Spotlight",
-  initiative: "Initiative",
 } as const;
 
 // The console rail: the catalog's own categories, plus three tabs that are
@@ -191,6 +189,7 @@ export function DmConsolePanel({
   // Bumped by cast_updated: the people list reads again (issue 733).
   castKey?: number;
 }) {
+  const t = useT();
   // Illustrate stays in the catalog (the AI DM and the dispatcher still know
   // it) but leaves the console on a server with no image backend, where the
   // form could only ever queue a render that fails. The upload alternative
@@ -252,13 +251,13 @@ export function DmConsolePanel({
   const waiting = queue.length + held.length;
 
   const tabs: Array<readonly [ConsoleTab, string]> = [
-    ["assist", "Assist"],
-    ...groups.map((group) => [group.category, group.label] as const),
-    ["maps", "Maps"],
-    ["cast", "Cast"],
-    ["bestiary", "Bestiary"],
-    ["storyboard", "Storyboard"],
-    ["tables", "Tables"],
+    ["assist", t("campaign.dmConsole.tab.assist")],
+    ...groups.map((group) => [group.category, t(`campaign.dmConsole.category.${group.category}` as never)] as const),
+    ["maps", t("campaign.dmConsole.tab.maps")],
+    ["cast", t("campaign.dmConsole.tab.cast")],
+    ["bestiary", t("campaign.dmConsole.tab.bestiary")],
+    ["storyboard", t("campaign.dmConsole.tab.storyboard")],
+    ["tables", t("campaign.dmConsole.tab.tables")],
   ];
 
   // The palette presses the same buttons the console draws: a tab, an
@@ -276,19 +275,19 @@ export function DmConsolePanel({
     reveal("dm-console-tabs");
   }
   const sections: Array<[anchor: string, label: string, hint: string, glyph: string]> = [
-    ["dm-floor", "The floor", "Who may speak right now", "tab-session"],
-    ["dm-beats", "Write the story", "The beat composer", "tab-journal"],
+    ["dm-floor", t("campaign.dmConsole.section.floor.title"), t("campaign.dmConsole.section.floor.hint"), "tab-session"],
+    ["dm-beats", t("campaign.dmConsole.section.story.title"), t("campaign.dmConsole.section.story.hint"), "tab-journal"],
     ...(delegations.monsters || delegations.cover
-      ? [["dm-delegation", "Hand things to the AI", "Monsters and cover", "tab-dm"] as [string, string, string, string]]
+      ? [["dm-delegation", t("campaign.dmConsole.section.delegation.title"), t("campaign.dmConsole.section.delegation.hint"), "tab-dm"] as [string, string, string, string]]
       : []),
-    ["dm-queue", "Waiting on you", waiting ? `${waiting} unanswered` : "Nothing waiting", "tab-log"],
+    ["dm-queue", t("campaign.dmConsole.section.queue.title"), waiting ? t("campaign.dmConsole.section.queue.hint.count", { count: waiting }) : t("campaign.dmConsole.section.queue.hint.empty"), "tab-log"],
   ];
   const commands: PaletteCommand[] = [
     ...groups.flatMap((group) =>
       group.entries.map((entry) => ({
         id: `do-${entry.name}`,
-        label: entry.label,
-        hint: entry.summary,
+        label: t(`campaign.dmCatalog.${entry.name}.label` as never),
+        hint: t(`campaign.dmCatalog.${entry.name}.summary` as never),
         group: group.label,
         glyph: actionGlyph(entry.name, group.category),
         keywords: [entry.name.replace(/_/g, " ")],
@@ -297,8 +296,8 @@ export function DmConsolePanel({
     ),
     ...tabs.map(([tab, label]) => ({
       id: `tab-${tab}`,
-      label: `Open ${label}`,
-      group: "Console tabs",
+      label: t("campaign.dmConsole.palette.openTab", { tab: label }),
+      group: t("campaign.dmConsole.palette.tabsGroup"),
       glyph: TAB_GLYPH[tab],
       keywords: ["tab", "section", tab],
       onSelect: () => goTo(tab),
@@ -307,7 +306,7 @@ export function DmConsolePanel({
       id: `see-${anchor}`,
       label,
       hint,
-      group: "On this console",
+      group: t("campaign.dmConsole.palette.sectionGroup"),
       glyph,
       keywords: ["jump", "scroll"],
       onSelect: () => reveal(anchor),
@@ -319,10 +318,10 @@ export function DmConsolePanel({
       {/* Gold, the DM's colour: nobody else at the table has this tab, and
           the lead's desk wears ember so the two seats never blur. */}
       <div className="flex items-center gap-2">
-        <Ribbon tone="gold" className="min-w-0 flex-1">Only you</Ribbon>
+        <Ribbon tone="gold" className="min-w-0 flex-1">{t("campaign.dmConsole.onlyYou")}</Ribbon>
         <CommandPalette
-          title="GM console commands"
-          placeholder="Find an action or a tab"
+          title={t("campaign.dmConsole.palette.title")}
+          placeholder={t("campaign.dmConsole.palette.placeholder")}
           commands={commands}
         />
       </div>
@@ -353,7 +352,7 @@ export function DmConsolePanel({
 
       <section data-tour="dm-queue" className={cn(ui.card, "dm-card p-3")}>
         <SectionHead
-          title="Waiting on you"
+          title={t("campaign.dmConsole.queue.title")}
           glyph="tab-log"
           aside={
             waiting ? (
@@ -361,7 +360,7 @@ export function DmConsolePanel({
                 {waiting}
               </span>
             ) : (
-              "All answered"
+              t("campaign.dmConsole.queue.allAnswered")
             )
           }
         />
@@ -398,7 +397,7 @@ export function DmConsolePanel({
           variantRules={variantRules}
         />
         {waiting || answering ? null : (
-          <EmptyState size="sm" art="scrolls" title="Nothing waiting. Everything the party has said has been answered." />
+          <EmptyState size="sm" art="scrolls" title={t("campaign.dmConsole.queue.empty")} />
         )}
       </section>
 
@@ -460,9 +459,9 @@ export function DmConsolePanel({
           <div>
             {active ? (
               <SectionHead
-                title={active.label}
+                title={t(`campaign.dmConsole.category.${active.category}` as never)}
                 glyph={TAB_GLYPH[active.category]}
-                aside={`${active.entries.length} ${active.entries.length === 1 ? "action" : "actions"}`}
+                aside={t(active.entries.length === 1 ? "campaign.dmConsole.actionCount.one" : "campaign.dmConsole.actionCount.other", { count: active.entries.length })}
               />
             ) : null}
             <ul className="stagger space-y-1.5">
@@ -483,8 +482,8 @@ export function DmConsolePanel({
                   ) : (
                     <ActionPlate
                       glyph={actionGlyph(entry.name, active?.category ?? "table")}
-                      label={entry.label}
-                      summary={entry.summary}
+                      label={t(`campaign.dmCatalog.${entry.name}.label` as never)}
+                      summary={t(`campaign.dmCatalog.${entry.name}.summary` as never)}
                       onClick={() => setOpenAction(entry.name)}
                     />
                   )}
