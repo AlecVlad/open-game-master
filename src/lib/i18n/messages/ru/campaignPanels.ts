@@ -5784,4 +5784,5 @@ export const ruCampaignPanels: Partial<Record<keyof typeof enCampaignPanels, str
   "campaign.dmAction.field.addTo": "Добавить в поле «{field}»",
   "campaign.dmAction.field.notInList": "Нет в списке",
   "campaign.dmAction.field.petPlaceholder": "механическая ворона"
+  "campaign.mapStudio.seed": "Зерно генерации",
 };
