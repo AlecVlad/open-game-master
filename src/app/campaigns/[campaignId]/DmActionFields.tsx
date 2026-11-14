@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { X } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { useT } from "@/lib/i18n/provider";
 import { ui } from "@/lib/ui";
 import { Select, type SelectOption } from "@/components/ui/Select";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
@@ -44,13 +45,6 @@ export function initialValue(field: CatalogField): Value {
   }
   return "";
 }
-
-const SHARES = [
-  { value: "full", label: "Full" },
-  { value: "half", label: "Half" },
-  { value: "double", label: "Double" },
-  { value: "none", label: "None" },
-];
 
 function hitDiceLeft(sheet: CharacterSheet): number {
   if (sheet.hitDicePools?.length) {
@@ -131,6 +125,7 @@ function ShareRows({
   sheets: CharacterSheet[];
   enemies: Enemy[];
 }) {
+  const t = useT();
   const refOf = (row: ShareRow) => (row.enemyId ? `enemy:${row.enemyId}` : `character:${row.characterId}`);
   const taken = new Set(value.map(refOf));
   const choices: SelectOption<string>[] = [
@@ -202,6 +197,7 @@ function HitDiceRows({
   onChange: (value: Value) => void;
   sheets: CharacterSheet[];
 }) {
+  const t = useT();
   const diceFor = (id: string) => value.find((row) => row.characterId === id)?.dice ?? 0;
   const set = (id: string, dice: number) =>
     onChange([...value.filter((row) => row.characterId !== id), ...(dice > 0 ? [{ characterId: id, dice }] : [])]);
@@ -292,6 +288,7 @@ export function FieldInput({
   // Summon a pet's creatures, and the kind of pet the form holds.
   pets?: { catalogue: PetFormCatalogue | null; kind: string };
 }) {
+  const t = useT();
   switch (field.kind) {
     case "petForm":
       // The creatures the engine takes for this kind of pet; only a story pet
