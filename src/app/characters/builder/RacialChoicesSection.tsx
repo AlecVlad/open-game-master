@@ -206,10 +206,6 @@ export function RacialChoicesSection({
             {asiFrom
               ? ` ${asiFrom.map(abilityName).join(t("builder.feat.choice.spellSlot.schoolJoin"))}`
               : ` ${tp("builder.race.ability.ofChoice", race.asiChoice.count, { count: race.asiChoice.count })}`}
-          </span>
-            {asiFrom
-              ? asiFrom.map(abilityName).join(t("builder.feat.choice.spellSlot.schoolJoin"))
-              : tp("builder.race.ability.ofChoice", race.asiChoice.count, { count: race.asiChoice.count })}
             )
           </span>
           <div className="grid grid-cols-2 gap-2">
