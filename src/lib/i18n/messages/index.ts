@@ -427,6 +427,15 @@ export const MESSAGE_ALIASES = {
   "admin.worlds.installed": "admin.addons.installed",
   "admin.worlds.by": "admin.addons.by",
   "admin.plugins.install": "common.action.install",
+  "admin.backup.unit.gb": "common.unit.gb",
+  "admin.backup.unit.mb": "common.unit.mb",
+  "admin.backup.unit.kb": "common.unit.kb",
+  "admin.storage.unit.gb": "common.unit.gb",
+  "admin.storage.unit.mb": "common.unit.mb",
+  "admin.storage.unit.kb": "common.unit.kb",
+  "admin.usage.unit.gb": "common.unit.gb",
+  "admin.usage.unit.mb": "common.unit.mb",
+  "admin.usage.unit.kb": "common.unit.kb",
 } as const satisfies Record<string, keyof typeof en>;
 export type MessageKey = keyof typeof en | keyof typeof MESSAGE_ALIASES;
 

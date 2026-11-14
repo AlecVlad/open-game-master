@@ -3,9 +3,6 @@
 import type { enAdminStorage } from "../en/adminStorage.ts";
 
 export const ruAdminStorage: Partial<Record<keyof typeof enAdminStorage, string>> & Record<string, string> = {
-  "admin.storage.unit.gb": "ГБ",
-  "admin.storage.unit.mb": "МБ",
-  "admin.storage.unit.kb": "КБ",
   "admin.storage.andMore": "и ещё {count}",
   "admin.storage.err.action": "Серверу не удалось это сделать.",
   "admin.storage.done.compacted": "Сжато: с {before} до {after}.",

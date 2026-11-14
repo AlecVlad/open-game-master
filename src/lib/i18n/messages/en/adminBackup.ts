@@ -1,8 +1,5 @@
 // English, the source language: the admin panel's Backup & restore section.
 export const enAdminBackup = {
-  "admin.backup.unit.gb": "GB",
-  "admin.backup.unit.mb": "MB",
-  "admin.backup.unit.kb": "KB",
   "admin.backup.err.create": "Could not create the backup.",
   "admin.backup.err.verify": "This archive failed verification.",
   "admin.backup.err.restore": "The restore failed.",

@@ -1,8 +1,5 @@
 // English, the source language: the admin panel's Storage section.
 export const enAdminStorage = {
-  "admin.storage.unit.gb": "GB",
-  "admin.storage.unit.mb": "MB",
-  "admin.storage.unit.kb": "KB",
   "admin.storage.andMore": "and {count} more",
   "admin.storage.err.action": "The server could not do that.",
   "admin.storage.done.compacted": "Compacted: {before} to {after}.",

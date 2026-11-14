@@ -3,9 +3,6 @@
 import type { enAdminBackup } from "../en/adminBackup.ts";
 
 export const ruAdminBackup: Partial<Record<keyof typeof enAdminBackup, string>> & Record<string, string> = {
-  "admin.backup.unit.gb": "ГБ",
-  "admin.backup.unit.mb": "МБ",
-  "admin.backup.unit.kb": "КБ",
   "admin.backup.err.create": "Не удалось создать резервную копию.",
   "admin.backup.err.verify": "Этот архив не прошёл проверку.",
   "admin.backup.err.restore": "Восстановление не удалось.",
