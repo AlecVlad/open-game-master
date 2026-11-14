@@ -3,7 +3,7 @@
 // stays environment-agnostic while this half touches the DOM.
 
 import { downloadBlob } from "@/lib/download";
-import type { PdfCharacter } from "./character-sheet-pdf";
+import type { PdfCharacter, PdfTranslate } from "./character-sheet-pdf";
 import { slugOf } from "@/lib/language/text-logic";
 
 function isPng(bytes: Uint8Array): boolean {
@@ -64,12 +64,28 @@ async function portraitBytes(url: string | null | undefined): Promise<Uint8Array
   }
 }
 
-export async function downloadCharacterSheetPdf(character: PdfCharacter): Promise<void> {
+async function bundledFontBytes(filename: string): Promise<Uint8Array> {
+  const response = await fetch(`/pdfjs/standard_fonts/${filename}`);
+  if (!response.ok) {
+    throw new Error(`Could not load the PDF font ${filename} (HTTP ${response.status}).`);
+  }
+  return new Uint8Array(await response.arrayBuffer());
+}
+
+export async function downloadCharacterSheetPdf(character: PdfCharacter, translate?: PdfTranslate): Promise<void> {
   // pdf-lib and its fonts only load when someone asks for the sheet, so
   // the table and the character page do not carry them up front.
   const { buildCharacterSheetPdf } = await import("./character-sheet-pdf");
+  const [portrait, fontBytes, boldFontBytes] = await Promise.all([
+    portraitBytes(character.portrait?.url),
+    bundledFontBytes("LiberationSans-Regular.ttf"),
+    bundledFontBytes("LiberationSans-Bold.ttf"),
+  ]);
   const bytes = await buildCharacterSheetPdf(character, {
-    portraitBytes: await portraitBytes(character.portrait?.url),
+    portraitBytes: portrait,
+    fontBytes,
+    boldFontBytes,
+    translate,
   });
   // Copy into a fresh ArrayBuffer so the Blob never sees a SharedArrayBuffer-backed view.
   const blob = new Blob([bytes.slice()], { type: "application/pdf" });
