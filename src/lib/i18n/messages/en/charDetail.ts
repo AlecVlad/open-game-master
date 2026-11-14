@@ -41,3 +41,6 @@ export const enCharDetail = {
   "charDetail.dupEdit": "Duplicate and edit",
   "charDetail.portrait.upload": "Upload portrait",
 } satisfies Record<string, string>;
+  "charDetail.notInCampaign": "Not in a campaign yet.",
+  "charDetail.portrait.title": "Portrait for {name}",
+
