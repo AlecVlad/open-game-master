@@ -565,6 +565,7 @@ export const enCharSheet = {
   "charSheet.pdfSheet.weapons": "Weapons",
   "charSheet.pdfSheet.tools": "Tools",
   "charSheet.pdfSheet.languages": "Languages",
+  "charSheet.pdfSheet.feat": "Feat",
 }; this character is level {classLevel} in that class.",
   "charSheet.levelUp.error.subclassChoiceMultiple": "{choice} for {subclass} allows one option, but both {firstOption} and {secondOption} were chosen.",
   "charSheet.levelUp.error.grantDamageTypeNotOffered": "The damage type “{damageType}” is not offered by the “{feat}” feat. Available choices: {offered}.",
