@@ -146,7 +146,7 @@ function ChapterCard({
         )}
         <span className="min-w-0">
           <span className="gold-title block font-display text-sm">
-            {chapter.index}. {chapter.title || `Chapter ${chapter.index}`}
+            {chapter.index}. {chapter.title || t("campaign.storyPanel.label.chapter", { chapter: chapter.index })}
           </span>
         </span>
       </button>
@@ -850,7 +850,7 @@ export function StoryPanel({
   // rewind to is lead-only UI and only arrives for the lead.
   useEffect(() => {
     let cancelled = false;
-    readLoad<{ acts?: unknown; rewindableChapters?: unknown; chapters?: unknown }>(fetch(`/api/campaigns/${campaignId}/chapters`), "The chapters").then((outcome) => {
+    readLoad<{ acts?: unknown; rewindableChapters?: unknown; chapters?: unknown }>(fetch(`/api/campaigns/${campaignId}/chapters`), t("campaign.storyPanel.label.chapters")).then((outcome) => {
       if (cancelled) {
         return;
       }
@@ -923,11 +923,11 @@ export function StoryPanel({
           <EmptyState
             art="scrolls"
             size="sm"
-            title="The story has not begun"
-            hint="The first chapter opens with the first scene."
+            title={t("campaign.storyPanel.empty.storyNotBegun")}
+            hint={t("campaign.storyPanel.empty.firstChapter")}
             action={
               <KitButton onClick={() => setReloads((current) => current + 1)}>
-                <RefreshCw className="size-3" /> Check again
+                <RefreshCw className="size-3" /> {t("campaign.storyPanel.action.checkAgain")}
               </KitButton>
             }
           />
@@ -942,31 +942,31 @@ export function StoryPanel({
       {steersStory ? <NpcReviewCard campaignId={campaignId} /> : null}
       <ExportMenu campaignId={campaignId} />
       {closed.length ? (
-        <KitButton tone="secondary" onClick={() => setReading(true)} title="Read the closed chapters as a book, one spread each" className="h-10 w-full border-amber-500/50 text-amber-100">
-          <GameIcon icon={{ kind: "glyph", key: "tab-story" }} size="size-6" /> Open the chronicle
+        <KitButton tone="secondary" onClick={() => setReading(true)} title={t("campaign.storyPanel.chapter.readClosed")} className="h-10 w-full border-amber-500/50 text-amber-100">
+          <GameIcon icon={{ kind: "glyph", key: "tab-story" }} size="size-6" /> {t("campaign.storyPanel.action.openChronicle")}
         </KitButton>
       ) : null}
       <div className="panel rounded-lg p-2.5">
         <SectionHead
-          title={`${open?.act ? `Act ${romanNumeral(open.act)}, ` : ""}Chapter ${open?.index ?? closed.length + 1} in progress`}
+          title={open?.act ? t("campaign.storyPanel.chapter.inProgressWithAct", { act: romanNumeral(open.act), chapter: open.index }) : t("campaign.storyPanel.chapter.inProgress", { chapter: open?.index ?? closed.length + 1 })}
           glyph="tab-journal"
           className="mb-0"
         />
         {steersStory ? (
-          <KitButton onClick={closeChapter} disabled={closing} title="Seal this chapter; the GM writes its title and summary" className="mt-2 w-full justify-center">
+          <KitButton onClick={closeChapter} disabled={closing} title={t("campaign.storyPanel.chapter.seal")} className="mt-2 w-full justify-center">
             {closing ? (
               <>
-                <Loader2 className="size-3 animate-spin" /> Writing the chapter...
+                <Loader2 className="size-3 animate-spin" /> {t("campaign.storyPanel.chapter.writing")}
               </>
             ) : (
               <>
-                <Scissors className="size-3" /> Close chapter
+                <Scissors className="size-3" /> {t("campaign.storyPanel.action.closeChapter")}
               </>
             )}
           </KitButton>
         ) : null}
         {steersStory && open && rewindable.includes(open.index) ? (
-          <KitButton tone="danger" onClick={() => void postRewind(open.index, false)} disabled={rewindBusy} busy={rewindBusy} title="Discard this chapter's progress and return to how it began" className="mt-1.5 w-full justify-center">
+          <KitButton tone="danger" onClick={() => void postRewind(open.index, false)} disabled={rewindBusy} busy={rewindBusy} title={t("campaign.storyPanel.chapter.restart")} className="mt-1.5 w-full justify-center">
             {rewindBusy ? null : <Rewind className="size-3" />} Restart this chapter
           </KitButton>
         ) : null}
@@ -1005,13 +1005,13 @@ export function StoryPanel({
       <Book
         open={reading}
         onOpenChange={setReading}
-        title="The chronicle"
+        title={t("campaign.storyPanel.section.chronicle")}
         startAt={closed.length - 1}
         entries={closed.map((chapter) => ({
           id: chapter.id,
           kicker: `${chapter.act ? `Act ${romanNumeral(chapter.act)}, ` : ""}Chapter ${chapter.index}`,
-          heading: chapter.title || `Chapter ${chapter.index}`,
-          body: chapter.summary || "No summary was recorded for this chapter.",
+          heading: chapter.title || t("campaign.storyPanel.label.chapter", { chapter: chapter.index }),
+          body: chapter.summary || t("campaign.storyPanel.summary.notRecorded"),
           note: chapter.highlights.length ? chapter.highlights.join("\n") : undefined,
         }))}
       />
