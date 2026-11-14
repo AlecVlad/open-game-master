@@ -477,7 +477,7 @@ export function CharacterSheetDialog({
               <div className="space-y-1.5 text-xs text-stone-300">
                 <div className="flex items-start gap-2">
                   <span className="w-36 shrink-0 pt-1 text-stone-400">
-                    <GameTerm id="hit_dice">Hit dice</GameTerm>
+                    <GameTerm id="hit_dice">{t("charSheet.hitDice")}</GameTerm>
                   </span>
                   {/* SRD 5.1: hit dice are spent at the end of a short rest.
                       A player at the table chooses their own while the rest's
