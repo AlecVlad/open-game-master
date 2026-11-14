@@ -599,6 +599,11 @@ export type BuildPdfOptions = {
   // Pre-fetched PNG or JPEG portrait bytes. When given, the builder never
   // fetches the portrait url itself.
   portraitBytes?: Uint8Array;
+  // Embedded Unicode fonts. Liberation Sans covers Cyrillic and is served
+  // from the app's existing PDF.js assets.
+  fontBytes?: Uint8Array;
+  boldFontBytes?: Uint8Array;
+  translate?: PdfTranslate;
 };
 
 export async function buildCharacterSheetPdf(
@@ -606,13 +611,25 @@ export async function buildCharacterSheetPdf(
   options: BuildPdfOptions = {},
 ): Promise<Uint8Array> {
   const doc = await PDFDocument.create();
-  const font = await doc.embedFont(StandardFonts.Helvetica);
-  const bold = await doc.embedFont(StandardFonts.HelveticaBold);
+  let font: PDFFont;
+  let bold: PDFFont;
+  if (options.fontBytes && options.boldFontBytes) {
+    doc.registerFontkit(fontkit);
+    font = await doc.embedFont(options.fontBytes, { subset: true });
+    bold = await doc.embedFont(options.boldFontBytes, { subset: true });
+  } else if (!options.fontBytes && !options.boldFontBytes) {
+    // Retain a standard-font fallback for non-browser callers that do not
+    // pass the bundled fonts. Browser downloads always provide Unicode fonts.
+    font = await doc.embedFont(StandardFonts.Helvetica);
+    bold = await doc.embedFont(StandardFonts.HelveticaBold);
+  } else {
+    throw new Error("Both regular and bold PDF font files are required.");
+  }
   const form = doc.getForm();
   const derived = computeSheetDerived(character);
 
   const page1 = doc.addPage([PAGE_W, PAGE_H]);
-  const ctx: Ctx = { doc, page: page1, form, font, bold, n: 0 };
+  const ctx: Ctx = { doc, page: page1, form, font, bold, n: 0, translate: options.translate };
   drawHeader(ctx, character);
   drawAbilities(ctx, character, derived);
   drawSavesAndSkills(ctx, character, derived);
