@@ -290,7 +290,6 @@ export const ruBuilderExtras: Partial<Record<keyof typeof enBuilderExtras, strin
   "builder.extra.buildMath.row.ac": "КД",
   "builder.extra.buildMath.row.hp": "Хиты",
   "builder.extra.buildMath.row.initiative": "Инициатива",
-  "builder.extra.buildMath.row.proficiency": "Бонус мастерства",
   "builder.extra.buildMath.row.passivePerception": "Пассивная внимательность",
   "builder.extra.buildMath.row.hitDie": "Кость хитов",
   "builder.extra.buildMath.row.saveProficiencies": "Владение спасбросками",

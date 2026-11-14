@@ -264,7 +264,6 @@ export const enBuilderExtras = {
   "builder.extra.buildMath.row.ac": "Armor class",
   "builder.extra.buildMath.row.hp": "Hit points",
   "builder.extra.buildMath.row.initiative": "Initiative",
-  "builder.extra.buildMath.row.proficiency": "Proficiency bonus",
   "builder.extra.buildMath.row.passivePerception": "Passive Perception",
   "builder.extra.buildMath.row.hitDie": "Hit die",
   "builder.extra.buildMath.row.saveProficiencies": "Proficient saves",

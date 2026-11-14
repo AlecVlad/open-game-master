@@ -506,6 +506,11 @@ export const MESSAGE_ALIASES = {
   "builder.race.title": "builder.screen.levelup.raceChoices",
   "builder.screen.levelup.hero": "builder.yourHero",
   "builder.sum.abilities.label": "builder.extra.ability.title",
+  "builder.extra.buildMath.row.proficiency": "builder.levelProgression.header.proficiency",
+  "builder.levelProgression.header.cantrips": "builder.spells.counter.cantrips",
+  "builder.levelProgression.header.level": "builder.set.level",
+  "builder.levelProgression.header.spells": "builder.spells.title",
+  "builder.levelProgression.header.subclass": "builder.screen.levelup.subclass.title",
 } as const satisfies Record<string, keyof typeof en>;
 export type MessageKey = keyof typeof en | keyof typeof MESSAGE_ALIASES;
 
