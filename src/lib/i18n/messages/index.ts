@@ -361,6 +361,12 @@ export const MESSAGE_ALIASES = {
   "workshop.monsterEditor.stats.ability.str": "common.ability.strength",
   "workshop.monsterEditor.stats.ability.wis": "common.ability.wisdom",
   "workshop.plugin.publish.serverFailed": "common.error.network",
+  "builder.asi.title.ability": "builder.asi.title",
+  "builder.race.variant.placeholder": "builder.race.variant.choose",
+  "builder.race.skill.placeholder": "builder.race.repeat.placeholder",
+  "builder.bg.pick": "builder.race.repeat.placeholder",
+  "builder.race.weapon.placeholder": "builder.feat.choice.weapon.placeholder",
+  "builder.race.tool.placeholder": "builder.feat.choice.tool.placeholder",
 } as const satisfies Record<string, keyof typeof en>;
 export type MessageKey = keyof typeof en | keyof typeof MESSAGE_ALIASES;
 
