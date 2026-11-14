@@ -47,14 +47,14 @@ export async function POST(request: Request, { params }: { params: Promise<{ cam
     return context;
   }
   if (isWorkshop(context.campaign)) {
-    return Response.json({ error: "A workshop has no party to write a backstory for." }, { status: 400 });
+    return Response.json({ error: "A workshop has no party to write a backstory for.", errorCode: "WORKSHOP_NO_PARTY" }, { status: 400 });
   }
   const parsed = bodySchema.safeParse(await request.json().catch(() => ({})));
   if (!parsed.success) {
-    return Response.json({ error: "Say whether to save or draft the party backstory." }, { status: 400 });
+    return Response.json({ error: "Say whether to save or draft the party backstory.", errorCode: "INVALID_REQUEST" }, { status: 400 });
   }
   if (!mayWrite(context)) {
-    return Response.json({ error: PARTY_BACKSTORY_REFUSAL }, { status: 403 });
+    return Response.json({ error: PARTY_BACKSTORY_REFUSAL, errorCode: "NOT_ALLOWED" }, { status: 403 });
   }
   const body = parsed.data;
 
@@ -62,7 +62,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ cam
     const text = body.text.trim();
     if (text.length > PARTY_BACKSTORY_MAX) {
       return Response.json(
-        { error: `Keep the party backstory under ${PARTY_BACKSTORY_MAX} characters.` },
+        { error: `Keep the party backstory under ${PARTY_BACKSTORY_MAX} characters.`, errorCode: "TOO_LONG", maxLength: PARTY_BACKSTORY_MAX },
         { status: 400 },
       );
     }
@@ -78,7 +78,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ cam
 
   const characters = partyCharacters(campaignId);
   if (!characters.length) {
-    return Response.json({ error: "Nobody has a character yet; there is no party to draft from." }, { status: 409 });
+    return Response.json({ error: "Nobody has a character yet; there is no party to draft from.", errorCode: "NO_CHARACTERS" }, { status: 409 });
   }
   const { text, error } = await draftPartyBackstory(
     context.campaign,

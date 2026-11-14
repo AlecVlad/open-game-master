@@ -1,0 +1,36 @@
+// Русский: поле скорости обработки и карточка библиотеки звуков.
+// Ключи те же, что в en/adminSpeed.ts; формы .few и .many нужны только русскому.
+import type { enAdminSpeed } from "../en/adminSpeed.ts";
+
+export const ruAdminSpeed: Partial<Record<keyof typeof enAdminSpeed, string>> & Record<string, string> = {
+  "admin.speed.default": "По умолчанию у провайдера",
+  "admin.speed.fastNoTier": "По умолчанию у провайдера (задан Fast, но у этого подключения нет тарифа Fast, поэтому он не запрашивается)",
+  "admin.speed.fast": "Fast (повышенная цена)",
+  "admin.speed.hint": "Fast отвечает быстрее по повышенной цене; значение по умолчанию сохраняет нынешние скорость и стоимость.",
+  "admin.speed.none": "С запуска сервера ни один вызов не шёл с этой настройкой.",
+  "admin.speed.refused": "Последний вызов ({when}): {reason}",
+  "admin.speed.ranFast": "Последний вызов ({when}) шёл на Fast.",
+  "admin.speed.ranFastSays": "Последний вызов ({when}) шёл на Fast (провайдер сообщает: «{reported}»).",
+  "admin.speed.standard": "Последний вызов ({when}) запрашивал Fast, но шёл на обычной скорости и оплачен как обычный.",
+  "admin.speed.standardSays": "Последний вызов ({when}) запрашивал Fast, но шёл на обычной скорости (провайдер сообщает: «{reported}») и оплачен как обычный.",
+  "admin.speed.unknown": "Последний вызов ({when}) запрашивал Fast; провайдер не сообщил, на какой скорости он шёл.",
+  "admin.speed.amb.rooms": "Помещения",
+  "admin.speed.amb.music": "Музыка",
+  "admin.speed.amb.sounds": "Звуки",
+  "admin.speed.amb.heading": "Библиотека звуков",
+  "admin.speed.amb.intro": "Звуки помещений, музыка и разовые звуки, которые может включать любой стол: записи из общественного достояния и Creative Commons, с указанием авторов на странице лицензий. Сервер, установленный из исходников, уже содержит библиотеку; настольное и мобильное приложения поставляются без неё, чтобы оставаться небольшими, и одно нажатие здесь скачивает её (около 75 МБ, сохраняется при обновлениях). Сервер может докачать больше (docs/configuration.md).",
+  "admin.speed.amb.of": "{have} из {total}",
+  "admin.speed.amb.installing": "Установка {percent}%",
+  "admin.speed.amb.reinstall": "Установить набор звуков заново",
+  "admin.speed.amb.installPack": "Установить набор звуков",
+  "admin.speed.amb.download": "Скачать библиотеку звуков",
+  "admin.speed.amb.rescan": "Пересканировать папку",
+  "admin.speed.amb.tracks": "Установлено треков: {count}",
+  "admin.speed.amb.kept": ", уже были: {count}",
+  "admin.speed.amb.url": "Адрес набора. Если пусто, берётся собственный набор этого релиза{pack}.",
+  "admin.speed.amb.hint": "Треки, добавленные в public/ambience вручную, появляются после пересканирования (tavern.mp3 или tavern-2.mp3 для второго варианта). На сервере команда npm run fetch-ambience собирает библиотеку из OpenGameArt, каталога Кевина Маклеода, Wikimedia Commons, Freesound и Internet Archive.",
+  "admin.speed.amb.file.one": "{count} файл",
+  "admin.speed.amb.file.other": "{count} файлов",
+  "admin.speed.amb.file.few": "{count} файла",
+  "admin.speed.amb.file.many": "{count} файлов",
+};

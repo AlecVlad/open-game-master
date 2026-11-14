@@ -6,6 +6,7 @@ import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui";
 import { DictateField } from "@/components/DictateField";
 import { appendDictation } from "@/lib/dictation";
+import { useT } from "@/lib/i18n/provider";
 
 // Inline narration editor, ported from NE-P's InlineMessageEditor
 // (src/components/message/InlineMessageEditor.tsx, MIT, Copyright (c) 2026
@@ -31,6 +32,7 @@ export function InlineMessageEditor({
   onSave: (content: string) => Promise<string | null>;
   onCancel: () => void;
 }) {
+  const t = useT();
   const ref = useRef<HTMLTextAreaElement | null>(null);
   const [draft, setDraft] = useState(initial);
   const [busy, setBusy] = useState(false);
@@ -65,7 +67,7 @@ export function InlineMessageEditor({
   return (
     <div className="space-y-1.5">
       <DictateField
-        label="Narration"
+        label={t("campaign.session.inlineMessageEditor.label")}
         disabled={busy}
         onTranscript={(text) => {
           setDraft((current) => appendDictation(current, text));
@@ -106,7 +108,7 @@ export function InlineMessageEditor({
           disabled={busy}
           className={cn(ui.btnPrimary, "h-8 px-3 text-[11px]")}
         >
-          <Check className="size-3" /> Save
+          <Check className="size-3" /> {t("campaign.session.inlineMessageEditor.save")}
         </button>
         <button
           type="button"
@@ -114,10 +116,10 @@ export function InlineMessageEditor({
           disabled={busy} aria-busy={busy}
           className={cn(ui.btnSmall, "px-3 py-1.5 text-[11px]")}
         >
-          <X className="size-3" /> Cancel
+          <X className="size-3" /> {t("campaign.session.inlineMessageEditor.cancel")}
         </button>
         <span className="text-[10px] text-stone-600">
-          Enter saves, Shift+Enter for a new line, Escape cancels. Keep the dice markers.
+          {t("campaign.session.inlineMessageEditor.keyboardHint")}
         </span>
       </div>
     </div>

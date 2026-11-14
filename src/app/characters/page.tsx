@@ -19,6 +19,10 @@ import { Ribbon } from "@/components/ui/Ribbon";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui";
 import { navigateTo } from "@/lib/navigation";
+import { useI18n } from "@/lib/i18n/provider";
+import { refusalText } from "@/app/characters/builder/refusal";
+import { refusalText } from "@/app/characters/builder/refusal";
+import { characterBackgroundName, characterClassName, characterRaceName, characterSubclassName } from "@/lib/i18n/character-names";
 import { prefersReducedMotion, useLowEffects } from "@/lib/effects-mode";
 import { PortraitToast, RosterPortraitSlot, RosterPortraitStatus } from "@/app/characters/RosterPortrait";
 import {
@@ -67,11 +71,10 @@ const PORTRAIT_POLL_LIMIT = 240;
 
 import { classWordsAfterLevel } from "@/lib/characters/class-words";
 
-function titleCase(value: string) {
-  return value.replace(/[-_]/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
-}
 
 export default function CharactersPage() {
+  const i18n = useI18n();
+  const { t } = i18n;
   const [characters, setCharacters] = useState<LibraryCharacter[]>([]);
   const [loading, setLoading] = useState(true);
   const [authed, setAuthed] = useState(true);
@@ -170,7 +173,7 @@ export default function CharactersPage() {
       const response = await fetch(`/api/characters/${id}/portrait`, { method: "POST" });
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        setRetryErrors((current) => ({ ...current, [id]: data.error || "The portrait could not be queued." }));
+        setRetryErrors((current) => ({ ...current, [id]: refusalText(data, t("characters.err.queue"), t) }));
         return;
       }
       phases.current = { ...phases.current, [id]: "painting" };
@@ -183,7 +186,7 @@ export default function CharactersPage() {
         ),
       );
     } catch {
-      setRetryErrors((current) => ({ ...current, [id]: "Could not reach the server." }));
+      setRetryErrors((current) => ({ ...current, [id]: t("characters.err.net") }));
     } finally {
       setRetryingId("");
     }
@@ -197,7 +200,7 @@ export default function CharactersPage() {
       body: JSON.stringify({ portrait: { url } }),
     }).catch(() => null);
     if (!response?.ok) {
-      setActionError("The portrait was not saved. Check the connection and try again.");
+      setActionError(t("characters.err.portrait"));
       return;
     }
     setCharacters((current) =>
@@ -219,7 +222,7 @@ export default function CharactersPage() {
       const response = await fetch(`/api/characters/${id}/clone`, { method: "POST" }).catch(() => null);
       if (!response?.ok) {
         const data = (await response?.json().catch(() => null)) as { error?: string } | null;
-        setActionError(data?.error ?? "No copy was made. Check the connection and try again.");
+        setActionError(refusalText(data, t("characters.err.clone"), t));
         return;
       }
       const data = await response.json().catch(() => ({}));
@@ -249,7 +252,7 @@ export default function CharactersPage() {
       try {
         parsed = JSON.parse(await file.text());
       } catch {
-        setImportError(`${file.name} is not a JSON file.`);
+        setImportError(t("characters.err.json", { file: file.name }));
         return;
       }
       const response = await fetch("/api/characters/import", {
@@ -259,7 +262,7 @@ export default function CharactersPage() {
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setImportError(data.error || "Import failed.");
+        setImportError(refusalText(data, t("characters.err.import"), t));
         return;
       }
       if (data.character) {
@@ -267,10 +270,10 @@ export default function CharactersPage() {
         if (Array.isArray(data.owed) && data.owed.length) {
           setImportOwed({ id: data.character.id, name: data.character.name, owed: data.owed });
         }
-        setImportShelf(importShelfNote(data.character.name, data.homebrew));
+        setImportShelf(importShelfNote(data.character.name, data.homebrew, i18n));
       }
     } catch {
-      setImportError("Import failed.");
+      setImportError(t("characters.err.import"));
     } finally {
       setImporting(false);
       if (importInput.current) {
@@ -280,14 +283,14 @@ export default function CharactersPage() {
   }
 
   async function remove(id: string, name: string) {
-    if (!await appConfirm(`Delete ${name} from your library? This cannot be undone.`)) {
+    if (!await appConfirm(t("characters.confirm.delete", { name }))) {
       return;
     }
     setActionError("");
     const response = await fetch(`/api/characters/${id}`, { method: "DELETE" }).catch(() => null);
     if (!response?.ok) {
       const data = (await response?.json().catch(() => null)) as { error?: string } | null;
-      setActionError(data?.error ?? `${name} was not deleted. Check the connection and try again.`);
+      setActionError(data?.error ?? t("characters.err.delete", { name }));
       return;
     }
     setCharacters((current) => current.filter((character) => character.id !== id));
@@ -300,8 +303,7 @@ export default function CharactersPage() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/assets/ui/empty-notice-board.webp" alt="" className="h-24 w-32 object-contain opacity-90" />
           <p className="font-serif text-sm text-stone-300">
-            <Link href="/" className="text-amber-200 hover:text-amber-400">Log in</Link> to see your
-            character library.
+            <Link href="/" className="text-amber-200 hover:text-amber-400">{t("characters.login.pre")}</Link>{t("characters.login.post")}
           </p>
         </div>
       </main>
@@ -315,9 +317,9 @@ export default function CharactersPage() {
         <div className="flex items-center gap-3">
           <GameIcon icon={{ kind: "glyph", key: "tab-characters" }} size="size-12" className="page-glyph" />
           <div>
-            <h1 className="gold-title animate-fade-up font-display text-2xl">Your characters</h1>
+            <h1 className="gold-title animate-fade-up font-display text-2xl">{t("characters.title")}</h1>
             <p className="text-sm text-stone-500">
-              Saved to your profile; bring them into any campaign.
+              {t("characters.sub")}
             </p>
           </div>
         </div>
@@ -339,13 +341,13 @@ export default function CharactersPage() {
             onClick={() => importInput.current?.click()}
             disabled={importing}
             className={ui.btnSecondary}
-            title="Import a character file exported from this or another server"
+            title={t("characters.import.title")}
           >
             {importing ? <Loader2 className="size-4 animate-spin" /> : <FileUp className="size-4" />}
-            Import character
+            {t("characters.import")}
           </button>
           <Link href="/characters/new" className={ui.btnPrimary}>
-            <Plus className="size-4" /> New character
+            <Plus className="size-4" /> {t("characters.new")}
           </Link>
         </div>
       </header>
@@ -362,7 +364,7 @@ export default function CharactersPage() {
       {importOwed ? (
         <div role="status" className="reveal mb-4 rounded-lg border border-amber-500/30 bg-amber-950/20 px-3 py-2 text-sm text-amber-100">
           <p>
-            {importOwed.name} came from a file made before these choices were asked for, so they are still to make:
+            {t("characters.owed.head", { name: importOwed.name })}
           </p>
           <ul className="mt-1 list-disc pl-5 text-amber-200/90">
             {importOwed.owed.map((line) => (
@@ -374,14 +376,14 @@ export default function CharactersPage() {
               href={`/characters/${importOwed.id}/edit`}
               className="inline-flex min-h-10 items-center rounded-lg border border-amber-600/60 px-3 font-medium text-amber-100 hover:bg-amber-900/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-400"
             >
-              Choose them now
+              {t("characters.owed.choose")}
             </Link>
             <button
               type="button"
               onClick={() => setImportOwed(null)}
               className="inline-flex min-h-10 items-center rounded-lg px-3 text-stone-400 hover:text-stone-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-400"
             >
-              Later
+              {t("characters.owed.later")}
             </button>
           </p>
         </div>
@@ -395,11 +397,11 @@ export default function CharactersPage() {
         <div className={cn(ui.tile, "px-6 py-6")}>
           <EmptyState
             art="board"
-            title="No heroes in the roster yet."
-            hint="Create one here, or one is saved automatically when you join a campaign."
+            title={t("characters.empty.title")}
+            hint={t("characters.empty.hint")}
             action={
               <Link href="/characters/new" className={ui.btnSecondary}>
-                <Plus className="size-4" /> New character
+                <Plus className="size-4" /> {t("characters.new")}
               </Link>
             }
           />
@@ -407,7 +409,7 @@ export default function CharactersPage() {
       ) : (
         <>
           <Ribbon className="mb-3">
-            Roster · {characters.length}
+            {t("characters.roster", { count: characters.length })}
           </Ribbon>
           <ul className="stagger-up grid grid-cols-1 gap-3 sm:grid-cols-2">
             {characters.map((character) => (
@@ -431,7 +433,7 @@ export default function CharactersPage() {
       )}
       {cropping ? (
         <AvatarCropDialog
-          title={`Portrait for ${cropping.name}`}
+          title={t("characters.portraitFor", { name: cropping.name })}
           onUploaded={(image) => {
             setCroppingId("");
             void setPortrait(cropping.id, image.url);
@@ -475,17 +477,18 @@ function CharacterCard({
   onDuplicateEdit: () => void;
 }) {
   const router = useRouter();
+  const { t } = useI18n();
   // Everything the card can do, once: the kebab in its corner, a right-click
   // and a long press all raise this list.
   const menu: ContextMenuItem[] = [
-    { id: "open", label: "Open", glyph: "tab-characters", onSelect: () => router.push(`/characters/${character.id}`) },
-    { id: "edit", label: "Edit build", glyph: "ui-edit", onSelect: () => router.push(`/characters/${character.id}/edit`) },
-    { id: "portrait", label: "Upload portrait", glyph: "ui-upload", onSelect: onUploadPortrait },
-    { id: "duplicate", label: "Duplicate", glyph: "ui-duplicate", disabled: cloning, onSelect: onDuplicate },
-    { id: "duplicate-edit", label: "Duplicate and edit", glyph: "ui-duplicate", disabled: cloning, onSelect: onDuplicateEdit },
+    { id: "open", label: t("characters.menu.open"), glyph: "tab-characters", onSelect: () => router.push(`/characters/${character.id}`) },
+    { id: "edit", label: t("characters.menu.edit"), glyph: "ui-edit", onSelect: () => router.push(`/characters/${character.id}/edit`) },
+    { id: "portrait", label: t("characters.menu.upload"), glyph: "ui-upload", onSelect: onUploadPortrait },
+    { id: "duplicate", label: t("characters.menu.dup"), glyph: "ui-duplicate", disabled: cloning, onSelect: onDuplicate },
+    { id: "duplicate-edit", label: t("characters.menu.dupEdit"), glyph: "ui-duplicate", disabled: cloning, onSelect: onDuplicateEdit },
     ...(character.campaigns ?? []).map((assignment, index) => ({
       id: `go-${assignment.campaignId}`,
-      label: `Go to ${assignment.title}`,
+      label: t("characters.menu.go", { title: assignment.title }),
       glyph: assignment.kind === "workshop" ? "system-storyboard" : "tab-campaigns",
       separated: index === 0,
       onSelect: () =>
@@ -493,7 +496,7 @@ function CharacterCard({
           assignment.kind === "workshop" ? `/workshop/${assignment.campaignId}` : `/campaigns/${assignment.campaignId}`,
         ),
     })),
-    { id: "delete", label: "Delete", glyph: "ui-delete", tone: "danger", separated: true, onSelect: onDelete },
+    { id: "delete", label: t("characters.menu.delete"), glyph: "ui-delete", tone: "danger", separated: true, onSelect: onDelete },
   ];
   return (
     <ContextMenu as="li" items={menu} label={character.name} className={cn("group relative", ui.cardHover, "p-4")}>
@@ -512,19 +515,22 @@ function CharacterCard({
               {character.name}
             </span>
             <span className="inline-flex rounded-full border border-amber-500/30 bg-amber-400/10 px-2 py-0.5 text-[11px] text-amber-200">
-              Level {character.level}{" "}
-              {classWordsAfterLevel({ ...character, classes: character.sheet?.classes }, (id) =>
-                id === character.class ? (character.className ?? titleCase(id)) : titleCase(id),
-              )}
+              {t("characters.level", {
+                level: character.level,
+                classes: classWordsAfterLevel(
+                  { ...character, classes: character.sheet?.classes },
+                  (id) => characterClassName(id, t, id === character.class ? character.className : undefined),
+                ),
+              })}
             </span>
           </div>
         </div>
         <p className="mt-2 text-sm text-stone-400">
-          {character.raceLabel ?? titleCase(character.race)}
-          {character.subclass ? ` (${character.subclass})` : ""}
+          {characterRaceName(character.race, character.raceLabel, t)}
+          {character.subclass ? ` (${characterSubclassName(character.class, character.subclass, t)})` : ""}
         </p>
         {character.background ? (
-          <p className="reveal text-xs text-stone-500">{character.backgroundLabel ?? titleCase(character.background)}</p>
+          <p className="reveal text-xs text-stone-500">{characterBackgroundName(character.background, character.backgroundLabel, t)}</p>
         ) : null}
       </Link>
       <RosterPortraitStatus
@@ -555,12 +561,12 @@ function CharacterCard({
         </div>
       ) : (
         <p className="mt-2 border-t border-stone-700/40 pt-2 text-xs text-stone-500">
-          Not in a campaign yet.
+          {t("characters.none")}
         </p>
       )}
       <KebabMenu
         items={menu}
-        label={`Actions for ${character.name}`}
+        label={t("characters.actions", { name: character.name })}
         heading={character.name}
         busy={cloning}
         className="absolute right-2 top-2 border-transparent bg-transparent"
@@ -570,13 +576,17 @@ function CharacterCard({
 }
 
 // What a character file's Homebrew did on arrival, in one line.
-function importShelfNote(name: string, shelf: { copied?: number; reused?: string[]; renamed?: string[]; refused?: string[] } | undefined): string {
+function importShelfNote(
+  name: string,
+  shelf: { copied?: number; reused?: string[]; renamed?: string[]; refused?: string[] } | undefined,
+  { t, tp }: ReturnType<typeof useI18n>,
+): string {
   if (!shelf) {
     return "";
   }
   const lines = [
-    shelf.copied ? `${name}'s Homebrew came with the file and is on your shelf now (${shelf.copied} entr${shelf.copied === 1 ? "y" : "ies"}).` : "",
-    shelf.reused?.length ? `Already on your shelf, the same: ${shelf.reused.join(", ")}.` : "",
+    shelf.copied ? tp("characters.shelf.copied", shelf.copied, { name, count: shelf.copied }) : "",
+    shelf.reused?.length ? t("characters.shelf.reused", { list: shelf.reused.join(", ") }) : "",
     ...(shelf.renamed ?? []),
     ...(shelf.refused ?? []),
   ];

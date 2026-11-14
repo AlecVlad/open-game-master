@@ -37,12 +37,14 @@ export function ListHead({
   noun,
   placeholder,
   className = "mb-2",
+  formatCount,
 }: {
   head: { controls: ReturnType<typeof useListControls>; total: number; active: boolean; shown: readonly unknown[] };
   // What one row is called: "monster", "entry".
   noun: [one: string, many: string];
   placeholder?: string;
   className?: string;
+  formatCount?: (shown: number, total: number) => string;
 }) {
   if (!head.active) {
     return null;
@@ -52,7 +54,7 @@ export function ListHead({
     <div className={className}>
       <ListControls controls={head.controls} placeholder={placeholder} />
       <p className="mt-1 text-[11px] text-stone-500" aria-live="polite">
-        {count === head.total
+        {formatCount ? formatCount(count, head.total) : count === head.total
           ? `${head.total} ${head.total === 1 ? noun[0] : noun[1]}`
           : `${count} of ${head.total} ${noun[1]}`}
       </p>
@@ -75,12 +77,16 @@ export function ListTally({
   noun,
   sort,
   onSort,
+  formatCount,
+  sortLabels,
 }: {
   shown: number;
   total: number;
   noun: [one: string, many: string];
   sort: RowSort;
   onSort: (sort: RowSort) => void;
+  formatCount?: (shown: number, total: number) => string;
+  sortLabels?: { made: string; name: string };
 }) {
   if (total < LIST_HEAD_MIN) {
     return null;
@@ -99,11 +105,11 @@ export function ListTally({
   return (
     <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-stone-500">
       <span aria-live="polite">
-        {shown === total ? `${total} ${total === 1 ? noun[0] : noun[1]}` : `${shown} of ${total} ${noun[1]}`}
+        {formatCount ? formatCount(shown, total) : shown === total ? `${total} ${total === 1 ? noun[0] : noun[1]}` : `${shown} of ${total} ${noun[1]}`}
       </span>
       <span data-pill-group="" className="ml-auto flex items-center gap-1">
-        {button("made", "As made")}
-        {button("name", "By name")}
+        {button("made", sortLabels?.made ?? "As made")}
+        {button("name", sortLabels?.name ?? "By name")}
       </span>
     </div>
   );

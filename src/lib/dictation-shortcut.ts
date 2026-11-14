@@ -193,43 +193,80 @@ function ownCharacter(typed: string, chord: Pick<DictationChord, "code" | "label
   return lowered === chord.label.toLowerCase() || lowered === keyLabel(chord.code).toLowerCase();
 }
 
+export type DictationShortcutProblem = {
+  code:
+    | "SYSTEM_MODIFIER"
+    | "VOICE_PTT"
+    | "EDITING_KEY"
+    | "RESERVED_FUNCTION"
+    | "CLOSE_WINDOW"
+    | "TYPING_KEY"
+    | "BROWSER_SHORTCUT"
+    | "BROWSER_MENU"
+    | "DESKTOP_SHORTCUT"
+    | "ALTGR_CHARACTER";
+  params?: { key?: string; typed?: string };
+};
+
 // Why this chord cannot be the dictation key, or null when it can. `typed`
 // is the character the press produced (KeyboardEvent.key), when known: on a
 // layout where Ctrl+Alt is AltGr, Ctrl+Alt+Q types "@" and must stay typing.
-export function chordProblem(chord: DictationChord, typed = ""): string | null {
+// Stable codes keep the reason translatable without guessing from its prose.
+export function chordProblemDetail(chord: DictationChord, typed = ""): DictationShortcutProblem | null {
   const name = formatChord(chord);
-  if (chord.meta) {
-    return "The Windows, Command and Super keys belong to the system. Hold Ctrl or Alt instead.";
-  }
-  if (chord.code === VOICE_PTT_CODE) {
-    return "` is voice chat's push-to-talk key. Pick another so the two never fight.";
-  }
+  if (chord.meta) return { code: "SYSTEM_MODIFIER" };
+  if (chord.code === VOICE_PTT_CODE) return { code: "VOICE_PTT", params: { key: keyLabel(chord.code) } };
   if (EDITING_CODES.has(chord.code) || (chord.code === "Insert" && (chord.ctrl || chord.shift))) {
-    return `${EDITING_CODES.has(chord.code) ? keyLabel(chord.code) : name} moves, edits or sends in the message box. Pick another key.`;
+    return { code: "EDITING_KEY", params: { key: EDITING_CODES.has(chord.code) ? keyLabel(chord.code) : name } };
   }
   if (KEPT_FUNCTION_KEYS.has(chord.code)) {
-    return `${name} belongs to the browser or the app window (help, reload, full screen, developer tools). Pick another key, such as F8 or F9.`;
+    return { code: "RESERVED_FUNCTION", params: { key: name } };
   }
   if (chord.code === "F4" && (chord.ctrl || chord.alt)) {
-    return `${name} closes the window or the tab. Pick another key.`;
+    return { code: "CLOSE_WINDOW", params: { key: name } };
   }
   const types = TYPING.test(chord.code);
-  if (types && !chord.ctrl && !chord.alt) {
-    return `${name} types in the message box. Hold Ctrl or Alt with it, or pick a key that does not type, such as F8 or F9.`;
-  }
-  if (types && chord.ctrl && !chord.alt) {
-    return `${name} is a browser or system shortcut (copy, find, a new tab, zoom, the input language). Add Alt, or pick another key.`;
-  }
+  if (types && !chord.ctrl && !chord.alt) return { code: "TYPING_KEY", params: { key: name } };
+  if (types && chord.ctrl && !chord.alt) return { code: "BROWSER_SHORTCUT", params: { key: name } };
   if (chord.alt && !chord.ctrl && ALT_MENU_CODES.has(chord.code)) {
-    return `${name} opens a browser menu, the address bar or the window menu. Pick another key.`;
+    return { code: "BROWSER_MENU", params: { key: name } };
   }
   if (chord.ctrl && chord.alt && CTRL_ALT_DESKTOP_CODES.has(chord.code)) {
-    return `${name} is a desktop shortcut on many systems (a terminal, the lock screen, the desktop). Pick another key.`;
+    return { code: "DESKTOP_SHORTCUT", params: { key: name } };
   }
   if (chord.ctrl && chord.alt && typed.length === 1 && !ownCharacter(typed, chord)) {
-    return `On this keyboard ${name} types "${typed}". Pick another key so it keeps typing.`;
+    return { code: "ALTGR_CHARACTER", params: { key: name, typed } };
   }
   return null;
+}
+
+// Older callers and tests still receive the original English prose.
+export function chordProblem(chord: DictationChord, typed = ""): string | null {
+  const problem = chordProblemDetail(chord, typed);
+  if (!problem) return null;
+  const key = problem.params?.key ?? "";
+  switch (problem.code) {
+    case "SYSTEM_MODIFIER":
+      return "The Windows, Command and Super keys belong to the system. Hold Ctrl or Alt instead.";
+    case "VOICE_PTT":
+      return "` is voice chat's push-to-talk key. Pick another so the two never fight.";
+    case "EDITING_KEY":
+      return `${key} moves, edits or sends in the message box. Pick another key.`;
+    case "RESERVED_FUNCTION":
+      return `${key} belongs to the browser or the app window (help, reload, full screen, developer tools). Pick another key, such as F8 or F9.`;
+    case "CLOSE_WINDOW":
+      return `${key} closes the window or the tab. Pick another key.`;
+    case "TYPING_KEY":
+      return `${key} types in the message box. Hold Ctrl or Alt with it, or pick a key that does not type, such as F8 or F9.`;
+    case "BROWSER_SHORTCUT":
+      return `${key} is a browser or system shortcut (copy, find, a new tab, zoom, the input language). Add Alt, or pick another key.`;
+    case "BROWSER_MENU":
+      return `${key} opens a browser menu, the address bar or the window menu. Pick another key.`;
+    case "DESKTOP_SHORTCUT":
+      return `${key} is a desktop shortcut on many systems (a terminal, the lock screen, the desktop). Pick another key.`;
+    case "ALTGR_CHARACTER":
+      return `On this keyboard ${key} types "${problem.params?.typed ?? ""}". Pick another key so it keeps typing.`;
+  }
 }
 
 // The press that starts a take: the key, with exactly the chord's

@@ -2,10 +2,11 @@
 
 import { ArrowLeft, Brush, ExternalLink, EyeOff, Lock, Pencil, Plus, Theater, Trash2, X } from "lucide-react";
 import { useMemo, useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/cn";
 import { appConfirm } from "@/components/ui/ConfirmDialog";
 import { KitButton } from "@/app/campaigns/[campaignId]/PanelKit";
-import { SHELF_LABELS, type WorldLink } from "@/lib/worldforge/model";
+import { type WorldLink } from "@/lib/worldforge/model";
 import { mentionSegments } from "@/lib/worldforge/text";
 import { accountOf, olderText } from "@/lib/worldforge/account";
 import { absoluteYear, fieldLines, formatLifespan, formatYear, lifespan, lifespanIssue, sortEvents } from "@/lib/worldforge/time";
@@ -27,28 +28,59 @@ import { PaintPanel, usePaintJobs } from "./PaintJobs";
 // links both ways, the events it was part of and the secrets about it, and
 // the hidden truth only the DM sees. Edit and the link editor open in place.
 
-const TABLE_WORDS: Record<string, string> = {
-  attitude: "Attitude",
-  statBlock: "Fights as",
-  role: "Role",
-  home: "Lives at",
-  faction: "Faction",
-  visited: "Visited",
-  here: "Party is here",
-  connections: "Roads to",
-  power: "Power",
-  goal: "Goal",
-  category: "Lore shelf",
-  visibility: "Read by",
-  pinned: "Pinned",
+const TABLE_WORD_KEYS: Record<string, string> = {
+  attitude: "workshop.world.entityPage.table.attitude",
+  statBlock: "workshop.world.entityPage.table.statBlock",
+  role: "workshop.world.entityPage.table.role",
+  home: "workshop.world.entityPage.table.home",
+  faction: "workshop.world.entityPage.table.faction",
+  visited: "workshop.world.entityPage.table.visited",
+  here: "workshop.world.entityPage.table.here",
+  connections: "workshop.world.entityPage.table.connections",
+  power: "workshop.world.entityPage.table.power",
+  goal: "workshop.world.entityPage.table.goal",
+  category: "workshop.world.entityPage.table.category",
+  visibility: "workshop.world.entityPage.table.visibility",
+  pinned: "workshop.world.entityPage.table.pinned",
 };
-
-function tableValue(key: string, value: string | number | boolean): string {
-  if (typeof value === "boolean") return value ? "yes" : "";
-  if (key === "visibility") return value === "dm" ? "the GM only" : "the party";
+const SHELF_NAME_KEYS: Record<string, string> = {
+  npc: "workshop.world.entityPage.shelf.cast",
+  location: "workshop.world.entityPage.shelf.places",
+  faction: "workshop.world.entityPage.shelf.factions",
+  lore: "workshop.world.entityPage.shelf.lore",
+};
+const SYSTEM_LABEL_KEYS: Record<string, string> = {
+  npc: "workshop.world.entityPage.tool.cast",
+  location: "workshop.world.entityPage.tool.region",
+  faction: "workshop.world.entityPage.tool.factions",
+  lore: "workshop.world.entityPage.tool.lore",
+};
+const CANON_LABEL_KEYS: Record<string, string> = {
+  canon: "workshop.world.entityEditor.canon.canon",
+  draft: "workshop.world.entityEditor.canon.draft",
+  alternate: "workshop.world.entityEditor.canon.alternate",
+  retired: "workshop.world.entityEditor.canon.retired",
+};
+const LINK_LABEL_KEYS: Record<string, string> = {
+  "allied with": "alliedWith", "enemy of": "enemyOf", "friend of": "friendOf",
+  "rival of": "rivalOf", loves: "loves", fears: "fears", serves: "serves",
+  "mentor of": "mentorOf", "member of": "memberOf", rules: "rules",
+  "lives in": "livesIn", "located in": "locatedIn", worships: "worships",
+  guards: "guards", seeks: "seeks", created: "created", destroyed: "destroyed",
+  "parent of": "parentOf", "child of": "childOf", "spouse of": "spouseOf",
+  "sibling of": "siblingOf", "descended from": "descendedFrom",
+  "superior of": "superiorOf", "reports to": "reportsTo", "liege of": "liegeOf",
+  "vassal of": "vassalOf",
+};
+function localizedLinkLabel(label: string, t: ReturnType<typeof useI18n>["t"]): string {
+  const key = LINK_LABEL_KEYS[label];
+  return key ? t(("workshop.contentImport.worldLinkLabel." + key) as never) : label;
+}
+function tableValue(key: string, value: string | number | boolean, t: ReturnType<typeof useI18n>["t"]): string {
+  if (typeof value === "boolean") return value ? t("workshop.world.entityPage.value.yes") : "";
+  if (key === "visibility") return value === "dm" ? t("workshop.world.entityPage.value.gmOnly") : t("workshop.world.entityPage.value.party");
   return String(value);
 }
-
 export function EntityPage({
   api,
   world,
@@ -75,6 +107,7 @@ export function EntityPage({
   canWrite: boolean;
   canPaint: boolean;
 }) {
+  const { t } = useI18n();
   const { doc, entities } = world;
   const [editing, setEditing] = useState(false);
   // Paint's jobs for this entry, kept on the server (PaintJobs.tsx): a
@@ -99,7 +132,7 @@ export function EntityPage({
   const older = olderText(entity);
   const folders = folderPath(doc.folders, entity.entry.folderId);
   const home = SHELF_SYSTEMS[entity.shelf];
-  const facts = Object.entries(entity.table).filter(([, value]) => tableValue("", value) !== "");
+  const facts = Object.entries(entity.table).filter(([, value]) => tableValue("", value, t) !== "");
 
   async function saveLinks(links: WorldLink[]) {
     await api.patch({ links });
@@ -107,9 +140,14 @@ export function EntityPage({
   }
 
   async function remove() {
-    const ok = await appConfirm(`${entity.name} is ${entity.shelf === "lore" ? "a lore entry" : `in ${SHELF_LABELS[entity.shelf]}`}: deleting it here deletes it there too, with every link to it.`, {
-      title: `Delete ${entity.name}?`,
-      actionLabel: "Delete",
+    const shelf = t(SHELF_NAME_KEYS[entity.shelf] as never);
+    const ok = await appConfirm(
+      entity.shelf === "lore"
+        ? t("workshop.world.entityPage.delete.loreBody", { name: entity.name })
+        : t("workshop.world.entityPage.delete.shelfBody", { name: entity.name, shelf }),
+      {
+      title: t("workshop.world.entityPage.delete.title", { name: entity.name }),
+      actionLabel: t("workshop.world.entityPage.delete.action"),
       tone: "danger",
     });
     if (ok && (await api.remove(entity.ref))) onBack();
@@ -146,15 +184,15 @@ export function EntityPage({
         {other.name}
         {link.rank ? <span className="text-stone-500">({link.rank})</span> : null}
       </button>
-      {link.veracity === "hidden" ? <Lock className="size-3 text-red-400" aria-label="Hidden truth" /> : null}
-      {link.veracity === "believed" ? <Theater className="size-3 text-violet-300" aria-label="False belief" /> : null}
-      {link.oneway ? <span className="text-[10px] text-stone-500" title="One way">one way</span> : null}
+      {link.veracity === "hidden" ? <Lock className="size-3 text-red-400" aria-label={t("workshop.world.entityPage.link.hiddenTruth")} /> : null}
+      {link.veracity === "believed" ? <Theater className="size-3 text-violet-300" aria-label={t("workshop.world.entityPage.link.falseBelief")} /> : null}
+      {link.oneway ? <span className="text-[10px] text-stone-500" title={t("workshop.world.entityPage.link.oneWay")}>{t("workshop.world.entityPage.link.oneWay")}</span> : null}
       {!reverse ? (
         <>
-          <button type="button" aria-label={`Edit the link to ${other.name}`} onClick={() => setLinking(link)} className="reveal-on-hover text-stone-500 hover:text-amber-200 motion-nudge">
+          <button type="button" aria-label={t("workshop.world.entityPage.link.edit", { name: other.name })} onClick={() => setLinking(link)} className="reveal-on-hover text-stone-500 hover:text-amber-200 motion-nudge">
             <Pencil className="size-3" />
           </button>
-          <button type="button" aria-label={`Remove the link to ${other.name}`} onClick={() => saveLinks(doc.links.filter((entry) => entry.id !== link.id))} className="reveal-on-hover text-stone-500 hover:text-red-300 motion-nudge">
+          <button type="button" aria-label={t("workshop.world.entityPage.link.remove", { name: other.name })} onClick={() => saveLinks(doc.links.filter((entry) => entry.id !== link.id))} className="reveal-on-hover text-stone-500 hover:text-red-300 motion-nudge">
             <X className="size-3" />
           </button>
         </>
@@ -171,11 +209,11 @@ export function EntityPage({
       reverse ? (
         <div key={label} className="flex flex-wrap items-center gap-1.5">
           {group.map((link) => chip(link, byRef.get(link.from)!, true))}
-          <span className="text-xs text-stone-500">{label} {entity.name}</span>
+          <span className="text-xs text-stone-500">{localizedLinkLabel(label, t)} {entity.name}</span>
         </div>
       ) : (
         <div key={label} className="flex flex-wrap items-center gap-1.5">
-          <span className="w-28 shrink-0 text-xs text-stone-500">{label}</span>
+          <span className="w-28 shrink-0 text-xs text-stone-500">{localizedLinkLabel(label, t)}</span>
           {group.map((link) => chip(link, byRef.get(link.to)!, false))}
         </div>
       ),
@@ -185,7 +223,7 @@ export function EntityPage({
   return (
     <article className="flex flex-col gap-4 animate-fade-up" data-tour="world-entry">
       <header className="flex flex-wrap items-start gap-3">
-        <button type="button" onClick={onBack} className="@2xl:hidden" aria-label="Back to the list">
+        <button type="button" onClick={onBack} className="@2xl:hidden" aria-label={t("workshop.world.entityPage.backToList")}>
           <ArrowLeft className="size-5 text-stone-400" />
         </button>
         <span key={entity.portrait} className="motion-pop">
@@ -195,33 +233,33 @@ export function EntityPage({
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="gold-title font-display text-xl tracking-wide">{entity.name}</h3>
             <TypeChip type={type} />
-            {entity.entry.canon !== "canon" ? <span className="rounded-md border border-stone-600 px-1.5 py-0.5 text-[10px] uppercase tracking-[0.12em] text-stone-400">{entity.entry.canon}</span> : null}
+            {entity.entry.canon !== "canon" ? <span className="rounded-md border border-stone-600 px-1.5 py-0.5 text-[10px] uppercase tracking-[0.12em] text-stone-400">{t(CANON_LABEL_KEYS[entity.entry.canon] as never)}</span> : null}
           </div>
-          {entity.aliases.length ? <p className="text-xs text-stone-400">Also called {entity.aliases.join(", ")}</p> : null}
+          {entity.aliases.length ? <p className="text-xs text-stone-400">{t("workshop.world.entityPage.alsoCalled", { names: entity.aliases.join(", ") })}</p> : null}
           {folders.length ? <p className="text-[11px] text-stone-500">{folders.map((folder) => folder.name).join(" / ")}</p> : null}
           {lifeLine ? <p className="text-xs text-stone-400">{lifeLine}</p> : null}
         </div>
         <div className="flex basis-full flex-wrap gap-1.5 @lg:basis-auto">
           <KitButton tone="small" onClick={() => setEditing(true)} data-tour="world-edit">
-            <Pencil className="size-3.5" /> Edit
+            <Pencil className="size-3.5" /> {t("workshop.world.entityPage.action.edit")}
           </KitButton>
           {canPaint ? (
             <KitButton
               tone="small"
               busy={paint.running !== null || paint.busy === "paint"}
               disabled={paint.running !== null || paint.busy !== null}
-              title="Paint a picture for this entry: a portrait, a vista, a sigil or an illustration by its type. It waits beside the current picture until you keep it."
+              title={t("workshop.world.entityPage.paint.title")}
               onClick={paint.start}
             >
-              {paint.running || paint.busy === "paint" ? null : <Brush className="size-3.5" />} {paint.running?.state === "queued" ? "Queued" : paint.running ? "Painting" : "Paint"}
+              {paint.running || paint.busy === "paint" ? null : <Brush className="size-3.5" />} {paint.running?.state === "queued" ? t("workshop.world.entityPage.paint.queued") : paint.running ? t("workshop.world.entityPage.paint.working") : t("workshop.world.entityPage.paint.action")}
             </KitButton>
           ) : null}
           {onOpenSystem ? (
-            <KitButton tone="small" onClick={() => onOpenSystem(home.system, { id: entity.id, from: entity.ref })} title={`Open ${entity.name}'s own tool`}>
-              <ExternalLink className="size-3.5" /> {home.label}
+            <KitButton tone="small" onClick={() => onOpenSystem(home.system, { id: entity.id, from: entity.ref })} title={t("workshop.world.entityPage.tool.open", { name: entity.name })}>
+              <ExternalLink className="size-3.5" /> {t(SYSTEM_LABEL_KEYS[entity.shelf] as never)}
             </KitButton>
           ) : null}
-          <KitButton tone="iconDanger" always aria-label={`Delete ${entity.name}`} onClick={remove}>
+          <KitButton tone="iconDanger" always aria-label={t("workshop.world.entityPage.delete.title", { name: entity.name })} onClick={remove}>
             <Trash2 className="size-4" />
           </KitButton>
         </div>
@@ -232,10 +270,10 @@ export function EntityPage({
       <ImportKept key={entity.ref} kept={entity.kept ?? []} onChoose={(key, choice) => api.settleKept(entity.ref, key, choice)} />
 
       {facts.length ? (
-        <div className="flex flex-wrap gap-1.5" aria-label="At the table">
+        <div className="flex flex-wrap gap-1.5" aria-label={t("workshop.world.entityPage.atTable")}>
           {facts.map(([key, value]) => (
             <span key={key} className="pk-chip motion-pop text-[11px]">
-              <span className="text-stone-500">{TABLE_WORDS[key] ?? key}</span> {tableValue(key, value)}
+              <span className="text-stone-500">{TABLE_WORD_KEYS[key] ? t(TABLE_WORD_KEYS[key] as never) : key}</span> {tableValue(key, value, t)}
             </span>
           ))}
         </div>
@@ -255,17 +293,17 @@ export function EntityPage({
           )}
         </p>
       ) : (
-        <p className="text-sm text-stone-500">Nothing written yet.</p>
+        <p className="text-sm text-stone-500">{t("workshop.world.entityPage.noArticle")}</p>
       )}
       {arrival ? (
         <div className="flex flex-col gap-1" data-testid="world-arrival">
-          <span className="eyebrow text-[10px] text-stone-500">On arrival</span>
+          <span className="eyebrow text-[10px] text-stone-500">{t("workshop.world.entityPage.onArrival")}</span>
           <p className="whitespace-pre-wrap text-sm leading-6 text-stone-300">{arrival}</p>
         </div>
       ) : null}
       {older ? (
         <p className="text-xs text-amber-300" data-testid="world-older-text">
-          An older text from an import is kept beside this entry, because the two say different things. Players never see it. Open Edit to choose between them.
+          {t("workshop.world.entityPage.olderText")}
         </p>
       ) : null}
       <BoundRecords
@@ -283,18 +321,18 @@ export function EntityPage({
             <div key={def.id} className={cn("flex gap-2", def.authorOnly && "text-red-300")}>
               <dt className="text-stone-500">{def.name}</dt>
               <dd>{text}</dd>
-              {def.authorOnly ? <EyeOff className="size-3.5 self-center" aria-label="Author only" /> : null}
+              {def.authorOnly ? <EyeOff className="size-3.5 self-center" aria-label={t("workshop.world.entityPage.authorOnly")} /> : null}
             </div>
           ))}
         </dl>
       ) : null}
 
-      <section className="flex flex-col gap-1.5" aria-label="Links">
+      <section className="flex flex-col gap-1.5" aria-label={t("workshop.world.entityPage.links")}>
         <div className="flex items-center justify-between">
-          <h4 className="eyebrow text-[10px] text-amber-400/80">Links</h4>
+          <h4 className="eyebrow text-[10px] text-amber-400/80">{t("workshop.world.entityPage.links")}</h4>
           {linking === null ? (
             <KitButton tone="link" onClick={() => setLinking("new")} data-tour="world-add-link">
-              <Plus className="size-3.5" /> Add a link
+              <Plus className="size-3.5" /> {t("workshop.world.entityPage.addLink")}
             </KitButton>
           ) : null}
         </div>
@@ -308,7 +346,7 @@ export function EntityPage({
             onSave={(link) => saveLinks([...doc.links.filter((entry) => entry.id !== link.id), link])}
           />
         ) : null}
-        {outgoing.length ? grouped(outgoing, false) : linking === null ? <p className="text-xs text-stone-500">No links yet.</p> : null}
+        {outgoing.length ? grouped(outgoing, false) : linking === null ? <p className="text-xs text-stone-500">{t("workshop.world.entityPage.noLinks")}</p> : null}
         {incoming.filter((link) => !link.oneway).length ? (
           <div className="mt-1 flex flex-col gap-1.5 border-t border-stone-800/80 pt-2">{grouped(incoming.filter((link) => !link.oneway), true)}</div>
         ) : null}
@@ -316,14 +354,14 @@ export function EntityPage({
       <PlayFields campaignId={campaignId} entity={entity} onChanged={api.refresh} />
 
       {events.length ? (
-        <section className="flex flex-col gap-1" aria-label="Events">
-          <h4 className="eyebrow text-[10px] text-amber-400/80">On the timeline</h4>
+        <section className="flex flex-col gap-1" aria-label={t("workshop.world.entityPage.events")}>
+          <h4 className="eyebrow text-[10px] text-amber-400/80">{t("workshop.world.entityPage.events")}</h4>
           {events.map((event) => {
             const when = formatYear(event.when, doc.calendars).primary;
             const issue = lifespanIssue(span, absoluteYear(event.when, doc.calendars));
             return (
               <p key={event.id} className="text-sm text-stone-300">
-                <span className="text-stone-500">{when || "Undated"}</span> {event.title}
+                <span className="text-stone-500">{when || t("workshop.world.entityPage.undated")}</span> {event.title}
                 {issue ? <span className="ml-2 text-xs text-ember-400">({issue})</span> : null}
               </p>
             );
@@ -332,29 +370,29 @@ export function EntityPage({
       ) : null}
 
       {secrets.length ? (
-        <section className="flex flex-col gap-1" aria-label="Secrets">
-          <h4 className="eyebrow text-[10px] text-amber-400/80">Secrets</h4>
+        <section className="flex flex-col gap-1" aria-label={t("workshop.world.entityPage.secrets")}>
+          <h4 className="eyebrow text-[10px] text-amber-400/80">{t("workshop.world.entityPage.secrets")}</h4>
           {secrets.map((secret) => (
             <p key={secret.id} className="text-sm text-stone-300">
               <Lock className="mr-1 inline size-3.5 text-red-400" />
               {secret.title}
-              <span className="ml-2 text-xs text-stone-500">{secret.subject === entity.ref ? "about them" : "they know it"}{secret.partyKnows ? ", the party knows" : ""}</span>
+              <span className="ml-2 text-xs text-stone-500">{secret.subject === entity.ref ? t("workshop.world.entityPage.secret.about") : t("workshop.world.entityPage.secret.knownBy")}{secret.partyKnows ? ", " + t("workshop.world.entityPage.secret.partyKnows") : ""}</span>
             </p>
           ))}
         </section>
       ) : null}
 
       {entity.entry.hiddenTruth ? (
-        <section className="rounded-lg border border-red-900/60 bg-red-950/30 p-3" aria-label="Hidden truth">
+        <section className="rounded-lg border border-red-900/60 bg-red-950/30 p-3" aria-label={t("workshop.world.entityPage.hiddenTruth")}>
           <h4 className="eyebrow mb-1 flex items-center gap-1 text-[10px] text-red-300">
-            <Lock className="size-3" /> Hidden truth, kept from players
+            <Lock className="size-3" /> {t("workshop.world.entityPage.hiddenTruth")}
           </h4>
           <p className="whitespace-pre-wrap text-sm text-red-100/90">{entity.entry.hiddenTruth}</p>
         </section>
       ) : null}
       {entity.entry.notes ? (
-        <section className="rounded-lg border border-stone-700/70 bg-stone-900/40 p-3" aria-label="Author's notes">
-          <h4 className="eyebrow mb-1 text-[10px] text-stone-400">Author&apos;s notes</h4>
+        <section className="rounded-lg border border-stone-700/70 bg-stone-900/40 p-3" aria-label={t("workshop.world.entityPage.authorNotes")}>
+          <h4 className="eyebrow mb-1 text-[10px] text-stone-400">{t("workshop.world.entityPage.authorNotes")}</h4>
           <p className="whitespace-pre-wrap text-sm text-stone-300">{entity.entry.notes}</p>
         </section>
       ) : null}

@@ -10,7 +10,6 @@ import { Switch } from "@/components/ui/Switch";
 import { DeskCard } from "@/app/campaigns/[campaignId]/DmConsoleParts";
 import {
   BEAT_KINDS,
-  BEAT_KIND_LABELS,
   BEAT_MAX_CHARS,
   type BeatKind,
   type BeatSource,
@@ -18,6 +17,7 @@ import {
 import type { DmBeat } from "@/lib/db/dm-beats";
 import { DictateField } from "@/components/DictateField";
 import { appendDictation } from "@/lib/dictation";
+import { useI18n } from "@/lib/i18n/provider";
 
 // Story capture, in the three ways a DM will actually do it: type a sentence,
 // speak it, or press the button and edit what comes back.
@@ -38,6 +38,15 @@ export function DmBeatComposer({
   // on a scene transition and not on "they took the left fork".
   canExpand: boolean;
 }) {
+  const { t } = useI18n();
+  const beatKindLabels: Record<BeatKind, string> = {
+    scene: t("campaign.dmBeat.kind.scene"),
+    npc: t("campaign.dmBeat.kind.npc"),
+    discovery: t("campaign.dmBeat.kind.discovery"),
+    travel: t("campaign.dmBeat.kind.travel"),
+    combat: t("campaign.dmBeat.kind.combat"),
+    downtime: t("campaign.dmBeat.kind.downtime"),
+  };
   const [body, setBody] = useState("");
   const [kind, setKind] = useState<BeatKind>("scene");
   const [source, setSource] = useState<BeatSource>("typed");
@@ -55,13 +64,13 @@ export function DmBeatComposer({
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError(data.error || "Could not write a draft.");
+        setError(data.error || t("campaign.dmBeat.error.draft"));
         return;
       }
       setBody(String(data.draft ?? ""));
       setSource("drafted");
     } catch {
-      setError("Could not reach the server.");
+      setError(t("campaign.dmBeat.error.server"));
     } finally {
       setDrafting(false);
     }
@@ -82,27 +91,26 @@ export function DmBeatComposer({
       });
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        setError(data.error || "Could not record that.");
+        setError(data.error || t("campaign.dmBeat.error.record"));
         return;
       }
       setBody("");
       setSource("typed");
     } catch {
-      setError("Could not reach the server.");
+      setError(t("campaign.dmBeat.error.server"));
     } finally {
       setSaving(false);
     }
   }
 
   return (
-    <DeskCard glyph="tab-journal" title="Write down what happened">
+    <DeskCard glyph="tab-journal" title={t("campaign.dmBeat.title")}>
       <p className="mb-2 text-[11px] leading-snug text-stone-400">
-        Anything you narrated out loud. A sentence or two is enough, and it is
-        what the chapter summaries, the recap and the export are built from.
+        {t("campaign.dmBeat.description")}
       </p>
 
       <DictateField
-        label="What happened"
+        label={t("campaign.dmBeat.body.label")}
         disabled={drafting || saving}
         onTranscript={(text) => {
           setBody((current) => appendDictation(current, text, BEAT_MAX_CHARS));
@@ -113,8 +121,8 @@ export function DmBeatComposer({
           value={body}
           onChange={(event) => setBody(event.target.value.slice(0, BEAT_MAX_CHARS))}
           rows={3}
-          placeholder="They talked the reeve out of the toll and learned the mill burned last winter."
-          aria-label="What happened"
+          placeholder={t("campaign.dmBeat.body.placeholder")}
+          aria-label={t("campaign.dmBeat.body.label")}
           className={cn(ui.input, "resize-y")}
         />
       </DictateField>
@@ -123,8 +131,8 @@ export function DmBeatComposer({
         <Select
           value={kind}
           onChange={setKind}
-          options={optionsFrom<BeatKind>(BEAT_KINDS.map((option) => [option, BEAT_KIND_LABELS[option]]))}
-          label="Kind of beat"
+          options={optionsFrom<BeatKind>(BEAT_KINDS.map((option) => [option, beatKindLabels[option]]))}
+          label={t("campaign.dmBeat.kind.label")}
           size="sm"
           className="w-auto min-w-[10rem] max-w-full"
         />
@@ -133,7 +141,7 @@ export function DmBeatComposer({
           type="button"
           onClick={draft}
           disabled={drafting || saving}
-          title="Reads what the players typed, what the dice did and what changed on the sheets, then writes a draft for you to edit."
+          title={t("campaign.dmBeat.draft.title")}
           aria-busy={drafting}
           className={cn(ui.btnSmall, "min-h-10 text-xs")}
         >
@@ -142,17 +150,17 @@ export function DmBeatComposer({
           ) : (
             <Sparkles className="size-3.5" />
           )}
-          Draft it for me
+          {t("campaign.dmBeat.draft.action")}
         </button>
 
         {canExpand ? (
           <span
-            title="The AI says your line to the table as full prose. Your own words stay as the first take, one click away on the message."
+            title={t("campaign.dmBeat.sayAloud.title")}
             className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-stone-600/60 bg-stone-900/50 px-2.5 text-xs text-stone-300"
           >
             <GameIcon icon={{ kind: "glyph", key: "cue-horn" }} size="size-5" />
-            Say it aloud
-            <Switch on={expand} onChange={setExpand} label="Say it aloud" />
+            {t("campaign.dmBeat.sayAloud.label")}
+            <Switch on={expand} onChange={setExpand} label={t("campaign.dmBeat.sayAloud.label")} />
           </span>
         ) : null}
 
@@ -163,7 +171,7 @@ export function DmBeatComposer({
           aria-busy={saving}
           className={cn(ui.btnPrimary, "ml-auto")}
         >
-          {saving ? "Recording..." : "Record it"}
+          {saving ? t("campaign.dmBeat.record.saving") : t("campaign.dmBeat.record.action")}
         </button>
       </div>
 
@@ -173,7 +181,7 @@ export function DmBeatComposer({
         <ul className="stagger mt-3 space-y-1 border-t border-amber-500/15 pt-2">
           {beats.slice(0, 3).map((beat) => (
             <li key={beat.id} className="text-[11px] leading-snug text-stone-400">
-              <span className="font-display tracking-wide text-amber-200/80">{BEAT_KIND_LABELS[beat.kind] ?? "Beat"}:</span>{" "}
+              <span className="font-display tracking-wide text-amber-200/80">{beatKindLabels[beat.kind] ?? t("campaign.dmBeat.kind.fallback")}:</span>{" "}
               {beat.body.length > 140 ? `${beat.body.slice(0, 140)}...` : beat.body}
             </li>
           ))}

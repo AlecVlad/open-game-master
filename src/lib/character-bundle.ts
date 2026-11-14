@@ -150,21 +150,24 @@ export async function buildCharacterBundle(
   return bundle;
 }
 
-export type ParsedBundle = { ok: true; bundle: CharacterBundle } | { ok: false; error: string };
+export type CharacterBundleErrorCode = "BUNDLE_TOO_LARGE" | "NOT_CHARACTER_FILE" | "NOT_OGM_CHARACTER_FILE";
+export type ParsedBundle =
+  | { ok: true; bundle: CharacterBundle }
+  | { ok: false; error: string; errorCode?: CharacterBundleErrorCode };
 
 // Import direction, step one: is this a character file we accept? The size
 // is judged first so an oversized document is refused by its length, not
 // by exhausting memory proving it malformed.
 export function parseCharacterBundle(raw: unknown, byteLength?: number): ParsedBundle {
   if (byteLength !== undefined && byteLength > MAX_BUNDLE_BYTES) {
-    return { ok: false, error: "Character file is larger than 12MB." };
+    return { ok: false, error: "Character file is larger than 12MB.", errorCode: "BUNDLE_TOO_LARGE" };
   }
   if (!raw || typeof raw !== "object") {
-    return { ok: false, error: "Not a character file." };
+    return { ok: false, error: "Not a character file.", errorCode: "NOT_CHARACTER_FILE" };
   }
   const record = raw as Record<string, unknown>;
   if (record.kind !== CHARACTER_BUNDLE_KIND) {
-    return { ok: false, error: "Not an Open Game Master character file." };
+    return { ok: false, error: "Not an Open Game Master character file.", errorCode: "NOT_OGM_CHARACTER_FILE" };
   }
   if (record.version !== CHARACTER_BUNDLE_VERSION) {
     return { ok: false, error: `Unsupported character file version (${String(record.version)}).` };

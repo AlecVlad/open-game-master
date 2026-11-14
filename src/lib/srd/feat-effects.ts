@@ -243,7 +243,11 @@ export function applyFeatIncrease(
   feat: string,
   chosen?: Ability | null,
   desc?: string | null,
-): { abilities: Record<Ability, number>; raised: Ability | null } | { error: string } {
+): { abilities: Record<Ability, number>; raised: Ability | null } | {
+  error: string;
+  errorCode?: string;
+  errorParams?: Record<string, string | number>;
+} {
   const increase = featAbilityIncrease(feat, desc);
   if (!increase) {
     return { abilities, raised: null };
@@ -252,6 +256,8 @@ export function applyFeatIncrease(
   if (!ability || !increase.from.includes(ability)) {
     return {
       error: `${featRow(feat)?.name ?? feat} raises one of ${increase.from.map((entry) => entry.toUpperCase()).join(", ")} by 1; choose which.`,
+      errorCode: "FEAT_ABILITY_CHOICE_REQUIRED",
+      errorParams: { feat: featRow(feat)?.name ?? feat, abilities: increase.from.join(",") },
     };
   }
   return {

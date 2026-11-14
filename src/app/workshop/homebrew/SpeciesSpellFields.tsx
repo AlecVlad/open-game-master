@@ -1,6 +1,7 @@
 "use client";
 
 import { X } from "lucide-react";
+import { useT } from "@/lib/i18n/provider";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui";
 import { NumberStepper } from "@/components/ui/NumberStepper";
@@ -15,8 +16,6 @@ import {
   DEFAULT_SPECIES_SPELL_ABILITY,
   SPECIES_SPELL_ABILITIES,
   SPECIES_SPELL_LIMITS,
-  speciesSpellAbilityWord,
-  speciesSpellUsesWords,
   type SpeciesSpellAbility,
   type SpeciesSpellRest,
 } from "@/lib/content/species-spells";
@@ -35,17 +34,17 @@ const L = SPECIES_SPELL_LIMITS;
 
 // How often a levelled spell is cast without a slot, as one pick: "once a
 // long rest", "2 times a short rest". Its value is "<uses>-<rest>".
-const USE_OPTIONS = (["long", "short"] as const).flatMap((rest) =>
-  Array.from({ length: L.uses }, (_, at) => ({ value: `${at + 1}-${rest}`, label: speciesSpellUsesWords({ uses: at + 1, rest }) })),
-);
+
 
 const SRD_SPELLS = { srd: "1" };
 
-const ABILITY_OPTIONS = SPECIES_SPELL_ABILITIES.map((ability) => ({ value: ability, label: speciesSpellAbilityWord(ability) }));
+
 
 // A row as the draft holds it; a level the catalog gave is kept with it, so
 // a cantrip shows no uses before the save names it.
 function SpellRow({ row, put, remove }: { row: Data; put: (next: Data) => void; remove: () => void }) {
+  const t = useT();
+  const useOptions = (["long", "short"] as const).flatMap((rest) => Array.from({ length: L.uses }, (_, at) => ({ value: `${at + 1}-${rest}`, label: at === 0 ? t("workshop.homebrew.species.spell.useOnce", { rest: t(`workshop.homebrew.species.spell.rest.${rest}`) }) : t("workshop.homebrew.species.spell.useTimes", { count: at + 1, rest: t(`workshop.homebrew.species.spell.rest.${rest}`) }) })));
   const name = String(row.spell ?? "");
   const circle = typeof row.circle === "number" ? row.circle : null;
   const cantrip = circle === 0;
@@ -60,29 +59,29 @@ function SpellRow({ row, put, remove }: { row: Data; put: (next: Data) => void; 
     <li className="live-in flex flex-wrap items-center gap-x-3 gap-y-1.5 border-t border-stone-800/70 pt-1.5 first:border-t-0 first:pt-0" data-species-spell={name}>
       <span className="min-w-32 text-xs text-stone-200">
         {name}
-        <span className="ml-1.5 text-[11px] text-stone-500">{cantrip ? "cantrip, at will" : circle ? `level ${circle} spell` : "spell"}</span>
+        <span className="ml-1.5 text-[11px] text-stone-500">{cantrip ? t("workshop.homebrew.species.spell.cantrip") : circle ? t("workshop.homebrew.species.spell.level", { level: circle }) : t("workshop.homebrew.species.spell.generic")}</span>
       </span>
       <span className="flex items-center gap-1.5 text-[11px] text-stone-400">
-        From character level
-        <NumberStepper size="sm" label={`Character level ${name} arrives at`} value={num(row.level, 1)} min={1} max={20} onChange={(level) => field("level", level)} />
+        {t("workshop.homebrew.species.spell.fromLevel")}
+        <NumberStepper size="sm" label={t("workshop.homebrew.species.spell.arrives", { spell: name })} value={num(row.level, 1)} min={1} max={20} onChange={(level) => field("level", level)} />
       </span>
       {cantrip ? null : (
         <>
           <span className="w-48">
             <Select<string>
-              label={`How often ${name} is cast without a spell slot`}
+              label={t("workshop.homebrew.species.spell.uses", { spell: name })}
               value={`${uses}-${rest}`}
-              options={USE_OPTIONS}
+              options={useOptions}
               onChange={(value) => {
                 const [count, back] = value.split("-");
                 put({ ...row, uses: Number(count), rest: back });
               }}
             />
           </span>
-          <CheckField label="Spell slots cast it too" checked={row.slots === true} onChange={(on) => field("slots", on || undefined)} />
+          <CheckField label={t("workshop.homebrew.species.spell.slots")} checked={row.slots === true} onChange={(on) => field("slots", on || undefined)} />
         </>
       )}
-      <button type="button" aria-label={`Remove ${name}`} onClick={remove} className={cn(ui.iconAction, rowIcon, "ml-auto hover:text-red-300")}>
+      <button type="button" aria-label={t("workshop.homebrew.species.spell.remove", { spell: name })} onClick={remove} className={cn(ui.iconAction, rowIcon, "ml-auto hover:text-red-300")}>
         <X className="size-3.5" />
       </button>
     </li>
@@ -103,6 +102,8 @@ export function SpeciesSpellFields({
   // The search box's name for a screen reader: "Find a spell Topaz gives".
   pickLabel: string;
 }) {
+  const t = useT();
+  const abilityOptions = SPECIES_SPELL_ABILITIES.map((ability) => ({ value: ability, label: t(`workshop.homebrew.species.ability.${ability}`) }));
   const group = sub(value);
   const rows = Array.isArray(group.spells) ? (group.spells as Data[]) : [];
   const ability = (SPECIES_SPELL_ABILITIES as readonly unknown[]).includes(group.ability) ? (group.ability as SpeciesSpellAbility) : DEFAULT_SPECIES_SPELL_ABILITY;
@@ -129,7 +130,7 @@ export function SpeciesSpellFields({
           <ContentPick
             kind="spells"
             label={pickLabel}
-            placeholder="Add a spell..."
+            placeholder={t("workshop.homebrew.species.spell.placeholder")}
             className="min-w-48 flex-1"
             // The SRD's spells answer on a server with no content pack too.
             extraParams={SRD_SPELLS}
@@ -140,17 +141,17 @@ export function SpeciesSpellFields({
           />
         ) : (
           <span role="status" className="live-in text-[11px] text-stone-400">
-            {L.spells} spells, the most it gives.
+            {t("workshop.homebrew.species.spell.max", { count: L.spells })}
           </span>
         )}
         {rows.length ? (
           <SelectField<SpeciesSpellAbility>
-            label="Spellcasting ability"
+            label={t("workshop.homebrew.species.spell.ability")}
             value={ability}
-            options={ABILITY_OPTIONS}
+            options={abilityOptions}
             onChange={(next) => write(rows, next)}
             className="w-44"
-            hint="Sets their save DC and spell attack."
+            hint={t("workshop.homebrew.species.spell.dcHint")}
           />
         ) : null}
       </div>

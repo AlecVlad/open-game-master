@@ -45,7 +45,7 @@ import {
 // set-up on a fight just deployed (issue 685). The shape and its words are
 // src/lib/workshop/fight-setup-logic.ts.
 
-type Outcome<T> = ({ ok: true } & T) | { ok: false; error: string };
+type Outcome<T> = ({ ok: true } & T) | { ok: false; error: string; errorCode?: string };
 
 // The roster slot each of the fight's enemies holds, and the seat each of
 // the table's sheets holds (the order they were seated in).
@@ -73,15 +73,15 @@ function tileOf(map: BattleMap | null, refId: string) {
 export function captureFightSetup(test: Campaign, party: SetupParty): Outcome<{ setup: FightSetup }> {
   const encounter = getActiveEncounter(test.id);
   if (!encounter || encounter.kind === "scene") {
-    return { ok: false, error: "No fight is running at this table to save." };
+    return { ok: false, error: "No fight is running at this table to save.", errorCode: "FIGHT_SETUP_NO_ACTIVE_FIGHT" };
   }
   if (!encounter.orderReady) {
-    return { ok: false, error: "Wait until every initiative is in, then save the moment." };
+    return { ok: false, error: "Wait until every initiative is in, then save the moment.", errorCode: "FIGHT_SETUP_INITIATIVE_NOT_READY" };
   }
   // The test table holds one prepared fight: the copy it plays.
   const copy = listEncounterTemplates(test.id)[0];
   if (!copy) {
-    return { ok: false, error: "This table has no prepared fight to save the moment for." };
+    return { ok: false, error: "This table has no prepared fight to save the moment for.", errorCode: "FIGHT_SETUP_NO_PREPARED_FIGHT" };
   }
   const map = getBattleMapForEncounter(encounter.id);
   const slots = slotsOf(copy, encounter);
@@ -167,13 +167,13 @@ function heroState(sheet: CharacterSheet, seat: number, encounter: Encounter, ma
 // so the positions saved with the set-up mean the same ground next time.
 export function saveTestAsSetup(test: Campaign, userId: string): Outcome<{ setup: FightSetup; templateId: string; workshopId: string; keptMap: boolean }> {
   if (test.kind !== "playtest" || test.ownerUserId !== userId) {
-    return { ok: false, error: "Only a test fight's author can save its moment." };
+    return { ok: false, error: "Only a test fight's author can save its moment.", errorCode: "FIGHT_SETUP_NOT_TEST_AUTHOR" };
   }
   const run = testFightRun(test.id);
   const source = run ? getEncounterTemplate(run.templateId) : null;
   const workshop = source ? getCampaignById(source.campaignId) : null;
   if (!run || !source || !workshop || workshop.kind !== "workshop") {
-    return { ok: false, error: "The prepared fight this test was made from is gone from the workshop." };
+    return { ok: false, error: "The prepared fight this test was made from is gone from the workshop.", errorCode: "FIGHT_SETUP_SOURCE_MISSING" };
   }
   const captured = captureFightSetup(test, run.party);
   if (!captured.ok) {
@@ -183,7 +183,7 @@ export function saveTestAsSetup(test: Campaign, userId: string): Outcome<{ setup
   if (!source.map.mapId) {
     const kept = captureBoardIntoLibrary(test, `${source.name} (tested)`.slice(0, 80), workshop.id);
     if ("error" in kept) {
-      return { ok: false, error: kept.error };
+      return { ok: false, error: kept.error, errorCode: "FIGHT_SETUP_MAP_SAVE_FAILED" };
     }
     updateEncounterTemplate(source.id, {
       name: source.name,

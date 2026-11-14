@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useT } from "@/lib/i18n/provider";
 import { BookOpen } from "lucide-react";
 import { ui } from "@/lib/ui";
 import { cn } from "@/lib/cn";
@@ -65,15 +66,16 @@ const FIELD_LABELS: Record<string, string> = {
 const same = (a: unknown, b: unknown) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
 
 // The fields a draft holds that differ from the draft its source would make.
-export function changedFields(draft: HomebrewDraft, source: HomebrewDraft): string[] {
+export function changedFields(draft: HomebrewDraft, source: HomebrewDraft, translate?: (key: string) => string): string[] {
   const keys = new Set([...Object.keys(draft.data), ...Object.keys(source.data)]);
   keys.delete("copiedFrom");
   return [...keys]
     .filter((key) => !same(draft.data[key], source.data[key]) && !(draft.data[key] === "" && source.data[key] === undefined))
-    .map((key) => FIELD_LABELS[key] ?? key);
+    .map((key) => (FIELD_LABELS[key] ? translate?.(`workshop.homebrew.copy.field.${key}`) ?? FIELD_LABELS[key] : key));
 }
 
 export function CopySource({ kind, draft }: { kind: EditorKind; draft: HomebrewDraft }) {
+  const t = useT();
   const from = draft.data.copiedFrom as CopiedFrom | undefined;
   const [reading, setReading] = useState(false);
   const [source, setSource] = useState<PickerEntry | null>(null);
@@ -102,32 +104,32 @@ export function CopySource({ kind, draft }: { kind: EditorKind; draft: HomebrewD
   }, [from?.name, from?.slug, kind]);
 
   const changes = useMemo(
-    () => (source ? changedFields(draft, draftFromCatalog(kind, source, { classSlug: String(draft.data.classSlug ?? "") || undefined })) : null),
-    [source, draft, kind],
+    () => (source ? changedFields(draft, draftFromCatalog(kind, source, { classSlug: String(draft.data.classSlug ?? "") || undefined }), (key) => t(key as never)) : null),
+    [source, draft, kind, t],
   );
 
   if (!from?.name) return null;
   // Where it came from: the table's own shelf, the bundled book, or the
   // book a pack row is printed in.
-  const where = from.source === "homebrew" ? "your homebrew" : from.source === "bundled" ? "the bundled SRD 5.1" : from.document || "the published books";
+  const where = from.source === "homebrew" ? t("workshop.homebrew.copy.source.homebrew") : from.source === "bundled" ? t("workshop.homebrew.copy.source.bundled") : from.document || t("workshop.homebrew.copy.source.published");
   return (
     <div className="panel space-y-1 rounded-lg px-3 py-2 text-xs text-stone-400" data-testid="copy-source">
       <div className="flex flex-wrap items-center gap-2">
         <span>
-          Copied from <span className="text-amber-200/80">{from.name}</span> ({where}).
+          {t("workshop.homebrew.copy.from", { name: from.name, source: where })}
         </span>
         {from.rulebook ? (
           <button type="button" onClick={() => setReading(true)} className={cn(ui.btnSmall, "motion-press gap-1")}>
-            <BookOpen className="size-3.5" /> Read it in the rulebook
+            <BookOpen className="size-3.5" /> {t("workshop.homebrew.copy.read")}
           </button>
         ) : null}
       </div>
       {changes === null ? (
-        lookedUp ? <p className="text-stone-500">The source is not in the catalog any more, so what changed cannot be shown.</p> : null
+        lookedUp ? <p className="text-stone-500">{t("workshop.homebrew.copy.sourceMissing")}</p> : null
       ) : changes.length ? (
-        <p>Changed from it: {changes.join(", ")}.</p>
+        <p>{t("workshop.homebrew.copy.changed", { fields: changes.join(", ") })}</p>
       ) : (
-        <p>Nothing changed from it yet.</p>
+        <p>{t("workshop.homebrew.copy.unchanged")}</p>
       )}
       {from.rulebook ? <RulebookDialog open={reading} onOpenChange={setReading} startAt={from.rulebook} /> : null}
     </div>

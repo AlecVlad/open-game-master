@@ -37,19 +37,19 @@ export async function POST(request: Request) {
     return unauthorized();
   }
   if (user.mustChangePassword) {
-    return Response.json({ error: "Set a new password to continue." }, { status: 403 });
+    return Response.json({ error: "Set a new password to continue.", errorCode: "PASSWORD_CHANGE_REQUIRED" }, { status: 403 });
   }
   if (!canCreateCampaigns(user)) {
     return campaignCreationRefusal();
   }
   const parsed = startSchema.safeParse(await request.json().catch(() => ({})));
   if (!parsed.success) {
-    return Response.json({ error: "Invalid request." }, { status: 400 });
+    return Response.json({ error: "Invalid request.", errorCode: "STARTER_INVALID_REQUEST" }, { status: 400 });
   }
   // The one-shot is the AI's to run: without a storyteller there is nothing
   // to start (the shells hide Quick start on the same answer, offersStory).
   if (!(await storytellerConfigured())) {
-    return Response.json({ error: NO_STORYTELLER_MESSAGE, reason: "no_storyteller" }, { status: 409 });
+    return Response.json({ error: NO_STORYTELLER_MESSAGE, reason: "no_storyteller", errorCode: "STARTER_NO_STORYTELLER" }, { status: 409 });
   }
   // Narration starts on only where the server can read aloud (issue 275).
   const campaign = createStarterCampaign(user.id, { solo: parsed.data.solo, narration: await narrationAvailable() });

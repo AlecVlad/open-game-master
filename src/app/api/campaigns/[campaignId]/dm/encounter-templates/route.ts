@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { isErrorResponse, requirePrepAuthority } from "@/lib/campaign-api";
 import { getTemplateSetup, insertEncounterTemplate, listEncounterTemplates } from "@/lib/db/encounter-templates";
-import { describeFightSetup } from "@/lib/workshop/fight-setup-logic";
+import { describeFightSetup, describeFightSetupReadout } from "@/lib/workshop/fight-setup-logic";
 import {
   checkRoster,
   normalizeTemplateExtras,
@@ -53,6 +53,7 @@ function withReadout(
       ...template,
       readout: templateDifficulty(campaign, template.enemies),
       setup: setup ? describeFightSetup(setup) : null,
+      setupReadout: setup ? describeFightSetupReadout(setup) : null,
       // A party from another table is no party a test here can seat again
       // (fight-setup-logic.ts portableSetup): the Test sheet offers none.
       setupParty: setup && setup.party.kind !== "elsewhere" ? setup.party : null,

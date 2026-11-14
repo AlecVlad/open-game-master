@@ -3,10 +3,12 @@
 import { EmptyState } from "@/components/EmptyState";
 import { Heart, HeartCrack, VenetianMask } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
+import { campaignApiErrorText } from "@/lib/i18n/campaignApiError";
 import { GameIcon } from "@/components/ui/GameIcon";
 import { SectionHead } from "@/components/ui/SectionHead";
 import { cn } from "@/lib/cn";
-import { PanelLoading } from "./PanelKit";
+import { LoadFailed, PanelLoading } from "./PanelKit";
 import { ADVANCES_CONSENT, ConsentSwitch, PACTS_CONSENT } from "./ConsentSwitch";
 import { OwnPacts } from "./PactPanel";
 import { ConscienceLadder, type ConscienceView } from "./ConscienceLadder";
@@ -113,13 +115,15 @@ export const ROMANCE_WORD: Record<RomanceStage, string> = {
 // reached, easing when the server moves it (an answered advance, a step
 // taken), never on the model's words.
 function RomanceRung({ stage, ended }: { stage: RomanceStage; ended: boolean }) {
+  const { t } = useI18n();
   const reached = ROMANCE_STAGES.indexOf(stage);
+  const stageLabel = t(`campaign.relationship.romance.stage.${stage}` as never);
   const steps = ROMANCE_STAGES.length - 1;
   return (
     <span
       className="mt-1.5 block h-1 overflow-hidden rounded-full bg-rose-950/50"
       role="img"
-      aria-label={`Romance: ${ROMANCE_WORD[stage]}, step ${reached} of ${steps}`}
+      aria-label={t("campaign.relationship.romance.aria", { stage: stageLabel, step: reached, steps })}
     >
       <span
         className={cn("romance-rung-fill block h-full rounded-full", ended ? "bg-stone-600" : "bg-rose-400/80")}
@@ -173,7 +177,11 @@ function useUnmasking(bond: RelationshipView): { unmasking: boolean; shownApprov
 }
 
 function BondRow({ bond }: { bond: RelationshipView }) {
+  const { t } = useI18n();
   const { unmasking, shownApproval } = useUnmasking(bond);
+  const tierLabel = t(`campaign.relationship.tier.${bond.tier}` as never);
+  const tierDescription = t(`campaign.relationship.tier.tip.${bond.tier}` as never);
+  const romanceLabel = bond.romance === "none" ? "" : t(`campaign.relationship.romance.stage.${bond.romance}` as never);
   return (
     <li className="panel rounded-lg px-2.5 py-2" data-bond-row={bond.subjectName}>
       {/* The name keeps room for itself and its label, and the chips move
@@ -186,20 +194,20 @@ function BondRow({ bond }: { bond: RelationshipView }) {
         <span className="min-w-[9rem] flex-1 break-words text-sm text-stone-200">
           {bond.subjectName}{" "}
           <span className="eyebrow ml-0.5 inline-block text-[10px] text-amber-400/70" data-bond-kind>
-            {bond.subjectKind === "companion" ? "companion" : "npc"}
+            {t(`campaign.relationship.kind.${bond.subjectKind}` as never)}
           </span>
           {bond.status === "parted" ? (
             <>
               {" "}
               <span className="ml-0.5 inline-block text-[11px] text-stone-500">
-                away{bond.apartChapters > 0 ? ` ${bond.apartChapters}ch` : ""}
+                {bond.apartChapters > 0 ? t("campaign.relationship.status.awayChapters", { count: bond.apartChapters }) : t("campaign.relationship.status.away")}
               </span>
             </>
           ) : null}
           {bond.status === "ended" ? (
             <>
               {" "}
-              <span className="ml-0.5 inline-block text-[11px] text-stone-500">{bond.died ? "died" : "ended"}</span>
+              <span className="ml-0.5 inline-block text-[11px] text-stone-500">{bond.died ? t("campaign.relationship.status.died") : t("campaign.relationship.status.ended")}</span>
             </>
           ) : null}
         </span>
@@ -210,22 +218,22 @@ function BondRow({ bond }: { bond: RelationshipView }) {
               TIER_STYLES[bond.tier],
             )}
             data-unmasking={unmasking || undefined}
-            title={bond.tierLabel}
+            title={tierDescription}
           >
-            {TIER_WORD[bond.tier]}
+            {tierLabel}
             {shownApproval === undefined ? "" : ` ${shownApproval > 0 ? "+" : ""}${shownApproval}`}
           </span>
           {bond.romance !== "none" ? (
             <span
               className="flex shrink-0 items-center gap-1 rounded-full border border-rose-900/60 bg-rose-950/30 px-2 py-0.5 text-[11px] text-rose-200"
-              title={`Romance: ${ROMANCE_WORD[bond.romance]}`}
+              title={t("campaign.relationship.romance.aria", { stage: romanceLabel, step: ROMANCE_STAGES.indexOf(bond.romance), steps: ROMANCE_STAGES.length - 1 })}
             >
               {bond.status === "ended" ? (
                 <HeartCrack className="size-2.5" />
               ) : (
                 <Heart className="size-2.5" />
               )}
-              {ROMANCE_WORD[bond.romance]}
+              {romanceLabel}
             </span>
           ) : null}
         </span>
@@ -239,12 +247,12 @@ function BondRow({ bond }: { bond: RelationshipView }) {
         >
           <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-violet-800/60 bg-violet-950/30 px-2 py-0.5 text-[11px] text-violet-200">
             <VenetianMask className="size-3" aria-hidden />
-            {bond.unmasked ? "Unmasked" : "Seen through"}
+            {bond.unmasked ? t("campaign.relationship.truth.unmasked") : t("campaign.relationship.truth.seenThrough")}
           </span>
           <span>
             {bond.unmasked
-              ? `The truth came out: ${bond.subjectName}'s warmth was an act.`
-              : `Only you know: ${bond.subjectName}'s warmth toward ${bond.characterName} is an act. This is where they really stand.`}
+              ? t("campaign.relationship.truth.revealed", { subject: bond.subjectName })
+              : t("campaign.relationship.truth.private", { subject: bond.subjectName, character: bond.characterName })}
           </span>
         </p>
       ) : null}
@@ -253,8 +261,8 @@ function BondRow({ bond }: { bond: RelationshipView }) {
         <p className="reveal mt-1 flex items-start gap-1.5 text-xs leading-5 text-rose-200" data-bond-scene={bond.subjectName}>
           <Heart className="mt-0.5 size-3 shrink-0" aria-hidden />
           <span>
-            <span className="font-medium text-rose-300">Their move, yours to play:</span> {bond.scene}
-            <span className="sr-only"> Only you see this.</span>
+            <span className="font-medium text-rose-300">{t("campaign.relationship.scene.label")}</span> {bond.scene}
+            <span className="sr-only"> {t("campaign.relationship.private.onlyYou")}</span>
           </span>
         </p>
       ) : null}
@@ -271,14 +279,18 @@ function BondRow({ bond }: { bond: RelationshipView }) {
 // table sees, the motive, and who has seen through it. Visible text, not a
 // tooltip, so it reads the same by touch and to a screen reader.
 function ActLine({ bond, act }: { bond: RelationshipView; act: NonNullable<RelationshipView["act"]> }) {
+  const { t } = useI18n();
+  const shownTier = t(`campaign.relationship.tier.${act.shownTier}` as never);
   return (
     <p className="mt-1 flex items-start gap-1.5 text-xs leading-5 text-violet-300" data-bond-act={bond.subjectName}>
       <VenetianMask className="mt-0.5 size-3 shrink-0" aria-hidden />
       <span>
-        {act.revealed ? "Was an act" : `An act: the table sees ${TIER_WORD[act.shownTier]} ${act.shown > 0 ? "+" : ""}${act.shown}`}
-        {act.motive ? `. Wants ${act.motive}` : ""}
-        {act.seenThroughBy.length && !act.revealed ? `. Seen through by ${act.seenThroughBy.join(", ")}` : ""}.
-        <span className="sr-only"> Only you see this.</span>
+        {act.revealed
+          ? t("campaign.relationship.act.revealed")
+          : t("campaign.relationship.act.hidden", { tier: shownTier, approval: `${act.shown > 0 ? "+" : ""}${act.shown}` })}
+        {act.motive ? `. ${t("campaign.relationship.act.motive", { motive: act.motive })}` : ""}
+        {act.seenThroughBy.length && !act.revealed ? `. ${t("campaign.relationship.act.seenBy", { names: act.seenThroughBy.join(", ") })}` : ""}.
+        <span className="sr-only"> {t("campaign.relationship.private.onlyYou")}</span>
       </span>
     </p>
   );
@@ -296,27 +308,34 @@ export function BondsPanel({
   sheets?: CharacterSheet[];
   meUserId?: string;
 }) {
-  const [bonds, setBonds] = useState<RelationshipView[]>([]);
+  const { t } = useI18n();
+  const [bonds, setBonds = useState<RelationshipView[]>([]);
   const [enabled, setEnabled] = useState(true);
   const [advances, setAdvances] = useState(false);
   const [pacts, setPacts] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   const load = useCallback(async () => {
+    setLoading(true);
+    setError("");
     try {
       const response = await fetch(`/api/campaigns/${campaignId}/relationships`);
+      const data = await response.json().catch(() => ({}));
       if (!response.ok) {
+        setError(campaignApiErrorText(data, t("campaign.relationship.loadError"), t));
         return;
       }
-      const data = await response.json();
       setEnabled(data.enabled !== false);
       setAdvances(data.advances === true);
       setPacts(data.pacts === true);
       setBonds(Array.isArray(data.relationships) ? data.relationships : []);
+    } catch {
+      setError(t("campaign.relationship.loadError"));
     } finally {
       setLoading(false);
     }
-  }, [campaignId]);
+  }, [campaignId, t]);
 
   // Refetches on mount and whenever the stream reports a change, exactly
   // like the facts panel.
@@ -325,11 +344,14 @@ export function BondsPanel({
   }, [load, refreshKey]);
 
   if (loading) {
-    return <PanelLoading label="Reading the room..." />;
+    return <PanelLoading label={t("campaign.relationship.loading")} />;
+  }
+  if (error) {
+    return <LoadFailed error={error} onRetry={() => void load()} />;
   }
   if (!enabled) {
     return (
-      <EmptyState size="sm" art="board" title="Relationship tracking is off for this campaign. Whoever runs the story can turn it on in Settings, under Bonds and romance." />
+      <EmptyState size="sm" art="board" title={t("campaign.relationship.disabled")} />
     );
   }
   // The player's own characters, never a companion: no player answers for
@@ -338,7 +360,7 @@ export function BondsPanel({
   const mine = advances || pacts ? sheets.filter((sheet) => sheet.userId === meUserId && livingHero(sheet)) : [];
   if (!bonds.length && !mine.length) {
     return (
-      <EmptyState size="sm" art="board" title="Nobody has an opinion yet. How NPCs and companions feel about each character builds as you deal with them, and shows up here." />
+      <EmptyState size="sm" art="board" title={t("campaign.relationship.empty")} />
     );
   }
 
@@ -370,7 +392,7 @@ export function BondsPanel({
                 ))}
               </ul>
             ) : (
-              <p className="text-xs text-stone-500">Nobody has an opinion of {group.name} yet.</p>
+              <p className="text-xs text-stone-500">{t("campaign.relationship.noOpinion", { name: group.name })}</p>
             )}
           </section>
         );

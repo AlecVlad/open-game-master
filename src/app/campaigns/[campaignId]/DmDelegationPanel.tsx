@@ -6,10 +6,10 @@ import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui";
 import { GameIcon } from "@/components/ui/GameIcon";
 import { Select } from "@/components/ui/Select";
+import { useI18n } from "@/lib/i18n/provider";
 import { DeskCard } from "@/app/campaigns/[campaignId]/DmConsoleParts";
 import {
   coverActive,
-  describeCover,
   MAX_COVER_TURNS,
   type DmCover,
 } from "@/lib/dm/delegation";
@@ -23,6 +23,7 @@ import {
 // when it is asked, and says so in the transcript afterwards.
 
 function MonsterButton({ campaignId }: { campaignId: string }) {
+  const { t, tp } = useI18n();
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
 
@@ -35,7 +36,7 @@ function MonsterButton({ campaignId }: { campaignId: string }) {
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setNotice(data.error || "The monsters could not act.");
+        setNotice(data.error || t("campaign.dmDelegation.monsters.error"));
         return;
       }
       const notes = Array.isArray(data.notes) ? (data.notes as string[]) : [];
@@ -43,11 +44,11 @@ function MonsterButton({ campaignId }: { campaignId: string }) {
       // where a DM will actually read it; this is only the receipt.
       setNotice(
         notes.length
-          ? `${notes.length} ${notes.length === 1 ? "monster" : "monsters"} acted. See the log.`
-          : "Nothing to do.",
+          ? tp("campaign.dmDelegation.monsters", notes.length)
+          : t("campaign.dmDelegation.monsters.empty"),
       );
     } catch {
-      setNotice("Could not reach the server.");
+      setNotice(t("campaign.dmDelegation.error.server"));
     } finally {
       setBusy(false);
     }
@@ -59,11 +60,11 @@ function MonsterButton({ campaignId }: { campaignId: string }) {
         type="button"
         onClick={run}
         disabled={busy} aria-busy={busy}
-        title="Every living enemy takes one action, chosen by the AI and resolved by the rules engine. It does not move the initiative pointer; that stays yours."
+        title={t("campaign.dmDelegation.monsters.title")}
         className={cn(ui.btnSmall, "min-h-10 w-full text-left text-sm")}
       >
         {busy ? <Loader2 className="size-5 animate-spin" /> : <GameIcon icon={{ kind: "glyph", key: "system-bestiary" }} size="size-6" />}
-        Take the monsters&apos; turn
+        {t("campaign.dmDelegation.monsters.action")}
       </button>
       {notice ? <p className="live-in mt-1 text-[11px] text-stone-400">{notice}</p> : null}
     </div>
@@ -71,11 +72,14 @@ function MonsterButton({ campaignId }: { campaignId: string }) {
 }
 
 function CoverControl({ campaignId, cover }: { campaignId: string; cover: DmCover | null }) {
+  const { t, tp } = useI18n();
   const [turns, setTurns] = useState(5);
   const [brief, setBrief] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const running = coverActive(cover);
+  const count = cover?.turnsLeft ?? 0;
+  const countLabel = tp("campaign.dmDelegation.cover.active", count);
 
   async function set(nextTurns: number) {
     setBusy(true);
@@ -88,14 +92,14 @@ function CoverControl({ campaignId, cover }: { campaignId: string; cover: DmCove
       });
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        setError(data.error || "Could not hand it over.");
+        setError(data.error || t("campaign.dmDelegation.cover.error"));
         return;
       }
       if (nextTurns === 0) {
         setBrief("");
       }
     } catch {
-      setError("Could not reach the server.");
+      setError(t("campaign.dmDelegation.error.server"));
     } finally {
       setBusy(false);
     }
@@ -107,7 +111,7 @@ function CoverControl({ campaignId, cover }: { campaignId: string; cover: DmCove
         <>
           <p className="live-in flex items-center gap-2 rounded-lg border border-amber-500/40 bg-amber-400/10 px-2.5 py-2 text-xs text-amber-100">
             <GameIcon icon={{ kind: "glyph", key: "tab-dm" }} size="size-5" className="shrink-0" />
-            {describeCover(cover)}
+            {countLabel}
           </p>
           <button
             type="button"
@@ -116,7 +120,7 @@ function CoverControl({ campaignId, cover }: { campaignId: string; cover: DmCove
             aria-busy={busy}
             className={ui.btnPrimary}
           >
-            {busy ? "Taking it back..." : "I am back"}
+            {busy ? t("campaign.dmDelegation.cover.returning") : t("campaign.dmDelegation.cover.back")}
           </button>
         </>
       ) : (
@@ -124,8 +128,8 @@ function CoverControl({ campaignId, cover }: { campaignId: string; cover: DmCove
           <input
             value={brief}
             onChange={(event) => setBrief(event.target.value)}
-            placeholder="They are haggling in the market; keep it light and do not let them leave town."
-            aria-label="Brief for the AI while you are away"
+            placeholder={t("campaign.dmDelegation.cover.placeholder")}
+            aria-label={t("campaign.dmDelegation.cover.briefLabel")}
             className={ui.input}
           />
           <div className="flex flex-wrap items-center gap-1.5">
@@ -134,9 +138,9 @@ function CoverControl({ campaignId, cover }: { campaignId: string; cover: DmCove
               onChange={(next) => setTurns(Number(next))}
               options={[1, 3, 5, 10, MAX_COVER_TURNS].map((count) => ({
                 value: String(count),
-                label: count === 1 ? "1 answer" : `${count} answers`,
+                label: tp("campaign.dmDelegation.cover.answers", count),
               }))}
-              label="How many answers to hand over"
+              label={t("campaign.dmDelegation.cover.answers.label")}
               size="sm"
               className="w-auto min-w-[8rem]"
             />
@@ -148,12 +152,12 @@ function CoverControl({ campaignId, cover }: { campaignId: string; cover: DmCove
               className={ui.btnSecondary}
             >
               {busy ? <Loader2 className="size-3.5 animate-spin" /> : <LogOut className="size-3.5" />}
-              Step away
+              {t("campaign.dmDelegation.cover.stepAway")}
             </button>
           </div>
           {cover && cover.turnsLeft <= 0 ? (
             <p className="reveal text-[11px] text-stone-500">
-              The AI answered the last stretch you handed over.
+              {t("campaign.dmDelegation.cover.last")}
             </p>
           ) : null}
         </>
@@ -174,11 +178,12 @@ export function DmDelegationPanel({
   canMonsters: boolean;
   canCover: boolean;
 }) {
+  const { t } = useI18n();
   if (!canMonsters && !canCover) {
     return null;
   }
   return (
-    <DeskCard glyph="tab-dm" title="Hand it over">
+    <DeskCard glyph="tab-dm" title={t("campaign.dmDelegation.title")}>
       <div className="space-y-2.5">
         {canMonsters ? <MonsterButton campaignId={campaignId} /> : null}
         {canCover ? <CoverControl campaignId={campaignId} cover={cover} /> : null}
@@ -191,13 +196,16 @@ export function DmDelegationPanel({
 // a player owed an answer is owed the knowledge that the person answering
 // them stepped out and the AI is standing in.
 export function DmCoverNotice({ cover }: { cover: DmCover | null }) {
+  const { tp } = useI18n();
+  const count = cover?.turnsLeft ?? 0;
+  const coverText = tp("campaign.dmDelegation.cover.active", count);
   if (!coverActive(cover)) {
     return null;
   }
   return (
     <p className="live-in mb-2 flex items-center gap-2 rounded-lg border border-amber-500/40 bg-amber-400/10 px-2.5 py-1.5 text-xs text-amber-100">
       <GameIcon icon={{ kind: "glyph", key: "tab-dm" }} size="size-5" className="shrink-0" />
-      {describeCover(cover)}
+      {coverText}
     </p>
   );
 }

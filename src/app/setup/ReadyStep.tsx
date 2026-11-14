@@ -8,19 +8,21 @@ import { HarnessTestPanel } from "@/app/admin/HarnessTestPanel";
 import type { Capabilities } from "@/lib/capabilities";
 import type { Draft } from "@/app/setup/draft";
 import { Lamp, type Tone } from "@/app/setup/SetupParts";
+import { useI18n } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages/index";
 
 type Row = { key: string; title: string; tone: Tone; text: string; step: number };
 
-const SIGNUPS: Record<Draft["signupMode"], string> = {
-  invite: "Accounts by invite code",
-  open: "Anyone with the address can make an account",
-  closed: "No new accounts",
+const SIGNUPS: Record<Draft["signupMode"], MessageKey> = {
+  invite: "setup.ready.players.invite",
+  open: "setup.ready.players.open",
+  closed: "setup.ready.players.closed",
 };
 
-const STT_WORDS: Record<string, string> = {
-  whisper: "Dictation by the Whisper server",
-  builtin: "Dictation by the built-in engine",
-  openai: "Dictation by OpenAI, on the key",
+const STT_WORDS: Record<string, MessageKey> = {
+  whisper: "setup.ready.dictation.whisper",
+  builtin: "setup.ready.dictation.builtin",
+  openai: "setup.ready.dictation.openai",
 };
 
 function rows(input: {
@@ -29,74 +31,75 @@ function rows(input: {
   address: string;
   agentConnected: boolean;
   steps: Record<string, number>;
+  t: ReturnType<typeof useI18n>["t"];
 }): Row[] {
-  const { draft, caps, steps } = input;
+  const { draft, caps, steps, t } = input;
   const wait = !caps;
   const story: Row =
     draft.story === "none"
-      ? { key: "story", title: "Storyteller", tone: "off", text: "A person narrates. No AI storyteller.", step: steps.story }
+      ? { key: "story", title: t("setup.ready.story.title"), tone: "off", text: t("setup.ready.story.none"), step: steps.story }
       : wait
-        ? { key: "story", title: "Storyteller", tone: "wait", text: "Asking the storyteller…", step: steps.story }
+        ? { key: "story", title: "Storyteller", tone: "wait", text: t("setup.ready.story.asking"), step: steps.story }
         : caps.story.configured && caps.story.reachable
-          ? { key: "story", title: "Storyteller", tone: "ok", text: `Answering${caps.story.model ? ` · ${caps.story.model}` : ""}`, step: steps.story }
+          ? { key: "story", title: "Storyteller", tone: "ok", text: t("setup.ready.story.answering", { model: caps.story.model ? ` · ${caps.story.model}` : "" }), step: steps.story }
           : {
               key: "story",
               title: "Storyteller",
               tone: "bad",
               text:
                 draft.story === "agent"
-                  ? "Saved, but the program is not ready: install it or sign it in, then check again."
-                  : "Saved, but not answering yet: start the model server, then check again.",
+                  ? t("setup.ready.story.notReadyAgent")
+                  : t("setup.ready.story.notReadyModel"),
               step: steps.story,
             };
   const pictures: Row =
     draft.pictures === "none"
-      ? { key: "pictures", title: "Pictures", tone: "off", text: "Painted placeholders", step: steps.pictures }
+      ? { key: "pictures", title: t("setup.ready.pictures.title"), tone: "off", text: t("setup.ready.pictures.off"), step: steps.pictures }
       : draft.pictures === ""
         ? // Skipped: nothing was saved, and a ComfyUI found on its own still counts.
           wait
-          ? { key: "pictures", title: "Pictures", tone: "wait", text: "Asking…", step: steps.pictures }
+          ? { key: "pictures", title: "Pictures", tone: "wait", text: t("setup.ready.pictures.asking"), step: steps.pictures }
           : caps.images.configured && caps.images.reachable
-            ? { key: "pictures", title: "Pictures", tone: "ok", text: "Found on this computer, and painting", step: steps.pictures }
-            : { key: "pictures", title: "Pictures", tone: "off", text: "Not set up yet. Tables use painted placeholders until it is.", step: steps.pictures }
+            ? { key: "pictures", title: "Pictures", tone: "ok", text: t("setup.ready.pictures.found"), step: steps.pictures }
+            : { key: "pictures", title: "Pictures", tone: "off", text: t("setup.ready.pictures.notSet"), step: steps.pictures }
       : wait
         ? { key: "pictures", title: "Pictures", tone: "wait", text: "Asking…", step: steps.pictures }
         : caps.images.configured && caps.images.reachable
-          ? { key: "pictures", title: "Pictures", tone: "ok", text: draft.pictures === "comfyui" ? "ComfyUI paints them" : draft.pictures === "openai" ? "OpenAI paints them, on the key" : "The agent paints them", step: steps.pictures }
+          ? { key: "pictures", title: "Pictures", tone: "ok", text: draft.pictures === "comfyui" ? t("setup.ready.pictures.comfyui") : draft.pictures === "openai" ? t("setup.ready.pictures.openai") : t("setup.ready.pictures.agent"), step: steps.pictures }
           : caps.images.needsModel
-            ? { key: "pictures", title: "Pictures", tone: "warn", text: "Saved, but no model is picked, so nothing is painted until one is.", step: steps.pictures }
-            : { key: "pictures", title: "Pictures", tone: "warn", text: "Saved, but not answering yet. Tables use placeholders until it does.", step: steps.pictures };
+            ? { key: "pictures", title: "Pictures", tone: "warn", text: t("setup.ready.pictures.needsModel"), step: steps.pictures }
+            : { key: "pictures", title: "Pictures", tone: "warn", text: t("setup.ready.pictures.notAnswering"), step: steps.pictures };
   const narration: Row =
     draft.narration === "off"
-      ? { key: "narration", title: "Narration", tone: "off", text: "Text only", step: steps.voice }
+      ? { key: "narration", title: t("setup.ready.narration.title"), tone: "off", text: t("setup.ready.narration.off"), step: steps.voice }
       : draft.narration === ""
         ? wait
           ? { key: "narration", title: "Narration", tone: "wait", text: "Asking…", step: steps.voice }
           : caps.tts.configured && caps.tts.reachable
-            ? { key: "narration", title: "Narration", tone: "ok", text: "Found on this computer, and reading aloud", step: steps.voice }
-            : { key: "narration", title: "Narration", tone: "off", text: "Not set up yet. The story is read on screen until it is.", step: steps.voice }
+            ? { key: "narration", title: "Narration", tone: "ok", text: t("setup.ready.narration.found"), step: steps.voice }
+            : { key: "narration", title: "Narration", tone: "off", text: t("setup.ready.narration.notSet"), step: steps.voice }
       : wait
         ? { key: "narration", title: "Narration", tone: "wait", text: "Asking…", step: steps.voice }
         : caps.tts.configured && caps.tts.reachable
-          ? { key: "narration", title: "Narration", tone: "ok", text: draft.narration === "kokoro" ? "Kokoro reads it aloud" : "OpenAI reads it aloud, on the key", step: steps.voice }
+          ? { key: "narration", title: "Narration", tone: "ok", text: draft.narration === "kokoro" ? t("setup.ready.narration.kokoro") : t("setup.ready.narration.openai"), step: steps.voice }
           : caps.tts.needsModel
-            ? { key: "narration", title: "Narration", tone: "warn", text: "Saved, but no model is picked, so nothing is read aloud until one is.", step: steps.voice }
-            : { key: "narration", title: "Narration", tone: "warn", text: "Saved, but not answering yet.", step: steps.voice };
+            ? { key: "narration", title: "Narration", tone: "warn", text: t("setup.ready.narration.needsModel"), step: steps.voice }
+            : { key: "narration", title: "Narration", tone: "warn", text: t("setup.ready.narration.notAnswering"), step: steps.voice };
   const dictation: Row = wait
-    ? { key: "dictation", title: "Dictation", tone: "wait", text: "Asking…", step: steps.voice }
+    ? { key: "dictation", title: t("setup.ready.dictation.title"), tone: "wait", text: "Asking…", step: steps.voice }
     : caps.stt.configured
-      ? { key: "dictation", title: "Dictation", tone: "ok", text: STT_WORDS[caps.stt.backend] ?? "Ready", step: steps.voice }
-      : { key: "dictation", title: "Dictation", tone: "off", text: "Off. The Voice step can download the built-in engine.", step: steps.voice };
+      ? { key: "dictation", title: "Dictation", tone: "ok", text: STT_WORDS[caps.stt.backend] ? t(STT_WORDS[caps.stt.backend]) : t("setup.ready.dictation.ready"), step: steps.voice }
+      : { key: "dictation", title: "Dictation", tone: "off", text: t("setup.ready.dictation.off"), step: steps.voice };
   const players: Row = {
     key: "players",
-    title: "Players",
+    title: t("setup.ready.players.title"),
     tone: "ok",
-    text: `${SIGNUPS[draft.signupMode]}${input.address ? ` · ${input.address}` : ""}`,
+    text: t(SIGNUPS[draft.signupMode], { address: input.address ? ` · ${input.address}` : "" }),
     step: steps.players,
   };
   const agent: Row = input.agentConnected
-    ? { key: "agent", title: "Your agent", tone: "ok", text: "Connection made", step: steps.agent }
-    : { key: "agent", title: "Your agent", tone: "off", text: "Not connected (optional)", step: steps.agent };
+    ? { key: "agent", title: t("setup.ready.agent.title"), tone: "ok", text: t("setup.ready.agent.connected"), step: steps.agent }
+    : { key: "agent", title: "Your agent", tone: "off", text: t("setup.ready.agent.notConnected"), step: steps.agent };
   return [story, pictures, narration, dictation, players, agent];
 }
 
@@ -144,14 +147,15 @@ export function ReadyStep({
     void ask();
   }
 
-  const list = rows({ draft, caps, address, agentConnected, steps });
+  const { t } = useI18n();
+  const list = rows({ draft, caps, address, agentConnected, steps, t });
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-2">
-        <span className="text-xs font-medium text-stone-400">What this server can do now</span>
+        <span className="text-xs font-medium text-stone-400">{t("setup.ready.header")}</span>
         <button type="button" className={ui.btnSmall} onClick={check} disabled={checking} aria-busy={checking}>
-          <RefreshCw className={checking ? "size-3.5 animate-spin" : "size-3.5"} /> Check again
+          <RefreshCw className={checking ? "size-3.5 animate-spin" : "size-3.5"} /> {t("setup.ready.recheck")}
         </button>
       </div>
       <ul className="stagger space-y-2" aria-live="polite">
@@ -165,7 +169,7 @@ export function ReadyStep({
               </span>
             </span>
             <button type="button" className={ui.btnSmall} onClick={() => onJump(row.step)}>
-              Change
+              {t("setup.ready.change")}
             </button>
           </li>
         ))}
@@ -173,12 +177,12 @@ export function ReadyStep({
 
       {draft.story === "local" || draft.story === "key" ? (
         <div className="su-row flex-col items-stretch">
-          <span className="text-sm text-stone-200">Try the storyteller the way a table will</span>
+          <span className="text-sm text-stone-200">{t("setup.ready.tryStory")}</span>
           <BackendProbe which="story" baseUrl="" model="" />
         </div>
       ) : draft.story === "agent" && draft.agent.id ? (
         <div className="su-row flex-col items-stretch">
-          <span className="text-sm text-stone-200">Try the agent with one tiny real turn</span>
+          <span className="text-sm text-stone-200">{t("setup.ready.tryAgent")}</span>
           <HarnessTestPanel saved paints={false} picturesVerified={false} onVerified={check} />
         </div>
       ) : null}

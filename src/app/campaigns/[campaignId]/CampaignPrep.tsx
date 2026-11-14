@@ -2,6 +2,7 @@
 
 import { Suspense, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { PanelLoading } from "@/app/campaigns/[campaignId]/side-panel-loaders";
+import { useT } from "@/lib/i18n/provider";
 
 // A running campaign's prep, laid over the table (issue 530). The table
 // stays mounted and laid out underneath, made inert while this is open, so
@@ -12,6 +13,7 @@ import { PanelLoading } from "@/app/campaigns/[campaignId]/side-panel-loaders";
 // because the header's height changes with the phone's safe area and the
 // fight ribbon.
 export function PrepLayer({ children, leaving = false }: { children: ReactNode; leaving?: boolean }) {
+  const t = useT();
   const ref = useRef<HTMLDivElement>(null);
   const [top, setTop] = useState<number | null>(null);
   useLayoutEffect(() => {
@@ -32,7 +34,7 @@ export function PrepLayer({ children, leaving = false }: { children: ReactNode; 
       className="session-prep"
       style={top === null ? undefined : { top }}
       role="region"
-      aria-label="Campaign prep"
+      aria-label={t("campaign.session.prep.aria")}
       tabIndex={-1}
       data-campaign-prep-screen=""
       data-leaving={leaving ? "true" : undefined}

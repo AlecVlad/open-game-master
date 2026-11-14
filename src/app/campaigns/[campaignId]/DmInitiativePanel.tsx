@@ -1,6 +1,7 @@
 "use client";
 
-import { extraTurnTag } from "@/lib/battlemap/initiative-rows";
+import { useI18n } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages/index";
 import { ChevronDown, ChevronUp, Clock, ListRestart, Plus, SkipBack, SkipForward, Trash2 } from "lucide-react";
 import { appConfirm } from "@/components/ui/ConfirmDialog";
 import { useState } from "react";
@@ -28,10 +29,10 @@ const ROW_ICON =
 const HEAD_ICON =
   "inline-flex size-9 items-center justify-center rounded-md border border-stone-700 text-stone-400 hover:text-stone-200 disabled:opacity-40 motion-press";
 
-const KIND_LABELS: Record<string, string> = {
-  pc: "Player",
-  enemy: "Enemy",
-  npc: "Yours",
+const KIND_LABELS: Record<string, MessageKey> = {
+  pc: "campaign.session.initiative.kind.player",
+  enemy: "campaign.session.initiative.kind.enemy",
+  npc: "campaign.session.initiative.kind.own",
 };
 
 export function DmInitiativePanel({
@@ -45,6 +46,7 @@ export function DmInitiativePanel({
   // letter, wherever the caller knows one (docs/visual-overhaul-plan.md 5.1).
   faceOf?: FaceLookup;
 }) {
+  const { t } = useI18n();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [adding, setAdding] = useState(false);
@@ -65,13 +67,13 @@ export function DmInitiativePanel({
       });
       const data = (await response.json().catch(() => ({}))) as { error?: string };
       if (!response.ok) {
-        setError(data.error ?? "The order would not take that.");
+        setError(data.error ?? t("campaign.session.initiative.error.orderRefused"));
         return false;
       }
       offerCorrectionReason(campaignId, data);
       return true;
     } catch {
-      setError("Could not reach the table.");
+      setError(t("campaign.session.initiative.error.tableUnreachable"));
       return false;
     } finally {
       setBusy(false);
@@ -82,12 +84,11 @@ export function DmInitiativePanel({
     return (
       <div className="mt-2 space-y-1 text-[11px] text-stone-500">
         <p>
-          Every player has been asked for initiative; the order locks once the last roll is in. The monsters have
-          already rolled.
+          {t("campaign.session.initiative.pending.everyPlayer")}
         </p>
         {encounter.staged?.length ? (
           <p className="reveal text-stone-400">
-            In so far: {encounter.staged.map((entry) => `${entry.name} ${entry.initiative}`).join(", ")}
+            {t("campaign.session.initiative.pending.soFar", { entries: encounter.staged.map((entry) => `${entry.name} ${entry.initiative}`).join(", ") })}
           </p>
         ) : null}
         {error ? <p className="text-red-300">{error}</p> : null}
@@ -102,14 +103,14 @@ export function DmInitiativePanel({
     <section className="mt-2 space-y-1.5 rounded-lg border border-stone-800 bg-stone-950/60 px-2.5 py-2">
       <div className="flex flex-wrap items-center gap-1">
         <p className="mr-auto text-xs font-medium uppercase tracking-wide text-stone-500">
-          The order
+          {t("campaign.session.initiative.order.title")}
         </p>
         <button
           type="button"
           disabled={busy}
           onClick={() => void send({ op: "step", direction: "back" })}
-          aria-label="Back a turn"
-          title="Back a turn"
+          aria-label={t("campaign.session.initiative.order.previousTurn")}
+          title={t("campaign.session.initiative.order.previousTurn")}
           className={HEAD_ICON}
         >
           <SkipBack className="size-3.5" />
@@ -118,8 +119,8 @@ export function DmInitiativePanel({
           type="button"
           disabled={busy}
           onClick={() => void send({ op: "step", direction: "forward" })}
-          aria-label="On a turn"
-          title="On a turn"
+          aria-label={t("campaign.session.initiative.order.nextTurn")}
+          title={t("campaign.session.initiative.order.nextTurn")}
           className={HEAD_ICON}
         >
           <SkipForward className="size-3.5" />
@@ -129,17 +130,17 @@ export function DmInitiativePanel({
           disabled={busy}
           onClick={async () => {
             if (
-              await appConfirm("Clear the order and have everyone roll again?", {
-                title: "Reset initiative",
-                actionLabel: "Roll again",
+              await appConfirm(t("campaign.session.initiative.order.resetConfirm"), {
+                title: t("campaign.session.initiative.order.reset"),
+                actionLabel: t("campaign.session.initiative.order.resetAction"),
                 tone: "plain",
               })
             ) {
               void send({ op: "reset" });
             }
           }}
-          aria-label="Reset initiative"
-          title="Reset initiative"
+          aria-label={t("campaign.session.initiative.order.reset")}
+          title={t("campaign.session.initiative.order.reset")}
           className={HEAD_ICON}
         >
           <ListRestart className="size-3.5" />
@@ -150,7 +151,7 @@ export function DmInitiativePanel({
         // the next player's turn (src/lib/dm/enemies-due.ts).
         <div className="reveal space-y-1.5 rounded-md border border-red-900/60 bg-red-950/30 px-2 py-1.5">
           <p className="text-xs text-red-100">
-            Enemy turns before {current?.name ?? "the next player"}:{" "}
+            {t("campaign.session.initiative.enemies.before", { name: current?.name ?? t("campaign.session.initiative.enemies.nextPlayer") })}{" "}
             {due.map((enemy, index) => (
               <span key={enemy.id} className={cn("transition-colors duration-[260ms]", enemy.acted && "text-stone-500 line-through")}>
                 {index ? ", " : ""}
@@ -159,8 +160,7 @@ export function DmInitiativePanel({
             ))}
           </p>
           <p className="text-[11px] text-stone-400">
-            Play them with the cards above the message box (or from the console), then hand on the
-            turn. The players wait until you do.
+            {t("campaign.session.initiative.enemies.playHelp")}
           </p>
           <div className="flex flex-wrap gap-1">
             <button
@@ -169,7 +169,7 @@ export function DmInitiativePanel({
               onClick={() => void send({ op: "enemies", play: true })}
               className="min-h-9 rounded-md border border-red-800 bg-red-950/50 px-3 py-1 text-xs text-red-100 disabled:opacity-40 motion-press"
             >
-              Play the rest for me
+              {t("campaign.session.initiative.enemies.playRemaining")}
             </button>
             <button
               type="button"
@@ -177,7 +177,7 @@ export function DmInitiativePanel({
               onClick={() => void send({ op: "enemies", play: false })}
               className="min-h-9 rounded-md border border-amber-700 bg-amber-950/50 px-3 py-1 text-xs text-amber-100 disabled:opacity-40 motion-press"
             >
-              Done, hand on the turn
+              {t("campaign.session.initiative.enemies.handOn")}
             </button>
           </div>
         </div>
@@ -187,7 +187,7 @@ export function DmInitiativePanel({
         // foe, and the server's backstop strikes the party for it.
         <div data-side="foe" className="reveal side-badge flex flex-wrap items-center gap-1.5 rounded-md border border-red-800 bg-red-950/40 px-2 py-1.5">
           <p className="mr-auto text-xs text-red-100">
-            {encounter.companionTurn.name} fights {sideWords("foe")}: play their turn from the console, or
+            {t("campaign.session.initiative.companion.foe", { name: encounter.companionTurn.name, side: sideWords("foe", t) })}
           </p>
           <button
             type="button"
@@ -195,13 +195,13 @@ export function DmInitiativePanel({
             onClick={() => void send({ op: "companion" })}
             className="min-h-9 rounded-md border border-red-800 bg-red-950/50 px-3 py-1 text-xs text-red-100 disabled:opacity-40 motion-press"
           >
-            Play their turn for me
+            {t("campaign.session.initiative.companion.playForMe")}
           </button>
         </div>
       ) : encounter.companionTurn ? (
         <div className="reveal flex flex-wrap items-center gap-1.5 rounded-md border border-sky-900/60 bg-sky-950/30 px-2 py-1.5">
           <p className="mr-auto text-xs text-sky-100">
-            {encounter.companionTurn.name} is an AI companion: run their turn from the console, or
+            {t("campaign.session.initiative.companion.ai", { name: encounter.companionTurn.name })}
           </p>
           <button
             type="button"
@@ -209,7 +209,7 @@ export function DmInitiativePanel({
             onClick={() => void send({ op: "companion" })}
             className="min-h-9 rounded-md border border-sky-800 bg-sky-950/50 px-3 py-1 text-xs text-sky-100 disabled:opacity-40 motion-press"
           >
-            Play their turn
+            {t("campaign.session.initiative.companion.play")}
           </button>
         </div>
       ) : null}
@@ -249,7 +249,7 @@ export function DmInitiativePanel({
                 type="button"
                 disabled={busy || entry.kind !== "pc" || index === encounter.turnIndex}
                 onClick={() => void send({ op: "goto", id: entry.id })}
-                title={entry.kind === "pc" ? "Give them the turn" : "The turn rests on players only"}
+                title={entry.kind === "pc" ? t("campaign.session.initiative.row.giveTurn") : t("campaign.session.initiative.row.playersOnly")}
                 // Room for a name before the row's buttons: with no floor the
                 // four of them squeezed it to its first letter in the side
                 // panel; now they wrap under it instead.
@@ -261,24 +261,24 @@ export function DmInitiativePanel({
               >
                 {entry.name}
                 <span className="ml-1.5 text-[10px] text-stone-600">
-                  {KIND_LABELS[entry.kind] ?? entry.kind}
-                  {entry.hidden ? " · hidden" : ""}
+                  {t(KIND_LABELS[entry.kind] ?? "campaign.session.initiative.kind.other")}
+                  {entry.hidden ? ` · ${t("campaign.session.initiative.row.hidden")}` : ""}
                   {entry.reflex ? (
-                    <span className="motion-pop ml-1 text-amber-300" title={extraTurnTag(entry)?.title}>
-                      · {entry.extra ? "extra turn" : "2nd turn"}
+                    <span className="motion-pop ml-1 text-amber-300" title={entry.reflex ? entry.extra ? t("campaign.session.initiative.row.extraTurnTitle", { name: entry.extra }) : t("campaign.session.initiative.row.secondTurnTitle") : undefined}>
+                      · {entry.extra ? t("campaign.session.initiative.row.extraTurnShort") : t("campaign.session.initiative.row.secondTurnShort")}
                     </span>
                   ) : null}
                 </span>
               </button>
               {/* The row's four buttons travel together: on the name's line when
                   they fit, all on the next when they do not, never one left behind. */}
-              <span role="group" aria-label={`Order controls for ${entry.name}`} className="ml-auto flex shrink-0 items-center">
+              <span role="group" aria-label={t("campaign.session.initiative.row.controlsFor", { name: entry.name })} className="ml-auto flex shrink-0 items-center">
                 <button
                   type="button"
                   disabled={busy}
                   onClick={() => void send({ op: "move", id: entry.id, direction: "up" })}
-                  aria-label={`Move ${entry.name} up the order`}
-                  title="Up the order"
+                  aria-label={t("campaign.session.initiative.row.moveUp", { name: entry.name })}
+                  title={t("campaign.session.initiative.row.upTitle")}
                   className={ROW_ICON}
                 >
                   <ChevronUp className="size-3.5" />
@@ -287,8 +287,8 @@ export function DmInitiativePanel({
                   type="button"
                   disabled={busy}
                   onClick={() => void send({ op: "move", id: entry.id, direction: "down" })}
-                  aria-label={`Move ${entry.name} down the order`}
-                  title="Down the order"
+                  aria-label={t("campaign.session.initiative.row.moveDown", { name: entry.name })}
+                  title={t("campaign.session.initiative.row.downTitle")}
                   className={ROW_ICON}
                 >
                   <ChevronDown className="size-3.5" />
@@ -297,8 +297,8 @@ export function DmInitiativePanel({
                   type="button"
                   disabled={busy}
                   onClick={() => void send({ op: "delay", id: entry.id })}
-                  aria-label={`Delay ${entry.name} to the bottom of the round`}
-                  title="Delay to the bottom of the round"
+                  aria-label={t("campaign.session.initiative.row.delay", { name: entry.name })}
+                  title={t("campaign.session.initiative.row.delayTitle")}
                   className={ROW_ICON}
                 >
                   <Clock className="size-3.5" />
@@ -307,12 +307,12 @@ export function DmInitiativePanel({
                   type="button"
                   disabled={busy}
                   onClick={async () => {
-                    if (await appConfirm(`Take ${entry.name} out of the order? They get no more turns in this fight.`, { actionLabel: "Take out" })) {
+                    if (await appConfirm(t("campaign.session.initiative.row.removeConfirm", { name: entry.name }), { actionLabel: t("campaign.session.initiative.row.removeAction") })) {
                       void send({ op: "remove", id: entry.id });
                     }
                   }}
-                  aria-label={`Take ${entry.name} out of the order`}
-                  title="Out of the order"
+                  aria-label={t("campaign.session.initiative.row.removeAria", { name: entry.name })}
+                  title={t("campaign.session.initiative.row.removeTitle")}
                   className={cn(ROW_ICON, "hover:text-red-300")}
                 >
                   <Trash2 className="size-3.5" />
@@ -335,7 +335,7 @@ export function DmInitiativePanel({
             value={name}
             onChange={(event) => setName(event.target.value)}
             maxLength={ENTRY_NAME_MAX}
-            placeholder="Captain Vell"
+            placeholder={t("campaign.session.initiative.form.namePlaceholder")}
             className="min-h-9 min-w-0 flex-1 rounded-md border border-stone-700 bg-stone-950 px-2 py-1 text-xs text-stone-200 placeholder:text-stone-600 motion-input"
           />
           <NumberStepper
@@ -343,7 +343,7 @@ export function DmInitiativePanel({
             min={MIN_INITIATIVE}
             max={MAX_INITIATIVE}
             onChange={setInitiative}
-            label="Initiative"
+            label={t("campaign.session.initiative.form.initiative")}
             size="sm"
           />
           <button
@@ -359,14 +359,14 @@ export function DmInitiativePanel({
             }}
             className="min-h-9 rounded-md border border-amber-700 bg-amber-950/50 px-3 py-1 text-xs text-amber-100 disabled:opacity-40 motion-press"
           >
-            Add
+            {t("campaign.session.initiative.form.add")}
           </button>
           <button
             type="button"
             onClick={() => setAdding(false)}
             className="min-h-9 rounded-md border border-stone-700 px-3 py-1 text-xs text-stone-400 hover:text-stone-200 motion-press"
           >
-            Cancel
+            {t("campaign.session.initiative.form.cancel")}
           </button>
         </div>
       ) : (
@@ -376,12 +376,11 @@ export function DmInitiativePanel({
           className="flex min-h-9 items-center gap-1 rounded-md border border-stone-700 px-3 py-1 text-xs text-stone-400 hover:text-stone-200 motion-press"
         >
           <Plus className="size-3.5" />
-          A slot of your own
+          {t("campaign.session.initiative.form.addSlot")}
         </button>
       )}
       <p className="text-[11px] leading-4 text-stone-600">
-        Stepping back moves the turn, not the world: hit points and conditions stay where
-        the fight left them.
+        {t("campaign.session.initiative.footer")}
       </p>
       {error ? <p role="alert" className="motion-shake text-[11px] text-red-400">{error}</p> : null}
     </section>

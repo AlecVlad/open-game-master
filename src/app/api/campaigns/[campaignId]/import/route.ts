@@ -108,23 +108,23 @@ export async function POST(
   // campaign, the DM once a person runs it.
   if (!steersStory(context)) {
     return Response.json(
-      { error: "Only the person steering the story can import prep." },
+      { error: "Only the person steering the story can import prep.", errorCode: "workshop.contentImport.error.steersStory" },
       { status: 403 },
     );
   }
   if (context.campaign.status === "ended") {
-    return Response.json({ error: "The campaign has ended." }, { status: 400 });
+    return Response.json({ error: "The campaign has ended.", errorCode: "workshop.contentImport.error.campaignEnded" }, { status: 400 });
   }
   const parsed = importSchema.safeParse(await request.json().catch(() => ({})));
   if (!parsed.success) {
-    return Response.json({ error: "Invalid import." }, { status: 400 });
+    return Response.json({ error: "Invalid import.", errorCode: "workshop.contentImport.error.invalid" }, { status: 400 });
   }
   const source = getImportSourceForUser(parsed.data.sourceId, context.user.id);
   if (!source || source.id === campaignId) {
-    return Response.json({ error: "Source not found." }, { status: 404 });
+    return Response.json({ error: "Source not found.", errorCode: "workshop.contentImport.error.sourceNotFound" }, { status: 404 });
   }
   if (!parsed.data.select.length && source.kind !== "workshop") {
-    return Response.json({ error: "Choose what to bring in." }, { status: 400 });
+    return Response.json({ error: "Choose what to bring in.", errorCode: "workshop.contentImport.error.chooseSomething" }, { status: 400 });
   }
 
   const result = runContentImport({
@@ -137,7 +137,7 @@ export async function POST(
     exclude: parsed.data.exclude,
   });
   if ("error" in result) {
-    return Response.json({ error: result.error }, { status: 400 });
+    return Response.json({ error: result.error, ...(result.errorCode ? { errorCode: result.errorCode } : {}) }, { status: 400 });
   }
   // An import touches a dozen tables at once (lore, places, quests, the arc,
   // house rules), which no one incremental event expresses. At a table in
@@ -169,6 +169,8 @@ export async function POST(
     // monsters nothing here answers to, and the hand-built monsters brought
     // into this table's bestiary. These were computed and then dropped here.
     ...(result.worldConflicts?.length ? { worldConflicts: result.worldConflicts } : {}),
+    ...(result.worldConflictDetails?.length ? { worldConflictDetails: result.worldConflictDetails } : {}),
+    ...(result.referenceNoteDetails?.length ? { referenceNoteDetails: result.referenceNoteDetails } : {}),
     ...(result.unresolved?.length ? { unresolved: result.unresolved } : {}),
     ...(result.monstersBrought?.length ? { monstersBrought: result.monstersBrought } : {}),
     ...(result.monstersReused?.length ? { monstersReused: result.monstersReused } : {}),

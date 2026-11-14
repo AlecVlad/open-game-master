@@ -55,7 +55,8 @@ export function totalPinTokens(pins: Pick<Pin, "text">[]): number {
   return pins.reduce((sum, pin) => sum + pinTokens(pin.text), 0);
 }
 
-export type PinCheck = { ok: true; text: string } | { ok: false; reason: string };
+export type PinProblemCode = "PIN_TEXT_REQUIRED" | "PIN_TOO_LONG" | "PIN_ALREADY_PINNED" | "PIN_BUDGET_FULL";
+export type PinCheck = { ok: true; text: string } | { ok: false; reason: string; code: PinProblemCode };
 
 // Refuse rather than evict, following NE-P. A pin that silently disappeared
 // to make room for a newer one would be worse than no pinning at all: the
@@ -63,19 +64,20 @@ export type PinCheck = { ok: true; text: string } | { ok: false; reason: string 
 export function checkPin(existing: Pick<Pin, "text">[], raw: string): PinCheck {
   const text = normalizePinText(raw);
   if (!text) {
-    return { ok: false, reason: "Select some text to pin." };
+    return { ok: false, reason: "Select some text to pin.", code: "PIN_TEXT_REQUIRED" };
   }
   if (text.length > MAX_PIN_LENGTH) {
     return {
       ok: false,
       reason: `That is too long to pin. Select the part that matters (up to ${MAX_PIN_LENGTH} characters).`,
+      code: "PIN_TOO_LONG",
     };
   }
   if (existing.some((pin) => normalizePinText(pin.text) === text)) {
-    return { ok: false, reason: "That is already pinned." };
+    return { ok: false, reason: "That is already pinned.", code: "PIN_ALREADY_PINNED" };
   }
   if (totalPinTokens(existing) + pinTokens(text) > PIN_TOKEN_CAP) {
-    return { ok: false, reason: "Pinned memories are full; unpin something first." };
+    return { ok: false, reason: "Pinned memories are full; unpin something first.", code: "PIN_BUDGET_FULL" };
   }
   return { ok: true, text };
 }

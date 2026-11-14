@@ -7,40 +7,63 @@ import type { MonsterDraft } from "@/lib/bestiary/monster-draft";
 
 export type MonsterFold = "actions" | "spellcasting" | "regeneration" | "senses";
 
+type Translator = (key: string, params?: Record<string, string | number>) => string;
+type PluralTranslator = (key: string, count: number, params?: Record<string, string | number>) => string;
+
 const plural = (count: number, one: string, many: string) => `${count} ${count === 1 ? one : many}`;
 
-export function monsterFoldSummary(fold: MonsterFold, draft: MonsterDraft): string {
+export function monsterFoldSummary(
+  fold: MonsterFold,
+  draft: MonsterDraft,
+  t?: Translator,
+  tp?: PluralTranslator,
+): string {
   const stats = draft.stats;
   switch (fold) {
     case "actions": {
       const parts = [
-        stats.routines?.length ? "a Multiattack routine" : "",
-        stats.specials?.length ? plural(stats.specials.length, "special", "specials") : "",
-        stats.traits?.length ? plural(stats.traits.length, "trait line", "trait lines") : "",
+        stats.routines?.length ? (t ? t("workshop.monsterEditor.fold.multiattack") : "a Multiattack routine") : "",
+        stats.specials?.length ? (tp ? tp("workshop.monsterEditor.fold.specials", stats.specials.length) : plural(stats.specials.length, "special", "specials")) : "",
+        stats.traits?.length ? (tp ? tp("workshop.monsterEditor.fold.traits", stats.traits.length) : plural(stats.traits.length, "trait line", "trait lines")) : "",
       ].filter(Boolean);
-      return parts.length ? parts.join(" · ") : "None yet: Multiattack, a breath weapon and other specials go here";
+      return parts.length ? parts.join(" · ") : (t ? t("workshop.monsterEditor.fold.actions.empty") : "None yet: Multiattack, a breath weapon and other specials go here");
     }
     case "spellcasting": {
       const casting = stats.spellcasting;
       const spells = casting?.spells.length ?? stats.spells?.length ?? 0;
-      if (!casting && !spells) return "None: this creature casts no spells";
-      return [spells ? plural(spells, "spell", "spells") : "", casting?.dc ? `save DC ${casting.dc}` : "", casting?.attack !== undefined ? `+${casting.attack} to hit` : ""]
-        .filter(Boolean)
-        .join(" · ");
+      if (!casting && !spells) return t ? t("workshop.monsterEditor.fold.spellcasting.empty") : "None: this creature casts no spells";
+      return [
+        spells ? (tp ? tp("workshop.monsterEditor.fold.spells", spells) : plural(spells, "spell", "spells")) : "",
+        casting?.dc ? (t ? t("workshop.monsterEditor.fold.saveDc", { value: casting.dc }) : `save DC ${casting.dc}`) : "",
+        casting?.attack !== undefined ? (t ? t("workshop.monsterEditor.fold.toHit", { value: casting.attack }) : `+${casting.attack} to hit`) : "",
+      ].filter(Boolean).join(" · ");
     }
     case "regeneration": {
       const regen = stats.regeneration;
-      if (!regen) return "None";
-      return `Regains ${regen.amount} hit points a turn${regen.stoppedBy.length ? `, stopped by ${regen.stoppedBy.join(" or ")}` : ""}`;
+      if (!regen) return t ? t("workshop.monsterEditor.fold.regeneration.none") : "None";
+      const stoppedBy = regen.stoppedBy.length
+        ? t
+          ? `, ${t("workshop.monsterEditor.regeneration.stoppedBy").toLowerCase()}: ${regen.stoppedBy.join(" или ")}`
+          : `, stopped by ${regen.stoppedBy.join(" or ")}`
+        : "";
+      return t
+        ? t("workshop.monsterEditor.fold.regeneration.present", { amount: regen.amount, stoppedBy })
+        : `Regains ${regen.amount} hit points a turn${stoppedBy}`;
     }
     case "senses": {
       const senses = stats.senses ?? {};
       const sight = (["darkvision", "blindsight", "tremorsense", "truesight"] as const)
         .filter((sense) => senses[sense])
-        .map((sense) => `${sense} ${senses[sense]} ft`);
+        .map((sense) => t
+          ? t("workshop.monsterEditor.fold.senseFeet", { sense: t(`workshop.monsterEditor.sense.${sense}`), feet: senses[sense] })
+          : `${sense} ${senses[sense]} ft`);
       const skills = Object.keys(stats.skills ?? {}).length;
-      const parts = [skills ? plural(skills, "skill", "skills") : "", ...sight, stats.languages ? stats.languages : ""].filter(Boolean);
-      return parts.length ? parts.join(" · ") : "None set";
+      const parts = [
+        skills ? (tp ? tp("workshop.monsterEditor.fold.skills", skills) : plural(skills, "skill", "skills")) : "",
+        ...sight,
+        stats.languages ? stats.languages : "",
+      ].filter(Boolean);
+      return parts.length ? parts.join(" · ") : (t ? t("workshop.monsterEditor.fold.senses.empty") : "None set");
     }
   }
 }

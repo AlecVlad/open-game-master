@@ -1,0 +1,23 @@
+// English, the source language: the home screen: quick start dialog and the workshop shelf.
+export const enHomeBench = {
+  "home.starter.err": "Could not start the adventure.",
+  "home.starter.error.invalidRequest": "The quick-start request could not be read.",
+  "home.starter.error.noStoryteller": "No storyteller is configured on this server. Configure one before starting the adventure.",
+  "home.starter.title": "Quick start",
+  "home.starter.fallbackTitle": "A one-evening adventure",
+  "home.starter.loading": "Loading the adventure...",
+  "home.starter.heroes": "Ready-made heroes, picked in the lobby",
+  "home.starter.note": "Level 1, three beats, one sitting. The AI narrates; you steer from the lobby's settings if you like. Friends join with the room code the lobby shows.",
+  "home.starter.solo": "Play solo",
+  "home.starter.host": "Host for friends",
+  "home.bench.aria": "Workshop",
+  "home.bench.eyebrow": "The workshop",
+  "home.bench.lede": "Build maps, NPCs, monsters, story and rules before a table exists.",
+  "home.bench.open": "Open workshop",
+  "home.bench.menuOpen": "Open",
+  "home.bench.menuDup": "Duplicate",
+  "home.bench.party": "Party of {size} at level {level}",
+  "home.bench.dupTip": "Copy this workshop and everything in it",
+  "home.bench.dupAria": "Duplicate {title}",
+  "home.bench.empty": "Nothing on the bench yet. A workshop is yours alone, and nothing in it reaches a table until you bring it in.",
+} satisfies Record<string, string>;

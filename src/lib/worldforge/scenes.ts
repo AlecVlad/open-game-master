@@ -21,9 +21,15 @@ import { parseRef } from "./model.ts";
 // Pure: the database half is src/lib/db/world-forge-io.ts.
 
 // What one scene loses, by its title.
-export type SceneLoss = { scene: string; lost: string[] };
+export type SceneLossDetail = { code: string; params: Record<string, string | number> };
+export type SceneLoss = { scene: string; lost: string[]; details?: SceneLossDetail[] };
 
 const quoted = (text: string) => `“${text}”`;
+
+function addSceneLoss(lost: string[], details: SceneLossDetail[], message: string, code: string, params: Record<string, string | number> = {}) {
+  lost.push(message);
+  details.push({ code, params });
+}
 
 // Scene losses as plain lines, for the places that list losses as text.
 export function sceneLossLines(scenes: SceneLoss[]): string[] {
@@ -57,21 +63,25 @@ export function planSceneExport(
     const node = byId.get(card.id)!;
     const next = order[at + 1]?.id;
     const lost: string[] = [];
-    if (node.kind !== "event") lost.push(`its kind, ${quoted(BEAT_LABELS[node.kind])} (it comes back as ${quoted(BEAT_LABELS.event)})`);
+    const details: SceneLossDetail[] = [];
+    if (node.kind !== 'event') addSceneLoss(lost, details, `its kind, ${quoted(BEAT_LABELS[node.kind])} (it comes back as ${quoted(BEAT_LABELS.event)})`, 'workshop.world.sceneLoss.export.kind', { kind: node.kind, eventKind: 'event' });
     for (const target of node.out) {
       const route = node.routes?.[target];
       const meaning = route ? `${ROUTE_LABELS[route.kind]}${route.label ? `: ${quoted(route.label)}` : ""}` : "";
-      if (target !== next) lost.push(`its arrow to ${titleOf(target)}${meaning ? ` (${meaning})` : ""}`);
-      else if (meaning) lost.push(`what its arrow to ${titleOf(target)} means (${meaning})`);
+      const routeKind = route?.kind ?? '';
+      const routeLabel = route?.label ?? '';
+      if (target !== next && !meaning) addSceneLoss(lost, details, `its arrow to ${titleOf(target)}`, 'workshop.world.sceneLoss.export.arrow', { title: byId.get(target)?.title ?? 'a card' });
+      else if (target !== next) addSceneLoss(lost, details, `its arrow to ${titleOf(target)}${meaning ? ` (${meaning})` : ''}`, 'workshop.world.sceneLoss.export.arrowWithMeaning', { title: byId.get(target)?.title ?? 'a card', routeKind, routeLabel });
+      else if (meaning) addSceneLoss(lost, details, `what its arrow to ${titleOf(target)} means (${meaning})`, 'workshop.world.sceneLoss.export.arrowMeaning', { title: byId.get(target)?.title ?? 'a card', routeKind, routeLabel });
     }
     // A list leads each scene to the next: an arrow the board does not
     // have comes back on the other side.
-    if (next && !node.out.includes(next)) lost.push(`its place in the line: it comes back leading to ${titleOf(next)}, which it does not lead to here`);
-    if (node.links.mapId) lost.push(picked("its battle map", "mapId", node.links.mapId));
-    if (node.links.encounterId) lost.push(picked("its prepared fight", "encounterId", node.links.encounterId));
-    if (node.links.npcId && !inWorld("npcId", node.links.npcId)) lost.push(`${picked("its Who", "npcId", node.links.npcId)}, who is not in this world`);
-    if (node.links.locationId && !inWorld("locationId", node.links.locationId)) lost.push(`${picked("its Where", "locationId", node.links.locationId)}, which is not in this world`);
-    if (lost.length) scenes.push({ scene: node.title, lost });
+    if (next && !node.out.includes(next)) addSceneLoss(lost, details, `its place in the line: it comes back leading to ${titleOf(next)}, which it does not lead to here`, 'workshop.world.sceneLoss.export.sequence', { title: byId.get(next)?.title ?? 'a card' });
+    if (node.links.mapId) addSceneLoss(lost, details, picked('its battle map', 'mapId', node.links.mapId), 'workshop.world.sceneLoss.export.battleMap', { name: nameOf('mapId', node.links.mapId) ?? 'a map' });
+    if (node.links.encounterId) addSceneLoss(lost, details, picked('its prepared fight', 'encounterId', node.links.encounterId), 'workshop.world.sceneLoss.export.preparedFight', { name: nameOf('encounterId', node.links.encounterId) ?? 'an encounter' });
+    if (node.links.npcId && !inWorld('npcId', node.links.npcId)) addSceneLoss(lost, details, `${picked('its Who', 'npcId', node.links.npcId)}, who is not in this world`, 'workshop.world.sceneLoss.export.whoMissing', { name: nameOf('npcId', node.links.npcId) ?? 'an entry' });
+    if (node.links.locationId && !inWorld('locationId', node.links.locationId)) addSceneLoss(lost, details, `${picked('its Where', 'locationId', node.links.locationId)}, which is not in this world`, 'workshop.world.sceneLoss.export.placeMissing', { name: nameOf('locationId', node.links.locationId) ?? 'a place' });
+    if (lost.length) scenes.push({ scene: node.title, lost, details });
   });
   const notes = order.length
     ? ["The storyboard goes out as one story of scenes in reading order. Where each card sits on the board is not kept, and a card opened elsewhere comes back as one in a row."]
@@ -110,7 +120,8 @@ export function readScenes(input: {
     .map((scene) => {
       const title = text(scene.title, TITLE_MAX);
       const lost: string[] = [];
-      if (text(scene.title, 1_000).length > TITLE_MAX) lost.push(`the end of its title (a card's title holds ${TITLE_MAX} characters)`);
+      const details: SceneLossDetail[] = [];
+      if (text(scene.title, 1_000).length > TITLE_MAX) addSceneLoss(lost, details, `the end of its title (a card's title holds ${TITLE_MAX} characters)`, 'workshop.world.sceneLoss.import.titleTooLong', { limit: TITLE_MAX });
       // The gist and the scene's written text, one after the other on the
       // card when both fit; the gist alone when they do not.
       const gist = text(scene.gist, Infinity);
@@ -118,10 +129,10 @@ export function readScenes(input: {
       let body = gist && written && gist !== written ? `${gist}\n\n${written}` : gist || written;
       if (body.length > BODY_MAX) {
         if (gist && written && gist.length <= BODY_MAX) {
-          lost.push(`its written text (${written.length.toLocaleString("en")} characters), which does not fit on a card beside its gist`);
+          addSceneLoss(lost, details, `its written text (${written.length.toLocaleString('en')} characters), which does not fit on a card beside its gist`, 'workshop.world.sceneLoss.import.writtenTextTooLong', { count: written.length });
           body = gist;
         } else {
-          lost.push(`the end of its text (a card holds ${BODY_MAX.toLocaleString("en")} characters)`);
+          addSceneLoss(lost, details, `the end of its text (a card holds ${BODY_MAX.toLocaleString('en')} characters)`, 'workshop.world.sceneLoss.import.bodyTooLong', { limit: BODY_MAX });
           body = body.slice(0, BODY_MAX).trimEnd();
         }
       }
@@ -129,8 +140,8 @@ export function readScenes(input: {
       const pick = (value: unknown, shelf: "npc" | "location", what: string, needs: string) => {
         if (!key(value)) return "";
         const ref = refOf(value);
-        if (!ref) lost.push(`its ${what}, which names an entry the file does not have`);
-        else if (parseRef(ref)?.shelf !== shelf) lost.push(`its ${what}, ${quoted(nameOf(ref) ?? "an entry")}, which is not ${needs}`);
+        if (!ref) addSceneLoss(lost, details, `its ${what}, which names an entry the file does not have`, 'workshop.world.sceneLoss.import.referenceMissing', { field: what === 'point of view' ? 'pov' : 'place' });
+        else if (parseRef(ref)?.shelf !== shelf) addSceneLoss(lost, details, `its ${what}, ${quoted(nameOf(ref) ?? 'an entry')}, which is not ${needs}`, 'workshop.world.sceneLoss.import.referenceWrongKind', { field: what === 'point of view' ? 'pov' : 'place', name: nameOf(ref) ?? 'an entry', expected: shelf });
         return ref;
       };
       const pov = pick(scene.povEntityId, "npc", "point of view", "a Cast member");
@@ -139,9 +150,9 @@ export function readScenes(input: {
       const cast = [...new Set(listed.filter((id) => key(id)).map((id) => refOf(id) || `?${key(id)}`))].filter((ref) => ref !== pov);
       if (cast.length) {
         const named = cast.map((ref) => (nameOf(ref) !== undefined ? quoted(nameOf(ref)!) : "an entry the file does not have"));
-        lost.push(`its cast beyond its point of view: ${named.join(", ")} (a card names one Who)`);
+        addSceneLoss(lost, details, `its cast beyond its point of view: ${named.join(', ')} (a card names one Who)`, 'workshop.world.sceneLoss.import.extraCast', { names: named.join(', ') });
       }
-      if (lost.length) sceneLosses.push({ scene: title, lost });
+      if (lost.length) sceneLosses.push({ scene: title, lost, details });
       return { wfId: key(scene.id), title, body, story: input.stories.get(key(scene.storyId)) ?? "", order: scene.order as number, pov, place };
     });
   return { beats, sceneLosses, leftOut: input.scenes.length - placed.length };

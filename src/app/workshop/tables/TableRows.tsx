@@ -12,6 +12,7 @@ import { GlyphPlate, RowMenu } from "@/app/workshop/kit";
 import { LoadFailed } from "@/app/campaigns/[campaignId]/PanelKit";
 import type { RollTable } from "@/lib/db/roll-tables";
 import { textKey } from "@/lib/language/text-logic";
+import { useI18n } from "@/lib/i18n/provider";
 
 // The workshop's view of the DM's tables: one full-width row per table with
 // the die it rolls, how many rows it has and whether every face of that die
@@ -100,6 +101,7 @@ export function TableRows({
   onDuplicate,
   onDelete,
 }: RowsProps) {
+  const { t, tp } = useI18n();
   const [query, setQuery] = useState("");
   const needle = textKey(query);
   const [sort, setSort] = useState<RowSort>("made");
@@ -116,12 +118,22 @@ export function TableRows({
         <input
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          placeholder="Search your tables"
-          aria-label="Search your tables by name"
+          placeholder={t("campaign.tableRows.search.placeholder")}
+          aria-label={t("campaign.tableRows.search.aria")}
           className={`${ui.input} pl-9`}
         />
       </label>
-      <ListTally shown={shown.length} total={tables.length} noun={["table", "tables"]} sort={sort} onSort={setSort} />
+      <ListTally
+        shown={shown.length}
+        total={tables.length}
+        noun={["table", "tables"]}
+        sort={sort}
+        onSort={setSort}
+        formatCount={(shownCount, total) => shownCount === total
+          ? tp("campaign.tableRows.count", shownCount)
+          : t("campaign.tableRows.filteredCount", { shown: shownCount, total })}
+        sortLabels={{ made: t("campaign.tableRows.sort.made"), name: t("campaign.tableRows.sort.name") }}
+      />
 
       <ul className="stagger-up grid gap-2 lg:grid-cols-2">
         {shown.map((table) => {
@@ -130,10 +142,10 @@ export function TableRows({
           // Roll stays the row's visible button; the rest live behind the
           // kebab and the right-click or long-press menu, the same list.
           const items: ContextMenuItem[] = [
-            { id: "open", label: "Open", glyph: "system-tables", onSelect: () => onOpen(table) },
-            { id: "roll", label: "Roll", glyph: dieGlyph(coverage.die), disabled: busy === table.id, onSelect: () => onRoll(table) },
-            { id: "duplicate", label: "Duplicate", glyph: "ui-duplicate", disabled: busy === `copy-${table.id}`, onSelect: () => onDuplicate(table) },
-            { id: "delete", label: "Delete", glyph: "ui-delete", tone: "danger", separated: true, onSelect: () => onDelete(table) },
+            { id: "open", label: t("campaign.tableRows.open"), glyph: "system-tables", onSelect: () => onOpen(table) },
+            { id: "roll", label: t("campaign.tableRows.roll"), glyph: dieGlyph(coverage.die), disabled: busy === table.id, onSelect: () => onRoll(table) },
+            { id: "duplicate", label: t("campaign.tableRows.duplicate"), glyph: "ui-duplicate", disabled: busy === `copy-${table.id}`, onSelect: () => onDuplicate(table) },
+            { id: "delete", label: t("campaign.tableRows.delete"), glyph: "ui-delete", tone: "danger", separated: true, onSelect: () => onDelete(table) },
           ];
           return (
             <ContextMenu as="li" key={table.id} label={table.name} items={items} className={cn(ui.cardHover, "min-w-0 p-3")}>
@@ -152,7 +164,7 @@ export function TableRows({
                   </span>
                   <span className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-stone-500">
                     <span>
-                      {coverage.rows} {coverage.rows === 1 ? "row" : "rows"}
+                      {tp("campaign.tableRows.rows", coverage.rows)}
                     </span>
                     <span
                       className={cn(
@@ -160,11 +172,16 @@ export function TableRows({
                         clean ? COVERED : PATCHY,
                       )}
                     >
-                      {coverageLabel(coverage)}
+                      {coverage.gaps || coverage.overlaps
+                        ? [
+                            ...(coverage.gaps ? [tp("campaign.tableRows.gaps", coverage.gaps)] : []),
+                            ...(coverage.overlaps ? [tp("campaign.tableRows.overlaps", coverage.overlaps)] : []),
+                          ].join(", ")
+                        : t("campaign.tableRows.coverage.complete", { die: coverage.die })}
                     </span>
                     {table.noReplacement ? (
                       <span className="rounded-sm border border-violet-500/40 bg-violet-500/10 px-1.5 py-0.5 font-display text-[10px] tracking-wider text-violet-300">
-                        deck, {table.drawn.length} dealt
+                        deck · {tp("campaign.tableRows.dealt", table.drawn.length)}
                       </span>
                     ) : null}
                   </span>
@@ -176,9 +193,9 @@ export function TableRows({
                     disabled={busy === table.id}
                     className={cn(ui.btnSecondary, "h-9")}
                   >
-                    {busy === table.id ? <Loader2 className="size-3.5 animate-spin" /> : "Roll"}
+                    {busy === table.id ? <Loader2 className="size-3.5 animate-spin" /> : t("campaign.tableRows.roll")}
                   </button>
-                  <RowMenu items={items} label={table.name} />
+                  <RowMenu items={items} label={table.name} triggerLabel={t("common.actionsFor", { name: table.name })} />
                 </span>
               </div>
               {result?.tableId === table.id ? (
@@ -186,7 +203,7 @@ export function TableRows({
                   <p>
                     <span className="text-amber-200">{result.total}:</span> {result.text}
                     {result.remaining !== null ? (
-                      <span className="ml-1 text-stone-500">({result.remaining} left)</span>
+                      <span className="ml-1 text-stone-500">({tp("campaign.tableRows.remaining", result.remaining)})</span>
                     ) : null}
                   </p>
                   {result.chain.map((line, index) => (
@@ -213,7 +230,7 @@ export function TableRows({
               <GameIcon icon={{ kind: "glyph", key: "system-tables" }} size="size-10" />
               <Plus className="absolute -bottom-1 -right-1 size-4 rounded-full bg-stone-900 text-amber-300" aria-hidden="true" />
             </span>
-            <span className="font-display tracking-wide">New table</span>
+            <span className="font-display tracking-wide">{t("campaign.tableRows.newTable")}</span>
           </button>
         </li>
       </ul>
@@ -222,10 +239,10 @@ export function TableRows({
         <LoadFailed error={loadError} onRetry={onRetry} />
       ) : tables.length === 0 ? (
         <p className="reveal text-[11px] text-stone-500">
-          {loaded ? "No tables yet. Start one with New table, or paste one out of a book." : "Loading..."}
+          {loaded ? t("campaign.tableRows.empty") : t("campaign.tableRows.loading")}
         </p>
       ) : shown.length === 0 ? (
-        <p className="live-in text-xs text-stone-500">No table by that name.</p>
+        <p className="live-in text-xs text-stone-500">{t("campaign.tableRows.noMatch")}</p>
       ) : null}
       {loaded && loadError ? <LoadFailed error={loadError} onRetry={onRetry} /> : null}
     </div>

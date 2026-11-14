@@ -144,6 +144,81 @@ export function parseFightSetup(raw: unknown): FightSetup | null {
   return parsed.success ? parsed.data : null;
 }
 
+ 
+// ---- localized display data ----
+// Legacy words below remain English for API consumers and the DM prompt.
+// This ID-free shape lets each reader render the same moment in their language.
+const fightSetupReadoutSchema = z.object({
+  savedAt: z.string().max(40),
+  party: z.discriminatedUnion("kind", [
+    z.object({ kind: z.literal("stand-ins"), size: z.number().int().min(1).max(8), level: z.number().int().min(1).max(20) }),
+    z.object({ kind: z.literal("characters"), count: z.number().int().min(1).max(SETUP_LIMITS.seats) }),
+    z.object({ kind: z.literal("elsewhere"), size: z.number().int().min(0).max(SETUP_LIMITS.seats) }),
+  ]),
+  foes: z.array(z.object({
+    name: z.string().trim().min(1).max(SETUP_LIMITS.name),
+    status: z.enum(["alive", "dead", "fled"]),
+    hp: z.number().int().min(0).max(5000),
+    maxHp: z.number().int().min(1).max(5000),
+    conditions: conditionsSchema,
+    hidden: z.boolean(),
+  })).max(SETUP_LIMITS.foes),
+  heroes: z.array(z.object({
+    name: z.string().trim().min(1).max(SETUP_LIMITS.name),
+    currentHp: z.number().int().min(0).max(500),
+    deathState: z.enum(["dying", "zeroHp"]).nullable(),
+    conditions: conditionsSchema,
+    slotsSpent: z.number().int().min(0).max(200),
+  })).max(SETUP_LIMITS.seats),
+  initiative: z.array(z.object({
+    name: z.string().trim().min(1).max(SETUP_LIMITS.name),
+    initiative: z.number().int().min(-20).max(50),
+  })).max(SETUP_LIMITS.foes + SETUP_LIMITS.seats),
+  dice: diceScriptSchema.nullable(),
+}).strict();
+export type FightSetupReadout = z.infer<typeof fightSetupReadoutSchema>;
+
+const fightSetupNoticeSchema = z.object({
+  version: z.literal(1),
+  readout: fightSetupReadoutSchema,
+  initiativeOrderReplacesOpeningRolls: z.boolean(),
+  partyStartsFresh: z.boolean(),
+}).strict();
+export type FightSetupNotice = z.infer<typeof fightSetupNoticeSchema>;
+
+export function parseFightSetupNotice(raw: unknown): FightSetupNotice | null {
+  const parsed = fightSetupNoticeSchema.safeParse(raw);
+  return parsed.success ? parsed.data : null;
+}
+
+export function describeFightSetupReadout(setup: FightSetup): FightSetupReadout {
+  const ours = setup.party.kind !== "elsewhere";
+  const party: FightSetupReadout["party"] =
+    setup.party.kind === "stand-ins"
+      ? { kind: "stand-ins", size: setup.party.size, level: setup.party.level }
+      : setup.party.kind === "characters"
+        ? { kind: "characters", count: setup.party.characterIds.length }
+        : { kind: "elsewhere", size: setup.party.size };
+  const foes = setup.foes
+    .filter((foe) => foe.status !== "alive" || foe.hp < foe.maxHp || foe.conditions.length > 0 || foe.hidden)
+    .map(({ name, status, hp, maxHp, conditions, hidden }) => ({ name, status, hp, maxHp, conditions, hidden }));
+  const heroes = (ours ? setup.heroes : [])
+    .map((hero) => {
+      const dying = Boolean(hero.deathSaves && !hero.deathSaves.stable && !hero.deathSaves.dead && hero.currentHp === 0);
+      const deathState = dying ? "dying" as const : hero.currentHp === 0 ? "zeroHp" as const : null;
+      const slotsSpent = Object.values(hero.slotsUsed).reduce((sum, used) => sum + used, 0) + (hero.pactUsed ?? 0);
+      return { name: hero.name, currentHp: hero.currentHp, deathState, conditions: hero.conditions, slotsSpent };
+    })
+    .filter((hero) => hero.deathState !== null || hero.conditions.length > 0 || hero.slotsSpent > 0);
+  const initiative = [
+    ...(ours ? setup.heroes : []).map((hero) => ({ name: hero.name, initiative: hero.initiative })),
+    ...setup.foes.filter((foe) => foe.status === "alive").map((foe) => ({ name: foe.name, initiative: foe.initiative })),
+  ]
+    .filter((entry): entry is { name: string; initiative: number } => entry.initiative !== null)
+    .sort((a, b) => b.initiative - a.initiative);
+  return { savedAt: setup.savedAt, party, foes, heroes, initiative, dice: setupDice(setup) };
+}
+
 // ---- ids inside condition meta ----
 
 export type SetupRef = { kind: "slot"; slot: number } | { kind: "seat"; seat: number };

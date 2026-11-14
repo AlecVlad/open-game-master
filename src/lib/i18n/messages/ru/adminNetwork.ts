@@ -1,0 +1,38 @@
+// Русский: разделы голосового чата и входа через Discord в настройках админ-панели.
+// Ключи те же, что в en/adminNetwork.ts; формы .few и .many нужны только русскому.
+import type { enAdminNetwork } from "../en/adminNetwork.ts";
+
+export const ruAdminNetwork: Partial<Record<keyof typeof enAdminNetwork, string>> & Record<string, string> = {
+  "admin.network.voice.heading": "Голосовой чат",
+  "admin.network.voice.intro1": "Позволяет столу общаться голосом в реальном времени. Помимо этого переключателя нужны две вещи: приложение должно открываться по ",
+  "admin.network.voice.https": "https",
+  "admin.network.voice.intro2": " (браузеры блокируют микрофон на обычном http, кроме localhost), и ",
+  "admin.network.voice.onePort": "один открытый порт",
+  "admin.network.voice.intro3": " для UDP и TCP. По этому порту идёт сам звук: это не HTTP, и через обратный прокси он пройти не может, поэтому откройте порт в брандмауэре напрямую на этот хост.",
+  "admin.network.voice.hint.following": "Как в конфигурации сервера: {state}",
+  "admin.network.voice.hint.override": "Переопределяет конфигурацию сервера.",
+  "admin.network.on": "вкл.",
+  "admin.network.off": "выкл.",
+  "admin.network.voice.opt.config": "Как в конфигурации сервера ({state})",
+  "admin.network.voice.opt.on": "Включено",
+  "admin.network.voice.opt.off": "Выключено",
+  "admin.network.voice.transport": "Транспорт",
+  "admin.network.voice.transport.hint": "Голосовому серверу нужен открытый медиапорт (ниже). Режим «каждый с каждым» не требует порта и работает через туннели, но подходит для небольших столов: каждый игрок отправляет звук всем остальным.",
+  "admin.network.voice.transport.server": "Голосовой сервер (по умолчанию)",
+  "admin.network.voice.transport.mesh": "Каждый с каждым (mesh)",
+  "admin.network.voice.port": "Медиапорт",
+  "admin.network.voice.port.hint": "Откройте для UDP и TCP. Переменная окружения: {value}",
+  "admin.network.voice.ip": "Объявляемый адрес",
+  "admin.network.voice.ip.hint": "Адрес, по которому БРАУЗЕР игрока может достучаться до этого хоста, обычно ваш публичный IP. Оставляйте пустым только для установки только на localhost.",
+  "admin.network.voice.domain": "Голосовой домен (необязательно)",
+  "admin.network.voice.domain.hint": "Объявлять имя хоста вместо IP. Оно должно указывать прямо на этот сервер: имя за прокси Cloudflare не пропускает UDP, поэтому звонки будут соединяться, но звука не будет.",
+  "admin.network.voice.silent": "Голос будет соединяться, но удалённые игроки ничего не услышат: задайте объявляемый адрес или домен.",
+  "admin.network.voice.apply": "Изменения порта и адреса применяются, когда кто-нибудь присоединится к звонку после того, как все отключатся. Перезапуск сервера не нужен.",
+  "admin.network.discord.heading": "Вход через Discord",
+  "admin.network.discord.intro1": "Необязательно. Создайте приложение на discord.com/developers, добавьте URI перенаправления",
+  "admin.network.discord.intro2": "(точный адрес, которым пользуются игроки, например https://your.domain или http://lan-host:3005), затем вставьте идентификатор клиента и секрет. Кнопка входа появится, когда заданы оба. За обратным прокси также задайте Публичный URL в разделе «Сервер» выше.",
+  "admin.network.discord.clientId": "Идентификатор клиента",
+  "admin.network.discord.notSet": "Не задано",
+  "admin.network.discord.secret": "Секрет клиента",
+  "admin.network.discord.envSecret": "Секрет также задан переменной окружения.",
+};

@@ -12,13 +12,14 @@ import { NumberStepper as KitStepper } from "@/components/ui/NumberStepper";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import {
   CAMPAIGN_DIFFICULTIES,
-  CAMPAIGN_DIFFICULTY_HINTS,
   type CampaignCover as CampaignCoverRef,
   type CampaignDifficulty,
 } from "@/lib/campaign-types";
 import type { Campaign } from "@/lib/db/campaigns";
 import { offersImages, useCapabilities } from "@/lib/use-capabilities";
 import { CampaignCover, type CoverStatus } from "@/components/CampaignCover";
+import { useI18n } from "@/lib/i18n/provider";
+import { campaignApiErrorText } from "@/lib/i18n/campaignApiError";
 
 // Matches the characters page: polls every 2.5 s while a render is queued
 // or generating, and gives up after the image backend's own timeout so a
@@ -82,6 +83,13 @@ export function EditCampaignDialog({
   };
   onClose: () => void;
 }) {
+  const { t } = useI18n();
+  const difficultyCopy: Record<CampaignDifficulty, { label: string; hint: string }> = {
+    easy: { label: t("campaign.editDialog.difficulty.easy"), hint: t("campaign.editDialog.difficulty.hint.easy") },
+    normal: { label: t("campaign.editDialog.difficulty.normal"), hint: t("campaign.editDialog.difficulty.hint.normal") },
+    hard: { label: t("campaign.editDialog.difficulty.hard"), hint: t("campaign.editDialog.difficulty.hint.hard") },
+    deadly: { label: t("campaign.editDialog.difficulty.deadly"), hint: t("campaign.editDialog.difficulty.hint.deadly") },
+  };
   const [title, setTitle] = useState(campaign.title);
   const [description, setDescription] = useState(campaign.description);
   const [theme, setTheme] = useState(campaign.theme);
@@ -148,13 +156,13 @@ export function EditCampaignDialog({
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setCoverError(data.error || "Could not change the cover.");
+        setCoverError(campaignApiErrorText(data, t("campaign.editDialog.cover.error.change"), t));
         return;
       }
       setCover(data.cover ?? null);
       setCoverStatus(data.status ?? null);
     } catch {
-      setCoverError("Could not reach the server.");
+      setCoverError(t("campaign.session.networkError"));
     } finally {
       setCoverBusy(false);
     }
@@ -172,12 +180,12 @@ export function EditCampaignDialog({
       });
       const payload = await upload.json().catch(() => ({}));
       if (!upload.ok) {
-        setCoverError(payload.error || "That image would not upload.");
+        setCoverError(campaignApiErrorText(payload, t("campaign.editDialog.cover.error.upload"), t));
         return;
       }
       await coverRequest("PATCH", { imageUrl: payload.url });
     } catch {
-      setCoverError("That image would not upload.");
+      setCoverError(t("campaign.editDialog.cover.error.upload"));
     } finally {
       setCoverBusy(false);
     }
@@ -202,12 +210,12 @@ export function EditCampaignDialog({
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError(data.error || "Could not save the campaign settings.");
+        setError(campaignApiErrorText(data, t("campaign.editDialog.error.save"), t));
         return;
       }
       onClose();
     } catch {
-      setError("Could not reach the server.");
+      setError(t("campaign.session.networkError"));
     } finally {
       setBusy(false);
     }
@@ -219,14 +227,14 @@ export function EditCampaignDialog({
     <Dialog
       open
       onOpenChange={(open) => !open && onClose()}
-      title="Edit campaign"
+      title={t("campaign.editDialog.title")}
       icon={<Pencil className="size-4 text-amber-300" />}
       width="w-[min(94vw,32rem)]"
     >
       <form onSubmit={submit} className="space-y-6 text-sm">
-        <Group glyph="tab-story" title="The story">
+        <Group glyph="tab-story" title={t("campaign.editDialog.group.story")}>
           <label className="block">
-            <span className="mb-1 block text-stone-400">Title</span>
+            <span className="mb-1 block text-stone-400">{t("campaign.editDialog.field.title")}</span>
             <input
               value={title}
               onChange={(event) => setTitle(event.target.value)}
@@ -237,7 +245,7 @@ export function EditCampaignDialog({
           </label>
           <label className="block">
             <span className="mb-1 flex items-baseline justify-between text-stone-400">
-              Premise
+              {t("campaign.editDialog.field.premise")}
               <span className="text-[11px] text-stone-500">{description.length}/500</span>
             </span>
             <textarea
@@ -249,7 +257,7 @@ export function EditCampaignDialog({
             />
           </label>
           <label className="block">
-            <span className="mb-1 block text-stone-400">World or theme notes</span>
+            <span className="mb-1 block text-stone-400">{t("campaign.editDialog.field.worldNotes")}</span>
             <input
               value={theme}
               onChange={(event) => setTheme(event.target.value)}
@@ -259,28 +267,28 @@ export function EditCampaignDialog({
           </label>
         </Group>
 
-        <Group glyph="tab-party" title="The table">
+        <Group glyph="tab-party" title={t("campaign.editDialog.group.table")}>
           <div className="grid grid-cols-2 gap-3">
-            <NumberStepper label="Players" value={maxPlayers} min={1} max={8} onChange={setMaxPlayers} />
-            <NumberStepper label="Start level" value={startingLevel} min={1} max={20} onChange={setStartingLevel} />
+            <NumberStepper label={t("campaign.editDialog.field.players")} value={maxPlayers} min={1} max={8} onChange={setMaxPlayers} />
+            <NumberStepper label={t("campaign.editDialog.field.startLevel")} value={startingLevel} min={1} max={20} onChange={setStartingLevel} />
           </div>
           <div>
-            <span className="mb-1 block text-stone-400">Difficulty</span>
+            <span className="mb-1 block text-stone-400">{t("campaign.editDialog.field.difficulty")}</span>
             <SegmentedControl
               size="sm"
-              label="Difficulty"
+              label={t("campaign.editDialog.field.difficulty")}
               className="w-full"
-              options={CAMPAIGN_DIFFICULTIES.map((value) => ({ value, label: value }))}
+              options={CAMPAIGN_DIFFICULTIES.map((value) => ({ value, label: difficultyCopy[value].label }))}
               value={difficulty}
               onChange={setDifficulty}
             />
             <p key={difficulty} className="motion-tab mt-1.5 text-xs text-stone-500">
-              {CAMPAIGN_DIFFICULTY_HINTS[difficulty]}
+              {difficultyCopy[difficulty].hint}
             </p>
           </div>
         </Group>
 
-        <Group glyph="tab-handout" title="Cover art">
+        <Group glyph="tab-handout" title={t("campaign.editDialog.group.coverArt")}>
           <CampaignCover
             cover={cover}
             title={title || campaign.title}
@@ -308,7 +316,7 @@ export function EditCampaignDialog({
               onClick={() => fileInput.current?.click()}
               className={ui.btnSmall}
             >
-              Upload
+              {t("campaign.editDialog.cover.upload")}
             </button>
             {offersImages(capabilities) ? (
               <button
@@ -318,7 +326,7 @@ export function EditCampaignDialog({
                 className={ui.btnSmall}
               >
                 {coverPending ? <Loader2 className="size-3.5 animate-spin" /> : null}
-                {coverPending ? "Painting" : "Paint one"}
+                {coverPending ? t("campaign.editDialog.cover.painting") : t("campaign.editDialog.cover.paintOne")}
               </button>
             ) : null}
             {cover ? (
@@ -328,12 +336,12 @@ export function EditCampaignDialog({
                 onClick={() => void coverRequest("DELETE")}
                 className={ui.btnSmall}
               >
-                Remove
+                {t("campaign.editDialog.cover.remove")}
               </button>
             ) : null}
           </div>
           {coverStatus === "failed" ? (
-            <p className="motion-shake text-xs text-red-400">The cover did not paint. Try again, or upload one.</p>
+            <p className="motion-shake text-xs text-red-400">{t("campaign.editDialog.cover.failed")}</p>
           ) : null}
           {coverError ? <p className="motion-shake text-xs text-red-400">{coverError}</p> : null}
         </Group>
@@ -341,7 +349,7 @@ export function EditCampaignDialog({
         {error ? <p className="motion-shake text-red-400">{error}</p> : null}
         <button type="submit" disabled={busy} className={cn(ui.btnPrimary, "w-full")}>
           {busy ? <Loader2 className="size-4 animate-spin" /> : null}
-          Save changes
+          {t("campaign.editDialog.save")}
         </button>
       </form>
     </Dialog>

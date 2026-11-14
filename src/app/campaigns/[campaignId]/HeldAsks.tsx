@@ -9,8 +9,8 @@ import type { CritRules } from "@/app/campaigns/[campaignId]/DmOddsPanel";
 import type { BondView } from "@/app/campaigns/[campaignId]/CompanionBondLine";
 import type { CatalogEntry } from "@/lib/dm/invoke-catalog";
 import type { PublicEncounter } from "@/lib/db/encounter-view";
-import { ASK_WORDS } from "@/lib/dm/romance-held-logic";
 import type { CharacterSheet } from "@/lib/schemas/sheet";
+import { useI18n } from "@/lib/i18n/provider";
 
 // The romantic steps asked in a fight that is now over, on the console's
 // Waiting on you (issue 640): at a table a person runs, this is where the
@@ -46,6 +46,14 @@ export function HeldAsks({
   encounter: PublicEncounter | null;
   variantRules: CritRules;
 }) {
+  const { t } = useI18n();
+  const stageLabels = {
+    interested: t("campaign.dmHeldAsks.stage.interested"),
+    courting: t("campaign.dmHeldAsks.stage.courting"),
+    together: t("campaign.dmHeldAsks.stage.together"),
+    betrothed: t("campaign.dmHeldAsks.stage.betrothed"),
+    married: t("campaign.dmHeldAsks.stage.married"),
+  };
   const shown = answering && !asks.some((ask) => ask.id === answering.id) ? [...asks, answering] : asks;
   if (!shown.length) {
     return null;
@@ -54,9 +62,9 @@ export function HeldAsks({
     <ul className="stagger mt-1.5 space-y-1.5">
       {shown.map((ask) => (
         <li key={ask.id} className="rounded-lg border border-rose-500/25 bg-stone-950/50 px-2.5 py-2" data-held-ask={ask.subjectName}>
-          <p className="font-display text-[11px] tracking-[0.12em] text-rose-200/90">Asked in the fight</p>
+          <p className="font-display text-[11px] tracking-[0.12em] text-rose-200/90">{t("campaign.dmHeldAsks.heading")}</p>
           <p className="text-sm text-stone-200">
-            {ask.characterName} asked {ask.subjectName} {ASK_WORDS[ask.heldStep.to]}. {ask.subjectName} has not answered yet.
+            {t("campaign.dmHeldAsks.request", { character: ask.characterName, subject: ask.subjectName, stage: stageLabels[ask.heldStep.to] })}
           </p>
           {answering?.id === ask.id && entry ? (
             <div className="reveal mt-1.5 space-y-1.5">
@@ -74,7 +82,7 @@ export function HeldAsks({
           ) : entry ? (
             <button type="button" onClick={() => onAnswer(ask)} className={cn(ui.btnSmall, "mt-1.5 min-h-10 px-2 py-1 text-xs")}>
               <GameIcon icon={{ kind: "glyph", key: "tab-bonds" }} size="size-5" />
-              Have {ask.subjectName} answer
+              {t("campaign.dmHeldAsks.answer", { name: ask.subjectName })}
             </button>
           ) : null}
         </li>

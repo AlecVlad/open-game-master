@@ -19,6 +19,7 @@ const {
   slotTableFor,
 } = await import("../src/lib/srd/multiclass.ts");
 const { populateFeaturesForClasses } = await import("../src/lib/srd/features.ts");
+const { unmetPrereqDetails } = await import("../src/app/characters/builder/multiclassBuild.ts");
 const { populateResources } = await import("../src/lib/srd/class-resources.ts");
 const { combatRiders } = await import("../src/lib/srd/feature-effects.ts");
 const { unarmoredFormulaFor } = await import("../src/lib/srd/armor.ts");
@@ -28,6 +29,22 @@ function test(name, fn) {
   fn();
   passed += 1;
 }
+
+test("builder prerequisite diagnostics retain OR and AND ability requirements", () => {
+  const classList = [
+    { id: "fighter", subclass: "", level: 1 },
+    { id: "monk", subclass: "", level: 1 },
+  ];
+  const details = unmetPrereqDetails(
+    classList,
+    { str: 12, dex: 12, con: 10, int: 10, wis: 10, cha: 10 },
+    (id) => id.toUpperCase(),
+  );
+  assert.deepEqual(details, [
+    { className: "FIGHTER", alternatives: [["str"], ["dex"]], minimum: 13 },
+    { className: "MONK", alternatives: [["dex", "wis"]], minimum: 13 },
+  ]);
+});
 
 const scores = (overrides = {}) => ({
   str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10, ...overrides,

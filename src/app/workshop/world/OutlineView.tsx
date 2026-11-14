@@ -2,12 +2,13 @@
 
 import { Check, CircleAlert, Loader2, RotateCcw, Wand2 } from "lucide-react";
 import { useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui";
 import { KitButton, PanelError } from "@/app/campaigns/[campaignId]/PanelKit";
 import { forgeReport, type ForgeApplied, type ReportLine } from "@/lib/worldforge/forge";
 import { outlineCounts, type Outline, type OutlineAsset, type OutlineEntry } from "@/lib/worldforge/outline";
-import type { Shelf } from "@/lib/worldforge/model";
+import { LINK_LABELS, type Shelf } from "@/lib/worldforge/model";
 import type { MadeAsset } from "@/lib/dm/world-outline";
 import type { WorldApi, WorldState } from "./useWorld";
 import type { OpenSystem } from "./WorldForgePanel";
@@ -27,20 +28,14 @@ import { TypeChip } from "./world-ui";
 type Task = { state: "waiting" | "making" | "made" | "failed"; ref?: string; error?: string; made?: MadeAsset };
 type Phase = "review" | "making" | "done";
 
-const SHELVES: ReadonlyArray<{ shelf: Shelf; label: string }> = [
-  { shelf: "npc", label: "People" },
-  { shelf: "location", label: "Places" },
-  { shelf: "faction", label: "Factions" },
-  { shelf: "lore", label: "Lore" },
-];
+const SHELVES: readonly Shelf[] = ["npc", "location", "faction", "lore"];
 
 // A tick with a finger-sized target: the box sits in a 40px square that
 // passes its click on, without growing the row.
 const TICK = "-m-3 flex size-10 shrink-0 cursor-pointer items-center justify-center [&>input]:cursor-pointer";
 
-const plural = (count: number, one: string, many: string) => `${count} ${count === 1 ? one : many}`;
-
 export function OutlineView({ api, world, onOpen, onOpenSystem }: { api: WorldApi; world: WorldState; onOpen: (ref: string) => void; onOpenSystem?: OpenSystem }) {
+  const { t, tp } = useI18n();
   const { doc } = world;
   const [idea, setIdea] = useState("");
   const [hint, setHint] = useState("");
@@ -61,7 +56,7 @@ export function OutlineView({ api, world, onOpen, onOpenSystem }: { api: WorldAp
       const response = await fetch(`/api/campaigns/${api.campaignId}/world/${path}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
       return { ok: response.ok, json: await response.json().catch(() => ({})) };
     } catch {
-      return { ok: false, json: { error: "The server could not be reached." } };
+      return { ok: false, json: { error: t("workshop.world.outline.error.server") } };
     }
   };
 
@@ -71,7 +66,7 @@ export function OutlineView({ api, world, onOpen, onOpenSystem }: { api: WorldAp
     const { ok, json } = await post("outline", { step: "outline", idea, hint });
     setDrafting(false);
     if (!ok || !json.outline) {
-      setError(typeof json.error === "string" ? json.error : "The outline could not be drafted.");
+      setError(typeof json.error === "string" ? json.error : t("workshop.world.outline.error.draft"));
       return;
     }
     const next = json.outline as Outline;
@@ -98,6 +93,10 @@ export function OutlineView({ api, world, onOpen, onOpenSystem }: { api: WorldAp
   const nameOf = (key: string) => names[key] ?? entries.find((row) => row.existing === key)?.name ?? world.entities.find((entity) => entity.ref === key)?.name ?? key;
   const ticked = [...entries.filter((row) => picked[row.key] && !row.existing), ...assets.filter((row) => picked[row.key])];
   const counts = outline ? outlineCounts(outline) : null;
+  const localizedLink = (label: string) => {
+    const index = LINK_LABELS.indexOf(label as (typeof LINK_LABELS)[number]);
+    return index >= 0 ? t(`workshop.world.link.words.${index}`) : label;
+  };
 
   // The World ref a link end has now: an entry the world already had, or a
   // row made here.
@@ -179,40 +178,41 @@ export function OutlineView({ api, world, onOpen, onOpenSystem }: { api: WorldAp
       {!outline ? (
         <>
           <p className="text-sm text-stone-400">
-            Write a line or two about the world you want. A model drafts an outline: people, places, factions and lore, and a few creatures and items to play with, each counted. Nothing is made until you tick what to keep.
+            {t("workshop.world.outline.intro")}
           </p>
-          <textarea className={cn(ui.input, "min-h-28")} placeholder="A drowned kingdom where the tide-priests ration dry land, and smugglers trade in the bones of sea giants..." aria-label="Your idea for the world" maxLength={4_000} value={idea} onChange={(event) => setIdea(event.target.value)} />
+          <textarea className={cn(ui.input, "min-h-28")} placeholder={t("workshop.world.outline.idea.example")} aria-label={t("workshop.world.outline.idea.aria")} maxLength={4_000} value={idea} onChange={(event) => setIdea(event.target.value)} />
           <div className="flex flex-wrap items-center gap-2">
-            <input className={cn(ui.input, "max-w-md flex-1 text-xs")} placeholder="Steer it (optional): grim, low magic, say" aria-label="Steer the outline" maxLength={300} value={hint} onChange={(event) => setHint(event.target.value)} />
+            <input className={cn(ui.input, "max-w-md flex-1 text-xs")} placeholder={t("workshop.world.outline.hint.example")} aria-label={t("workshop.world.outline.hint.aria")} maxLength={300} value={hint} onChange={(event) => setHint(event.target.value)} />
             <KitButton tone="primary" busy={drafting} disabled={drafting || !idea.trim()} onClick={draft} data-tour="world-outline">
-              {drafting ? null : <Wand2 className="size-3.5" />} Draft an outline
+              {drafting ? null : <Wand2 className="size-3.5" />} {t("workshop.world.outline.draft")}
             </KitButton>
           </div>
-          <p className="text-[11px] text-stone-500">To pull names out of notes you already have, without inventing anything, use Forge instead.</p>
+          <p className="text-[11px] text-stone-500">{t("workshop.world.outline.forgeHint")}</p>
         </>
       ) : null}
       {error ? <PanelError>{error}</PanelError> : null}
 
       {outline && phase === "review" ? (
-        <section className="flex flex-col gap-2 animate-fade-up" aria-label="The outline">
+        <section className="flex flex-col gap-2 animate-fade-up" aria-label={t("workshop.world.outline.heading")}>
           {outline.premise ? <p className="text-sm text-stone-200">{outline.premise}</p> : null}
           {counts ? (
             <p className="text-xs text-stone-400" data-testid="outline-counts">
               {[
-                plural(counts.people, "person", "people"),
-                plural(counts.places, "place", "places"),
-                plural(counts.factions, "faction", "factions"),
-                plural(counts.lore, "lore entry", "lore entries"),
-                plural(counts.creatures, "creature", "creatures"),
-                plural(counts.items, "item", "items"),
-              ].join(" · ")}
-              . Nothing is made yet.
+                tp("workshop.world.outline.count.people", counts.people),
+                tp("workshop.world.outline.count.places", counts.places),
+                tp("workshop.world.outline.count.factions", counts.factions),
+                tp("workshop.world.outline.count.lore", counts.lore),
+                tp("workshop.world.outline.count.creatures", counts.creatures),
+                tp("workshop.world.outline.count.items", counts.items),
+               ].join(" · ")}
+              . {t("workshop.world.outline.nothingMadeYet")}
             </p>
           ) : null}
           {outline.left.map((line) => (
             <p key={line} className="text-xs text-amber-300">{line}</p>
           ))}
-          {SHELVES.map(({ shelf, label }) => {
+          {SHELVES.map((shelf) => {
+            const label = t(`workshop.world.outline.shelf.${shelf}`);
             const rows = entries.filter((row) => row.shelf === shelf);
             if (!rows.length) return null;
             return (
@@ -230,12 +230,12 @@ export function OutlineView({ api, world, onOpen, onOpenSystem }: { api: WorldAp
           })}
           {assets.length ? (
             <div className="flex flex-col gap-1">
-              <h3 className="eyebrow text-[10px] text-amber-400/80">To play with</h3>
-              <p className="text-[11px] text-stone-500">Each is built and checked by its own tool, the way that tool&apos;s own are, with a World entry linked to it. One model call each.</p>
+              <h3 className="eyebrow text-[10px] text-amber-400/80">{t("workshop.world.outline.toPlayWith")}</h3>
+              <p className="text-[11px] text-stone-500">{t("workshop.world.outline.assets.explanation")}</p>
               <ul className="flex flex-col gap-1.5">
                 {assets.map((row) => (
                   <OutlineRow key={row.key} name={names[row.key] ?? row.name} summary={row.summary} picked={Boolean(picked[row.key])} existing={false} onPick={(value) => setPicked((now) => ({ ...now, [row.key]: value }))} onName={(value) => setNames((now) => ({ ...now, [row.key]: value }))}>
-                    <span className="pk-chip text-[11px] text-stone-300">{assetLine(row)}</span>
+                    <span className="pk-chip text-[11px] text-stone-300">{assetLine(row, t)}</span>
                   </OutlineRow>
                 ))}
               </ul>
@@ -243,37 +243,37 @@ export function OutlineView({ api, world, onOpen, onOpenSystem }: { api: WorldAp
           ) : null}
           {outline.links.length ? (
             <div className="flex flex-col gap-1">
-              <h3 className="eyebrow text-[10px] text-amber-400/80">Links</h3>
+              <h3 className="eyebrow text-[10px] text-amber-400/80">{t("workshop.world.outline.links")}</h3>
               <ul className="flex flex-col gap-1">
                 {outline.links.map((link, index) => (
                   <li key={`${link.from}-${link.to}-${link.label}`} className="flex items-center gap-2 text-sm text-stone-300">
                     <label className={TICK}>
-                      <input type="checkbox" className="size-4 accent-amber-400" aria-label={`Keep ${nameOf(link.from)} ${link.label} ${nameOf(link.to)}`} checked={Boolean(linkPicked[index])} onChange={(event) => setLinkPicked((now) => now.map((value, at) => (at === index ? event.target.checked : value)))} />
+                      <input type="checkbox" className="size-4 accent-amber-400" aria-label={t("workshop.world.outline.link.keepAria", { from: nameOf(link.from), label: localizedLink(link.label), to: nameOf(link.to) })} checked={Boolean(linkPicked[index])} onChange={(event) => setLinkPicked((now) => now.map((value, at) => (at === index ? event.target.checked : value)))} />
                     </label>
-                    {nameOf(link.from)} <span className="text-stone-500">{link.label}</span> {nameOf(link.to)}
+                    {nameOf(link.from)} <span className="text-stone-500">{localizedLink(link.label)}</span> {nameOf(link.to)}
                   </li>
                 ))}
               </ul>
-              <p className="text-[11px] text-stone-500">A link is made once both its ends are.</p>
+              <p className="text-[11px] text-stone-500">{t("workshop.world.outline.link.explanation")}</p>
             </div>
           ) : null}
           <div className="flex flex-wrap items-center justify-end gap-2">
-            <KitButton tone="small" onClick={reset}>Throw it away</KitButton>
+            <KitButton tone="small" onClick={reset}>{t("workshop.world.outline.reset")}</KitButton>
             <KitButton tone="primary" disabled={!ticked.length} onClick={makeTicked} data-testid="outline-make">
-              <Check className="size-3.5" /> Make the ticked ({ticked.length})
+              <Check className="size-3.5" /> {t("workshop.world.outline.makeSelected", { count: ticked.length })}
             </KitButton>
           </div>
         </section>
       ) : null}
 
       {outline && phase !== "review" ? (
-        <section className="flex flex-col gap-2" aria-label="Making the outline">
+        <section className="flex flex-col gap-2" aria-label={t("workshop.world.outline.progress.heading")}>
           <p className={cn("rounded-lg border px-3 py-2 text-xs", failedCount && phase === "done" ? "border-amber-600/50 bg-amber-900/15 text-amber-100" : "border-emerald-700/40 bg-emerald-900/15 text-stone-200")} role="status" data-testid="outline-progress">
             {phase === "making"
-              ? `Making ${Math.min(madeCount + failedCount + 1, taskRows.length)} of ${taskRows.length}...`
+              ? t("workshop.world.outline.progress.making", { current: Math.min(madeCount + failedCount + 1, taskRows.length), total: taskRows.length })
               : failedCount
-                ? `Made ${madeCount} of ${taskRows.length}. ${failedCount === 1 ? "One was" : `${failedCount} were`} not made: each can be retried on its own below.`
-                : `Made all ${taskRows.length}.`}
+                ? t("workshop.world.outline.progress.withFailures", { made: madeCount, total: taskRows.length, failures: tp("workshop.world.outline.progress.failureCount", failedCount) })
+                : t("workshop.world.outline.progress.allMade", { total: taskRows.length })}
           </p>
           <ul className="flex flex-col gap-1.5">
             {taskRows.map((row) => {
@@ -283,29 +283,29 @@ export function OutlineView({ api, world, onOpen, onOpenSystem }: { api: WorldAp
                   <div className="flex flex-wrap items-center gap-2">
                     {task.state === "made" ? <Check className="size-4 text-emerald-400" aria-hidden="true" /> : task.state === "failed" ? <CircleAlert className="size-4 text-ember-300" aria-hidden="true" /> : task.state === "making" ? <Loader2 className="size-4 animate-spin text-amber-300" aria-hidden="true" /> : <span className="size-4 rounded-full border border-stone-600" aria-hidden="true" />}
                     {task.state === "failed" ? (
-                      <input className={cn(ui.input, "w-48 py-1 text-sm")} aria-label={`Name for ${row.name}`} maxLength={80} value={names[row.key] ?? row.name} onChange={(event) => setNames((now) => ({ ...now, [row.key]: event.target.value }))} />
+                      <input className={cn(ui.input, "w-48 py-1 text-sm")} aria-label={t("workshop.world.outline.nameFor", { name: row.name })} maxLength={80} value={names[row.key] ?? row.name} onChange={(event) => setNames((now) => ({ ...now, [row.key]: event.target.value }))} />
                     ) : (
                       <span className="text-sm text-stone-100">{names[row.key] ?? row.name}</span>
                     )}
-                    <span className="text-[11px] text-stone-500">{"shelf" in row ? "World entry" : row.kind === "creature" ? "Bestiary" : "Homebrew"}</span>
-                    <span className="sr-only">{task.state === "made" ? "made" : task.state === "failed" ? "failed" : task.state === "making" ? "making" : "waiting"}</span>
+                    <span className="text-[11px] text-stone-500">{"shelf" in row ? t("workshop.world.outline.worldEntry") : row.kind === "creature" ? t("workshop.world.outline.bestiary") : t("workshop.world.outline.homebrew")}</span>
+                    <span className="sr-only">{task.state === "made" ? t("workshop.world.outline.state.made") : task.state === "failed" ? t("workshop.world.outline.state.failed") : task.state === "making" ? t("workshop.world.outline.state.making") : t("workshop.world.outline.state.waiting")}</span>
                     <span className="ml-auto flex flex-wrap gap-1">
                       {task.state === "made" && task.made && onOpenSystem ? (
                         <KitButton tone="small" onClick={() => onOpenSystem(task.made!.kind === "creature" ? "bestiary" : "homebrew", { id: task.made!.id, from: task.made!.entryRef })}>
-                          {task.made.kind === "creature" ? "Edit stats" : "Edit item"}
+                          {task.made.kind === "creature" ? t("workshop.world.outline.editStats") : t("workshop.world.outline.editItem")}
                         </KitButton>
                       ) : null}
-                      {task.state === "made" && task.ref ? <KitButton tone="small" onClick={() => onOpen(task.ref!)}>World entry</KitButton> : null}
+                      {task.state === "made" && task.ref ? <KitButton tone="small" onClick={() => onOpen(task.ref!)}>{t("workshop.world.outline.worldEntry")}</KitButton> : null}
                       {task.state === "failed" && phase === "done" ? (
-                        <KitButton tone="small" onClick={() => retry(row)} aria-label={`Retry ${names[row.key] ?? row.name}`}>
-                          <RotateCcw className="size-3.5" /> Retry
+                        <KitButton tone="small" onClick={() => retry(row)} aria-label={t("workshop.world.outline.retryAria", { name: names[row.key] ?? row.name })}>
+                          <RotateCcw className="size-3.5" /> {t("workshop.world.outline.retry")}
                         </KitButton>
                       ) : null}
                     </span>
                   </div>
                   {task.state === "made" && task.made ? (
                     <p className="text-xs text-stone-400">
-                      Made {task.made.name} in {task.made.lands}: {task.made.detail}.{task.made.entryError ? ` Its World entry was not made: ${task.made.entryError}` : ""}
+                      {t("workshop.world.outline.madeDetail", { name: task.made.name, lands: t(task.made.kind === "creature" ? "workshop.world.outline.bestiary" : "workshop.world.outline.homebrew"), detail: task.made.detail })}{task.made.entryError ? ` ${t("workshop.world.outline.entryNotMade", { error: task.made.entryError })}` : ""}
                     </p>
                   ) : null}
                   {task.state === "failed" ? <p className="text-xs text-ember-300" role="alert">{task.error}</p> : null}
@@ -318,17 +318,17 @@ export function OutlineView({ api, world, onOpen, onOpenSystem }: { api: WorldAp
           ))}
           {linksUnticked.length ? (
             <p className="text-xs text-amber-300">
-              Links not made, because one end was not ticked: {linksUnticked.map((link) => `${nameOf(link.from)} ${link.label} ${nameOf(link.to)}`).join("; ")}.
+              {t("workshop.world.outline.linksNotMade", { links: linksUnticked.map((link) => `${nameOf(link.from)} ${localizedLink(link.label)} ${nameOf(link.to)}`).join("; ") })}
             </p>
           ) : null}
           {waitingLinks.length ? (
             <p className="text-xs text-amber-300">
-              Links waiting for an end that was not made: {waitingLinks.map((link) => `${nameOf(link.from)} ${link.label} ${nameOf(link.to)}`).join("; ")}. A retry that makes it writes them.
+              {t("workshop.world.outline.linksWaiting", { links: waitingLinks.map((link) => `${nameOf(link.from)} ${link.label} ${nameOf(link.to)}`).join("; ") })}
             </p>
           ) : null}
           {phase === "done" ? (
             <div className="flex justify-end">
-              <KitButton tone="small" onClick={reset}>Draft another outline</KitButton>
+              <KitButton tone="small" onClick={reset}>{t("workshop.world.outline.draftAnother")}</KitButton>
             </div>
           ) : null}
         </section>
@@ -337,9 +337,9 @@ export function OutlineView({ api, world, onOpen, onOpenSystem }: { api: WorldAp
   );
 }
 
-function assetLine(row: OutlineAsset): string {
-  if (row.kind === "creature") return `Creature, CR ${row.cr < 1 ? `1/${Math.round(1 / row.cr)}` : row.cr}${row.basis ? `, built on the ${row.basis}` : ", original"} · Bestiary`;
-  return `Item, ${row.itemKind.replace(/_/g, " ")} · Homebrew`;
+function assetLine(row: OutlineAsset, t: ReturnType<typeof useI18n>["t"]): string {
+  if (row.kind === "creature") return `${t("workshop.world.outline.asset.creature")}, CR ${row.cr < 1 ? `1/${Math.round(1 / row.cr)}` : row.cr}${row.basis ? `, ${t("workshop.world.outline.asset.basedOn", { basis: row.basis })}` : `, ${t("workshop.world.outline.asset.original")}`} · ${t("workshop.world.outline.bestiary")}`;
+  return `${t("workshop.world.outline.asset.item")}, ${t(`workshop.world.outline.asset.itemKind.${row.itemKind}`)} · ${t("workshop.world.outline.homebrew")}`;
 }
 
 function OutlineRow({ name, summary, picked, existing, onPick, onName, onOpen, children }: { name: string; summary: string; picked: boolean; existing: boolean; onPick: (value: boolean) => void; onName: (value: string) => void; onOpen?: () => void; children: React.ReactNode }) {
@@ -347,11 +347,11 @@ function OutlineRow({ name, summary, picked, existing, onPick, onName, onOpen, c
     <li className={cn("panel flex flex-col gap-1 rounded-lg p-2.5", !picked && "opacity-60")}>
       <div className="flex flex-wrap items-center gap-2">
         <label className={TICK}>
-          <input type="checkbox" className="size-4 accent-amber-400" aria-label={`Make ${name}`} checked={picked} disabled={existing} onChange={(event) => onPick(event.target.checked)} />
+          <input type="checkbox" className="size-4 accent-amber-400" aria-label={t("workshop.world.outline.makeAria", { name })} checked={picked} disabled={existing} onChange={(event) => onPick(event.target.checked)} />
         </label>
-        <input className={cn(ui.input, "w-48 max-w-full py-1 text-sm")} aria-label="Name" maxLength={80} value={name} disabled={existing} onChange={(event) => onName(event.target.value)} />
+        <input className={cn(ui.input, "w-48 max-w-full py-1 text-sm")} aria-label={t("workshop.world.outline.name")} maxLength={80} value={name} disabled={existing} onChange={(event) => onName(event.target.value)} />
         {existing && onOpen ? (
-          <button type="button" onClick={onOpen} className="pk-chip text-[11px] text-stone-400">already in the world</button>
+          <button type="button" onClick={onOpen} className="pk-chip text-[11px] text-stone-400">{t("workshop.world.outline.alreadyInWorld")}</button>
         ) : null}
         {children}
       </div>

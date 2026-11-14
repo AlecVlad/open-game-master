@@ -6,6 +6,8 @@ import { cn } from "@/lib/cn";
 import type { TourEnd } from "@/lib/tours/account-logic";
 import { placeCard, resolveSteps, skipVanished, type ResolvedStep, type TourStep } from "@/lib/tours/logic";
 import { ui } from "@/lib/ui";
+import { useT } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages/index";
 
 // A spotlight walkthrough: dims the page, cuts a window around one control
 // at a time, and explains it in a card beside it. Targets are elements
@@ -35,14 +37,17 @@ type Box = { top: number; left: number; width: number; height: number };
 export function GuidedTour({
   open,
   steps,
+  translationScope,
   onPrepare,
   onClose,
 }: {
   open: boolean;
   steps: readonly TourStep[];
+  translationScope?: string;
   onPrepare?: (name: string) => void;
   onClose: (how: TourEnd) => void;
 }) {
+  const t = useT();
   const [resolved, setResolved] = useState<ResolvedStep[] | null>(null);
   const [index, setIndex] = useState(0);
   const [spot, setSpot] = useState<Box | null>(null);
@@ -175,6 +180,18 @@ export function GuidedTour({
 
   if (!current) return null;
 
+  const sharedStep = translationScope?.startsWith("system.") &&
+    (current.step.id === "rail" || current.step.id === "help");
+  const copyScope = translationScope
+    ? sharedStep ? "workshop.tour.common" : `workshop.tour.${translationScope}`
+    : null;
+  const title = copyScope
+    ? t(`${copyScope}.${current.step.id}.title` as MessageKey)
+    : current.step.title;
+  const body = copyScope
+    ? t(`${copyScope}.${current.step.id}.body` as MessageKey)
+    : current.step.body;
+
   return (
     <>
       {/* data-guided-tour marks the tour's own surfaces so a modal sheet
@@ -202,7 +219,7 @@ export function GuidedTour({
         ref={cardRef}
         data-guided-tour
         role="dialog"
-        aria-label="Guided tour"
+        aria-label={t("workshop.tour.ui.aria")}
         // Which step is showing, for scripts/browser/scenarios that walk a
         // tour and check each step found its target.
         data-tour-step={current.step.id}
@@ -211,23 +228,23 @@ export function GuidedTour({
       >
         <div className="flex items-center justify-between gap-2">
           <span className={ui.sectionEyebrow}>
-            {index + 1} of {total}
+            {t("workshop.tour.ui.progress", { current: index + 1, total })}
           </span>
           <button
             type="button"
             onClick={() => onClose("ended")}
-            aria-label="End the tour"
+            aria-label={t("workshop.tour.ui.end")}
             className="rounded-md p-1 text-stone-500 transition-colors hover:bg-stone-800 hover:text-stone-200"
           >
             <X className="size-4" />
           </button>
         </div>
-        <h3 className="mt-1.5 font-display text-base tracking-wide text-amber-50">{current.step.title}</h3>
-        <p className="mt-1.5 text-sm leading-relaxed text-stone-300">{current.step.body}</p>
+        <h3 className="mt-1.5 font-display text-base tracking-wide text-amber-50">{title}</h3>
+        <p className="mt-1.5 text-sm leading-relaxed text-stone-300">{body}</p>
         <div className="mt-3 flex justify-end gap-2">
           {index > 0 ? (
             <button type="button" onClick={() => step(-1)} className={ui.btnSmall}>
-              Back
+              {t("workshop.tour.ui.back")}
             </button>
           ) : null}
           <button
@@ -236,7 +253,7 @@ export function GuidedTour({
             onClick={() => step(1)}
             className={cn(ui.btnPrimary, "h-9 px-3.5")}
           >
-            {last ? "Done" : "Next"}
+            {last ? t("workshop.tour.ui.done") : t("workshop.tour.ui.next")}
             {last ? null : <ChevronRight className="size-4" />}
           </button>
         </div>

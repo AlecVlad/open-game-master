@@ -2,6 +2,8 @@
 
 import { Star } from "lucide-react";
 import { useId, useRef, useState, useSyncExternalStore } from "react";
+import { useI18n } from "@/lib/i18n/provider";
+import { formatModifier } from "@/lib/srd";
 import { SpellBook, type SpellTile } from "@/components/sheet/SpellBook";
 import { AnyListSpellGroup } from "@/components/sheet/AnyListSpellGroup";
 import { ANY_SPELL_LIST, useSpellLookups, useSpellPool, useWiderSpellPool } from "@/components/sheet/useSpellPool";
@@ -54,6 +56,7 @@ export function SpellsGearStep({
   table: TableRulesState;
   pack: WorldPack | null;
 }) {
+  const { t } = useI18n();
   const purse = purseViewFor({
     purse: derived.purse,
     keepsStoredGear: state.keepsStoredGear,
@@ -62,7 +65,7 @@ export function SpellsGearStep({
     classId: klass?.id ?? "",
     className: klass?.name ?? "character",
     table,
-  });
+  }, { t });
   return (
     <div className="space-y-4">
       {/* The classes that cast: one desk, or a tab for each (backlog F9). */}
@@ -149,6 +152,7 @@ function CasterSpells({
   klass: ClassOption;
   pack: WorldPack | null;
 }) {
+  const { t } = useI18n();
   const desks = (derived.casterDesks ?? []).filter((desk) => desk.casts);
   const keys = desks.map((desk) => desk.classId);
   const [chosen, setChosen] = useState<string | null>(null);
@@ -162,7 +166,7 @@ function CasterSpells({
     <div data-caster-tabs="">
       <div
         role="tablist"
-        aria-label="Spells by class"
+        aria-label={t("builder.spells.tabs.aria")}
         className="mb-3 flex flex-wrap gap-2"
         onKeyDown={roving.onKeyDown}
         onFocus={roving.onFocus}
@@ -225,6 +229,7 @@ export function SpellsSection({
   klass: ClassOption;
   pack: WorldPack | null;
 }) {
+  const { t } = useI18n();
   const { spells, setSpells, cantrips, setCantrips, bookPrepared, setBookPrepared } = state;
   const {
     spellAdvice,
@@ -249,7 +254,19 @@ export function SpellsSection({
   const spellCap = spellAdvice?.count ?? null;
   const bookCap = spellbookAdvice;
   // The working behind a prepared caster's count, said with the limit.
-  const limitWhy = spellAdvice?.formula ? `: ${spellAdvice.formula}` : "";
+  const limitWhy = spellAdvice?.sum
+    ? t(
+        spellAdvice.sum.levelPart === spellAdvice.sum.level
+          ? "builder.spells.limitWhy.prepared"
+          : "builder.spells.limitWhy.preparedHalf",
+        {
+          ability: t(`builder.spells.ability.${spellAdvice.sum.ability}`),
+          modifier: formatModifier(spellAdvice.sum.mod),
+          level: spellAdvice.sum.level,
+          levelPart: spellAdvice.sum.levelPart,
+        },
+      )
+    : spellAdvice?.formula ? `: ${spellAdvice.formula}` : "";
   const wizard = spellStyle === "spellbook";
   // A wizard fills the book first, then prepares from it.
   const [phase, setPhase] = useState<"book" | "prepare">("book");
@@ -396,7 +413,7 @@ export function SpellsSection({
       setBookPrepared((current) => current.filter((entry) => textKey(entry) !== textKey(out)));
     }
     setSwap(null);
-    setLimitNote(`Swapped ${out} out for ${into}.`);
+    setLimitNote(t("builder.spells.limits.swapped", { out, into }));
     focusTile(into);
   }
 
@@ -410,7 +427,7 @@ export function SpellsSection({
         return;
       }
       setLimitNote(
-        `You already know ${cantripCap} ${cantripCap === 1 ? "cantrip" : "cantrips"}. Remove one to choose ${name}.`,
+        t("builder.spells.limits.cantrip", { count: cantripCap, word: t(cantripCap === 1 ? "builder.spells.limits.cantrip.one" : "builder.spells.limits.cantrip.other"), name }),
       );
       return;
     }
@@ -437,8 +454,8 @@ export function SpellsSection({
       }
       setLimitNote(
         wizard
-          ? `Your spellbook starts with ${cap} spells. Remove one to write in ${name}.`
-          : `You already have ${cap} ${spellAdvice?.label ?? "spells"}${limitWhy}. Remove one to choose ${name}.`,
+          ? t("builder.spells.limits.book", { count: cap, name })
+          : t("builder.spells.limits.known", { count: cap, label: t(spellStyle === "known" ? "builder.spells.listTitle.known" : "builder.spells.listTitle.prepared").toLowerCase(), why: limitWhy, name }),
       );
       return;
     }
@@ -458,7 +475,7 @@ export function SpellsSection({
       if (offerSwap("prepared", name)) {
         return;
       }
-      setLimitNote(`You can prepare ${spellCap} spells${limitWhy}. Unprepare one to prepare ${name}.`);
+      setLimitNote(t("builder.spells.limits.prepared", { count: spellCap, why: limitWhy, name }));
       return;
     }
     setBookPrepared((current) => [...current, name]);
@@ -498,7 +515,7 @@ export function SpellsSection({
   const listCap = wizard ? bookCap : spellCap;
   const listFull = listCap !== null && chosenSpells.length >= listCap;
   const preparedFull = spellCap !== null && chosenPrepared.length >= spellCap;
-  const listFullText = wizard ? "Spellbook full" : spellStyle === "known" ? "Known spells full" : "Prepared list full";
+  const listFullText = wizard ? t("builder.spells.full.book") : spellStyle === "known" ? t("builder.spells.full.known") : t("builder.spells.full.prepared");
   // A full list with a pick of the player's in it that can make room for
   // this spell offers a swap instead (backlog F13): the tile says so and is
   // not dimmed.
@@ -512,20 +529,20 @@ export function SpellsSection({
       return undefined;
     }
     if (tileState === "inBook") {
-      return phase === "prepare" && preparedFull ? "Prepared list full" : undefined;
+      return phase === "prepare" && preparedFull ? t("builder.spells.full.prepared") : undefined;
     }
     if (tileState !== "available") {
       return undefined;
     }
     if (level === 0) {
-      return cantripsFull ? "Cantrips full" : undefined;
+      return cantripsFull ? t("builder.spells.full.cantrips") : undefined;
     }
     if (listFull) {
       // Picks to trade, and the two schools turn every one away: the rule
       // is what stands in the way, not the count.
-      return choicesFor("spell", name).ruledOut ? "Outside your two schools" : listFullText;
+      return choicesFor("spell", name).ruledOut ? t("builder.spells.full.schools") : listFullText;
     }
-    return offSchool(name) ? "Outside your two schools" : undefined;
+    return offSchool(name) ? t("builder.spells.full.schools") : undefined;
   };
 
   // Every tile: the class list from the pack, plus anything chosen or
@@ -576,11 +593,11 @@ export function SpellsSection({
         slug: row?.slug,
         homebrew: row?.source === "homebrew",
         ...(level === 0 && isRacial(name)
-          ? { note: "From your race" }
+          ? { note: t("builder.spells.note.race") }
           : isFeat(name)
-            ? { note: "From your feat" }
+            ? { note: t("builder.spells.note.feat") }
             : swappable
-              ? { note: "Full: tap to swap in" }
+              ? { note: t("builder.spells.note.swap") }
               : {}),
         ...(row?.document && row.documentSlug !== "wotc-srd" ? { source: row.document } : {}),
       },
@@ -630,15 +647,15 @@ export function SpellsSection({
 
   const counters = [
     ...(cantripAdvice !== null
-      ? [{ label: "Cantrips", value: chosenCantrips.length, max: cantripAdvice }]
+      ? [{ label: t("builder.spells.counter.cantrips"), value: chosenCantrips.length, max: cantripAdvice }]
       : []),
     ...(wizard && spellbookAdvice !== null
-      ? [{ label: "Spellbook", value: chosenSpells.length, max: spellbookAdvice }]
+      ? [{ label: t("builder.spells.counter.spellbook"), value: chosenSpells.length, max: spellbookAdvice }]
       : []),
     ...(spellAdvice
       ? [
           {
-            label: spellStyle === "known" ? "Known" : "Prepared",
+            label: t(spellStyle === "known" ? "builder.spells.counter.known" : "builder.spells.counter.prepared"),
             value: wizard ? chosenPrepared.length : chosenSpells.length,
             max: spellAdvice.count,
           },
@@ -652,7 +669,7 @@ export function SpellsSection({
     spellSaveDc: derived.preview?.derived.spellSaveDc,
     spellAttack: derived.preview?.derived.spellAttack,
     spellSlots: derived.spellSlots,
-  });
+  }, t);
   const caps = capLines({
     className: klass.name,
     level: derived.casterLevel ?? derived.effectiveLevel,
@@ -660,15 +677,15 @@ export function SpellsSection({
     spellbookCap: wizard ? bookCap : null,
     spellCap: spellAdvice,
     known: spellStyle === "known",
-  });
-  const listTitle = spellStyle === "known" ? "Known spells" : "Prepared";
+  }, t);
+  const listTitle = t(spellStyle === "known" ? "builder.spells.listTitle.known" : "builder.spells.listTitle.prepared");
   const named = (list: string[]) => list.map((name) => displayName(pack, "spells", name));
   const chosenLists = [
     ...(cantripCap !== null
-      ? [{ id: "cantrips", title: "Cantrips", count: `${chosenCantrips.length}/${cantripCap}`, names: named(chosenCantrips) }]
+      ? [{ id: "cantrips", title: t("builder.spells.counter.cantrips"), count: `${chosenCantrips.length}/${cantripCap}`, names: named(chosenCantrips) }]
       : []),
     ...(wizard
-      ? [{ id: "book", title: "Spellbook", count: `${chosenSpells.length}/${bookCap ?? "?"}`, names: named(chosenSpells) }]
+      ? [{ id: "book", title: t("builder.spells.counter.spellbook"), count: `${chosenSpells.length}/${bookCap ?? "?"}`, names: named(chosenSpells) }]
       : []),
     ...(spellAdvice
       ? [
@@ -681,7 +698,7 @@ export function SpellsSection({
         ]
       : []),
     ...(subclassSpells.length
-      ? [{ id: "granted", title: "Always prepared", count: String(subclassSpells.length), names: named(subclassSpells) }]
+      ? [{ id: "granted", title: t("builder.spells.counter.alwaysPrepared"), count: String(subclassSpells.length), names: named(subclassSpells) }]
       : []),
   ];
 
@@ -697,22 +714,21 @@ export function SpellsSection({
           listCap: wizard ? bookCap : spellCap,
           listVerb: wizard ? "write in your spellbook" : spellStyle === "known" ? "know" : "prepare",
           maxSpellLevel,
-        });
+        }, t);
   return (
     <StepPanel
-      title="Spells"
+      title={t("builder.spells.title")}
       ornate
       anchor="spells"
       help={
         <>
-          <GameTerm id="cantrip">Cantrips</GameTerm> are small spells you know for good and cast as
-          often as you like.{" "}
+          <GameTerm id="cantrip">{t("builder.spells.counter.cantrips")}</GameTerm>{t("builder.spells.help.cantripRest")}{" "}
           {spellStyle === "known"
-            ? `A ${className} knows a fixed set of spells, always ready to cast with a spell slot. You can swap one each time you level up.`
+            ? t("builder.spells.help.known", { className })
             : wizard
-              ? "A wizard writes spells in a spellbook, then prepares some of them to cast. Fill the book first, then choose what is prepared. In play you change what is prepared after a long rest."
-              : `A ${className} can prepare any spell on the ${className} list. Choose what you start with prepared; in play you change them after a long rest.`}{" "}
-          Tap a spell to choose it; ⓘ reads it first.
+              ? t("builder.spells.help.wizard")
+              : t("builder.spells.help.prepared", { className })}{" "}
+          {t("builder.spells.help.tap")}
         </>
       }
     >
@@ -725,11 +741,11 @@ export function SpellsSection({
       {wizard ? (
         // Two toggle buttons that switch what the list below does (write or
         // prepare), the same pattern as the spell level row in SpellBook.
-        <div role="group" aria-label="Spellbook step" data-pill-group className="mb-3 grid grid-cols-2 gap-1.5">
+        <div role="group" aria-label={t("builder.spells.wizardStep.aria")} data-pill-group className="mb-3 grid grid-cols-2 gap-1.5">
           {(
             [
-              ["book", "1. Write your spellbook", `${chosenSpells.length}/${spellbookAdvice ?? "?"}`],
-              ["prepare", "2. Prepare from it", `${chosenPrepared.length}/${spellAdvice?.count ?? "?"}`],
+              ["book", t("builder.spells.wizardStep.book"), `${chosenSpells.length}/${spellbookAdvice ?? "?"}`],
+              ["prepare", t("builder.spells.wizardStep.prepare"), `${chosenPrepared.length}/${spellAdvice?.count ?? "?"}`],
             ] as const
           ).map(([key, label, count]) => (
             <button
@@ -764,7 +780,7 @@ export function SpellsSection({
             onClick={addSuggested}
             className="text-amber-300 underline-offset-2 hover:underline"
           >
-            Fill with the suggested spells
+            {t("builder.spells.action.fillSuggested")}
           </button>
         </p>
       ) : null}
@@ -788,7 +804,8 @@ export function SpellsSection({
             <SwapPrompt
               question={swapQuestion(
                 swap,
-                swap.kind === "cantrip" ? "Cantrips full" : swap.kind === "prepared" ? "Prepared list full" : listFullText,
+                swap.kind === "cantrip" ? t("builder.spells.swap.cantrips") : swap.kind === "prepared" ? t("builder.spells.swap.prepared") : listFullText,
+                t,
               )}
               candidates={candidatesFor(swap.kind, swap.name)}
               into={swap.name}
@@ -800,10 +817,10 @@ export function SpellsSection({
         }
         emptyText={
           loading
-            ? "Loading the spell list..."
+            ? t("builder.spells.loading")
             : wizard && phase === "prepare"
-              ? "Nothing in your spellbook at this level."
-              : "No spells at this level."
+              ? t("builder.spells.empty.book")
+              : t("builder.spells.empty.level")
         }
         header={
           klass.genres ? (
@@ -811,12 +828,12 @@ export function SpellsSection({
               {/* A workshop class is named by its own id (issue #833): the
                   line says which list it casts from, never the id. */}
               {customSpellsOf(spellSearchClass)
-                ? `${className} casts from a spell list of its own.`
-                : `Counts follow the ${spellListLabel(spellSearchClass)} list this class borrows.`}
+                ? t("builder.spells.header.ownList", { className })
+                : t("builder.spells.header.borrowedList", { listName: spellListLabel(spellSearchClass) })}
             </span>
           ) : null
         }
-        searchLabel={anyGroup ? `Find a ${className} spell` : undefined}
+        searchLabel={anyGroup ? t("builder.spells.search", { className }) : undefined}
       />
       {anyGroup ? (
         <div className="mt-3">
@@ -849,6 +866,7 @@ function SpellDeskHeader({
   caps: ReturnType<typeof capLines>;
   lists: Array<{ id: string; title: string; count: string; names: string[] }>;
 }) {
+  const { t } = useI18n();
   return (
     <div data-spell-desk="" className="mb-3 space-y-2 text-xs">
       {numbers.dc || numbers.attack || numbers.slots.length ? (
@@ -856,21 +874,21 @@ function SpellDeskHeader({
           {numbers.dc ? (
             <div className="flex gap-1">
               <dt className="text-stone-400">
-                <GameTerm id="spell_save_dc">Spell save DC</GameTerm>
+                <GameTerm id="spell_save_dc">{t("builder.spells.spellSaveDC")}</GameTerm>
               </dt>
               <dd className="font-mono text-amber-100">{numbers.dc}</dd>
             </div>
           ) : null}
           {numbers.attack ? (
             <div className="flex gap-1">
-              <dt className="text-stone-400">Spell attack</dt>
+              <dt className="text-stone-400">{t("builder.spells.spellAttack")}</dt>
               <dd className="font-mono text-amber-100">{numbers.attack}</dd>
             </div>
           ) : null}
           {numbers.slots.length ? (
             <div className="flex gap-1">
               <dt className="text-stone-400">
-                <GameTerm id="spell_slot">Slots</GameTerm>
+                <GameTerm id="spell_slot">{t("builder.spells.slots")}</GameTerm>
               </dt>
               <dd className="text-amber-100">
                 {numbers.slots.map((slot) => `${slot.label} ${slot.max}`).join(", ")}
@@ -902,7 +920,7 @@ function SpellDeskHeader({
                   ))}
                 </ul>
               ) : (
-                <p className="mt-1 text-stone-500">None yet.</p>
+                <p className="mt-1 text-stone-500">{t("builder.spells.noneYet")}</p>
               )}
             </section>
           ))}
@@ -933,6 +951,7 @@ function SwapPrompt({
   onSwap: (out: string) => void;
   onCancel: () => void;
 }) {
+  const { t } = useI18n();
   return (
     <div
       role="group"
@@ -956,14 +975,14 @@ function SwapPrompt({
             key={name}
             type="button"
             onClick={() => onSwap(name)}
-            aria-label={`${label(name)}: swap out for ${label(into)}`}
+            aria-label={t("builder.spells.swap.aria", { name: label(name), into: label(into) })}
             className={cn(ui.btnSmall, "pk-tap")}
           >
             {label(name)}
           </button>
         ))}
         <button type="button" onClick={onCancel} className={cn(ui.btnSmall, "pk-tap text-stone-400")}>
-          Cancel
+          {t("wizard.cancel")}
         </button>
       </div>
     </div>

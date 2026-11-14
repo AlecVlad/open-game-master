@@ -11,6 +11,8 @@ import { canonicalRaceId, srdRaceFor } from "@/lib/content/race-options";
 import { textKey } from "@/lib/language/text-logic";
 import { SRD_SKILLS } from "@/lib/srd";
 import { ABILITY_NAMES } from "@/lib/srd/legality/types";
+import type { Params } from "@/lib/i18n/core";
+import type { MessageKey } from "@/lib/i18n/messages/index";
 
 const BASE = "/assets/placeholders";
 
@@ -282,34 +284,34 @@ export function asiChoiceChip(entry: Pick<LineageEntry, "asiChoice" | "variants"
 const COUNT_WORD: Record<number, string> = { 1: "One", 2: "Two", 3: "Three", 4: "Four" };
 export const countWord = (count: number) => COUNT_WORD[count] ?? String(count);
 
+export type LineageMessages = {
+  t?: (key: MessageKey, params?: Params) => string;
+  tp?: (key: string, count: number, params?: Params) => string;
+};
+
 // Everything the lineage leaves to the player, which is what the section
 // under the grid is there to collect.
-export function lineageChoices(entry: LineageEntry): string[] {
+export function lineageChoices(entry: LineageEntry, messages?: LineageMessages): string[] {
   const out: string[] = [];
   if (entry.asiChoice) {
-    out.push(
-      `${countWord(entry.asiChoice.count)} ${entry.asiChoice.count === 1 ? "ability" : "abilities"} to raise by ${entry.asiChoice.amount}`,
-    );
+    const { count, amount } = entry.asiChoice;
+    out.push(messages?.tp ? messages.tp("builder.extra.lineage.choice.ability", count, { amount }) : `${countWord(count)} ${count === 1 ? "ability" : "abilities"} to raise by ${amount}`);
   }
   if (entry.bonusLanguages) {
-    out.push(
-      `${countWord(entry.bonusLanguages)} bonus ${entry.bonusLanguages === 1 ? "language" : "languages"}`,
-    );
+    const count = entry.bonusLanguages;
+    out.push(messages?.tp ? messages.tp("builder.extra.lineage.choice.language", count) : `${countWord(count)} bonus ${count === 1 ? "language" : "languages"}`);
   }
   if (entry.skillChoice) {
-    out.push(
-      `${countWord(entry.skillChoice.count)} skill ${entry.skillChoice.count === 1 ? "proficiency" : "proficiencies"}`,
-    );
+    const count = entry.skillChoice.count;
+    out.push(messages?.tp ? messages.tp("builder.extra.lineage.choice.skill", count) : `${countWord(count)} skill ${count === 1 ? "proficiency" : "proficiencies"}`);
   }
   if (entry.cantripChoice) {
-    out.push(
-      `${countWord(entry.cantripChoice.count)} ${entry.cantripChoice.list} ${entry.cantripChoice.count === 1 ? "cantrip" : "cantrips"}`,
-    );
+    const { count, list } = entry.cantripChoice;
+    out.push(messages?.tp ? messages.tp("builder.extra.lineage.choice.cantrip", count, { list }) : `${countWord(count)} ${list} ${count === 1 ? "cantrip" : "cantrips"}`);
   }
   if (entry.toolChoice) {
-    out.push(
-      `${countWord(entry.toolChoice.count)} ${entry.toolChoice.count === 1 ? "set" : "sets"} of artisan's tools`,
-    );
+    const count = entry.toolChoice.count;
+    out.push(messages?.tp ? messages.tp("builder.extra.lineage.choice.tool", count) : `${countWord(count)} ${count === 1 ? "set" : "sets"} of artisan's tools`);
   }
   return out;
 }
@@ -322,7 +324,7 @@ export type ParsedTrait = { head: string; body: string | null };
 // feature's name and the line itself is the mechanic; and a bare line, which
 // may name a choice this step collects. A bare line with nothing behind it is
 // a locked row: a name with no chevron.
-export function parseTrait(line: string, entry: LineageEntry): ParsedTrait {
+export function parseTrait(line: string, entry: LineageEntry, messages?: LineageMessages): ParsedTrait {
   const text = line.trim();
   const inverted = /^\+/.test(text) || /proficienc(y|ies)[^(]*\(/i.test(text);
   const match = inverted ? null : /^([^(]+?)\s*\((.+)\)$/.exec(text);
@@ -334,28 +336,32 @@ export function parseTrait(line: string, entry: LineageEntry): ParsedTrait {
     const count = entry.bonusLanguages;
     return {
       head: text,
-      body: `${countWord(count)} more ${count === 1 ? "tongue" : "tongues"} of your choice, asked for on this step.`,
+      body: messages?.tp ? messages.tp("builder.extra.lineage.trait.language", count) : `${countWord(count)} more ${count === 1 ? "tongue" : "tongues"} of your choice, asked for on this step.`,
     };
   }
   if (/cantrip/i.test(text) && entry.cantripChoice) {
     const { count, list } = entry.cantripChoice;
     return {
       head: text,
-      body: `${countWord(count)} ${list} ${count === 1 ? "cantrip" : "cantrips"} of your choice, asked for on this step.`,
+      body: messages?.tp ? messages.tp("builder.extra.lineage.trait.cantrip", count, { list }) : `${countWord(count)} ${list} ${count === 1 ? "cantrip" : "cantrips"} of your choice, asked for on this step.`,
     };
   }
   if (/skill/i.test(text) && entry.skillChoice) {
     const { count, from } = entry.skillChoice;
-    const among = from?.length ? ` from ${from.map((id) => SRD_SKILLS.find((skill) => skill.id === id)?.name ?? id).join(", ")}` : "";
+    const skills = from?.map((id) => SRD_SKILLS.find((skill) => skill.id === id)?.name ?? id) ?? [];
+    const among = skills.length
+      ? (messages?.t ? messages.t("builder.extra.lineage.trait.skill.among", { skills: skills.join(", ") }) : ` from ${skills.join(", ")}`)
+      : "";
     return {
       head: text,
-      body: `${countWord(count)} ${count === 1 ? "skill" : "skills"} of your choice${among}, asked for on this step.`,
+      body: messages?.tp ? messages.tp("builder.extra.lineage.trait.skill", count, { among }) : `${countWord(count)} ${count === 1 ? "skill" : "skills"} of your choice${among}, asked for on this step.`,
     };
   }
   if (/tool/i.test(text) && entry.toolChoice) {
+    const tools = entry.toolChoice.from.join(", ");
     return {
       head: text,
-      body: `One of ${entry.toolChoice.from.join(", ")}, asked for on this step.`,
+      body: messages?.t ? messages.t("builder.extra.lineage.trait.tool", { tools }) : `One of ${tools}, asked for on this step.`,
     };
   }
   return { head: text, body: null };
@@ -399,7 +405,12 @@ export function slidePosition(
   slide: { name: string; recommended?: boolean },
   index: number,
   total: number,
+  messages?: LineageMessages,
 ): string {
+  if (messages?.t) {
+    const recommended = slide.recommended ? `, ${messages.t("builder.extra.lineage.position.recommended")}` : "";
+    return messages.t("builder.extra.lineage.position", { name: slide.name, index: index + 1, total, recommended });
+  }
   return `${slide.name}, ${index + 1} of ${total}${slide.recommended ? ", recommended" : ""}`;
 }
 

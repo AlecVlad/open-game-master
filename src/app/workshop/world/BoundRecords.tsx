@@ -2,6 +2,7 @@
 
 import { Link2, Plus, Swords, Unlink } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { KitButton, PanelError } from "@/app/campaigns/[campaignId]/PanelKit";
 import { ContentPick } from "@/components/ui/ContentPick";
 import { Select } from "@/components/ui/Select";
@@ -19,11 +20,6 @@ import type { OpenSystem } from "./WorldForgePanel";
 
 // A place's battle maps and encounters are its own section (PlaceBattleMaps).
 type RecordKind = Exclude<BindingKind, PlaceBindingKind>;
-const WORDS: Record<RecordKind, { one: string; tool: string; system: string }> = {
-  monster: { one: "stat block", tool: "Bestiary", system: "bestiary" },
-  item: { one: "item", tool: "Homebrew", system: "homebrew" },
-};
-
 type Own = { ref: string; name: string };
 
 export function BoundRecords({
@@ -42,6 +38,11 @@ export function BoundRecords({
   // instead of opened in the workshop's Encounters.
   onOpenSystem?: OpenSystem;
 }) {
+  const { t } = useI18n();
+  const words: Record<RecordKind, { one: string; plural: string; tool: string; system: string }> = {
+    monster: { one: t("workshop.world.boundRecords.monster.one"), plural: t("workshop.world.boundRecords.monster.plural"), tool: t("workshop.world.boundRecords.monster.tool"), system: "bestiary" },
+    item: { one: t("workshop.world.boundRecords.item.one"), plural: t("workshop.world.boundRecords.item.plural"), tool: t("workshop.world.boundRecords.item.tool"), system: "homebrew" },
+  };
   const [adding, setAdding] = useState<RecordKind | null>(null);
   const [own, setOwn] = useState<Own[]>([]);
   const [busy, setBusy] = useState(false);
@@ -94,8 +95,8 @@ export function BoundRecords({
     setError("");
     const outcome = await api.update(entity.ref, { bindings: next }, { bindings });
     setBusy(false);
-    if (!outcome) setError(api.error || "That link did not save.");
-    else if ("conflicts" in outcome) setError("Someone else changed this entry's links meanwhile. Here they are as they are now; try again.");
+    if (!outcome) setError(api.error || t("workshop.world.boundRecords.error.linkNotSaved"));
+    else if ("conflicts" in outcome) setError(t("workshop.world.boundRecords.error.conflict"));
     return Boolean(outcome && !("conflicts" in outcome));
   }
 
@@ -119,7 +120,7 @@ export function BoundRecords({
     setBusy(false);
     const id = data.monster?.id ?? data.entry?.id;
     if (!response.ok || !id) {
-      setError(data.error ?? `That ${WORDS[kind].one} could not be made.`);
+      setError(data.error ?? t("workshop.world.boundRecords.error.make", { type: words[kind].one }));
       return;
     }
     await link(kind, `homebrew:${id}`);
@@ -136,12 +137,12 @@ export function BoundRecords({
     const data = (await response.json().catch(() => ({}))) as { templateId?: string; error?: string };
     setBusy(false);
     if (!response.ok || !data.templateId) {
-      setError(data.error ?? "That fight could not be changed.");
+      setError(data.error ?? t("workshop.world.boundRecords.error.fight"));
       return;
     }
     setFighting(null);
     if (onOpenSystem) onOpenSystem("encounters", { id: data.templateId, from: entity.ref });
-    else setAdded(fight === "__new" ? `A new fight, ${entity.name}, is with this campaign's prepared fights.` : `Added to ${fights.find((entry) => entry.id === fight)?.name ?? "the fight"}.`);
+    else setAdded(fight === "__new" ? t("workshop.world.boundRecords.fight.newAdded", { name: entity.name }) : t("workshop.world.boundRecords.fight.added", { name: fights.find((entry) => entry.id === fight)?.name ?? t("workshop.world.boundRecords.fight.fallback") }));
   }
 
   // Every WorldForge page is the DM's (requireStoryAuthority): linking needs
@@ -151,51 +152,49 @@ export function BoundRecords({
   return (
     <section className="flex flex-col gap-2" data-testid="world-bound">
       <div className="flex flex-wrap items-center gap-2">
-        <span className="eyebrow text-[10px] text-stone-500">Use at the table</span>
+        <span className="eyebrow text-[10px] text-stone-500">{t("workshop.world.boundRecords.heading")}</span>
         {loreOnly ? (
-          <span className="rounded-md border border-amber-700/50 px-1.5 py-0.5 text-[10px] uppercase tracking-[0.12em] text-amber-300" data-testid="world-lore-only" title="Not an item the table can hold until one is linked">
-            Lore only
+          <span className="rounded-md border border-amber-700/50 px-1.5 py-0.5 text-[10px] uppercase tracking-[0.12em] text-amber-300" data-testid="world-lore-only" title={t("workshop.world.boundRecords.loreOnly.title")}>
+            {t("workshop.world.boundRecords.loreOnly.label")}
           </span>
         ) : null}
       </div>
-      {loreOnly ? <p className="text-xs text-stone-400">The table cannot hold this yet: link it to an item, or make one, and shops and inventories can offer it.</p> : null}
+      {loreOnly ? <p className="text-xs text-stone-400">{t("workshop.world.boundRecords.loreOnly.explanation")}</p> : null}
 
       {entity.bound.flatMap((record) => (isPlaceBinding(record.kind) ? [] : [{ ...record, kind: record.kind as RecordKind }])).map((record) => (
         <div key={`${record.kind}|${record.ref}`} className="flex flex-wrap items-center gap-1.5 rounded-lg border border-stone-700/60 px-2 py-1.5 text-sm" data-testid="world-bound-record">
-          <span className="text-[10px] uppercase tracking-[0.12em] text-stone-500">{WORDS[record.kind].one}</span>
+          <span className="text-[10px] uppercase tracking-[0.12em] text-stone-500">{words[record.kind].one}</span>
           {record.found ? (
             <span className="text-stone-100">
               {record.name}
               {record.detail ? <span className="text-stone-500"> · {record.detail}</span> : null}
             </span>
           ) : (
-            <span className="text-amber-300">Not found at this table any more</span>
+            <span className="text-amber-300">{t("workshop.world.boundRecords.notFound")}</span>
           )}
           <span className="ml-auto flex flex-wrap gap-1">
             {record.found && record.ownId && onOpenSystem ? (
-              <KitButton tone="small" onClick={() => onOpenSystem(WORDS[record.kind].system, { id: record.ownId, from: entity.ref })} title={`Open it in the ${WORDS[record.kind].tool}`}>
-                Open
-              </KitButton>
+              <KitButton tone="small" onClick={() => onOpenSystem(words[record.kind].system, { id: record.ownId, from: entity.ref })} title={t("workshop.world.boundRecords.openInTool", { tool: words[record.kind].tool })}>{t("workshop.world.boundRecords.open")}</KitButton>
             ) : null}
             {record.found && record.kind === "monster" ? (
               <KitButton tone="small" onClick={() => setFighting(fighting === record.ref ? null : record.ref)} aria-expanded={fighting === record.ref}>
-                <Swords className="size-3.5" /> Add to a fight
+                <Swords className="size-3.5" /> {t("workshop.world.boundRecords.addToFight")}
               </KitButton>
             ) : null}
-            <KitButton tone="small" busy={busy} disabled={busy} onClick={() => void setLinks(bindings.filter((binding) => !(binding.kind === record.kind && binding.ref === record.ref)))} title="Unlink it from this entry; the record itself stays">
-              <Unlink className="size-3.5" /> Unlink
+            <KitButton tone="small" busy={busy} disabled={busy} onClick={() => void setLinks(bindings.filter((binding) => !(binding.kind === record.kind && binding.ref === record.ref)))} title={t("workshop.world.boundRecords.unlink.title")}>
+              <Unlink className="size-3.5" /> {t("workshop.world.boundRecords.unlink.action")}
             </KitButton>
           </span>
           {fighting === record.ref ? (
             <div className="flex w-full flex-wrap items-center gap-1.5 pt-1">
               <Select
-                label="Which fight"
+                label={t("workshop.world.boundRecords.fight.which")}
                 value={fight}
                 onChange={setFight}
-                options={[{ value: "__new", label: `A new fight: ${entity.name}` }, ...fights.map((entry) => ({ value: entry.id, label: entry.name }))]}
+                options={[{ value: "__new", label: t("workshop.world.boundRecords.fight.newOption", { name: entity.name }) }, ...fights.map((entry) => ({ value: entry.id, label: entry.name }))]}
               />
               <KitButton tone="primary" busy={busy} disabled={busy} onClick={() => void addToFight(record.ref)}>
-                Add it
+                {t("workshop.world.boundRecords.fight.addIt")}
               </KitButton>
             </div>
           ) : null}
@@ -205,38 +204,38 @@ export function BoundRecords({
       {!full ? (
         adding ? (
           <div className="flex flex-col gap-1.5 rounded-lg border border-stone-700/60 p-2" data-testid="world-bound-adding">
-            <span className="text-xs text-stone-400">{`Link a ${WORDS[adding].one} from your own ${WORDS[adding].tool}, or the rulebook's.`}</span>
+            <span className="text-xs text-stone-400">{t(adding === "monster" ? "workshop.world.boundRecords.linkFromOwn.monster" : "workshop.world.boundRecords.linkFromOwn.item", { tool: words[adding].tool })}</span>
             {own.length ? (
               <Select
-                label={`Your ${WORDS[adding].one}s`}
+                label={t("workshop.world.boundRecords.ownShelf", { type: words[adding].plural })}
                 value="__none"
-                placeholder={`Your ${WORDS[adding].one}s`}
+                placeholder={t("workshop.world.boundRecords.ownShelf", { type: words[adding].plural })}
                 onChange={(ref) => ref !== "__none" && void link(adding, ref)}
-                options={[{ value: "__none", label: `Pick one of yours` }, ...own.map((row) => ({ value: row.ref, label: row.name }))]}
+                options={[{ value: "__none", label: t("workshop.world.boundRecords.pickOwn") }, ...own.map((row) => ({ value: row.ref, label: row.name }))]}
               />
             ) : null}
             <ContentPick
               kind={adding === "monster" ? "monsters" : "items"}
-              label={`Pick a ${WORDS[adding].one} from the rulebook`}
-              placeholder={adding === "monster" ? "Goblin, Owlbear..." : "Lantern, Rope..."}
+              label={t(adding === "monster" ? "workshop.world.boundRecords.rulebook.monster" : "workshop.world.boundRecords.rulebook.item")}
+              placeholder={t(adding === "monster" ? "workshop.world.boundRecords.rulebook.exampleMonster" : "workshop.world.boundRecords.rulebook.exampleItem")}
               onPick={(entry) => entry.slug && void link(adding, entry.slug)}
             />
             <span className="flex flex-wrap gap-1.5">
               <KitButton tone="small" busy={busy} disabled={busy} onClick={() => void make(adding)}>
-                <Plus className="size-3.5" /> Make a new one: {entity.name}
+                <Plus className="size-3.5" /> {t("workshop.world.boundRecords.makeNew", { name: entity.name })}
               </KitButton>
               <KitButton tone="small" onClick={() => setAdding(null)}>
-                Cancel
+                {t("workshop.cancel")}
               </KitButton>
             </span>
           </div>
         ) : (
           <span className="flex flex-wrap gap-1.5">
             <KitButton tone="small" onClick={() => setAdding("monster")}>
-              <Link2 className="size-3.5" /> A stat block
+              <Link2 className="size-3.5" /> {t("workshop.world.boundRecords.monster.one")}
             </KitButton>
             <KitButton tone="small" onClick={() => setAdding("item")}>
-              <Link2 className="size-3.5" /> An item
+              <Link2 className="size-3.5" /> {t("workshop.world.boundRecords.item.one")}
             </KitButton>
           </span>
         )

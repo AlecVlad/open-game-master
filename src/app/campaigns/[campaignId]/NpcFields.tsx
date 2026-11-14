@@ -1,13 +1,12 @@
 "use client";
 
 import { Trash2 } from "lucide-react";
+import { useI18n } from "@/lib/i18n/provider";
 import { Slider } from "@/components/ui/Slider";
-import { PERSONALITY_AXES } from "@/lib/dm/npc-logic";
+import { PERSONALITY_AXES, clampAxis } from "@/lib/dm/npc-logic";
 import {
   AXIS_LABELS,
   BLANK_PERSONALITY,
-  describeAxis,
-  describeRelation,
   removeRelation,
   setRelation,
   type NpcDraft,
@@ -23,6 +22,25 @@ import { textKey } from "@/lib/language/text-logic";
 // anything; every change here becomes a draft the server validates
 // (src/lib/npcs/forge.ts).
 
+const AXIS_NAME_KEY: Record<(typeof PERSONALITY_AXES)[number], string> = {
+  drive: "campaign.npcEditor.axis.drive",
+  diligence: "campaign.npcEditor.axis.diligence",
+  boldness: "campaign.npcEditor.axis.boldness",
+  warmth: "campaign.npcEditor.axis.warmth",
+  empathy: "campaign.npcEditor.axis.empathy",
+  composure: "campaign.npcEditor.axis.composure",
+};
+
+function axisValueKey(axis: (typeof PERSONALITY_AXES)[number], value: number): string {
+  const score = clampAxis(value);
+  const variant = score === 0 ? "neutral" : score > 0 ? (score >= 2 ? "veryHigh" : "high") : (score <= -2 ? "veryLow" : "low");
+  return "campaign.npcEditor.axisValue." + axis + "." + variant;
+}
+
+function relationValueKey(value: number): string {
+  return "campaign.npcEditor.relation." + clampAxis(value);
+}
+
 // Who somebody is, as words rather than as numbers. The slider moves an
 // integer the engine drifts and compares; the label beside it is the only
 // part a DM should have to think in.
@@ -33,12 +51,13 @@ export function PersonalitySliders({
   draft: NpcDraft;
   onChange: (draft: NpcDraft) => void;
 }) {
+  const { t } = useI18n();
   const personality = draft.personality ?? BLANK_PERSONALITY;
   return (
     <>
       {PERSONALITY_AXES.map((axis) => (
         <label key={axis} className="flex items-center gap-2 text-[11px] text-stone-500">
-          <span className="w-16 shrink-0">{AXIS_LABELS[axis].name}</span>
+          <span className="w-16 shrink-0">{t(AXIS_NAME_KEY[axis] as never)}</span>
           <Slider
             min={-3}
             max={3}
@@ -50,17 +69,16 @@ export function PersonalitySliders({
                 personality: { ...personality, [axis]: next },
               })
             }
-            label={AXIS_LABELS[axis].name}
+            label={t(AXIS_NAME_KEY[axis] as never)}
             className="min-w-0 flex-1"
           />
           <span className="w-24 shrink-0 text-right text-stone-400">
-            {describeAxis(axis, personality[axis] ?? 0)}
+            {t(axisValueKey(axis, personality[axis] ?? 0) as never)}
           </span>
         </label>
       ))}
       <p className="text-[10px] text-stone-600">
-        These drift on their own as the party treats them well or badly. Neither is a real answer,
-        and most people are unremarkable on most of it.
+        {t("campaign.npcEditor.personality.note")}
       </p>
     </>
   );
@@ -121,6 +139,7 @@ export function RelationEditor({
   others: string[];
   onChange: (draft: NpcDraft) => void;
 }) {
+  const { t } = useI18n();
   const edgeFor = (name: string) =>
     graph.edges.find((entry) => {
       const pair = [textKey(entry.from), textKey(entry.to)];
@@ -148,11 +167,11 @@ export function RelationEditor({
                   relations: setRelation(draft.relations, relation.npcName, next, relation.note),
                 })
               }
-              label={`How they stand with ${relation.npcName}`}
+              label={t("campaign.npcEditor.relation.slider", { name: relation.npcName })}
               className="w-24 shrink-0"
             />
             <span className="w-20 shrink-0 text-[11px] text-stone-400">
-              {describeRelation(relation.score)}
+              {t(relationValueKey(relation.score) as never)}
             </span>
             <input
               value={relation.note ?? ""}
@@ -167,20 +186,21 @@ export function RelationEditor({
                   ),
                 })
               }
-              placeholder="why"
+              placeholder={t("campaign.npcEditor.relation.note")}
               className="min-w-20 flex-1 rounded-md border border-stone-700 bg-stone-950 px-1.5 py-0.5 text-[11px] text-stone-400"
             />
             {edge?.dangling ? (
-              <span className="text-[10px] text-amber-300/80">nobody by that name yet</span>
+              <span className="text-[10px] text-amber-300/80">{t("campaign.npcEditor.relation.unknown")}</span>
             ) : edge?.mutual ? (
               <span className="text-[10px] text-stone-600">
-                they say {describeRelation(theirScore)}
+                {t("campaign.npcEditor.relation.theySay", { value: t(relationValueKey(theirScore) as never) })}
               </span>
             ) : (
-              <span className="text-[10px] text-stone-600">one-sided</span>
+              <span className="text-[10px] text-stone-600">{t("campaign.npcEditor.relation.oneSided")}</span>
             )}
             <button
               type="button"
+              aria-label={t("campaign.npcEditor.relation.remove", { name: relation.npcName })}
               onClick={() =>
                 onChange({
                   ...draft,

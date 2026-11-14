@@ -6,7 +6,24 @@ import { ui } from "@/lib/ui";
 import { resolveSkin } from "@/lib/battlemap/skins";
 import { TerrainCanvas } from "@/app/campaigns/[campaignId]/TerrainCanvas";
 import { stampsOf, useMapThumb } from "@/app/campaigns/[campaignId]/useMapPaint";
-import { THEME_LABELS, type PreparedMap } from "@/app/workshop/maps/types";
+import type { PreparedMap } from "@/app/workshop/maps/types";
+import { useI18n } from "@/lib/i18n/provider";
+
+const THEME_LABEL_KEYS: Record<PreparedMap["theme"],
+  | "workshop.maps.theme.cave"
+  | "workshop.maps.theme.forest"
+  | "workshop.maps.theme.swamp"
+  | "workshop.maps.theme.riverside"
+  | "workshop.maps.theme.interior"
+  | "workshop.maps.theme.field"
+> = {
+  cave: "workshop.maps.theme.cave",
+  forest: "workshop.maps.theme.forest",
+  swamp: "workshop.maps.theme.swamp",
+  riverside: "workshop.maps.theme.riverside",
+  interior: "workshop.maps.theme.interior",
+  field: "workshop.maps.theme.field",
+};
 
 // The workshop's map gallery: every prepared map as a thumbnail with its size,
 // theme and skin underneath. Tapping a tile hands the map to the caller, which
@@ -63,19 +80,20 @@ export function MapGallery({
   genre?: string | null;
   onOpen: (map: PreparedMap) => void;
 }) {
+  const { t } = useI18n();
   const controls = useListControls(maps);
   if (!maps.length) {
     return (
       <p className="text-xs text-stone-500">
-        Nothing in the drawer yet. Roll one, start from blank rock, or import a drawing.
+        {t("workshop.maps.empty")}
       </p>
     );
   }
   return (
     <div className="space-y-3">
-    <ListControls controls={controls} placeholder="Find a map" />
+    <ListControls controls={controls} placeholder={t("workshop.maps.search.placeholder")} />
     {controls.filtered && !controls.shown.length ? (
-      <p className="text-xs text-stone-500">Nothing matches that. Clear the search or the tag.</p>
+      <p className="text-xs text-stone-500">{t("workshop.maps.noMatch")}</p>
     ) : null}
     <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
       {controls.shown.map((map) => (
@@ -83,7 +101,7 @@ export function MapGallery({
           <button
             type="button"
             onClick={() => onOpen(map)}
-            aria-label={`Open ${map.name}`}
+            aria-label={t("workshop.maps.open", { name: map.name })}
             className={cn(
               ui.card,
               ui.tileHover,
@@ -95,7 +113,7 @@ export function MapGallery({
             <div className="min-w-0 px-1 pb-1">
               <p className="truncate font-display text-sm tracking-wide text-amber-50">{map.name}</p>
               <p className="text-[11px] text-stone-500">
-                {map.width} × {map.height} · {THEME_LABELS[map.theme]} · {resolveSkin(genre, map.theme, map.skin).name}
+                {map.width} × {map.height} · {t(THEME_LABEL_KEYS[map.theme])} · {resolveSkin(genre, map.theme, map.skin).name}
               </p>
             </div>
           </button>

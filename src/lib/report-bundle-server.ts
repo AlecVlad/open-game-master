@@ -117,13 +117,24 @@ export function adminReportSetup() {
 }
 
 // What the dialog shows before anything is saved: the setup's checks, cut
-// for keys and addresses exactly as the file's are.
+// for keys and addresses exactly as the file's are. The structured parameters
+// go through the same cutter: backend errors may contain private addresses.
+export function reportCheckFirstData(
+  setup: ReportSetup,
+  input: { viewer: ReportViewer; reporterUserId: string; secrets: readonly string[]; addresses: readonly string[] },
+): { checkFirst: string[]; checkFirstItems: NonNullable<ReportSetup["checkFirstItems"]> } {
+  const bundle = buildReportBundle({ sources: { setup }, parts: new Set(["setup"]), ...input });
+  return {
+    checkFirst: bundle.setup?.checkFirst ?? [],
+    checkFirstItems: bundle.setup?.checkFirstItems ?? [],
+  };
+}
+
 export function reportCheckFirst(
   setup: ReportSetup,
   input: { viewer: ReportViewer; reporterUserId: string; secrets: readonly string[]; addresses: readonly string[] },
 ): string[] {
-  const bundle = buildReportBundle({ sources: { setup }, parts: new Set(["setup"]), ...input });
-  return bundle.setup?.checkFirst ?? [];
+  return reportCheckFirstData(setup, input).checkFirst;
 }
 
 export async function tableReportSources(context: MemberContext, parts: ReadonlySet<ReportPartId>, viewer: ReportViewer): Promise<ReportSources> {

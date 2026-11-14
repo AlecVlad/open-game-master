@@ -169,6 +169,7 @@ await test("A Lore bard made at level 3 names its three skills, and the server h
   }
 });
 
+const choicePicks = await import("../src/lib/srd/subclass-choice-picks.ts");
 // Level-up, through the builder every level goes through.
 const { classGrantsFor } = await import("../src/lib/characters/catalog.ts");
 const levelContext = async (extra = {}) => ({
@@ -204,6 +205,40 @@ await test("A bard who takes College of Lore at level 3 is asked for the three s
   }
 });
 
+await test("A Lore bard's subclass-training refusal keeps its structured reason.", async () => {
+  const context = await levelContext();
+  const refused = buildLevelUp(
+    bardAt2,
+    levelRequest({ featChoices: keyedFeatChoices({ "Bonus Proficiencies (Lore)": { skills: ["not-a-skill", "arcana", "history"] } }) }),
+    context,
+  );
+  assert.ok("error" in refused);
+  assert.equal(refused.errorCode, "FEAT_GRANT_SKILL_INVALID");
+  assert.deepEqual(refused.errorParams, { feat: "Bonus Proficiencies (Lore)", skill: "not-a-skill" });
+});
+await test("workshop subclass choice refusals carry structured codes and parameters.", () => {
+  const extras = {
+    bard: [{
+      name: "College of Embers",
+      source: "homebrew",
+      levels: {},
+      choices: [{ id: "bloodline", label: "Bloodline", level: 3, options: [{ id: "storm", name: "Storm" }, { id: "flame", name: "Flame" }] }],
+    }],
+  };
+  const classes = [{ id: "bard", subclass: "College of Embers", level: 2 }];
+  const unknown = choicePicks.subclassChoicePickVerdict([{ name: "Bloodline (Frost)", source: "choice" }], classes, extras);
+  assert.equal(unknown.problems.length, 1);
+  assert.equal(unknown.problemDetails[0].code, "LEVEL_UP_SUBCLASS_CHOICE_OPTION_NOT_OFFERED");
+  assert.deepEqual(unknown.problemDetails[0].params, { subclass: "College of Embers", choice: "Bloodline", option: "Frost", offered: "Storm,Flame" });
+  const early = choicePicks.subclassChoicePickVerdict([{ name: "Bloodline (Storm)", source: "choice" }], classes, extras);
+  assert.equal(early.problemDetails[0].code, "LEVEL_UP_SUBCLASS_CHOICE_TOO_EARLY");
+  assert.deepEqual(early.problemDetails[0].params, { subclass: "College of Embers", choice: "Bloodline", requiredLevel: 3, classLevel: 2 });
+  const multipleFeatures = [{ name: "Bloodline (Storm)", source: "choice" }, { name: "Bloodline (Flame)", source: "choice" }];
+  const multiple = choicePicks.subclassChoicePickVerdict(multipleFeatures, [{ ...classes[0], level: 3 }], extras);
+  assert.equal(multiple.problemDetails[0].code, "LEVEL_UP_SUBCLASS_CHOICE_MULTIPLE");
+  assert.deepEqual(multiple.problemDetails[0].params, { subclass: "College of Embers", choice: "Bloodline", firstOption: "Storm", secondOption: "Flame" });
+  assert.deepEqual(choicePicks.subclassChoicePickProblems(multipleFeatures, [{ ...classes[0], level: 3 }], extras), multiple.problems);
+});
 await test("A companion levelling into College of Lore takes its skills on its own.", async () => {
   const taken = buildLevelUp(bardAt2, levelRequest(), await levelContext({ autoPicks: true }));
   assert.ok(!("error" in taken), taken.error);

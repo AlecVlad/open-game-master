@@ -15,7 +15,7 @@ const opencode = agentSetupLine("opencode", url, token);
 assert.deepEqual(JSON.parse(`{${opencode.text}}`), {
   mcp: { servers: { odm: { type: "remote", url, headers: { Authorization: `Bearer ${token}` }, oauth: false } } },
 });
-assert.match(opencode.where, /opencode 2/);
+assert.equal(opencode.whereKey, "agentConnect.where.opencode");
 assert.match(agentSetupLine("claude", url, token).text, /^claude mcp add --transport http odm http:\/\/192\.168\.1\.20:3005\/api\/mcp --header "Authorization: Bearer odm_tok_123"$/);
 assert.match(agentSetupLine("codex", url, token).text, /^\[mcp_servers\.odm\]\nurl = "http:\/\/192\.168\.1\.20:3005\/api\/mcp"\n/);
 assert.ok(agentSetupLine("other", url, token).text.includes(`Bearer ${token}`));

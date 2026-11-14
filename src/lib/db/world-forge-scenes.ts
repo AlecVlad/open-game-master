@@ -4,7 +4,7 @@ import { copiesFrom, recordOrigin } from "@/lib/db/content-origins";
 import { MAX_BEATS, MAX_EDGES, type Beat, type BeatLinks } from "@/lib/workshop/board";
 import { planSceneExport, type SceneExportPlan } from "@/lib/worldforge/scenes";
 import type { ImportedBeat } from "@/lib/worldforge/format";
-import { firstReadings, hashOf, mergeValues, originFrom, originKey } from "@/lib/worldforge/import-merge";
+import { firstReadings, hashOf, mergeValues, originFrom, originKey, type WorldConflictDetail } from "@/lib/worldforge/import-merge";
 import { parseRef, refOf, type WorldDoc } from "@/lib/worldforge/model";
 import { textKey } from "@/lib/language/text-logic";
 
@@ -22,7 +22,7 @@ import { textKey } from "@/lib/language/text-logic";
 // arrows and routes, its battle map and fight, where it sits) is never
 // touched by a reimport.
 
-export type SceneLanding = { created: number; updated: number; conflicts: string[]; matched: string[]; skipped: string[] };
+export type SceneLanding = { created: number; updated: number; conflicts: string[]; conflictDetails: WorldConflictDetail[]; matched: string[]; skipped: string[] };
 
 const SCENE_WORDS: Record<string, string> = { title: "title", body: "text", npcId: "Who", locationId: "Where" };
 
@@ -54,7 +54,7 @@ export function landScenes(
   const byTitle = new Map(live.filter((card) => !placed[card.id]).map((card) => [textKey(card.title), card.id]));
   let room = MAX_BEATS - live.length;
   const top = live.length ? Math.max(...live.map((card) => card.y)) + 220 : 40;
-  const landing: SceneLanding = { created: 0, updated: 0, conflicts: [], matched: [], skipped: [] };
+  const landing: SceneLanding = { created: 0, updated: 0, conflicts: [], conflictDetails: [], matched: [], skipped: [] };
   let overflow = 0;
   const stories = [...new Set(scenes.map((scene) => scene.story))];
   for (const [row, story] of stories.entries()) {
@@ -95,7 +95,15 @@ export function landScenes(
         const written = valuesOf(next);
         for (const item of merged.pending) merged.at[item.key] = `${item.source}.${hashOf(written[item.key as keyof SceneValues])}`;
         origins[key] = { from, at: merged.at };
-        for (const clash of merged.clashes) landing.conflicts.push(`Scene “${card.title}”: kept your ${SCENE_WORDS[clash] ?? clash} over the file's.`);
+        for (const clash of merged.clashes) {
+          const message = `Scene “${card.title}”: kept your ${SCENE_WORDS[clash] ?? clash} over the file's.`;
+          landing.conflicts.push(message);
+          landing.conflictDetails.push({
+            code: "workshop.contentImport.note.worldConflict.sceneValue",
+            params: { label: card.title, field: clash },
+            message,
+          });
+        }
         if (scene.wfId) recordOrigin(campaignId, "beats", card.id, source, scene.wfId);
         landing.updated += 1;
         line.push(card.id);

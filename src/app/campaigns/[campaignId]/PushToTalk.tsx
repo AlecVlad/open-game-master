@@ -8,6 +8,7 @@ import { useDictation } from "@/lib/use-dictation";
 import { useDictationShortcut, useMacKeyboard } from "@/lib/use-dictation-shortcut";
 import { ui } from "@/lib/ui";
 import { useHoldToDictate } from "@/app/campaigns/[campaignId]/useHoldToDictate";
+import { useI18n } from "@/lib/i18n/provider";
 
 // Hold-to-record push-to-talk. On release the clip goes to /api/stt and the
 // transcript lands in the composer for the player to confirm and send
@@ -24,6 +25,7 @@ export function PushToTalk({
   onTranscript: (text: string) => void;
   composerRef: RefObject<HTMLTextAreaElement | null>;
 }) {
+  const { t } = useI18n();
   const { state: rawState, hint, start, stop, available } = useDictation({ onTranscript });
   const state = rawState === "starting" ? "idle" : rawState;
   const shortcut = useDictationShortcut();
@@ -45,7 +47,8 @@ export function PushToTalk({
   }
 
   const keyName = shortcut ? formatChord(shortcut, mac) : "";
-  const label = keyName ? `Hold to talk, or hold ${keyName}` : "Hold to talk";
+  const label = keyName ? t("campaign.pushToTalk.label.shortcut", { shortcut: keyName }) : t("campaign.pushToTalk.label.base");
+  const title = keyName ? t("campaign.pushToTalk.title.shortcut", { shortcut: keyName }) : label;
   return (
     <div className="relative self-end">
       <button
@@ -60,7 +63,7 @@ export function PushToTalk({
         onPointerUp={stop}
         onPointerLeave={stop}
         onContextMenu={(event) => event.preventDefault()}
-        title={keyName ? `${label}. The words wait in the box until you send them.` : label}
+        title={title}
         aria-label={label}
         aria-keyshortcuts={shortcut ? ariaShortcut(shortcut) : undefined}
         data-tour="composer-talk"

@@ -1,6 +1,8 @@
 "use client";
 
 import { useMemo, useState, type ReactNode } from "react";
+import { useT } from "@/lib/i18n/provider";
+import { campaignApiErrorText } from "@/lib/i18n/campaignApiError";
 import { cn } from "@/lib/cn";
 import { offerCorrectionReason } from "@/lib/correction-offer";
 import { MessageList } from "@/app/campaigns/[campaignId]/MessageList";
@@ -74,6 +76,7 @@ export function SessionChatColumn({
   showTranscript?: boolean;
   children: ReactNode;
 }) {
+  const t = useT();
   const { campaign, messages, rolls, sheets, locations, dmStatus, utilityCalls } = state;
   const [reportTarget, setReportTarget] = useState<ReportTarget | null>(null);
   // The passage a player is objecting to (DisputeDialog.tsx); only a table
@@ -115,6 +118,8 @@ export function SessionChatColumn({
         hidden={Boolean(stage) && !showTranscript}
         messages={messages}
         campaignId={campaignId}
+        measurementSystem={campaign?.gameSettings?.measurementSystem ?? "si"}
+        tableLanguage={campaign?.gameSettings?.tableLanguage ?? "english"}
         canRetryTurn={steersStory}
         canIllustrate={steersStory}
         rolls={rolls}
@@ -220,21 +225,25 @@ export function SessionChatColumn({
           // onPinCanon (facts), which is lead-only canon.
           const selection = window.getSelection()?.toString().trim() ?? "";
           const isFullMessage = selection.length <= 3;
-          const response = await fetch(`/api/campaigns/${campaignId}/pins`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              messageId: message.id,
-              text: isFullMessage ? message.content : selection,
-              isFullMessage,
-            }),
-          });
-          if (!response.ok) {
-            const data = await response.json().catch(() => ({}));
-            onError(data.error || "Could not pin that.");
-            return;
+          try {
+            const response = await fetch(`/api/campaigns/${campaignId}/pins`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                messageId: message.id,
+                text: isFullMessage ? message.content : selection,
+                isFullMessage,
+              }),
+            });
+            if (!response.ok) {
+              const data = await response.json().catch(() => ({}));
+              onError(campaignApiErrorText(data, t("campaign.pins.error.invalid"), t));
+              return;
+            }
+            onPinned();
+          } catch {
+            onError(t("campaign.pins.error.server"));
           }
-          onPinned();
         }}
         onPinCanon={
           steersStory

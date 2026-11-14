@@ -67,7 +67,7 @@ export function makeRunDir(prefix: string, options: { tmpdir?: string; now?: num
   if (now - state().lastSweep >= RUN_DIR_SWEEP_EVERY_MS) {
     sweepStaleRunDirs({ tmpdir, now });
   }
-  const dir = mkdtempSync(path.join(tmpdir, prefix));
+  const dir = mkdtempSync(path.join(/*turbopackIgnore: true*/ tmpdir, prefix));
   state().live.add(path.resolve(dir));
   return dir;
 }
@@ -140,7 +140,7 @@ export function sweepStaleRunDirs(options: { tmpdir?: string; now?: number } = {
   state().lastSweep = now;
   let names: string[];
   try {
-    names = readdirSync(tmpdir).filter(isRunDirName);
+    names = readdirSync(/*turbopackIgnore: true*/ tmpdir).filter(isRunDirName);
   } catch {
     return 0;
   }
@@ -151,7 +151,7 @@ export function sweepStaleRunDirs(options: { tmpdir?: string; now?: number } = {
   for (const name of names) {
     try {
       // lstat: a link named like a run folder is not one, and is not followed.
-      const stat = lstatSync(path.join(tmpdir, name));
+      const stat = lstatSync(path.join(/*turbopackIgnore: true*/ tmpdir, name));
       entries.push({
         name,
         isDirectory: stat.isDirectory() && !stat.isSymbolicLink(),
@@ -163,12 +163,12 @@ export function sweepStaleRunDirs(options: { tmpdir?: string; now?: number } = {
     }
   }
   const live = new Set(
-    [...state().live].filter((dir) => path.dirname(dir) === path.resolve(tmpdir)).map((dir) => path.basename(dir)),
+    [...state().live].filter((dir) => path.dirname(dir) === path.resolve(/*turbopackIgnore: true*/ tmpdir)).map((dir) => path.basename(dir)),
   );
   let removed = 0;
   for (const name of staleRunDirNames(entries, { now, live, uid: ownUid })) {
     // One attempt each; what is still held now is tried at the next sweep.
-    if (removeRunDir(path.join(tmpdir, name), { retryMs: [] })) {
+    if (removeRunDir(path.join(/*turbopackIgnore: true*/ tmpdir, name), { retryMs: [] })) {
       removed += 1;
     }
   }

@@ -2,6 +2,7 @@
 
 import { Send } from "lucide-react";
 import { useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui";
 import { DisclosureHead } from "@/app/campaigns/[campaignId]/DmConsoleParts";
@@ -21,6 +22,7 @@ export function DmInboxPanel({
   inbox: InboxWhisper[];
   refreshWhispers: () => Promise<void>;
 }) {
+  const { t, lang } = useI18n();
   const waiting = inbox.filter((whisper) => !whisper.answered).length;
   const [open, setOpen] = useState(waiting > 0);
   const [replyTo, setReplyTo] = useState<string | null>(null);
@@ -32,7 +34,7 @@ export function DmInboxPanel({
     const date = new Date(iso);
     return Number.isNaN(date.getTime())
       ? ""
-      : date.toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+      : date.toLocaleString(lang, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
   }
 
   async function reply(characterId: string) {
@@ -50,14 +52,14 @@ export function DmInboxPanel({
       });
       if (!response.ok) {
         const body = (await response.json().catch(() => ({}))) as { error?: string };
-        setError(body.error ?? "The whisper did not go through.");
+        setError(body.error ?? t("campaign.session.dmInbox.error.send"));
         return;
       }
       setDraft("");
       setReplyTo(null);
       await refreshWhispers();
     } catch {
-      setError("Could not reach the table.");
+      setError(t("campaign.session.dmInbox.error.network"));
     } finally {
       setSending(false);
     }
@@ -69,7 +71,7 @@ export function DmInboxPanel({
         open={open}
         onToggle={() => setOpen((current) => !current)}
         glyph="tab-dm"
-        title="Whispers to you"
+        title={t("campaign.session.dmInbox.title")}
         aside={
           waiting > 0 ? (
             <span key={waiting} className="count-pop rounded-full bg-gradient-to-b from-amber-300 to-amber-500 px-1.5 text-[10px] font-semibold text-amber-950 shadow-glow-gold">
@@ -81,8 +83,7 @@ export function DmInboxPanel({
       {open ? (
         <div className="reveal space-y-2 border-t border-amber-500/20 px-2 py-2">
           <p className="text-[11px] leading-4 text-amber-200/70">
-            Private messages from the players. Only you and the sender see them; a player can have two
-            waiting on you at a time.
+            {t("campaign.session.dmInbox.intro")}
           </p>
           {inbox.length ? (
             <ul className="stagger space-y-2">
@@ -100,7 +101,7 @@ export function DmInboxPanel({
                     <span>
                       {formatWhen(whisper.createdAt)}
                       {" | "}
-                      {whisper.answered ? "Answered" : "Waiting on you"}
+                      {whisper.answered ? t("campaign.session.dmInbox.answered") : t("campaign.session.dmInbox.waiting")}
                     </span>
                     {whisper.characterId && replyTo !== whisper.id ? (
                       <button
@@ -112,7 +113,7 @@ export function DmInboxPanel({
                         }}
                         className="ml-auto text-amber-300 underline decoration-dotted underline-offset-2 motion-press"
                       >
-                        Reply
+                        {t("campaign.session.dmInbox.reply")}
                       </button>
                     ) : null}
                   </div>
@@ -131,8 +132,8 @@ export function DmInboxPanel({
                         maxLength={1000}
                         rows={2}
                         disabled={sending}
-                        placeholder={`Whisper to ${whisper.characterName}...`}
-                        aria-label={`Reply privately to ${whisper.characterName}`}
+                        placeholder={t("campaign.session.dmInbox.replyPlaceholder", { name: whisper.characterName })}
+                        aria-label={t("campaign.session.dmInbox.replyAria", { name: whisper.characterName })}
                         className={cn(ui.input, "min-h-[3rem] flex-1 resize-none disabled:opacity-60")}
                       />
                       <button
@@ -140,7 +141,7 @@ export function DmInboxPanel({
                         onClick={() => void reply(whisper.characterId as string)}
                         disabled={!draft.trim() || sending}
                         className={cn(ui.btnSecondary, "size-10 shrink-0 px-0 text-amber-200")}
-                        aria-label={`Send the reply to ${whisper.characterName}`}
+                        aria-label={t("campaign.session.dmInbox.sendAria", { name: whisper.characterName })}
                       >
                         <Send className="size-4" />
                       </button>
@@ -150,7 +151,7 @@ export function DmInboxPanel({
               ))}
             </ul>
           ) : (
-            <p className="text-xs text-stone-500">No whispers yet.</p>
+            <p className="text-xs text-stone-500">{t("campaign.session.dmInbox.empty")}</p>
           )}
           {error ? <p className="motion-shake text-[11px] text-red-400">{error}</p> : null}
         </div>

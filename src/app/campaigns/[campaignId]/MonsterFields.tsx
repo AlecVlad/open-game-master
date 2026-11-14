@@ -1,5 +1,7 @@
 "use client";
 
+import { useI18n } from "@/lib/i18n/provider";
+
 import { useId, useState } from "react";
 import { ChevronDown, Plus, Trash2 } from "lucide-react";
 import { cn } from "@/lib/cn";
@@ -47,6 +49,7 @@ export function NumberField({
   onChange: (value: number) => void;
   hint?: string;
 }) {
+  const { t } = useI18n();
   return (
     <div className="flex flex-col gap-0.5">
       <span className="text-[10px] uppercase tracking-wide text-stone-500">{label}</span>
@@ -65,6 +68,7 @@ export function AttackEditor({
   draft: MonsterDraft;
   onChange: (draft: MonsterDraft) => void;
 }) {
+  const { t } = useI18n();
   // One list per mounted editor: a fixed id collided when two were open.
   const damageListId = useId();
   // Which rows show their reach, range, riders and on-hit effect.
@@ -99,17 +103,17 @@ export function AttackEditor({
                 ),
               )
             }
-            placeholder="Bite"
+            placeholder={t("workshop.monsterEditor.attack.bite")}
             className={cn(input, "w-28")}
           />
           <span className="flex items-center gap-1 text-[10px] text-stone-500">
-            to hit
+            {t("workshop.monsterEditor.attack.toHit")}
             <NumberStepper
               min={-5}
               max={20}
               value={attack.toHit}
               onChange={(toHit) => setAttacks(attacks.map((row, at) => (at === index ? { ...row, toHit } : row)))}
-              label={`To hit, ${attack.name || "attack"}`}
+              label={t("workshop.monsterEditor.attack.toHitLabel", { name: attack.name || t("workshop.monsterEditor.attack.attack") })}
               size="sm"
             />
           </span>
@@ -138,7 +142,7 @@ export function AttackEditor({
                 ),
               )
             }
-            placeholder="slashing"
+            placeholder={t("workshop.monsterEditor.attack.damageType")}
             className={cn(input, "w-24")}
           />
           <button
@@ -147,7 +151,7 @@ export function AttackEditor({
             onClick={() => toggle(index)}
             className="inline-flex items-center gap-1 rounded-md border border-stone-700 px-1.5 py-0.5 text-[10px] text-stone-400 hover:text-amber-100"
           >
-            {attackExtras(attack)}
+            {attackExtras(attack, t)}
             <ChevronDown className={cn("size-3 transition-transform duration-200", opened.has(index) && "rotate-180")} />
           </button>
           <button
@@ -157,7 +161,7 @@ export function AttackEditor({
               setOpened(new Set());
             }}
             className="text-stone-600 hover:text-red-300"
-            aria-label={`Remove ${attack.name || "attack"}`}
+            aria-label={t("workshop.monsterEditor.attack.remove", { name: attack.name || t("workshop.monsterEditor.attack.attack") })}
           >
             <Trash2 className="size-3.5" />
           </button>
@@ -180,12 +184,11 @@ export function AttackEditor({
           }
           className="inline-flex w-fit items-center gap-1 rounded-md border border-stone-700 px-2 py-0.5 text-[11px] text-stone-400 hover:text-amber-100"
         >
-          <Plus className="size-3" /> Attack
+          <Plus className="size-3" /> {t("workshop.monsterEditor.attack.attack")}
         </button>
       ) : null}
       <p className="text-[10px] text-stone-600">
-        The engine swings the Multiattack routine when the block has one, otherwise its best attack
-        as many times as Swings says. Damage has to be something the dice roller can read.
+        {t("workshop.monsterEditor.attack.engineRoutine")}
       </p>
     </div>
   );
@@ -193,15 +196,24 @@ export function AttackEditor({
 
 // The word on an attack's details button: what it carries beyond its dice,
 // or "Details" when it carries nothing yet.
-function attackExtras(attack: MonsterDraft["stats"]["attacks"][number]): string {
+function attackExtras(attack: MonsterDraft["stats"]["attacks"][number], t: (key: never, params?: Record<string, string | number>) => string): string {
+  const riders = attack.riders?.map((rider) =>
+    DAMAGE_TYPES.includes(rider.type as (typeof DAMAGE_TYPES)[number])
+      ? t(`workshop.monsterEditor.defence.damageType.${rider.type}` as never)
+      : rider.type,
+  );
+  const condition = attack.onHit?.condition;
+  const conditionLabel = condition && CONDITIONS.includes(condition as (typeof CONDITIONS)[number])
+    ? t(`workshop.monsterEditor.defence.condition.${condition}` as never)
+    : condition;
   const bits = [
-    attack.bonusAction ? "bonus action" : "",
-    attack.range ? `${attack.range.normal}/${attack.range.long} ft` : attack.reach === 0 || (attack.reach && attack.reach > 5) ? `reach ${attack.reach}` : "",
-    attack.riders?.length ? `+${attack.riders.map((rider) => rider.type).join(", ")}` : "",
-    attack.onHit?.condition ?? (attack.onHit?.damage ? "on hit" : ""),
-    attack.alternatives?.some((entry) => entry.when === "bloodied") ? "weaker when bloodied" : "",
+    attack.bonusAction ? t("workshop.monsterEditor.attack.bonusAction" as never) : "",
+    attack.range ? `${attack.range.normal}/${attack.range.long} ${t("workshop.monsterEditor.attack.feet" as never)}` : attack.reach === 0 || (attack.reach && attack.reach > 5) ? `${t("workshop.monsterEditor.attack.reach" as never)} ${attack.reach}` : "",
+    riders?.length ? `+${riders.join(", ")}` : "",
+    conditionLabel ?? (attack.onHit?.damage ? t("workshop.monsterEditor.attack.onHit" as never) : ""),
+    attack.alternatives?.some((entry) => entry.when === "bloodied") ? t("workshop.monsterEditor.attack.bloodied" as never) : "",
   ].filter(Boolean);
-  return bits.length ? bits.join(" · ") : "Details";
+  return bits.length ? bits.join(" · ") : t("workshop.monsterEditor.attack.details" as never);
 }
 
 export function SaveEditor({
@@ -211,6 +223,7 @@ export function SaveEditor({
   draft: MonsterDraft;
   onChange: (draft: MonsterDraft) => void;
 }) {
+  const { t } = useI18n();
   const saves = draft.stats.saveMods ?? { str: 0, dex: 0, con: 0, int: 0, wis: 0, cha: 0 };
   return (
     // A stepper is wider than the bare box it replaced, so the columns are as
@@ -219,7 +232,7 @@ export function SaveEditor({
     <div className="stagger-up grid grid-cols-[repeat(auto-fill,minmax(6rem,1fr))] gap-1">
       {SAVE_ABILITIES.map((ability) => (
         <div key={ability} className="flex flex-col gap-0.5">
-          <span className="text-[10px] uppercase text-stone-500">{ability}</span>
+          <span className="text-[10px] uppercase text-stone-500">{t(`workshop.monsterEditor.stats.ability.${ability}` as never)}</span>
           <NumberStepper
             min={-5}
             max={20}
@@ -233,7 +246,7 @@ export function SaveEditor({
                 },
               })
             }
-            label={`${ability.toUpperCase()} save`}
+            label={t("workshop.monsterEditor.stats.saveLabel", { ability: t(`workshop.monsterEditor.stats.ability.${ability}` as never) })}
             size="sm"
             className="w-fit"
           />
@@ -250,18 +263,19 @@ export function SizeAndDefences({
   draft: MonsterDraft;
   onChange: (draft: MonsterDraft) => void;
 }) {
+  const { t } = useI18n();
   const set = (patch: Partial<MonsterDraft["stats"]>) =>
     onChange({ ...draft, stats: { ...draft.stats, ...patch } });
   return (
     <div className="flex flex-col gap-2.5">
       <div className="flex flex-wrap items-end gap-3">
         <label className="flex flex-col gap-0.5">
-          <span className="text-[10px] uppercase tracking-wide text-stone-500">Size</span>
+          <span className="text-[10px] uppercase tracking-wide text-stone-500">{t("workshop.monsterEditor.defence.size")}</span>
           <Select
             value={draft.stats.size ?? "Medium"}
             onChange={(size) => set({ size })}
-            options={SIZES.map((size) => ({ value: size as string, label: size }))}
-            label="Size"
+            options={SIZES.map((size) => ({ value: size as string, label: t(`workshop.monsterEditor.defence.size.${String(size).toLowerCase()}` as never) }))}
+            label={t("workshop.monsterEditor.defence.size")}
             size="sm"
             className="w-32"
           />
@@ -270,12 +284,12 @@ export function SizeAndDefences({
             thumbnail: every list the monster appears in draws the plate for
             its type until somebody paints it a portrait. */}
         <label className="flex flex-col gap-0.5">
-          <span className="text-[10px] uppercase tracking-wide text-stone-500">Type</span>
+          <span className="text-[10px] uppercase tracking-wide text-stone-500">{t("workshop.monsterEditor.defence.type")}</span>
           <Select
             value={creatureTypeOf(draft.stats) as string}
             onChange={(type) => set({ type })}
-            options={CREATURE_TYPES.map((type) => ({ value: type as string, label: type.charAt(0).toUpperCase() + type.slice(1) }))}
-            label="Type"
+            options={CREATURE_TYPES.map((type) => ({ value: type as string, label: t(`workshop.monsterEditor.defence.creatureType.${type}` as never) }))}
+            label={t("workshop.monsterEditor.defence.type")}
             size="sm"
             className="w-32"
           />
@@ -292,12 +306,12 @@ export function SizeAndDefences({
           copy keeps them editable, and no other book prints them. */}
       {(
         [
-          ["resist", "Resistant to", DAMAGE_TYPES],
-          ["immune", "Immune to", DAMAGE_TYPES],
-          ["vulnerable", "Vulnerable to", DAMAGE_TYPES],
-          ["conditionImmune", "Condition immunities", CONDITIONS],
-          ...(draft.stats.conditionResist ? [["conditionResist", "Resistant to conditions (advantage on the save)", CONDITIONS] as const] : []),
-          ...(draft.stats.conditionVulnerable ? [["conditionVulnerable", "Vulnerable to conditions (disadvantage on the save)", CONDITIONS] as const] : []),
+          ["resist", t("workshop.monsterEditor.defence.resist"), DAMAGE_TYPES],
+          ["immune", t("workshop.monsterEditor.defence.immune"), DAMAGE_TYPES],
+          ["vulnerable", t("workshop.monsterEditor.defence.vulnerable"), DAMAGE_TYPES],
+          ["conditionImmune", t("workshop.monsterEditor.defence.conditionImmune"), CONDITIONS],
+          ...(draft.stats.conditionResist ? [["conditionResist", t("workshop.monsterEditor.defence.conditionResist"), CONDITIONS] as const] : []),
+          ...(draft.stats.conditionVulnerable ? [["conditionVulnerable", t("workshop.monsterEditor.defence.conditionVulnerable"), CONDITIONS] as const] : []),
         ] as const
       ).map(([field, label, known]) => (
         <TermPicker
@@ -320,18 +334,58 @@ export function SizeAndDefences({
 // will not trust a difficulty rating they cannot audit, and the ratings
 // worth auditing are exactly the ones that disagree with their instinct.
 export function Working({ parts, notes }: { parts: CrPart[]; notes: string[] }) {
+  const { t, tp } = useI18n();
+  const labelKeys: Record<string, string> = {
+    "Hit points": "hitPoints",
+    "Armour class": "armourClass",
+    "Damage per round": "damageRound",
+    "Attack bonus": "attackBonus",
+    Toughness: "toughness",
+    "The routine": "routine",
+    "The average": "average",
+  };
+  const translateText = (value: string): string => {
+    let match = value.match(/^(\d+) hit points is the CR ([\d/]+) band \((\d+) to (\d+)\)\.$/);
+    if (match) return t("workshop.monsterEditor.rating.hpBand", { hp: Number(match[1]), cr: match[2], min: Number(match[3]), max: Number(match[4]) });
+    match = value.match(/^AC (\d+) is what CR ([\d/]+) expects, so it moves nothing\.$/);
+    if (match) return t("workshop.monsterEditor.rating.acMatches", { ac: Number(match[1]), cr: match[2] });
+    match = value.match(/^AC (\d+) against the expected (\d+) is ([+-]?\d+) ratings?, one per 2 points\.$/);
+    if (match) return tp("workshop.monsterEditor.rating.acAdjust", Math.abs(Number(match[3])), { ac: Number(match[1]), expected: Number(match[2]), adjustment: match[3] });
+    match = value.match(/^(\d+) damage a round is the CR ([\d/]+) band \((\d+) to (\d+)\)\.$/);
+    if (match) return t("workshop.monsterEditor.rating.dprBand", { dpr: Number(match[1]), cr: match[2], min: Number(match[3]), max: Number(match[4]) });
+    match = value.match(/^([+-]?\d+) is what CR ([\d/]+) expects, so it moves nothing\.$/);
+    if (match) return t("workshop.monsterEditor.rating.attackMatches", { bonus: match[1], cr: match[2] });
+    match = value.match(/^([+-]?\d+) against the expected ([+-]?\d+) is ([+-]?\d+) ratings?, one per 2 points\.$/);
+    if (match) return tp("workshop.monsterEditor.rating.attackAdjust", Math.abs(Number(match[3])), { bonus: match[1], expected: match[2], adjustment: match[3] });
+    match = value.match(/^(\d+) swings? of (.+) at ([\d.]+) average(, plus (\d+) added by hand)?\.$/);
+    if (match) {
+      const extra = match[5] ? t("workshop.monsterEditor.rating.extra", { extra: Number(match[5]) }) : "";
+      return tp("workshop.monsterEditor.rating.routine", Number(match[1]), { swings: Number(match[1]), name: match[2], average: match[3], extra });
+    }
+    match = value.match(/^Defensive CR ([\d/]+) and offensive CR ([\d/]+), averaged and rounded up\.$/);
+    if (match) return t("workshop.monsterEditor.rating.averageDetail", { defensive: match[1], offensive: match[2] });
+    match = value.match(/^Immune to (\d+) common damage types, worth x([\d.]+) hit points around CR ([\d/]+)\.$/);
+    if (match) return t("workshop.monsterEditor.rating.note.immune", { count: Number(match[1]), multiplier: match[2], cr: match[3] });
+    match = value.match(/^Resistant to (\d+) common damage types, worth x([\d.]+) hit points around CR ([\d/]+)\.$/);
+    if (match) return t("workshop.monsterEditor.rating.note.resist", { count: Number(match[1]), multiplier: match[2], cr: match[3] });
+    if (value.startsWith("This one casts spells") || value.startsWith("This creature casts spells")) return t("workshop.monsterEditor.rating.note.spells");
+    if (value.startsWith("There are dice in the traits")) return t("workshop.monsterEditor.rating.note.traits");
+    if (value === "No attacks, so the offensive rating rests on nothing.") return t("workshop.monsterEditor.rating.note.noAttacks");
+    if (value.startsWith("The engine caps a multiattack")) return t("workshop.monsterEditor.rating.note.capped");
+    return value;
+  };
   return (
     <div className="flex flex-col gap-1 rounded-lg border border-stone-800 bg-stone-950/60 p-2">
       {parts.map((part) => (
         <div key={part.label} className="flex flex-wrap items-baseline gap-x-2 text-[11px]">
-          <span className="w-28 shrink-0 text-stone-500">{part.label}</span>
+          <span className="w-28 shrink-0 text-stone-500">{labelKeys[part.label] ? t(`workshop.monsterEditor.rating.${labelKeys[part.label]}` as never) : part.label}</span>
           <span className="w-16 shrink-0 text-amber-100">{part.value}</span>
-          <span className="flex-1 text-stone-500">{part.detail}</span>
+          <span className="flex-1 text-stone-500">{translateText(part.detail)}</span>
         </div>
       ))}
       {notes.map((note) => (
         <p key={note} className="text-[10px] text-amber-300/70">
-          {note}
+          {translateText(note)}
         </p>
       ))}
     </div>
@@ -339,13 +393,15 @@ export function Working({ parts, notes }: { parts: CrPart[]; notes: string[] }) 
 }
 
 export function RatingLine({ readout }: { readout: MonsterReadout }) {
+  const { t } = useI18n();
   return (
     <p className={cn("text-[11px]", readout.agrees ? "text-stone-500" : "text-amber-300/80")}>
       {readout.agrees
-        ? `The numbers agree: CR ${crLabel(readout.statedCr)}.`
-        : `Written as CR ${crLabel(readout.statedCr)}; the numbers say CR ${crLabel(
-            readout.derived.cr,
-          )}.`}
+        ? t("workshop.monsterEditor.rating.agrees", { cr: crLabel(readout.statedCr) })
+        : t("workshop.monsterEditor.rating.statedVsDerived", {
+            stated: crLabel(readout.statedCr),
+            derived: crLabel(readout.derived.cr),
+          })}
     </p>
   );
 }

@@ -3,6 +3,7 @@
 import { BookOpenText, ChevronRight, Globe2, Grid3x3, Hexagon, Link2, Map as MapIcon, MapPin, MousePointer2, Plus, Settings2, Swords, Trash2, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/cn";
+import { useI18n } from "@/lib/i18n/provider";
 import { ui } from "@/lib/ui";
 import { KitButton } from "@/app/campaigns/[campaignId]/PanelKit";
 import { LoreImageField } from "@/app/workshop/lore/LoreFields";
@@ -12,7 +13,7 @@ import { frameOf } from "@/lib/worldforge/atlas-frame";
 import type { Placement } from "@/lib/db/atlas-region";
 import type { WorldApi, WorldState } from "./useWorld";
 import { AtlasCard } from "./AtlasCard";
-import { isBound, movedText, OutOfStep, PinRegionActions, RegionBar, RegionNoticeLine, RegionReview, useAtlasRegion } from "./AtlasRegion";
+import { isBound, OutOfStep, PinRegionActions, RegionBar, RegionNoticeLine, RegionReview, useAtlasRegion } from "./AtlasRegion";
 import { PlaceBattleMaps, type OpenPrep } from "./PlaceBattleMaps";
 import { CornerEditor, DeleteReview, MapSettings, NotSaved, PointFields, useAtlasDelete } from "./AtlasEdit";
 import { PartyBar } from "./AtlasParty";
@@ -60,6 +61,7 @@ export function AtlasView({
   // show it to (issue 553).
   atTable?: boolean;
 }) {
+  const { t, tp } = useI18n();
   const { doc } = world;
   const [mapId, setMapId] = useState(doc.maps[0]?.id ?? "");
   const [mode, setMode] = useState<Mode>("look");
@@ -159,7 +161,7 @@ export function AtlasView({
 
   async function finishRegion(points: XY[] = drawing) {
     if (!atlas || points.length < 3) return;
-    const region: Region = { id: newId("rg"), name: "A region", points, color: nextRegionColor(atlas.regions), ref: "", notes: "" };
+    const region: Region = { id: newId("rg"), name: t("workshop.world.atlas.defaultRegionName"), points, color: nextRegionColor(atlas.regions), ref: "", notes: "" };
     // A refused shape keeps its corners, to close again.
     if (!(await saveRegions([...atlas.regions, region]))) return;
     setDrawing([]);
@@ -170,12 +172,12 @@ export function AtlasView({
   const newMapForm = (parentPin?: Pin) =>
     making ? (
       <form className="panel motion-pop flex flex-col gap-2 rounded-lg p-3" onSubmit={(event) => { event.preventDefault(); void makeMap(parentPin); }}>
-        <input className={ui.input} placeholder={parentPin ? `Inside ${parentPin.name || "this pin"}` : "The Saltmarch"} aria-label="Map name" maxLength={80} value={making.name} onChange={(event) => setMaking({ ...making, name: event.target.value })} autoFocus />
+        <input className={ui.input} placeholder={parentPin ? t("workshop.world.atlas.map.inside", { name: parentPin.name || t("workshop.world.atlas.pin.fallback") }) : t("workshop.world.atlas.map.exampleName")} aria-label={t("workshop.world.atlas.map.name")} maxLength={80} value={making.name} onChange={(event) => setMaking({ ...making, name: event.target.value })} autoFocus />
         <LoreImageField imagePath={making.image} onChange={(image) => setMaking({ ...making, image })} />
-        {makeFailed ? <NotSaved onRetry={() => void makeMap(parentPin)} what="The name and picture" /> : null}
+        {makeFailed ? <NotSaved onRetry={() => void makeMap(parentPin)} what={t("workshop.world.atlas.map.nameAndPicture")} /> : null}
         <div className="flex justify-end gap-1.5">
-          <KitButton tone="small" onClick={() => { setMaking(null); setMakeFailed(false); }}><X className="size-3.5" /> Cancel</KitButton>
-          <KitButton tone="primary" type="submit" disabled={!making.name.trim()}>Make the map</KitButton>
+          <KitButton tone="small" onClick={() => { setMaking(null); setMakeFailed(false); }}><X className="size-3.5" /> {t("workshop.cancel")}</KitButton>
+          <KitButton tone="primary" type="submit" disabled={!making.name.trim()}>{t("workshop.world.atlas.map.make")}</KitButton>
         </div>
       </form>
     ) : null;
@@ -188,8 +190,8 @@ export function AtlasView({
           <RegionNoticeLine region={region} />
         </div>
         <MapIcon className="size-8 text-amber-400/70" />
-        <p className="max-w-md text-sm text-stone-400">The atlas holds pictures of the world, with a pin on each place that matters and maps inside maps. Start with the widest one.</p>
-        {making ? <div className="w-full max-w-md text-left">{newMapForm()}</div> : <KitButton tone="primary" onClick={() => setMaking({ name: "", image: "" })}><Plus className="size-3.5" /> First map</KitButton>}
+        <p className="max-w-md text-sm text-stone-400">{t("workshop.world.atlas.empty.description")}</p>
+        {making ? <div className="w-full max-w-md text-left">{newMapForm()}</div> : <KitButton tone="primary" onClick={() => setMaking({ name: "", image: "" })}><Plus className="size-3.5" /> {t("workshop.world.atlas.map.first")}</KitButton>}
       </div>
     );
   }
@@ -205,20 +207,20 @@ export function AtlasView({
 
   return (
     <div className="grid gap-4 @4xl:grid-cols-[14rem_minmax(0,1fr)]">
-      <aside className="flex flex-col gap-1" aria-label="Maps">
-        <span className="eyebrow text-[10px] text-stone-500">Maps</span>
+      <aside className="flex flex-col gap-1" aria-label={t("workshop.world.atlas.map.list")}>
+        <span className="eyebrow text-[10px] text-stone-500">{t("workshop.world.atlas.map.list")}</span>
         {mapTree(doc.maps, doc.pins).map(({ map: entry, depth }) => (
           <button key={entry.id} type="button" onClick={() => { setMapId(entry.id); setSelected(null); setDrawing([]); }} className={cn("flex items-center gap-1.5 rounded-md px-1.5 py-1 text-left text-xs motion-press", entry.id === atlas.id ? "bg-amber-400/10 text-amber-100" : "text-stone-400 hover:text-stone-200")} style={{ paddingLeft: `${0.375 + depth * 0.75}rem` }}>
             <MapIcon className="size-3.5 shrink-0" /> {entry.name}
-            {entry.role === "region" ? <Globe2 className="ml-auto size-3 shrink-0 text-emerald-300" aria-label="Over the Region" /> : null}
+            {entry.role === "region" ? <Globe2 className="ml-auto size-3 shrink-0 text-emerald-300" aria-label={t("workshop.world.atlas.map.overRegion")} /> : null}
           </button>
         ))}
-        {making && !selectedPin ? newMapForm() : <KitButton tone="link" onClick={() => setMaking({ name: "", image: "" })}><Plus className="size-3.5" /> New map</KitButton>}
+        {making && !selectedPin ? newMapForm() : <KitButton tone="link" onClick={() => setMaking({ name: "", image: "" })}><Plus className="size-3.5" /> {t("workshop.world.atlas.map.new")}</KitButton>}
       </aside>
 
       <div className="flex min-w-0 flex-col gap-2">
         <div className="flex flex-wrap items-center gap-2">
-          <nav className="flex items-center gap-1 text-sm" aria-label="Where in the atlas">
+          <nav className="flex items-center gap-1 text-sm" aria-label={t("workshop.world.atlas.map.breadcrumb")}>
             {trail.map((entry, index) => (
               <span key={entry.id} className="flex items-center gap-1">
                 {index ? <ChevronRight className="size-3.5 text-stone-600" /> : null}
@@ -226,36 +228,37 @@ export function AtlasView({
               </span>
             ))}
           </nav>
-          <div className="ml-auto flex gap-1" role="radiogroup" aria-label="What a click does">
-            {([["look", MousePointer2, "Look"], ["pin", MapPin, "Place a pin"], ["region", Hexagon, "Draw a region"]] as const).map(([value, Icon, label]) => (
+          <div className="ml-auto flex gap-1" role="radiogroup" aria-label={t("workshop.world.atlas.mode.aria")}>
+            {([["look", MousePointer2, t("workshop.world.atlas.mode.look")], ["pin", MapPin, t("workshop.world.atlas.mode.pin")], ["region", Hexagon, t("workshop.world.atlas.mode.region")]] as const).map(([value, Icon, label]) => (
               <button key={value} type="button" role="radio" aria-checked={mode === value} onClick={() => { setMode(value); setDrawing([]); }} className={cn(ui.btnSmall, "px-2 py-1 text-xs", mode === value && "border-amber-500/60 bg-amber-400/10 text-amber-100")}>
                 <Icon className="size-3.5" /> {label}
               </button>
             ))}
-            <KitButton tone="icon" always aria-label={`Settings for the map ${atlas.name}`} aria-expanded={settings} onClick={() => setSettings((open) => !open)} data-testid="atlas-settings-button">
+            <KitButton tone="icon" always aria-label={t("workshop.world.atlas.map.settingsAria", { name: atlas.name })} aria-expanded={settings} onClick={() => setSettings((open) => !open)} data-testid="atlas-settings-button">
               <Settings2 className="size-4" />
             </KitButton>
-            <KitButton tone="iconDanger" always aria-label={`Delete the map ${atlas.name}`} disabled={remover.busy} onClick={() => void remover.review({ kind: "map", mapId: atlas.id })} data-testid="atlas-delete-map">
+            <KitButton tone="iconDanger" always aria-label={t("workshop.world.atlas.map.deleteAria", { name: atlas.name })} disabled={remover.busy} onClick={() => void remover.review({ kind: "map", mapId: atlas.id })} data-testid="atlas-delete-map">
               <Trash2 className="size-4" />
             </KitButton>
           </div>
         </div>
         {mode === "region" ? (
           <p className="motion-pop text-xs text-stone-400">
-            Click the map to set each corner. {drawing.length >= 3 ? <button type="button" onClick={() => void finishRegion()} className="text-amber-200 underline underline-offset-2">Close the shape ({drawing.length} corners)</button> : `${3 - drawing.length} more to make a shape.`}{" "}
-            Or{" "}
+            {t("workshop.world.atlas.region.instructions.start")}{" "}{drawing.length >= 3 ? <button type="button" onClick={() => void finishRegion()} className="text-amber-200 underline underline-offset-2">{tp("workshop.world.atlas.region.closeCorners", drawing.length)}</button> : tp("workshop.world.atlas.region.moreCorners", 3 - drawing.length)}{" "}
+            {t("workshop.world.atlas.common.or")}{" "}
             <button type="button" onClick={() => void finishRegion([{ x: 0.4, y: 0.4 }, { x: 0.6, y: 0.4 }, { x: 0.5, y: 0.6 }])} className="text-amber-200 underline underline-offset-2" data-testid="atlas-region-by-numbers">
-              start with three corners in the middle
+              {t("workshop.world.atlas.region.startThreeCorners")}
             </button>{" "}
-            and type where each goes.
+            {t("workshop.world.atlas.region.instructions.typeCorners")}.
           </p>
         ) : mode === "pin" ? (
           <p className="motion-pop text-xs text-stone-400">
-            Click where the pin goes. Or{" "}
+            {t("workshop.world.atlas.pin.instructions.start")}{" "}
+            {t("workshop.world.atlas.common.or")}{" "}
             <button type="button" onClick={() => addPin({ x: 0.5, y: 0.5 })} className="text-amber-200 underline underline-offset-2" data-testid="atlas-pin-in-middle">
-              add one in the middle
+              {t("workshop.world.atlas.pin.addMiddle")}
             </button>{" "}
-            and move it with the arrow keys or by numbers.
+            {t("workshop.world.atlas.pin.instructions.move")}.
           </p>
         ) : null}
         <RegionBar region={region} atlas={atlas} pins={pins} />
@@ -298,7 +301,7 @@ export function AtlasView({
             // eslint-disable-next-line @next/next/no-img-element
             <img src={atlas.image} alt="" className={cn("absolute inset-0 size-full", frame.fit === "contain" ? "object-contain" : "object-cover")} draggable={false} />
           ) : (
-            <div className="absolute inset-0 grid place-items-center bg-[radial-gradient(circle_at_center,rgba(212,171,58,0.08),transparent_70%)] text-xs text-stone-600">No picture yet: pins still work.</div>
+            <div className="absolute inset-0 grid place-items-center bg-[radial-gradient(circle_at_center,rgba(212,171,58,0.08),transparent_70%)] text-xs text-stone-600">{t("workshop.world.atlas.image.missing")}</div>
           )}
           <svg viewBox="0 0 1 1" preserveAspectRatio="none" className="absolute inset-0 size-full">
             {atlas.regions.map((region, index) => (
@@ -334,7 +337,7 @@ export function AtlasView({
                 onPointerDown={(event) => { if (mode === "look") { event.currentTarget.setPointerCapture(event.pointerId); setDrag({ id: pin.id, at: { x: pin.x, y: pin.y } }); } }}
                 onKeyDown={(event) => nudge(event, pin)}
                 aria-keyshortcuts="ArrowUp ArrowDown ArrowLeft ArrowRight"
-                aria-label={`${pin.name || entity?.name || "A pin"}${bound ? ", moves with its place on the Region" : ""}`}
+                aria-label={`${pin.name || entity?.name || t("workshop.world.atlas.pin.fallback")}${bound ? `, ${t("workshop.world.atlas.pin.movesWithPlace")}` : ""}`}
                 data-bound={bound || undefined}
                 data-hidden={pin.hidden || undefined}
               >
@@ -359,7 +362,7 @@ export function AtlasView({
             regionActions={selectedPin ? <PinRegionActions region={region} pin={selectedPin} atlas={atlas} /> : null}
             position={
               selectedPin ? (
-                <PointFields at={selectedPin} label="Pin" onCommit={(to) => movePin(selectedPin.id, to)} />
+                <PointFields at={selectedPin} label={t("workshop.world.atlas.pin.label")} onCommit={(to) => movePin(selectedPin.id, to)} />
               ) : selectedRegion ? (
                 <CornerEditor points={selectedRegion.points} onSave={(points) => void saveRegions(atlas.regions.map((entry) => (entry.id === selectedRegion.id ? { ...entry, points } : entry)))} />
               ) : null
@@ -370,7 +373,7 @@ export function AtlasView({
                   <PlaceBattleMaps campaignId={campaignId} entity={pinEntity} api={api} onOpenPrep={onOpenPrep} compact />
                 ) : (
                   <p className="text-[11px] text-stone-500" data-testid="pin-battle-maps-hint">
-                    {pinEntity ? "Battle maps and encounters belong to places." : "Pick the place this pin stands for to make or link its battle map."}
+                    {pinEntity ? t("workshop.world.atlas.battleMaps.placeOnly") : t("workshop.world.atlas.battleMaps.pickPlace")}
                   </p>
                 )
               ) : null
@@ -397,7 +400,7 @@ function InsidePlace({ place, onOpen, onOpenPrep }: { place: WorldEntity; onOpen
   return (
     <div className="flex flex-wrap items-center gap-1.5 rounded-lg border border-stone-700/60 px-2 py-1.5 text-xs text-stone-300" data-testid="atlas-inside-place">
       <span>
-        Inside{" "}
+        {t("workshop.world.atlas.inside")}{" "}
         <button type="button" onClick={() => onOpen(place.ref)} className="text-amber-200 underline underline-offset-2">
           {place.name}
         </button>
@@ -405,15 +408,15 @@ function InsidePlace({ place, onOpen, onOpenPrep }: { place: WorldEntity; onOpen
       </span>
       {records.map((record) => (
         <KitButton key={`${record.kind}|${record.ref}`} tone="small" onClick={() => onOpenPrep(record.kind as "map" | "encounter", record.ownId, place.ref)}>
-          {record.kind === "map" ? <Grid3x3 className="size-3.5" /> : <Swords className="size-3.5" />} {record.kind === "map" ? "Open battle map" : "Open encounter"}: {record.name}
+          {record.kind === "map" ? <Grid3x3 className="size-3.5" /> : <Swords className="size-3.5" />} {record.kind === "map" ? t("workshop.world.placeBattleMaps.map.open") : t("workshop.world.placeBattleMaps.encounter.open")}: {record.name}
         </KitButton>
       ))}
       {records.length ? null : (
         <KitButton tone="small" onClick={() => onOpen(place.ref)}>
-          <BookOpenText className="size-3.5" /> Give {place.name} a battle map
+          <BookOpenText className="size-3.5" /> {t("workshop.world.atlas.inside.giveBattleMap", { name: place.name })}
         </KitButton>
       )}
-      <span className="w-full text-[11px] text-stone-500">This picture is for finding your way. Walls, doors and light are drawn on a battle map, never read from a picture.</span>
+      <span className="w-full text-[11px] text-stone-500">{t("workshop.world.atlas.inside.pictureExplanation")}</span>
     </div>
   );
 }

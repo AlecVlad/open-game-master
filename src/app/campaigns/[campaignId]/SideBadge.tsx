@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/cn";
 import type { PublicEncounter } from "@/lib/db/encounter-view";
 import { dominatorOf, type CombatSide } from "@/lib/dm/combat-sides-logic";
@@ -25,12 +26,16 @@ export function offSide(encounter: Pick<PublicEncounter, "sides"> | null | undef
   return side !== (kind === "pc" ? "party" : "foe") ? side : null;
 }
 
-export function sideWords(side: CombatSide): string {
+type Translator = ReturnType<typeof useI18n>["t"];
+
+export function sideWords(side: CombatSide, t?: Translator): string {
+  if (t) return t(side === "foe" ? "campaign.session.side.againstParty" : "campaign.session.side.withParty");
   return side === "foe" ? "against the party" : "with the party";
 }
 
 // The pill beside a name: the words, in the side's colours.
 export function SideBadge({ side, className }: { side: CombatSide | null; className?: string }) {
+  const { t } = useI18n();
   if (!side) {
     return null;
   }
@@ -44,14 +49,15 @@ export function SideBadge({ side, className }: { side: CombatSide | null; classN
         className,
       )}
     >
-      {side === "foe" ? "Against the party" : "With the party"}
+      {t(side === "foe" ? "campaign.session.side.badge.against" : "campaign.session.side.badge.with")}
     </span>
   );
 }
 
 // The words alone, for a screen reader beside a name.
 export function SideSr({ side }: { side: CombatSide | null }) {
-  return side ? <span className="sr-only">, {sideWords(side)}</span> : null;
+  const { t } = useI18n();
+  return side ? <span className="sr-only">, {sideWords(side, t)}</span> : null;
 }
 
 // The side's colour across the top of an initiative plate (BoardChrome.tsx).
@@ -64,11 +70,11 @@ export function SidePlateBand({ side }: { side: CombatSide | null }) {
 
 // "Sable fights against the party. " for each such combatant, for a name a
 // whole order is read by.
-export function sidesLine(encounter: PublicEncounter): string {
+export function sidesLine(encounter: PublicEncounter, t?: Translator): string {
   return encounter.order
     .flatMap((entry) => {
       const side = offSide(encounter, entry.id, entry.kind);
-      return side ? [`${entry.name} fights ${sideWords(side)}. `] : [];
+      return side ? [t ? t("campaign.session.side.line", { name: entry.name, side: sideWords(side, t) }) : `${entry.name} fights ${sideWords(side)}. `] : [];
     })
     .join("");
 }
@@ -78,6 +84,7 @@ export function sidesLine(encounter: PublicEncounter): string {
 // a moment's word when it ends (companion-command.ts: the DM plays them
 // meanwhile).
 export function SideNotice({ encounter, sheets, meUserId }: { encounter: PublicEncounter | null; sheets: CharacterSheet[]; meUserId: string }) {
+  const { t } = useI18n();
   const mine = sheets.filter((sheet) => sheet.userId === meUserId && !sheet.isCompanion);
   const held = encounter ? mine.filter((sheet) => offSide(encounter, sheet.id, "pc") === "foe") : [];
   const heldKey = held.map((sheet) => sheet.id).join(",");
@@ -105,13 +112,13 @@ export function SideNotice({ encounter, sheets, meUserId }: { encounter: PublicE
       {held.map((sheet) => (
         <p key={sheet.id} data-side-notice="foe" className="side-badge rounded-lg border border-red-500/60 bg-red-950/70 px-3 py-1.5 text-xs text-red-100">
           {dominatorOf(sheet.conditions, sheet.conditionMeta as Record<string, { spell?: unknown; source?: unknown }>)
-            ? `${sheet.name} is dominated: the GM plays ${sheet.name} until the charm ends.`
-            : `${sheet.name} fights ${sideWords("foe")}.`}
+            ? t("campaign.session.side.notice.dominated", { name: sheet.name })
+            : t("campaign.session.side.notice.fights", { name: sheet.name, side: sideWords("foe", t) })}
         </p>
       ))}
       {freed.map((sheet) => (
         <p key={sheet.id} data-side-notice="party" className="side-badge rounded-lg border border-stone-500 bg-stone-800 px-3 py-1.5 text-xs text-stone-100">
-          {sheet.name} is yours again.
+          {t("campaign.session.side.notice.freed", { name: sheet.name })}
         </p>
       ))}
     </div>

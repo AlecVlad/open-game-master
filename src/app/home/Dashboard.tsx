@@ -30,6 +30,9 @@ import { WorkshopSection } from "@/app/home/WorkshopSection";
 import { pickContinue, type HomeCampaign } from "@/app/home/types";
 import { currentPathname, currentQuery, navigateTo, replaceAddress } from "@/lib/navigation";
 import { shellHost } from "@/lib/shell-host";
+import { useI18n } from "@/lib/i18n/provider";
+import { refusalText } from "@/app/characters/builder/refusal";
+import type { MessageKey } from "@/lib/i18n/messages/index";
 
 // The desktop and Android shells' quick tiles land here with ?new=1,
 // ?new=solo or ?new=starter and expect that wizard already open. Read once, at mount, as the
@@ -51,6 +54,7 @@ function requestedWizard(): "campaign" | "solo" | "starter" | null {
 // below the fold. Everything the old dashboard offered is still here; only
 // the composition changed.
 export function Dashboard({ user, onLogout }: { user: SessionUser; onLogout: () => void }) {
+  const { t } = useI18n();
   const [campaigns, setCampaigns] = useState<HomeCampaign[]>([]);
   const [workshops, setWorkshops] = useState<WorkshopSummary[]>([]);
   const [loading, setLoading] = useState(true);
@@ -153,7 +157,7 @@ export function Dashboard({ user, onLogout }: { user: SessionUser; onLogout: () 
   async function deleteCampaign(campaign: HomeCampaign) {
     if (
       !await appConfirm(
-        `Delete "${campaign.title}" for everyone? All characters, messages, and story progress are lost. This cannot be undone.`,
+        t("home.dash.del.confirm", { title: campaign.title }),
       )
     ) {
       return;
@@ -166,7 +170,7 @@ export function Dashboard({ user, onLogout }: { user: SessionUser; onLogout: () 
       setCampaigns((current) => current.filter((entry) => entry.id !== campaign.id));
     } else {
       const data = await response?.json().catch(() => ({}));
-      setActionError(data?.error || `Could not delete "${campaign.title}".`);
+      setActionError(refusalText(data, t("home.dash.del.err", { title: campaign.title }), t));
     }
   }
 
@@ -182,7 +186,7 @@ export function Dashboard({ user, onLogout }: { user: SessionUser; onLogout: () 
       );
       if (!response?.ok) {
         const data = await response?.json().catch(() => ({}));
-        setActionError(data?.error || "Could not make the copy.");
+        setActionError(refusalText(data, t("home.dash.clone.err"), t));
         return;
       }
       const data = await response.json().catch(() => ({}));
@@ -238,10 +242,10 @@ export function Dashboard({ user, onLogout }: { user: SessionUser; onLogout: () 
             <div className="ts-cluster">
               <AppHomeButton />
               <NotificationBell />
-              <Tooltip content="What this app is and how a table works" side="bottom">
-                <button type="button" onClick={() => setHowToOpen(true)} className={ui.btnSmall} aria-label="How to play">
+              <Tooltip content={t("home.dash.howto.tip")} side="bottom">
+                <button type="button" onClick={() => setHowToOpen(true)} className={ui.btnSmall} aria-label={t("home.dash.howto")}>
                   <ScrollText className="size-4" />
-                  <span className="hidden sm:inline">How to play</span>
+                  <span className="hidden sm:inline">{t("home.dash.howto")}</span>
                 </button>
               </Tooltip>
               <span className="ts-username" aria-hidden="true">{user.username}</span>
@@ -251,7 +255,7 @@ export function Dashboard({ user, onLogout }: { user: SessionUser; onLogout: () 
           {user.deletionDueAt ? <DeletionBanner dueAt={user.deletionDueAt} className="ts-deletion" /> : null}
           {user.isAdmin ? <SetupNudge className="ts-deletion" /> : null}
 
-          <section className="ts-stage" aria-label="Title screen">
+          <section className="ts-stage" aria-label={t("home.dash.stage")}>
             <div className="ts-stage-left">
               {/* The title block waits for the list: showing "empty table"
                   before the answer arrives would flash a lie at every account
@@ -319,6 +323,7 @@ export function Dashboard({ user, onLogout }: { user: SessionUser; onLogout: () 
 // when the storyteller answers, ember when it is configured but not
 // answering, and unlit on a server with no AI storyteller at all.
 function DmStatusLine({ capabilities }: { capabilities: ClientCapabilities | null }) {
+  const { t } = useI18n();
   const [version, setVersion] = useState("");
   useEffect(() => {
     let cancelled = false;
@@ -336,14 +341,7 @@ function DmStatusLine({ capabilities }: { capabilities: ClientCapabilities | nul
   }, []);
   const story = capabilities?.story;
   const tone = !capabilities ? "wait" : !story?.configured ? "off" : story.reachable ? "awake" : "dozing";
-  const words =
-    tone === "wait"
-      ? "Waking the GM"
-      : tone === "off"
-        ? "No AI storyteller · human-run tables"
-        : tone === "awake"
-          ? "The GM is awake"
-          : "The GM is not answering";
+  const words = t(`home.dash.${tone}` as MessageKey);
   const bits = [words];
   if (story?.model && tone !== "off") bits.push(story.model);
   if (version) bits.push(`v${version}`);

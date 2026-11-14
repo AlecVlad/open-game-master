@@ -7,6 +7,10 @@ import type { BuilderDraftFields, DroppedNotice } from "./useBuilderState";
 
 export type UndoBecause = "class" | "race" | "subclass" | "level";
 
+export function undoNounKey(because: UndoBecause): string {
+  return `builder.extra.undo.noun.${because}`;
+}
+
 export type BuildUndo = {
   // A new number for every change kept, so the step it was made on can be
   // remembered against it (CharacterBuilder.tsx).

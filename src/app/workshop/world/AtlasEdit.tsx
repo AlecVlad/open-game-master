@@ -3,6 +3,7 @@
 import { Check, Minus, Plus, Settings2, Trash2, X } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/cn";
+import { useI18n } from "@/lib/i18n/provider";
 import { ui } from "@/lib/ui";
 import { KitButton } from "@/app/campaigns/[campaignId]/PanelKit";
 import { LoreImageField } from "@/app/workshop/lore/LoreFields";
@@ -27,6 +28,7 @@ const percent = (value: number) => Math.round(value * 1000) / 10;
 // A point on the map as two numbers: how far across and how far down, in
 // percent of the box. Saved when a field is left or Enter is pressed.
 export function PointFields({ at, label, onCommit }: { at: XY; label: string; onCommit: (to: XY) => void }) {
+  const { t } = useI18n();
   const [draft, setDraft] = useState({ x: String(percent(at.x)), y: String(percent(at.y)) });
   const [shown, setShown] = useState(at);
   if (shown.x !== at.x || shown.y !== at.y) {
@@ -51,7 +53,7 @@ export function PointFields({ at, label, onCommit }: { at: XY; label: string; on
         max={100}
         step={0.1}
         inputMode="decimal"
-        aria-label={`${label}: ${axis === "x" ? "across" : "down"} (percent)`}
+        aria-label={t("workshop.world.atlas.edit.point.aria", { label, axis: t(axis === "x" ? "workshop.world.atlas.edit.point.across" : "workshop.world.atlas.edit.point.down") })}
         value={draft[axis]}
         onChange={(event) => setDraft({ ...draft, [axis]: event.target.value })}
         onBlur={commit}
@@ -64,14 +66,15 @@ export function PointFields({ at, label, onCommit }: { at: XY; label: string; on
   );
   return (
     <span className="flex flex-wrap items-center gap-2" data-testid="atlas-point">
-      {field("x", "Across")}
-      {field("y", "Down")}
+      {field("x", t("workshop.world.atlas.edit.point.across"))}
+      {field("y", t("workshop.world.atlas.edit.point.down"))}
     </span>
   );
 }
 
 // A region's corners, each as numbers, with corners to add and take away.
 export function CornerEditor({ points, onSave }: { points: XY[]; onSave: (points: XY[]) => void }) {
+  const { t } = useI18n();
   const add = () => {
     const last = points[points.length - 1];
     const first = points[0];
@@ -79,14 +82,14 @@ export function CornerEditor({ points, onSave }: { points: XY[]; onSave: (points
   };
   return (
     <details className="text-xs text-stone-300" data-testid="region-corners">
-      <summary className="cursor-pointer text-[11px] text-stone-500">Corners ({points.length}), as numbers</summary>
+      <summary className="cursor-pointer text-[11px] text-stone-500">{t("workshop.world.atlas.edit.corners.summary", { count: points.length })}</summary>
       <ol className="mt-1 flex flex-col gap-1">
         {points.map((point, index) => (
           <li key={index} className="flex flex-wrap items-center gap-1.5">
-            <span className="w-14 text-[11px] text-stone-500">Corner {index + 1}</span>
-            <PointFields at={point} label={`Corner ${index + 1}`} onCommit={(to) => onSave(points.map((entry, at) => (at === index ? to : entry)))} />
+            <span className="w-14 text-[11px] text-stone-500">{t("workshop.world.atlas.edit.corners.label", { number: index + 1 })}</span>
+            <PointFields at={point} label={t("workshop.world.atlas.edit.corners.label", { number: index + 1 })} onCommit={(to) => onSave(points.map((entry, at) => (at === index ? to : entry)))} />
             {points.length > 3 ? (
-              <KitButton tone="icon" always aria-label={`Take away corner ${index + 1}`} onClick={() => onSave(points.filter((_, at) => at !== index))}>
+              <KitButton tone="icon" always aria-label={t("workshop.world.atlas.edit.corners.remove", { number: index + 1 })} onClick={() => onSave(points.filter((_, at) => at !== index))}>
                 <Minus className="size-3.5" />
               </KitButton>
             ) : null}
@@ -94,7 +97,7 @@ export function CornerEditor({ points, onSave }: { points: XY[]; onSave: (points
         ))}
       </ol>
       <KitButton tone="link" onClick={add}>
-        <Plus className="size-3.5" /> Add a corner
+        <Plus className="size-3.5" /> {t("workshop.world.atlas.edit.corners.add")}
       </KitButton>
     </details>
   );
@@ -102,12 +105,13 @@ export function CornerEditor({ points, onSave }: { points: XY[]; onSave: (points
 
 // ---- a failed save ----
 
-export function NotSaved({ onRetry, what = "Your changes" }: { onRetry: () => void; what?: string }) {
+export function NotSaved({ onRetry, what }: { onRetry: () => void; what?: string }) {
+  const { t } = useI18n();
   return (
     <p className="flex flex-wrap items-center gap-2 text-[11px] text-ember-300" role="alert" data-testid="atlas-not-saved">
-      Not saved. {what} are still here.
+      {t("workshop.world.atlas.edit.notSaved.body", { what: what ?? t("workshop.world.atlas.edit.notSaved.changes") })}
       <KitButton tone="small" onClick={onRetry}>
-        Try again
+        {t("workshop.world.atlas.edit.notSaved.retry")}
       </KitButton>
     </p>
   );
@@ -118,6 +122,7 @@ export function NotSaved({ onRetry, what = "Your changes" }: { onRetry: () => vo
 type Shape = "wide" | "picture" | "custom";
 
 export function MapSettings({ api, atlas, region, onClose }: { api: WorldApi; atlas: AtlasMap; region: AtlasRegion; onClose: () => void }) {
+  const { t, tp } = useI18n();
   const frame = frameOf(atlas);
   const [draft, setDraft] = useState({ name: atlas.name, image: atlas.image });
   const [failed, setFailed] = useState(false);
@@ -142,7 +147,7 @@ export function MapSettings({ api, atlas, region, onClose }: { api: WorldApi; at
     const ok = await api.patch({ maps: latest.map((entry) => (entry.id === atlas.id ? { ...entry, name: draft.name.trim(), image: draft.image } : entry)) });
     setSaving(false);
     setFailed(!ok);
-    if (ok) region.setNotice({ text: `Saved ${draft.name.trim()}.` });
+    if (ok) region.setNotice({ text: t("workshop.world.atlas.edit.saved", { name: draft.name.trim() }) });
   }
 
   async function review(apply: boolean) {
@@ -154,7 +159,7 @@ export function MapSettings({ api, atlas, region, onClose }: { api: WorldApi; at
       if (!apply) setPlan(answer);
       else {
         setPlan(null);
-        region.setNotice({ text: `${atlas.name} now sits in its new box.${answer.placements.length ? ` ${answer.placements.length === 1 ? "One place" : `${answer.placements.length} places`} moved with ${answer.placements.length === 1 ? "its pin" : "their pins"} on the Region.` : ""}` });
+        region.setNotice({ text: answer.placements.length ? t("workshop.world.atlas.edit.frame.changedWithPlaces", { name: atlas.name, moved: tp("workshop.world.atlas.edit.frame.moved", answer.placements.length) }) : t("workshop.world.atlas.edit.frame.changed", { name: atlas.name }) });
       }
     } finally {
       setBusy(false);
@@ -162,11 +167,11 @@ export function MapSettings({ api, atlas, region, onClose }: { api: WorldApi; at
   }
 
   return (
-    <div className="panel motion-pop flex flex-col gap-3 rounded-lg p-3 text-xs text-stone-300" role="region" aria-label={`Settings for ${atlas.name}`} data-testid="atlas-settings">
+    <div className="panel motion-pop flex flex-col gap-3 rounded-lg p-3 text-xs text-stone-300" role="region" aria-label={t("workshop.world.atlas.edit.settingsAria", { name: atlas.name })} data-testid="atlas-settings">
       <div className="flex items-center gap-2">
         <Settings2 className="size-4 text-amber-400/80" />
-        <span className="text-sm text-amber-100">Map settings</span>
-        <KitButton tone="icon" always className="ml-auto" aria-label="Close the settings" onClick={onClose}>
+        <span className="text-sm text-amber-100">{t("workshop.world.atlas.edit.settings")}</span>
+        <KitButton tone="icon" always className="ml-auto" aria-label={t("workshop.world.atlas.edit.closeSettings")} onClick={onClose}>
           <X className="size-4" />
         </KitButton>
       </div>
@@ -178,26 +183,26 @@ export function MapSettings({ api, atlas, region, onClose }: { api: WorldApi; at
           void saveText();
         }}
       >
-        <input className={ui.input} aria-label="Map name" maxLength={80} value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} />
+        <input className={ui.input} aria-label={t("workshop.world.atlas.map.name")} maxLength={80} value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} />
         <LoreImageField imagePath={draft.image} onChange={(image) => setDraft({ ...draft, image })} />
         {draft.image !== atlas.image && atlas.role === "region" ? (
-          <p className="text-[11px] text-stone-400">The Region keeps showing the old picture until you use this map as the Region backdrop again.</p>
+          <p className="text-[11px] text-stone-400">{t("workshop.world.atlas.edit.oldBackdrop")}</p>
         ) : null}
         {failed ? <NotSaved onRetry={() => void saveText()} /> : null}
         <span className="flex justify-end">
           <KitButton tone="primary" type="submit" busy={saving} disabled={saving || !changedText || !draft.name.trim()} data-testid="atlas-settings-save">
-            {saving ? null : <Check className="size-3.5" />} Save name and picture
+            {saving ? null : <Check className="size-3.5" />} {t("workshop.world.atlas.edit.saveNamePicture")}
           </KitButton>
         </span>
       </form>
 
       <fieldset className="flex flex-col gap-1.5 border-t border-stone-800 pt-2">
-        <legend className="eyebrow text-[10px] text-stone-500">How the picture sits</legend>
-        <div className="flex flex-wrap gap-3" role="radiogroup" aria-label="How the picture fills the box">
+        <legend className="eyebrow text-[10px] text-stone-500">{t("workshop.world.atlas.edit.pictureFit")}</legend>
+        <div className="flex flex-wrap gap-3" role="radiogroup" aria-label={t("workshop.world.atlas.edit.pictureFitAria")}>
           {(
             [
-              ["cover", "Fill the box (crops the picture)"],
-              ["contain", "Show the whole picture"],
+              ["cover", t("workshop.world.atlas.edit.fit.cover")],
+              ["contain", t("workshop.world.atlas.edit.fit.contain")],
             ] as const
           ).map(([value, label]) => (
             <label key={value} className="flex items-center gap-1.5">
@@ -205,42 +210,44 @@ export function MapSettings({ api, atlas, region, onClose }: { api: WorldApi; at
             </label>
           ))}
         </div>
-        <div className="flex flex-wrap items-center gap-3" role="radiogroup" aria-label="The box's shape">
+        <div className="flex flex-wrap items-center gap-3" role="radiogroup" aria-label={t("workshop.world.atlas.edit.shapeAria")}>
           <label className="flex items-center gap-1.5">
-            <input type="radio" name={`shape-${atlas.id}`} checked={shape === "wide"} onChange={() => { setShape("wide"); setPlan(null); }} /> Wide, 16:10
+            <input type="radio" name={`shape-${atlas.id}`} checked={shape === "wide"} onChange={() => { setShape("wide"); setPlan(null); }} /> {t("workshop.world.atlas.edit.shape.wide")}
           </label>
           {uploaded ? (
             <label className="flex items-center gap-1.5">
-              <input type="radio" name={`shape-${atlas.id}`} checked={shape === "picture"} onChange={() => { setShape("picture"); setPlan(null); }} data-testid="atlas-shape-picture" /> The picture&apos;s own shape
+              <input type="radio" name={`shape-${atlas.id}`} checked={shape === "picture"} onChange={() => { setShape("picture"); setPlan(null); }} data-testid="atlas-shape-picture" /> {t("workshop.world.atlas.edit.shape.picture")}
             </label>
           ) : null}
           <label className="flex items-center gap-1.5">
-            <input type="radio" name={`shape-${atlas.id}`} checked={shape === "custom"} onChange={() => { setShape("custom"); setPlan(null); }} /> Width to height
+            <input type="radio" name={`shape-${atlas.id}`} checked={shape === "custom"} onChange={() => { setShape("custom"); setPlan(null); }} /> {t("workshop.world.atlas.edit.shape.custom")}
           </label>
           {shape === "custom" ? (
             <span className="flex items-center gap-1">
-              <input className={cn(ui.input, "w-16 py-0.5 text-xs")} type="number" min={0.1} step={0.1} aria-label="Box width" value={ratio.w} onChange={(event) => { setRatio({ ...ratio, w: event.target.value }); setPlan(null); }} />
+              <input className={cn(ui.input, "w-16 py-0.5 text-xs")} type="number" min={0.1} step={0.1} aria-label={t("workshop.world.atlas.edit.boxWidth")} value={ratio.w} onChange={(event) => { setRatio({ ...ratio, w: event.target.value }); setPlan(null); }} />
               :
-              <input className={cn(ui.input, "w-16 py-0.5 text-xs")} type="number" min={0.1} step={0.1} aria-label="Box height" value={ratio.h} onChange={(event) => { setRatio({ ...ratio, h: event.target.value }); setPlan(null); }} />
+              <input className={cn(ui.input, "w-16 py-0.5 text-xs")} type="number" min={0.1} step={0.1} aria-label={t("workshop.world.atlas.edit.boxHeight")} value={ratio.h} onChange={(event) => { setRatio({ ...ratio, h: event.target.value }); setPlan(null); }} />
             </span>
           ) : null}
         </div>
-        <div className="flex flex-col gap-1" role="radiogroup" aria-label="What the pins do">
+        <div className="flex flex-col gap-1" role="radiogroup" aria-label={t("workshop.world.atlas.edit.pinPositionAria")}>
           <label className="flex items-center gap-1.5">
-            <input type="radio" name={`carry-${atlas.id}`} checked={carry} onChange={() => { setCarry(true); setPlan(null); }} /> Pins and regions stay on the same spots of the picture
+            <input type="radio" name={`carry-${atlas.id}`} checked={carry} onChange={() => { setCarry(true); setPlan(null); }} /> {t("workshop.world.atlas.edit.pinPosition.carry")}
           </label>
           <label className="flex items-center gap-1.5">
-            <input type="radio" name={`carry-${atlas.id}`} checked={!carry} onChange={() => { setCarry(false); setPlan(null); }} /> They stay where they are in the box
+            <input type="radio" name={`carry-${atlas.id}`} checked={!carry} onChange={() => { setCarry(false); setPlan(null); }} /> {t("workshop.world.atlas.edit.pinPosition.fixed")}
           </label>
         </div>
         {plan ? (
           <div className="flex flex-col gap-1 rounded-md border border-stone-700/60 p-2" data-testid="atlas-frame-review">
             <p>
-              {plan.moved ? `${plan.moved} ${plan.moved === 1 ? "pin or corner moves" : "pins and corners move"} in the box to stay on the picture.` : "No pin or corner moves in the box."}
-              {plan.outside ? ` ${plan.outside} of them fall outside the new box and wait at its nearest edge.` : ""}
+              {plan.moved ? tp("workshop.world.atlas.edit.frame.movedInBox", plan.moved) : t("workshop.world.atlas.edit.frame.noMovement")}
+              {plan.outside ? ` ${t("workshop.world.atlas.edit.frame.outside", { count: plan.outside })}` : ""}
             </p>
             {plan.placements.length ? <PlacementList placements={plan.placements} /> : null}
-            {plan.notes.map((note) => (
+            {plan.noteDetails?.length ? plan.noteDetails.map((detail, index) => (
+              <p key={index} className="text-stone-400">{t(detail.code as never, detail.params)}</p>
+            )) : plan.notes.map((note) => (
               <p key={note} className="text-stone-400">{note}</p>
             ))}
           </div>
@@ -248,14 +255,14 @@ export function MapSettings({ api, atlas, region, onClose }: { api: WorldApi; at
         <span className="flex justify-end gap-1.5">
           {plan ? (
             <>
-              <KitButton tone="small" onClick={() => setPlan(null)}>Cancel</KitButton>
+              <KitButton tone="small" onClick={() => setPlan(null)}>{t("workshop.cancel")}</KitButton>
               <KitButton tone="primary" busy={busy} disabled={busy} onClick={() => void review(true)} data-testid="atlas-frame-apply">
-                {busy ? null : <Check className="size-3.5" />} Change it
+                {busy ? null : <Check className="size-3.5" />} {t("workshop.world.atlas.edit.frame.changeIt")}
               </KitButton>
             </>
           ) : (
             <KitButton tone="small" busy={busy} disabled={busy || !surfaceOk} onClick={() => void review(false)} data-testid="atlas-frame-review-button">
-              Review the change
+              {t("workshop.world.atlas.edit.frame.review")}
             </KitButton>
           )}
         </span>
@@ -269,6 +276,7 @@ export function MapSettings({ api, atlas, region, onClose }: { api: WorldApi; at
 export type DeleteAsk = { target: AtlasTarget; plan: DeletePlan };
 
 export function useAtlasDelete(api: WorldApi, region: AtlasRegion) {
+  const { t } = useI18n();
   const [ask, setAsk] = useState<DeleteAsk | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -291,7 +299,7 @@ export function useAtlasDelete(api: WorldApi, region: AtlasRegion) {
       if (!done?.applied) return false;
       const token = done.undo;
       region.setNotice({
-        text: `Deleted ${done.impact.name}.`,
+        text: t("workshop.world.atlas.edit.delete.deleted", { name: done.impact.name }),
         undo: token
           ? async () => {
               const back = (await api.atlasStep("restore", { undo: token })) as { skipped?: string[] } | null;
@@ -310,30 +318,33 @@ export function useAtlasDelete(api: WorldApi, region: AtlasRegion) {
 }
 
 export function DeleteReview({ remover, onDeleted }: { remover: ReturnType<typeof useAtlasDelete>; onDeleted: (target: AtlasTarget) => void }) {
+  const { t, tp } = useI18n();
   const { ask } = remover;
   if (!ask) return null;
-  const { impact, notes } = ask.plan;
-  const what = impact.kind === "map" ? "the map" : impact.kind === "pin" ? "the pin" : "the region";
+  const { impact, notes, noteDetails } = ask.plan;
+  const what = t(impact.kind === "map" ? "workshop.world.atlas.edit.delete.what.map" : impact.kind === "pin" ? "workshop.world.atlas.edit.delete.what.pin" : "workshop.world.atlas.edit.delete.what.region");
   const lines: string[] = [];
-  if (impact.kind === "map") lines.push(impact.pins ? `Its ${impact.pins === 1 ? "pin goes" : `${impact.pins} pins go`} with it.` : "It has no pins.");
-  if (impact.openers.length) lines.push(`${impact.openers.length === 1 ? "A pin on another map opens" : `${impact.openers.length} pins on other maps open`} it and will open nothing: ${impact.openers.join(", ")}.`);
-  if (impact.nested.length) lines.push(`Drawn inside ${impact.kind === "pin" ? "this pin" : "its pins"}, and moving to the top of the list: ${impact.nested.join(", ")}.`);
-  if (impact.bound) lines.push(`${impact.bound === 1 ? "A pin that moves its place" : `${impact.bound} pins that move their places`} on the Region ${impact.bound === 1 ? "goes" : "go"}. The places stay where they are.`);
-  if (impact.kind === "pin" && !lines.length) lines.push("Nothing else is touched.");
+  if (impact.kind === "map") lines.push(impact.pins ? t("workshop.world.atlas.edit.delete.mapPins", { pins: tp("workshop.world.atlas.count.pins", impact.pins) }) : t("workshop.world.atlas.edit.delete.noPins"));
+  if (impact.openers.length) lines.push(t("workshop.world.atlas.edit.delete.openers", { pins: tp("workshop.world.atlas.count.pins", impact.openers.length), names: impact.openers.join(", ") }));
+  if (impact.nested.length) lines.push(t("workshop.world.atlas.edit.delete.nested", { owner: t(impact.kind === "pin" ? "workshop.world.atlas.edit.delete.thisPin" : "workshop.world.atlas.edit.delete.itsPins"), names: impact.nested.join(", ") }));
+  if (impact.bound) lines.push(t("workshop.world.atlas.edit.delete.boundPins", { pins: tp("workshop.world.atlas.count.pins", impact.bound) }));
+  if (impact.kind === "pin" && !lines.length) lines.push(t("workshop.world.atlas.edit.delete.nothingElse"));
   return (
-    <div className="panel motion-pop flex flex-col gap-2 rounded-lg border border-ember-700/40 p-3 text-xs text-stone-300" role="dialog" aria-label={`Delete ${what} ${impact.name}?`} data-testid="atlas-delete-review">
+    <div className="panel motion-pop flex flex-col gap-2 rounded-lg border border-ember-700/40 p-3 text-xs text-stone-300" role="dialog" aria-label={t("workshop.world.atlas.edit.delete.title", { what, name: impact.name })} data-testid="atlas-delete-review">
       <span className="text-sm text-amber-100">
-        Delete {what} {impact.name}?
+        {t("workshop.world.atlas.edit.delete.title", { what, name: impact.name })}
       </span>
       {lines.map((line) => (
         <p key={line}>{line}</p>
       ))}
-      {notes.map((note) => (
+      {noteDetails?.length ? noteDetails.map((detail, index) => (
+        <p key={index} className="text-stone-400">{t(detail.code as never, detail.params)}</p>
+      )) : notes.map((note) => (
         <p key={note} className="text-stone-400">{note}</p>
       ))}
-      <p className="text-stone-500">You can undo it straight after.</p>
+      <p className="text-stone-500">{t("workshop.world.atlas.edit.delete.undoHint")}</p>
       <span className="flex justify-end gap-1.5">
-        <KitButton tone="small" onClick={remover.cancel}>Cancel</KitButton>
+        <KitButton tone="small" onClick={remover.cancel}>{t("workshop.cancel")}</KitButton>
         <KitButton
           tone="danger"
           busy={remover.busy}
@@ -344,7 +355,7 @@ export function DeleteReview({ remover, onDeleted }: { remover: ReturnType<typeo
             if (await remover.confirm()) onDeleted(target);
           }}
         >
-          {remover.busy ? null : <Trash2 className="size-3.5" />} Delete
+          {remover.busy ? null : <Trash2 className="size-3.5" />} {t("workshop.world.atlas.edit.delete.action")}
         </KitButton>
       </span>
     </div>

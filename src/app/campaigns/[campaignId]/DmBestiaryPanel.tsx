@@ -5,6 +5,7 @@ import { appConfirm } from "@/components/ui/ConfirmDialog";
 import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { cn } from "@/lib/cn";
+import { useT } from "@/lib/i18n/provider";
 import { MonsterTile, ui } from "@/lib/ui";
 import { ContextMenu, type ContextMenuItem } from "@/components/ui/ContextMenu";
 import { SectionHead } from "@/components/ui/SectionHead";
@@ -52,6 +53,7 @@ export function DmBestiaryPanel({
   openOnArrival?: string | null;
   onWorldEntry?: (ref: string) => void;
 }) {
+  const t = useT();
   const [monsters, setMonsters] = useState<Monster[]>([]);
   const [found, setFound] = useState<Found[]>([]);
   // The table's setting, for the boss plate on high-rating thumbnails.
@@ -80,7 +82,7 @@ export function DmBestiaryPanel({
     (search?: string) =>
       readLoad<{ monsters: Monster[]; found: Found[]; genre?: string }>(
         fetch(`/api/campaigns/${campaignId}/dm/bestiary${search ? `?q=${encodeURIComponent(search)}` : ""}`),
-        "The bestiary",
+        t("campaign.dmBestiary.loadWhat"),
       ).then((outcome) => {
         if (outcome.payload) {
           setMonsters(outcome.payload.monsters);
@@ -89,7 +91,7 @@ export function DmBestiaryPanel({
         }
         settle(outcome);
       }),
-    [campaignId, settle],
+    [campaignId, settle, t],
   );
 
   useEffect(() => {
@@ -127,7 +129,7 @@ export function DmBestiaryPanel({
       if (row) {
         await create({ from: "monster", slug: row.slug, name: `${row.name} Variant`.slice(0, MONSTER_NAME_MAX) });
       } else {
-        setError(`${page.page.title} is not in the content pack on this server, so there is no block to copy.`);
+        setError(t("campaign.dmBestiary.sourceUnavailable", { title: page.page.title }));
       }
       done();
     })();
@@ -166,7 +168,7 @@ export function DmBestiaryPanel({
         error?: string;
       };
       if (!response.ok || !payload.monster) {
-        setError(payload.error ?? "That could not be built.");
+        setError(payload.error ?? t("campaign.dmBestiary.createFailed"));
         return false;
       }
       await load(query || undefined);
@@ -215,7 +217,7 @@ export function DmBestiaryPanel({
         error?: string;
       };
       if (!response.ok || !payload.monster) {
-        setError(payload.error ?? "That could not be saved.");
+        setError(payload.error ?? t("campaign.dmBestiary.saveFailed"));
         return;
       }
       setReadout(payload.monster.readout);
@@ -233,11 +235,11 @@ export function DmBestiaryPanel({
     // World entries that link to it keep the link: a forgotten monster still
     // resolves, so they still fight as it.
     const linked = onWorldEntry ? await linkedEntries(campaignId, "monster", `homebrew:${id}`) : [];
-    const worldLine = linked.length ? ` World entries that link to it keep the link: ${linked.map((entry) => entry.name).join(", ")}.` : "";
+    const worldLine = linked.length ? t("campaign.dmBestiary.linkedWorldEntries", { names: linked.map((entry) => entry.name).join(", ") }) : "";
     if (
       !(await appConfirm(
-        `Forget ${monster.draft.name}? It leaves the bestiary and its pickers. An NPC, a prepared fight or a template that already names it still fights with its stat block as it is now.${worldLine}`,
-        { title: "Forget this monster?", actionLabel: "Forget it" },
+        t("campaign.dmBestiary.confirmForget", { name: monster.draft.name, worldLine }),
+        { title: t("campaign.dmBestiary.confirmForgetTitle"), actionLabel: t("campaign.dmBestiary.confirmForgetAction") },
       ))
     ) {
       return;
@@ -246,7 +248,7 @@ export function DmBestiaryPanel({
     const response = await fetch(`/api/campaigns/${campaignId}/dm/bestiary/${id}`, { method: "DELETE" }).catch(() => null);
     if (!response?.ok) {
       const payload = (await response?.json().catch(() => ({}))) as { error?: string } | undefined;
-      setError(payload?.error ?? (response ? "That could not be deleted." : "Could not reach the server."));
+      setError(payload?.error ?? (response ? t("campaign.dmBestiary.deleteFailed") : t("campaign.dmBestiary.network")));
       return;
     }
     if (openId === id) {
@@ -280,7 +282,7 @@ export function DmBestiaryPanel({
             open={building}
             onToggle={() => setBuilding((current) => !current)}
             glyph="system-bestiary"
-            title="Build a monster"
+            title={t("campaign.dmBestiary.buildTitle")}
             tour="bestiary-build"
           />
           {building ? (
@@ -301,7 +303,7 @@ export function DmBestiaryPanel({
         </section>
 
         <div data-tour="bestiary-list">
-          <Listed loaded={loaded} error={loadError} onRetry={() => void load()} loading="Opening the bestiary...">
+          <Listed loaded={loaded} error={loadError} onRetry={() => void load()} loading={t("campaign.dmBestiary.loading")}>
             <MonsterRows
               monsters={monsters}
               busy={busy}
@@ -316,7 +318,7 @@ export function DmBestiaryPanel({
         <Sheet
           open={editorOpen && editor !== null}
           onOpenChange={setEditorOpen}
-          title={draft?.name || "Monster"}
+          title={draft?.name || t("campaign.dmBestiary.monsterTitle")}
           className="top-0 h-dvh max-h-none rounded-none pt-[max(0.5rem,env(safe-area-inset-top))] lg:top-1/2 lg:h-auto lg:max-h-[92vh] lg:w-[min(96vw,64rem)] lg:rounded-xl"
         >
           {onWorldEntry && openId ? <LinkedEntries campaignId={campaignId} kind="monster" record={`homebrew:${openId}`} onWorldEntry={onWorldEntry} /> : null}
@@ -341,13 +343,13 @@ export function DmBestiaryPanel({
 
       <div className="flex flex-col gap-1.5">
         <SectionHead
-          title="Your monsters"
+          title={t("campaign.dmBestiary.yourMonsters")}
           glyph="system-bestiary"
           aside={monsters.length ? <span key={monsters.length} className="count-pop">{monsters.length}</span> : undefined}
         />
-        <Listed loaded={loaded} error={loadError} onRetry={() => void load()} loading="Opening the bestiary...">
+        <Listed loaded={loaded} error={loadError} onRetry={() => void load()} loading={t("campaign.dmBestiary.loading")}>
           {monsters.length === 0 ? (
-            <EmptyState size="sm" art="chest" title="Nothing built yet. A monster made here answers to its name wherever a fight starts." />
+            <EmptyState size="sm" art="chest" title={t("campaign.dmBestiary.empty")} />
           ) : null}
         </Listed>
         {monsters.map((monster) => {
@@ -355,9 +357,9 @@ export function DmBestiaryPanel({
           const toggle = () => (isOpen ? setOpenId(null) : open(monster));
           // The labels are the names the two icon buttons always announced.
           const items: ContextMenuItem[] = [
-            { id: "open", label: isOpen ? "Close the stat block" : "Open the stat block", glyph: "system-bestiary", onSelect: toggle },
-            { id: "duplicate", label: `Duplicate ${monster.draft.name}`, glyph: "ui-duplicate", disabled: busy, onSelect: () => void duplicate(monster) },
-            { id: "delete", label: `Delete ${monster.draft.name}`, glyph: "ui-delete", tone: "danger", separated: true, onSelect: () => void remove(monster) },
+            { id: "open", label: isOpen ? t("campaign.dmBestiary.closeStatBlock") : t("campaign.dmBestiary.openStatBlock"), glyph: "system-bestiary", onSelect: toggle },
+            { id: "duplicate", label: t("campaign.dmBestiary.duplicate", { name: monster.draft.name }), glyph: "ui-duplicate", disabled: busy, onSelect: () => void duplicate(monster) },
+            { id: "delete", label: t("campaign.dmBestiary.delete", { name: monster.draft.name }), glyph: "ui-delete", tone: "danger", separated: true, onSelect: () => void remove(monster) },
           ];
           return (
             <ContextMenu key={monster.id} items={items} label={monster.draft.name} className={cn(ui.card, "rounded-lg")}>

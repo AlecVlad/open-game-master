@@ -14,11 +14,13 @@ import {
   VolumeX,
 } from "lucide-react";
 import { memo, useRef, useState, type MouseEvent as ReactMouseEvent } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { appNotice } from "@/components/ui/ConfirmDialog";
 import { ContextMenu } from "@/components/ui/ContextMenu";
 import { ImageLightbox } from "@/components/ui/ImageLightbox";
 import { SectionHead } from "@/components/ui/SectionHead";
 import { cn } from "@/lib/cn";
+import type { MeasurementSystem } from "@/lib/measurement-system";
 import { encodeImageForUpload } from "@/lib/image-encode";
 import { ui } from "@/lib/ui";
 import { haltedTurnPrefix, type CampaignMember } from "@/lib/campaign-types";
@@ -64,6 +66,8 @@ function isMouseContextMenu(event: ReactMouseEvent): boolean {
 export const MessageItem = memo(function MessageItem({
   message,
   campaignId,
+  measurementSystem = "imperial",
+  tableLanguage = "english",
   canRetryTurn,
   canIllustrate,
   rollsById,
@@ -90,6 +94,8 @@ export const MessageItem = memo(function MessageItem({
 }: {
   message: CampaignMessage;
   campaignId: string;
+  measurementSystem?: MeasurementSystem;
+  tableLanguage?: string;
   cast: CastMember[];
   canRetryTurn: boolean;
   // This row is the viewer's own message: nothing to report.
@@ -128,6 +134,7 @@ export const MessageItem = memo(function MessageItem({
   // A shop's "is open" line opens the Market on that shop.
   onBrowseShop?: (shopId: string) => void;
 }) {
+  const { t } = useI18n();
   // Local to the row: only one narration is ever being corrected at a time,
   // and the draft should not survive the row unmounting.
   const [editing, setEditing] = useState(false);
@@ -169,7 +176,7 @@ export const MessageItem = memo(function MessageItem({
       });
       const uploaded = await upload.json().catch(() => ({}));
       if (!upload.ok) {
-        void appNotice(uploaded.error || "That image would not upload.");
+        void appNotice(uploaded.error || t("campaign.session.messages.uploadFailed"));
         return;
       }
       const response = await fetch(
@@ -182,10 +189,10 @@ export const MessageItem = memo(function MessageItem({
       );
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        void appNotice(data.error || "Could not put that picture under the passage.");
+        void appNotice(data.error || t("campaign.session.messages.pictureAttachFailed"));
       }
     } catch {
-      void appNotice("That image would not upload.");
+      void appNotice(t("campaign.session.messages.uploadFailed"));
     } finally {
       setAttaching(false);
     }
@@ -215,21 +222,21 @@ export const MessageItem = memo(function MessageItem({
     if (message.rollIds?.length) {
       return <RolledNote content={message.content} rollIds={message.rollIds} glyph={message.glyph} rollsById={rollsById} sheetsById={sheetsById} />;
     }
-    return <SystemMessage content={message.content} glyph={message.glyph} />;
+    return <SystemMessage content={message.content} glyph={message.glyph} fightSetup={message.fightSetup} />;
   }
   if (message.authorType === "dm" && isOocAnswer(message.content)) {
     // The DM's out-of-character answer to table talk put to it
     // (src/lib/dm/ooc-question.ts): an aside, not a passage, so none of a
     // passage's actions and none of its type.
-    const asideActions: MessageAction[] = [copyAction(message)];
+    const asideActions: MessageAction[] = [copyAction(message, t)];
     if (onReport) {
-      asideActions.push(reportAction(message, onReport, true));
+      asideActions.push(reportAction(message, onReport, true, t));
     }
     return (
-      <ContextMenu items={toContextItems(asideActions)} label="Game Master" className="session-dm-aside group max-w-[92%] animate-fade-up sm:max-w-2xl">
+      <ContextMenu items={toContextItems(asideActions)} label={t("campaign.session.messages.gameMaster")} className="session-dm-aside group max-w-[92%] animate-fade-up sm:max-w-2xl">
         <p className="mb-1 flex items-center gap-1.5">
-          <span className="session-speaker truncate">Game Master, out of character</span>
-          <MessageActions actions={asideActions} menuLabel="Game Master: message actions" quiet />
+          <span className="session-speaker truncate">{t("campaign.session.messages.gameMasterOoc")}</span>
+          <MessageActions actions={asideActions} menuLabel={`${t("campaign.session.messages.gameMaster")}: ${t("campaign.session.messages.messageActions")}`} quiet />
         </p>
         <div className="session-bubble session-bubble-ooc session-bubble-dm">
           <p className="whitespace-pre-wrap text-pretty">{message.content}</p>
@@ -242,9 +249,9 @@ export const MessageItem = memo(function MessageItem({
     if (onRenarrate) {
       actions.push({
         id: "reroll",
-        name: "Reroll",
-        label: "Reroll this narration",
-        hint: "Reroll: have the GM write this moment again, with the same dice and outcome",
+        name: t("campaign.session.messages.reroll"),
+        label: t("campaign.session.messages.rerollLabel"),
+        hint: t("campaign.session.messages.rerollHint"),
         glyph: "die-d20",
         icon: <RefreshCw className="size-3.5" />,
         onSelect: () => onRenarrate(message),
@@ -253,9 +260,9 @@ export const MessageItem = memo(function MessageItem({
     if (onContinueScene) {
       actions.push({
         id: "continue",
-        name: "Continue the scene",
-        label: "Continue this scene",
-        hint: "Continue: have the GM keep writing from where this stopped, without moving the story on",
+        name: t("campaign.session.messages.continueScene"),
+        label: t("campaign.session.messages.continueSceneLabel"),
+        hint: t("campaign.session.messages.continueSceneHint"),
         glyph: "ui-skip",
         icon: <FastForward className="size-3.5" />,
         onSelect: () => onContinueScene(message),
@@ -264,9 +271,9 @@ export const MessageItem = memo(function MessageItem({
     if (onEditSave) {
       actions.push({
         id: "edit",
-        name: "Edit",
-        label: "Edit this narration",
-        hint: "Edit: fix what the GM said. Mechanics are untouched, and every dice marker must survive",
+        name: t("campaign.session.messages.edit"),
+        label: t("campaign.session.messages.editLabel"),
+        hint: t("campaign.session.messages.editHint"),
         glyph: "tab-log",
         icon: <Pencil className="size-3.5" />,
         onSelect: () => setEditing(true),
@@ -279,9 +286,9 @@ export const MessageItem = memo(function MessageItem({
         // bookmark here while the lead's canon control wore the pin, so the
         // panel's "press the pin icon" pointed at the wrong one.
         id: "remember",
-        name: "Pin to memory",
-        label: "Pin this to the GM's memory",
-        hint: "Pin to memory: keep your selected text (or this whole message) in front of the GM every turn",
+        name: t("campaign.session.messages.pinMemory"),
+        label: t("campaign.session.messages.pinMemoryLabel"),
+        hint: t("campaign.session.messages.pinMemoryHint"),
         glyph: "ui-pin",
         icon: <Pin className="size-3.5" />,
         onSelect: () => onPinMemory(message),
@@ -290,9 +297,9 @@ export const MessageItem = memo(function MessageItem({
     if (onLoreCheck) {
       actions.push({
         id: "lore",
-        name: "Lore check",
-        label: "Lore check this passage",
-        hint: "Lore check: flag this passage (or your selected text) against the campaign record",
+        name: t("campaign.session.messages.loreCheck"),
+        label: t("campaign.session.messages.loreCheckLabel"),
+        hint: t("campaign.session.messages.loreCheckHint"),
         glyph: "system-lore",
         icon: <ShieldQuestion className="size-3.5" />,
         onSelect: () => onLoreCheck(message),
@@ -303,9 +310,9 @@ export const MessageItem = memo(function MessageItem({
         // It writes a lore entry to Facts, so it wears the Facts tab's own
         // icon, here and in the menus (issue 668).
         id: "canon",
-        name: "Add to Facts",
-        label: "Add this passage to Facts as canon",
-        hint: "Add to Facts (lead only): save this passage, or your selected text, as established fact",
+        name: t("campaign.session.messages.addFacts"),
+        label: t("campaign.session.messages.addFactsLabel"),
+        hint: t("campaign.session.messages.addFactsHint"),
         glyph: "tab-facts",
         icon: <BookMarked className="size-3.5" />,
         onSelect: () => onPinCanon(message),
@@ -314,11 +321,11 @@ export const MessageItem = memo(function MessageItem({
     if (canIllustrate) {
       actions.push({
         id: "picture",
-        name: message.generatedImage ? "Replace the picture" : "Add a picture",
-        label: message.generatedImage ? "Replace the picture" : "Add a picture",
+        name: message.generatedImage ? t("campaign.session.messages.replacePicture") : t("campaign.session.messages.addPicture"),
+        label: message.generatedImage ? t("campaign.session.messages.replacePicture") : t("campaign.session.messages.addPicture"),
         hint: message.generatedImage
-          ? "Replace picture: put an image of your own under this passage"
-          : "Add a picture: put an image of your own under this passage",
+          ? t("campaign.session.messages.replacePictureHint")
+          : t("campaign.session.messages.addPictureHint"),
         glyph: "tab-handout",
         icon: <ImagePlus className="size-3.5" />,
         busy: attaching,
@@ -328,9 +335,9 @@ export const MessageItem = memo(function MessageItem({
     if (onReplayAudio) {
       actions.push({
         id: "read",
-        name: "Read aloud",
-        label: "Read this passage aloud",
-        hint: "Read aloud",
+        name: t("campaign.session.messages.readAloud"),
+        label: t("campaign.session.messages.readAloudLabel"),
+        hint: t("campaign.session.messages.readAloudHint"),
         glyph: "cue-horn",
         icon: <Volume2 className="size-3.5" />,
         busy: narrating,
@@ -345,12 +352,12 @@ export const MessageItem = memo(function MessageItem({
         },
       });
     }
-    actions.push(copyAction(message));
+    actions.push(copyAction(message, t));
     if (onDispute) {
-      actions.push(disputeAction(message, onDispute));
+      actions.push(disputeAction(message, onDispute, t));
     }
     if (onReport) {
-      actions.push(reportAction(message, onReport, true));
+      actions.push(reportAction(message, onReport, true, t));
     }
     const menuActions = actions.map((action) => ({
       ...action,
@@ -364,7 +371,7 @@ export const MessageItem = memo(function MessageItem({
     // Reroll takes: the counter only appears once a second one exists.
     const variants = message.variants ?? [];
     const variantIndex = message.variantIndex ?? 0;
-    const title = message.speaker ? `${message.speaker.name}, through the GM` : "Game Master";
+    const title = message.speaker ? t("campaign.session.messageItem.speakerThroughGm", { name: message.speaker.name }) : t("common.gameMaster");
     return (
       <div
         className="session-dm group animate-fade-up"
@@ -396,7 +403,7 @@ export const MessageItem = memo(function MessageItem({
                       type="button"
                       onClick={() => onSelectVariant(message, variantIndex - 1)}
                       disabled={variantIndex <= 0}
-                      aria-label="Previous take"
+                      aria-label={t("campaign.session.messages.previousTake")}
                       className={cn(ui.iconAction, "-my-1.5 p-1 opacity-100 disabled:opacity-30")}
                     >
                       <ChevronLeft className="size-3.5" />
@@ -406,14 +413,14 @@ export const MessageItem = memo(function MessageItem({
                       type="button"
                       onClick={() => onSelectVariant(message, variantIndex + 1)}
                       disabled={variantIndex >= variants.length - 1}
-                      aria-label="Next take"
+                      aria-label={t("campaign.session.messages.nextTake")}
                       className={cn(ui.iconAction, "-my-1.5 p-1 opacity-100 disabled:opacity-30")}
                     >
                       <ChevronRight className="size-3.5" />
                     </button>
                   </span>
                 ) : null}
-                <MessageActions actions={actions} menuActions={menuActions} menuLabel="Passage actions" />
+                <MessageActions actions={actions} menuActions={menuActions} menuLabel={t("campaign.session.messages.passageActions")} />
               </>
             }
           />
@@ -472,18 +479,18 @@ export const MessageItem = memo(function MessageItem({
               }}
             />
           ) : (
-            <DmContent content={message.content} rollsById={rollsById} sheetsById={sheetsById} cast={cast} lines={message.speech} speaker={message.speaker} />
+            <DmContent content={message.content} rollsById={rollsById} sheetsById={sheetsById} cast={cast} lines={message.speech} speaker={message.speaker} measurementSystem={measurementSystem} tableLanguage={tableLanguage} />
           )}
           {message.generatedImage ? (
             <ImageLightbox
               src={message.generatedImage.url}
-              alt={message.imageRequest?.prompt || "Scene"}
+              alt={message.imageRequest?.prompt || t("campaign.session.messages.scene")}
               className="ken-burns max-h-96 rounded-xl border border-stone-800"
               frameClassName="mt-3 overflow-hidden rounded-xl"
             />
           ) : pictureSlot ? (
             <MediaPlaceholder
-              label="Illustrating the scene..."
+              label={t("campaign.session.messages.illustrating")}
               status={pictureSlot.status}
               fallbackStartedAt={message.createdAt}
             />
@@ -509,7 +516,7 @@ export const MessageItem = memo(function MessageItem({
                   }}
                   className="motion-press rounded-md border border-amber-800/60 px-1.5 py-0.5 text-amber-200 hover:border-amber-600 disabled:opacity-60"
                 >
-                  {narrating ? "Trying…" : "Try again"}
+                  {narrating ? t("campaign.session.messages.trying") : t("campaign.session.messages.tryAgain")}
                 </button>
               ) : null}
             </p>
@@ -529,7 +536,7 @@ export const MessageItem = memo(function MessageItem({
                 <figure className="mt-3 max-w-md">
                   <ImageLightbox
                     src={location.mapImage.url}
-                    alt={`Map of ${location.name}`}
+                    alt={t("campaign.session.messages.mapOf", { name: location.name })}
                     caption={location.name}
                     className="max-h-96 rounded-xl border border-stone-800"
                   />
@@ -544,7 +551,7 @@ export const MessageItem = memo(function MessageItem({
             const slot = locationMapSlot(location, message.createdAt, mediaStatus[location.id]);
             return slot ? (
               <MediaPlaceholder
-                label="Charting the area..."
+                label={t("campaign.session.messages.chartingArea")}
                 status={slot.status}
                 fallbackStartedAt={message.createdAt}
               />

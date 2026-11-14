@@ -1,6 +1,7 @@
 "use client";
 
 import { useId } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { contentSlug } from "@/lib/help";
 import type { BackgroundKit } from "@/lib/srd/gear-choices";
 import { InfoButton } from "@/components/ui/InfoDialog";
@@ -25,6 +26,7 @@ export default function BackgroundKitSection({
   backgroundName: string;
   onPick: (index: number, label: string) => void;
 }) {
+  const { t } = useI18n();
   const captionId = useId();
   if (!kit.choices.length && !kit.toolLines.length) {
     return null;
@@ -32,13 +34,13 @@ export default function BackgroundKitSection({
   return (
     <div className="mb-3 space-y-2.5" data-builder-target="backgroundGear">
       <p className="text-xs text-stone-500">
-        The {backgroundName}&apos;s kit, free. Where it offers a choice, pick one.
+{t("builder.extra.backgroundKit.summary", { name: backgroundName })}
       </p>
       {kit.choices.map((choice, index) => {
         const taken = choice.alternatives[choice.chosen];
         return (
           <div key={choice.line} className="space-y-1.5">
-            <div role="group" aria-label={`${backgroundName} kit choice ${index + 1}`} className="flex flex-wrap gap-1.5">
+            <div role="group" aria-label={t("builder.extra.backgroundKit.choice.aria", { name: backgroundName, count: index + 1 })} className="flex flex-wrap gap-1.5">
               {choice.alternatives.map((alternative, at) => (
                 <PickPill
                   key={alternative.label}
@@ -60,7 +62,7 @@ export default function BackgroundKitSection({
             {taken?.options ? (
               <div key={`${index}-${choice.chosen}`} className="reveal grid gap-1.5 sm:grid-cols-2">
                 <div>
-                  <span id={`${captionId}-${index}`} className="mb-1 block text-sm text-stone-400">Which {taken.label.toLowerCase()}</span>
+                  <span id={`${captionId}-${index}`} className="mb-1 block text-sm text-stone-400">{t("builder.extra.backgroundKit.which", { label: taken.label.toLowerCase() })}</span>
                   <OptionPicker
                     labelledBy={`${captionId}-${index}`}
                     value={taken.items[0]?.name ?? ""}
@@ -94,10 +96,10 @@ export default function BackgroundKitSection({
                 label={entry.item}
                 reference={{ kind: "items", slug: contentSlug(entry.item), name: entry.item }}
               />
-              <span className="text-stone-500">from your tool proficiency</span>
+              <span className="text-stone-500">{t("builder.extra.backgroundKit.tool.proficiency")}</span>
             </>
           ) : (
-            <span className="text-amber-300">the tool you pick on the Ancestry step, beside the background.</span>
+            <span className="text-amber-300">{t("builder.extra.backgroundKit.tool.pick")}</span>
           )}
         </p>
       ))}

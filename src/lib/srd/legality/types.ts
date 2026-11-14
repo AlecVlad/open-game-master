@@ -7,6 +7,7 @@ import type { CreateSheetInput } from "@/lib/schemas/sheet";
 import type { HpMethod } from "@/lib/srd/hit-points";
 import type { PriceLookup, StartingWealthMethod } from "@/lib/srd/starting-wealth";
 import type { OlderBuilder } from "@/lib/srd/legality/older-builder";
+import type { GearProblemDetail } from "@/lib/srd/gear-problems";
 
 export type ClassGrants = ClassOption;
 export type RaceGrants = RaceOption & {
@@ -89,6 +90,9 @@ export type Legalized = {
   // Plain sentences, each saying what the rule is and what would pass.
   // Empty when the sheet may be stored.
   problems: string[];
+  // Structured starting-kit / starting-wealth diagnostics, aligned by index
+  // with `problems`; null marks a problem without a stable translated form.
+  problemDetails?: Array<GearProblemDetail | null>;
   // The sheet with every derived value written by the server. Only
   // meaningful when `problems` is empty.
   sheet: CreateSheetInput;

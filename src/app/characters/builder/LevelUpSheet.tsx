@@ -4,6 +4,7 @@ import { ContentScopeProvider } from "@/lib/content-scope";
 import { HeartPulse, Loader2, Sparkles, Wand2 } from "lucide-react";
 import Link from "next/link";
 import { useId, useMemo, useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { GameTerm } from "@/components/ui/GameTerm";
 import { InfoButton } from "@/components/ui/InfoDialog";
 import { useWiderSpellPool } from "@/components/sheet/useSpellPool";
@@ -99,6 +100,7 @@ function LevelUpSheetForm({
   wholeBuildHref: string;
   cancelHref: string;
 }) {
+  const { t, tp } = useI18n();
   useEffectsRoot();
   const nextLevel = Math.min(20, initialLevel + 1);
   const { races: rawRaces, classes: rawClasses, backgrounds: rawBackgrounds, loaded } = useBuilderOptions(initial.race);
@@ -280,7 +282,7 @@ function LevelUpSheetForm({
         })
       : null;
   const hpGain = preview && !preview.hpKept && preview.hpMethod !== "rolled" ? preview.maxHp - initial.maxHp : null;
-  const who = initial.name.trim() || "Your hero";
+  const who = initial.name.trim() || t("builder.screen.levelup.hero");
   const shown = state.subclass ? pickers.chosenArchetype?.desc || subclassBlurb(klass?.id ?? "", state.subclass) : "";
   const saveBlocked = Boolean(firstOwed) || busy || fill.running;
 
@@ -297,12 +299,12 @@ function LevelUpSheetForm({
           />
         ) : null}
 
-        <StepPanel title={`What level ${nextLevel} brings`} ornate className="border-amber-500/30">
+        <StepPanel title={t("builder.screen.levelup.title", { level: nextLevel })} ornate className="border-amber-500/30">
           <div className="space-y-3">
             <div data-level-up-hp="" className="flex items-start gap-2">
               <HeartPulse aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-rose-300" />
               <p className="min-w-0 flex-1 text-stone-200">
-                <span className="font-medium">Hit points: </span>
+                <span className="font-medium">{t("builder.screen.levelup.hp.label")} </span>
                 {hpLine ? (
                   <>
                     {hpGain !== null ? (
@@ -319,18 +321,18 @@ function LevelUpSheetForm({
                     <span className="mt-0.5 block text-xs text-stone-500">{hpLine.reason}</span>
                   </>
                 ) : (
-                  "worked out once the build is read."
+                  t("builder.screen.levelup.hp.pending")
                 )}
               </p>
             </div>
             <div data-level-up-features="" className="flex items-start gap-2">
               <Sparkles aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-amber-200" />
               <div className="min-w-0 flex-1 text-stone-200">
-                <span className="font-medium">New features: </span>
-                {newRow?.features.length ? newRow.features.join(", ") : "none at this level."}
+                <span className="font-medium">{t("builder.screen.levelup.features.label")} </span>
+                {newRow?.features.length ? newRow.features.join(", ") : t("builder.screen.levelup.features.none")}
                 {newRow && newRow.proficiency > (heldRow?.proficiency ?? newRow.proficiency) ? (
                   <span className="mt-0.5 block text-xs text-stone-400">
-                    Proficiency bonus rises to +{newRow.proficiency}.
+                    {t("builder.screen.levelup.proficiency", { bonus: newRow.proficiency })}
                   </span>
                 ) : null}
               </div>
@@ -338,10 +340,10 @@ function LevelUpSheetForm({
           </div>
           <p className="mt-3 text-xs text-stone-400" data-level-up-owed={sheetOwed.length}>
             {nothingToChoose
-              ? `Nothing to choose at level ${nextLevel}. Save takes the level.`
+              ? t("builder.screen.levelup.nothing", { level: nextLevel })
               : sheetOwed.length
-                ? `${sheetOwed.length === 1 ? "One choice is" : `${sheetOwed.length} choices are`} still to make below. Choose for me fills only the empty ones.`
-                : "Every choice for this level is made."}
+                ? tp("builder.screen.levelup.owed", sheetOwed.length, { count: sheetOwed.length })
+                : t("builder.screen.levelup.done")}
           </p>
           {sheetOwed.length ? (
             <button
@@ -351,25 +353,25 @@ function LevelUpSheetForm({
               data-level-up-fill=""
               className={cn(ui.btnSecondary, "mt-2")}
             >
-              <Wand2 aria-hidden="true" className="size-4" /> {fill.running ? "Choosing..." : "Choose for me"}
+              <Wand2 aria-hidden="true" className="size-4" /> {fill.running ? t("builder.screen.levelup.action.choosing") : t("builder.screen.levelup.action.choose")}
             </button>
           ) : null}
         </StepPanel>
 
         {showSubclass && klass ? (
-          <StepPanel title="Subclass" anchor="subclass">
-            <Field label="Subclass">
+          <StepPanel title={t("builder.screen.levelup.subclass.title")} anchor="subclass">
+            <Field label={t("builder.screen.levelup.subclass.label")}>
               <OptionPicker
                 value={state.subclass}
                 groups={pickers.subclassGroups}
-                placeholder="None yet"
+                placeholder={t("builder.screen.levelup.subclass.none")}
                 className={inputClass}
                 onChange={state.changeSubclass}
               />
               <span className="mt-1 flex items-start gap-1 text-xs text-stone-500">
                 {state.subclass ? (
                   <>
-                    <span className="grow">{firstSentence(shown) ?? "A specialization within your class."}</span>
+                    <span className="grow">{firstSentence(shown) ?? t("builder.screen.levelup.subclass.specialization")}</span>
                     <InfoButton
                       label={state.subclass}
                       text={shown || undefined}
@@ -378,8 +380,7 @@ function LevelUpSheetForm({
                   </>
                 ) : (
                   <span className="grow">
-                    <span className="text-amber-300">Still to choose. </span>A {klass.name.toLowerCase()} chooses a{" "}
-                    <GameTerm id="subclass">subclass</GameTerm> at level {pickLevel}. It decides much of how they play from here.
+                    <span className="text-amber-300">{t("builder.screen.levelup.subclass.pending")} </span>{t("builder.screen.levelup.subclass.description", { className: klass.name.toLowerCase(), level: pickLevel ?? nextLevel })}
                   </span>
                 )}
               </span>
@@ -429,7 +430,7 @@ function LevelUpSheetForm({
         {showSpells && klass ? <SpellsSection state={state} derived={derived} klass={klass} pack={null} /> : null}
 
         {showRacialCantrips && race ? (
-          <StepPanel title={`${race.name} choices`}>
+          <StepPanel title={t("builder.screen.levelup.raceChoices", { race: race.name })}>
             <RacialCantripPicker race={race} cantrips={state.racialCantrips} onChange={state.setRacialCantrips} />
           </StepPanel>
         ) : null}
@@ -439,14 +440,14 @@ function LevelUpSheetForm({
             data-level-up-elsewhere=""
             className="rounded-lg border border-amber-500/30 bg-amber-950/20 px-3 py-2 text-xs text-amber-100"
           >
-            <h2 className="font-medium">Also still to choose, in the whole build</h2>
+            <h2 className="font-medium">{t("builder.screen.levelup.elsewhere.title")}</h2>
             <ul className="mt-1 list-disc space-y-0.5 pl-4">
               {elsewhere.map((pick) => (
                 <li key={pick.target}>{pick.message}</li>
               ))}
             </ul>
             <Link href={wholeBuildHref} className="mt-1 inline-flex min-h-10 items-center text-amber-300 underline underline-offset-2">
-              Edit the whole build to choose {elsewhere.length === 1 ? "it" : "them"}
+              {t(elsewhere.length === 1 ? "builder.screen.levelup.elsewhere.one" : "builder.screen.levelup.elsewhere.other")}
             </Link>
           </section>
         ) : null}
@@ -467,17 +468,17 @@ function LevelUpSheetForm({
             data-level-up-save=""
             className={cn(ui.btnPrimary, "min-w-0 flex-1 sm:flex-none", saveBlocked && "opacity-60")}
           >
-            {busy ? <Loader2 aria-hidden="true" className="size-4 animate-spin" /> : null} Take level {nextLevel}
+            {busy ? <Loader2 aria-hidden="true" className="size-4 animate-spin" /> : null} {t("builder.screen.levelup.action.take", { level: nextLevel })}
           </button>
           <Link href={wholeBuildHref} data-level-up-whole="" className={cn(ui.btnSecondary, "min-w-0 flex-1 sm:flex-none")}>
-            Edit the whole build
+            {t("builder.screen.levelup.action.editBuild")}
           </Link>
           <Link href={cancelHref} className="inline-flex min-h-10 items-center px-2 text-xs text-stone-400 hover:text-amber-200">
-            Not now
+            {t("builder.screen.levelup.action.notNow")}
           </Link>
           {firstOwed ? (
             <p id={`${rootId}-blocker`} className="basis-full text-xs text-stone-400">
-              {who} takes the level once this is chosen: {firstOwed.message}
+              {t("builder.screen.levelup.blocker", { name: who, choice: firstOwed.message })}
             </p>
           ) : null}
         </div>

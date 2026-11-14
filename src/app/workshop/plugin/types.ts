@@ -6,13 +6,13 @@ import type { WorldPackDraft } from "@/lib/worlds/draft";
 // draft; the panel owns saving.
 
 export const PLUGIN_SECTIONS = [
-  { id: "identity", label: "Identity" },
-  { id: "people", label: "People" },
-  { id: "magic", label: "Magic & gear" },
-  { id: "bestiary", label: "Bestiary" },
-  { id: "setting", label: "Setting" },
-  { id: "art", label: "Pictures" },
-  { id: "publish", label: "Publish" },
+  { id: "identity" },
+  { id: "people" },
+  { id: "magic" },
+  { id: "bestiary" },
+  { id: "setting" },
+  { id: "art" },
+  { id: "publish" },
 ] as const;
 
 export type SectionId = (typeof PLUGIN_SECTIONS)[number]["id"];

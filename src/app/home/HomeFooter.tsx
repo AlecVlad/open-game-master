@@ -1,17 +1,22 @@
+"use client";
+
+import { useI18n } from "@/lib/i18n/provider";
+
 // The legal links and the source, at the foot of home.
 export function HomeFooter() {
+  const { t } = useI18n();
   return (
     <footer className="ts-footer">
       <a href="/licenses" className="ts-footer-link">
-        Licenses and attribution
+        {t("home.footer.licenses")}
       </a>
       <span className="ts-footer-dot" aria-hidden="true">&middot;</span>
       <a href="/privacy" className="ts-footer-link">
-        Privacy policy
+        {t("home.footer.privacy")}
       </a>
       <span className="ts-footer-dot" aria-hidden="true">&middot;</span>
       <a href="/terms" className="ts-footer-link">
-        Terms of service
+        {t("home.footer.terms")}
       </a>
       <span className="ts-footer-dot" aria-hidden="true">&middot;</span>
       <a

@@ -3,6 +3,7 @@
 import { PrintedBlockView } from "@/app/workshop/bestiary/PrintedBlockView";
 import { Loader2 } from "lucide-react";
 import { useState, type ReactNode } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { DetailGroup } from "@/app/create-campaign/fields";
 import { monsterFoldSummary, type MonsterFold } from "@/app/workshop/bestiary/monster-folds";
 import { cn } from "@/lib/cn";
@@ -76,16 +77,33 @@ export function MonsterEditor({
   onSave: () => void;
   layout?: "inline" | "sheet";
 }) {
+  const { t, tp } = useI18n();
   const sheet = layout === "sheet";
+  const ratingLabelKeys: Record<string, string> = {
+    "Hit points": "hitPoints",
+    "Armour class": "armourClass",
+    "Damage per round": "damageRound",
+    "Attack bonus": "attackBonus",
+    Toughness: "toughness",
+    "The routine": "routine",
+    "The average": "average",
+  };
+  const ratingVerdictKeys: Record<string, string> = {
+    "as expected": "asExpected",
+    "above expected": "above",
+    "below expected": "below",
+    "too low": "low",
+    "too high": "high",
+  };
   const setStats = (patch: Partial<MonsterDraft["stats"]>) =>
     onDraft({ ...draft, stats: { ...draft.stats, ...patch } });
   const [openFolds, setOpenFolds] = useState<ReadonlySet<MonsterFold>>(new Set());
-  const fold = (id: MonsterFold, title: string, glyph: string, children: ReactNode) => (
+  const fold = (id: MonsterFold, titleKey: string, glyph: string, children: ReactNode) => (
     <DetailGroup
       id={`monster-${id}`}
-      title={title}
+      title={t(titleKey as never)}
       glyph={glyph}
-      summary={monsterFoldSummary(id, draft)}
+      summary={monsterFoldSummary(id, draft, (key, params) => t(key as never, params as never), (key, count, params) => tp(key as never, count, params as never))}
       open={openFolds.has(id)}
       onToggle={(open) =>
         setOpenFolds((current) => {
@@ -101,7 +119,7 @@ export function MonsterEditor({
   );
   const actionsFold = fold(
     "actions",
-    "Actions and specials",
+    "workshop.monsterEditor.editor.actions",
     "system-bestiary",
     <>
       <RoutineEditor draft={draft} onChange={onDraft} />
@@ -109,11 +127,11 @@ export function MonsterEditor({
       <SectionedTraitEditor draft={draft} onChange={onDraft} />
     </>,
   );
-  const spellcastingFold = fold("spellcasting", "Spellcasting", "cue-magic-cast", <SpellcastingEditor draft={draft} onChange={onDraft} />);
-  const regenerationFold = fold("regeneration", "Regeneration", "rest-hp", <RegenerationEditor draft={draft} onChange={onDraft} />);
+  const spellcastingFold = fold("spellcasting", "workshop.monsterEditor.editor.spellcasting", "cue-magic-cast", <SpellcastingEditor draft={draft} onChange={onDraft} />);
+  const regenerationFold = fold("regeneration", "workshop.monsterEditor.editor.regeneration", "rest-hp", <RegenerationEditor draft={draft} onChange={onDraft} />);
   const sensesFold = fold(
     "senses",
-    "Skills, senses and languages",
+    "workshop.monsterEditor.editor.senses",
     "sense-darkvision",
     <>
       <SkillsAndSenses draft={draft} onChange={onDraft} />
@@ -127,7 +145,7 @@ export function MonsterEditor({
         sheet ? "grid grid-cols-2 gap-2 sm:grid-cols-3" : "flex flex-wrap items-end gap-2",
       )}
     >
-      <Field as="label" label="Name" className={cn(sheet && "col-span-2 sm:col-span-3")}>
+      <Field as="label" label={t("workshop.monsterEditor.build.name")} className={cn(sheet && "col-span-2 sm:col-span-3")}>
         <input
           value={draft.name}
           onChange={(event) =>
@@ -136,33 +154,33 @@ export function MonsterEditor({
           className={cn(ui.input, sheet ? "w-full" : "w-48")}
         />
       </Field>
-      <Field label="Challenge">
+      <Field label={t("workshop.monsterEditor.editor.challenge")}>
         <span className={cn("block", !sheet && "w-24")}>
           <Select
-            label="Challenge"
+            label={t("workshop.monsterEditor.editor.challenge")}
             value={String(draft.stats.cr)}
             onChange={(next) => setStats({ cr: Number(next) })}
             options={CR_OPTIONS}
           />
         </span>
       </Field>
-      <NumberField label="AC" value={draft.stats.ac} min={1} max={30} onChange={(ac) => setStats({ ac })} />
+      <NumberField label={t("workshop.monsterEditor.editor.ac")} value={draft.stats.ac} min={1} max={30} onChange={(ac) => setStats({ ac })} />
       <NumberField
-        label="Hit points"
+        label={t("workshop.monsterEditor.editor.hitPoints")}
         value={draft.stats.maxHp}
         min={1}
         max={2000}
         onChange={(maxHp) => setStats({ maxHp })}
       />
       <NumberField
-        label="Swings"
+        label={t("workshop.monsterEditor.editor.swings")}
         value={draft.stats.attacksPerTurn ?? 1}
         min={1}
         max={MAX_SWINGS}
         onChange={(attacksPerTurn) => setStats({ attacksPerTurn })}
       />
       <NumberField
-        label="Dex mod"
+        label={t("workshop.monsterEditor.editor.dexMod")}
         value={draft.stats.dexMod}
         min={-5}
         max={10}
@@ -173,22 +191,22 @@ export function MonsterEditor({
 
   const extraDamage = (
     <NumberField
-      label="Extra damage a round"
+      label={t("workshop.monsterEditor.editor.extraDamage")}
       value={draft.extraDamagePerRound}
       min={0}
       max={400}
       onChange={(extraDamagePerRound) => onDraft({ ...draft, extraDamagePerRound })}
-      hint="A breath weapon or a round of spellcasting, averaged. The rating cannot see it otherwise."
+      hint={t("workshop.monsterEditor.editor.extraDamageHint")}
     />
   );
 
   const description = (
-    <Field as="label" label="What it is">
+    <Field as="label" label={t("workshop.monsterEditor.editor.description")}>
       <textarea
         value={desc}
         onChange={(event) => onDesc(event.target.value)}
         rows={2}
-        placeholder="A knight's armour walking with nobody inside it."
+        placeholder={t("workshop.monsterEditor.editor.descriptionPlaceholder")}
         className={cn(ui.input, "resize-y")}
       />
     </Field>
@@ -196,20 +214,20 @@ export function MonsterEditor({
 
   const rating = readout ? (
     <>
-      <SectionHead title="The rating the numbers support" glyph="rest-xp" className="mb-0" />
+      <SectionHead title={t("workshop.monsterEditor.editor.rating")} glyph="rest-xp" className="mb-0" />
       <RatingLine readout={readout} />
       <Working parts={readout.derived.parts} notes={readout.derived.notes} />
       <div className="stagger-pop flex flex-wrap gap-x-4 gap-y-1 text-[11px]">
         {readout.against.map((row) => (
           <span key={row.label} className="text-stone-500">
-            {row.label}{" "}
+            {t(`workshop.monsterEditor.rating.${ratingLabelKeys[row.label] ?? row.label}` as never)}{" "}
             <span
               className={cn(row.verdict === "as expected" ? "text-stone-400" : "text-amber-300/80")}
             >
               {row.stat}
             </span>{" "}
             <span className="text-stone-600">
-              ({row.verdict}, CR {crLabel(readout.statedCr)} wants {row.expected})
+              ({t(`workshop.monsterEditor.rating.verdict.${ratingVerdictKeys[row.verdict] ?? row.verdict}` as never)}, ПО {crLabel(readout.statedCr)}, ожидается {row.expected})
             </span>
           </span>
         ))}
@@ -228,10 +246,10 @@ export function MonsterEditor({
           className={ui.btnPrimary}
         >
           {busy ? <Loader2 className="size-3.5 animate-spin" /> : null}
-          Save the block
+          {t("workshop.monsterEditor.editor.saveBlock")}
         </button>
         <span className="text-[11px] text-stone-500">
-          Saving recalculates the rating from what is on screen.
+          {t("workshop.monsterEditor.editor.saving")}
         </span>
       </div>
     </>
@@ -242,7 +260,7 @@ export function MonsterEditor({
       <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-4 lg:grid lg:grid-cols-2 lg:gap-6">
           <div className="flex flex-col gap-3">
-            <SectionHead title="The block" glyph="system-bestiary" className="mb-0" />
+            <SectionHead title={t("workshop.monsterEditor.editor.block")} glyph="system-bestiary" className="mb-0" />
             {coreStats}
             <AbilityScores draft={draft} onChange={onDraft} />
             <AttackEditor draft={draft} onChange={onDraft} />
@@ -252,7 +270,7 @@ export function MonsterEditor({
             <PrintedBlockView draft={draft} />
           </div>
           <div className="flex flex-col gap-3">
-            <SectionHead title="Catalogue and defences" glyph="rest-ac" className="mb-0" />
+            <SectionHead title={t("workshop.monsterEditor.editor.catalogue")} glyph="rest-ac" className="mb-0" />
             <MonsterKitPanel draft={draft} onChange={onDraft} />
             <BorrowParts draft={draft} onChange={onDraft} />
             <SizeAndDefences draft={draft} onChange={onDraft} />
@@ -270,7 +288,7 @@ export function MonsterEditor({
 
   return (
     <div className="flex flex-col gap-3 border-t border-stone-800 p-3">
-      <SectionHead title="The block" glyph="system-bestiary" className="mb-0" />
+      <SectionHead title={t("workshop.monsterEditor.editor.block")} glyph="system-bestiary" className="mb-0" />
       {coreStats}
       <AbilityScores draft={draft} onChange={onDraft} />
       <MonsterKitPanel draft={draft} onChange={onDraft} />

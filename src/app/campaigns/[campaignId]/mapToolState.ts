@@ -23,6 +23,7 @@ import type { StampKind } from "@/lib/battlemap/stamp";
 import { SHAPE_EFFECTS, type ShapeTool } from "@/lib/battlemap/tools";
 import type { AmbientLight } from "@/lib/battlemap/types";
 import type { CanvasTool } from "@/app/campaigns/[campaignId]/TerrainCanvas";
+import { MAP_BRUSH_LABEL_KEYS, MAP_TOOL_LABEL_KEYS } from "@/app/campaigns/[campaignId]/mapI18n";
 
 // The map editor's toolbox: which tool is in hand, and the dials for it.
 // The state, the modes and the keys live here, in a module with no JSX and no
@@ -165,22 +166,32 @@ export const MODES: ReadonlyArray<{
 ];
 
 // The sheet the `?` key opens (src/components/ui/HotkeyOverlay.tsx).
-export function mapHotkeyGroups(caps: SurfaceCaps) {
+export function mapHotkeyGroups(caps: SurfaceCaps, translate?: (key: string) => string) {
   const chips = MODES.filter((entry) => !entry.needs || caps[entry.needs]);
+  const label = (key: string, fallback: string) => (translate ? translate(key) : fallback);
   return [
-    { title: "Tools", rows: chips.map((entry) => ({ keys: [entry.key], does: entry.label })) },
     {
-      title: "Brushes",
-      rows: Object.entries(BRUSH_KEYS).map(([key, brush]) => ({ keys: [key], does: BRUSH_LABELS[brush] })),
+      title: label("workshop.maps.hotkeys.tools", "Tools"),
+      rows: chips.map((entry) => ({
+        keys: [entry.key],
+        does: label(MAP_TOOL_LABEL_KEYS[entry.mode], entry.label),
+      })),
     },
     {
-      title: "Editing",
+      title: label("workshop.maps.hotkeys.brushes", "Brushes"),
+      rows: Object.entries(BRUSH_KEYS).map(([key, brush]) => ({
+        keys: [key],
+        does: label(MAP_BRUSH_LABEL_KEYS[brush], BRUSH_LABELS[brush]),
+      })),
+    },
+    {
+      title: label("workshop.maps.hotkeys.editing", "Editing"),
       rows: [
-        { keys: ["Ctrl", "Z"], does: "Undo" },
-        { keys: ["Ctrl", "Shift", "Z"], does: "Redo" },
-        { keys: ["Esc"], does: "Put the tool down, or clear the selection" },
-        { keys: ["Del"], does: "Delete the selection" },
-        { keys: ["?"], does: "This sheet" },
+        { keys: ["Ctrl", "Z"], does: label("workshop.maps.hotkeys.undo", "Undo") },
+        { keys: ["Ctrl", "Shift", "Z"], does: label("workshop.maps.hotkeys.redo", "Redo") },
+        { keys: ["Esc"], does: label("workshop.maps.hotkeys.putDown", "Put the tool down, or clear the selection") },
+        { keys: ["Del"], does: label("workshop.maps.hotkeys.deleteSelection", "Delete the selection") },
+        { keys: ["?"], does: label("workshop.maps.hotkeys.thisSheet", "This sheet") },
       ],
     },
   ];

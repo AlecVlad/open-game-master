@@ -68,6 +68,24 @@ await test("ODM's prerequisite table is the SRD's, class for class", () => {
   }
 });
 
+await test("multiclass refusals expose stable codes and localized class parameters", async () => {
+  hero({ class: "fighter", level: 1, abilities: scores({ str: 13, dex: 13, wis: 12 }) });
+  const candidate = await assertRefused({ level: 2, levelUpClass: "cleric" }, "candidate prerequisite");
+  assert.equal(candidate.json.errorCode, "LEVEL_UP_MULTICLASS_CANDIDATE_PREREQUISITE");
+  assert.deepEqual(candidate.json.errorParams, { classId: "cleric", className: "Cleric" });
+
+  hero({ class: "paladin", level: 1, abilities: scores({ str: 13, cha: 12, int: 13 }) });
+  const held = await assertRefused({ level: 2, levelUpClass: "wizard" }, "held-class prerequisite");
+  assert.equal(held.json.errorCode, "LEVEL_UP_MULTICLASS_HELD_PREREQUISITE");
+  assert.deepEqual(held.json.errorParams, { classId: "paladin", className: "Paladin" });
+
+  hero({ class: "fighter", level: 1, abilities: all13 });
+  await levelInto("rogue");
+  await levelInto("wizard");
+  const limit = await assertRefused({ level: 4, levelUpClass: "cleric" }, "class cap");
+  assert.equal(limit.json.errorCode, "LEVEL_UP_MULTICLASS_LIMIT");
+  assert.deepEqual(limit.json.errorParams, { count: 3 });
+});
 await test("every SRD class pair: 13 in both classes' scores opens the door", async () => {
   for (const from of SRD_CLASS_IDS) {
     for (const to of SRD_CLASS_IDS.filter((id) => id !== from)) {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { Search } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { MonsterTile, ui } from "@/lib/ui";
@@ -10,10 +11,21 @@ import { Field } from "@/app/workshop/kit";
 import { MONSTER_NAME_MAX } from "@/lib/bestiary/monster-draft";
 import { crLabel } from "@/lib/bestiary/derive-cr";
 import { CR_CHOICES, type Found } from "@/app/workshop/bestiary/types";
-import { needsLabel } from "@/lib/content/levelup-logic";
+import type { Need } from "@/lib/content/needs-logic";
 import { BEST_EFFORT_CHIP } from "@/lib/content/reading-logic";
 
 const CR_OPTIONS = CR_CHOICES.map((cr) => ({ value: String(cr), label: crLabel(cr) }));
+
+const NEED_KEYS: Record<Need, string> = {
+  strife: "workshop.monsterEditor.build.need.strife",
+  fatigue: "workshop.monsterEditor.build.need.fatigue",
+  rattled: "workshop.monsterEditor.build.need.rattled",
+  "expertise dice": "workshop.monsterEditor.build.need.expertiseDice",
+  exertion: "workshop.monsterEditor.build.need.exertion",
+  maneuvers: "workshop.monsterEditor.build.need.maneuvers",
+  bloodied: "workshop.monsterEditor.build.need.bloodied",
+  "ley lines": "workshop.monsterEditor.build.need.leyLines",
+};
 
 // The top of the bestiary: name a monster and start it at a challenge
 // rating, or search the content pack for something to start from. Split out
@@ -48,6 +60,7 @@ export function MonsterBuildControls({
   // The table's setting, so a high-rating find draws the boss plate.
   genre?: string | null;
 }) {
+  const { t } = useI18n();
   const [newName, setNewName] = useState("");
   const [newCr, setNewCr] = useState(1);
 
@@ -66,19 +79,19 @@ export function MonsterBuildControls({
       )}
     >
       {variant === "card" ? (
-        <SectionHead title="Build a monster" glyph="system-bestiary" className="mb-0" />
+        <SectionHead title={t("workshop.monsterEditor.build.title")} glyph="system-bestiary" className="mb-0" />
       ) : null}
       <div className="flex flex-wrap items-end gap-2">
-        <Field as="label" label="Name" className="min-w-40 flex-1 sm:max-w-64">
+        <Field as="label" label={t("workshop.monsterEditor.build.name")} className="min-w-40 flex-1 sm:max-w-64">
           <input
             value={newName}
             onChange={(event) => setNewName(event.target.value.slice(0, MONSTER_NAME_MAX))}
-            placeholder="Bone Tyrant"
+            placeholder={t("workshop.monsterEditor.build.namePlaceholder")}
             className={ui.input}
           />
         </Field>
-        <Field label="Starting CR" className="w-24">
-          <Select label="Starting CR" value={String(newCr)} onChange={(next) => setNewCr(Number(next))} options={CR_OPTIONS} />
+        <Field label={t("workshop.monsterEditor.build.startingCr")} className="w-24">
+          <Select label={t("workshop.monsterEditor.build.startingCr")} value={String(newCr)} onChange={(next) => setNewCr(Number(next))} options={CR_OPTIONS} />
         </Field>
         <button
           type="button"
@@ -86,12 +99,12 @@ export function MonsterBuildControls({
           onClick={() => void create({ from: "cr", name: newName.trim(), cr: newCr })}
           className={ui.btnPrimary}
         >
-          Start from the baseline
+          {t("workshop.monsterEditor.build.startBaseline")}
         </button>
       </div>
 
       <div className="flex flex-wrap items-end gap-2">
-        <Field as="label" label="Or start from something that exists" className="flex-1">
+        <Field as="label" label={t("workshop.monsterEditor.build.startExisting")} className="flex-1">
           <div className="flex gap-1.5">
             <input
               value={query}
@@ -101,11 +114,11 @@ export function MonsterBuildControls({
                   onFind();
                 }
               }}
-              placeholder="owlbear"
+              placeholder={t("workshop.monsterEditor.build.searchPlaceholder")}
               className={cn(ui.input, "flex-1")}
             />
             <button type="button" onClick={onFind} className={ui.btnSecondary}>
-              <Search className="size-3.5" /> Find
+              <Search className="size-3.5" /> {t("workshop.monsterEditor.build.find")}
             </button>
           </div>
         </Field>
@@ -135,11 +148,11 @@ export function MonsterBuildControls({
                 name={entry.name}
                 size="size-7"
               />
-              {entry.name} <span className="text-stone-600">CR {crLabel(entry.cr)}</span>
+              {entry.name} <span className="text-stone-600">ПО {crLabel(entry.cr)}</span>
               {/* Built on rules this game does not play: copy it to change
                   that part (issue #570). */}
-              {entry.needs?.length ? <span className="text-orange-300/90">{needsLabel(entry.needs)}</span> : null}
-              {entry.bestEffort ? <span className="text-sky-300/80">{BEST_EFFORT_CHIP}</span> : null}
+              {entry.needs?.length ? <span className="text-orange-300/90">{t("workshop.monsterEditor.build.unsupportedRules", { needs: entry.needs.map((need) => t(NEED_KEYS[need] as never)).join(", ") })}</span> : null}
+              {entry.bestEffort ? <span className="text-sky-300/80">{t("workshop.monsterEditor.build.bestEffort")}</span> : null}
             </button>
           ))}
         </div>

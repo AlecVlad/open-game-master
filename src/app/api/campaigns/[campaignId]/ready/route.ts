@@ -21,7 +21,7 @@ export async function POST(
   const raw = await request.json().catch(() => ({}));
   const parsed = readySchema.safeParse(raw);
   if (!parsed.success) {
-    return Response.json({ error: "Invalid input." }, { status: 400 });
+    return Response.json({ error: "Invalid input.", errorCode: "INVALID_READY_REQUEST" }, { status: 400 });
   }
 
   setMemberReady(campaignId, context.user.id, parsed.data.ready);

@@ -1,3 +1,6 @@
+import type { Params } from "@/lib/i18n/core";
+import type { MessageKey } from "@/lib/i18n/messages/index";
+
 // Wait for the table (gameSettings.waitForTable): the pure half. After a
 // narration on an open floor the DM's next turn is held until every present
 // player has acted or passed, or the table has gone quiet for its timeout,
@@ -123,11 +126,18 @@ export function decideTableWait(input: TableWaitInput): TableWaitDecision {
 }
 
 // The banner's countdown: seconds under a minute, then minutes.
-export function formatLeft(seconds: number): string {
+type TableWaitTranslator = (key: MessageKey, params?: Params) => string;
+
+export function formatLeft(seconds: number, translate?: TableWaitTranslator): string {
   if (seconds < 60) {
-    return `${seconds}s`;
+    return translate ? translate("campaign.time.seconds", { count: seconds }) : `${seconds}s`;
   }
   const minutes = Math.floor(seconds / 60);
   const rest = seconds % 60;
-  return rest ? `${minutes}m ${rest}s` : `${minutes}m`;
+  if (!rest) {
+    return translate ? translate("campaign.time.minutes", { count: minutes }) : `${minutes}m`;
+  }
+  return translate
+    ? translate("campaign.time.minutesSeconds", { minutes, seconds: rest })
+    : `${minutes}m ${rest}s`;
 }

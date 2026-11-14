@@ -1,6 +1,7 @@
 "use client";
 
 import { SectionHead } from "@/components/ui/SectionHead";
+import { useT } from "@/lib/i18n/provider";
 import {
   CheckField,
   NumberField,
@@ -41,6 +42,7 @@ export function SpellFields({
   // is on that class's list (issue #833, src/lib/classes/class-spell-list.ts).
   workshopClasses?: Array<{ id: string; name: string }>;
 }) {
+  const t = useT();
   const set = (patch: Data) => onChange({ ...data, ...patch });
   // An older host never reads a spell's workshop class (src/lib/capabilities.ts
   // customSpellLists), so it is offered only where it counts; one already
@@ -54,65 +56,65 @@ export function SpellFields({
 
   return (
     <div className="space-y-3">
-      <SectionHead title="The casting" glyph="rest-spell-slot" className="mb-1" />
+      <SectionHead title={t("workshop.homebrew.spell.form.title")} glyph="rest-spell-slot" className="mb-1" />
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         <NumberField
-          label="Level"
+          label={t("workshop.homebrew.spell.level")}
           value={typeof data.level === "number" ? data.level : 1}
           min={0}
           max={9}
           onChange={(level) => set({ level: level === "" ? 0 : level })}
-          hint="0 is a cantrip."
+          hint={t("workshop.homebrew.spell.level.cantrip")}
         />
         <SelectField
-          label="School"
+          label={t("workshop.homebrew.spell.school")}
           value={String(data.school ?? "evocation")}
-          options={SPELL_SCHOOLS.map((value) => ({ value, label: value }))}
+          options={SPELL_SCHOOLS.map((value) => ({ value, label: t(`workshop.homebrew.spell.school.${value}`) }))}
           onChange={(school) => set({ school })}
-          glossary={{ title: "Schools of magic", entries: glossaryFor(SPELL_SCHOOLS, SPELL_SCHOOL_BLURBS) }}
+          glossary={{ title: t("workshop.homebrew.spell.schoolGlossary"), entries: glossaryFor(SPELL_SCHOOLS, SPELL_SCHOOL_BLURBS).map((entry) => ({ ...entry, name: t(`workshop.homebrew.spell.school.${entry.name}`) })) }}
         />
         <TextField
-          label="Casting time"
+          label={t("workshop.homebrew.spell.castingTime")}
           value={String(data.casting_time ?? "")}
           onChange={(casting_time) => set({ casting_time })}
           maxLength={60}
           suggestions={CASTING_TIMES}
-          hint="How long it takes to cast. Most spells take one action."
+          hint={t("workshop.homebrew.spell.castingTime.hint")}
         />
         <TextField
-          label="Range"
+          label={t("workshop.homebrew.spell.range")}
           value={String(data.range ?? "")}
           onChange={(range) => set({ range })}
           maxLength={60}
           suggestions={SPELL_RANGES}
-          hint="How far away the target can be. Self means the caster only."
+          hint={t("workshop.homebrew.spell.range.hint")}
         />
         <TextField
-          label="Components"
+          label={t("workshop.homebrew.spell.components")}
           value={String(data.components ?? "")}
           onChange={(components) => set({ components })}
           maxLength={120}
           suggestions={SPELL_COMPONENTS}
-          hint="V spoken words, S a free hand, M a material (name it after M in brackets)."
+          hint={t("workshop.homebrew.spell.components.hint")}
         />
         <TextField
-          label="Duration"
+          label={t("workshop.homebrew.spell.duration")}
           value={String(data.duration ?? "")}
           onChange={(duration) => set({ duration })}
           maxLength={60}
           suggestions={SPELL_DURATIONS}
-          hint="How long the effect lasts. Concentration spells end when the caster loses focus."
+          hint={t("workshop.homebrew.spell.duration.hint")}
         />
         <div className="col-span-2 flex flex-wrap items-end gap-3">
-          <CheckField label="Concentration" checked={data.concentration === true} onChange={(concentration) => set({ concentration })} />
-          <CheckField label="Ritual" checked={data.ritual === true} onChange={(ritual) => set({ ritual })} />
+          <CheckField label={t("workshop.homebrew.spell.concentration")} checked={data.concentration === true} onChange={(concentration) => set({ concentration })} />
+          <CheckField label={t("workshop.homebrew.spell.ritual")} checked={data.ritual === true} onChange={(ritual) => set({ ritual })} />
         </div>
       </div>
 
       {hasMaterial ? (
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           <TextField
-            label="Material"
+            label={t("workshop.homebrew.spell.material")}
             className="col-span-2"
             value={String(data.material ?? "")}
             onChange={(material) => {
@@ -124,20 +126,20 @@ export function SpellFields({
               });
             }}
             maxLength={300}
-            placeholder="diamonds worth 300 gp, which the spell consumes"
-            hint="What the caster must hold. A component pouch or a focus stands in for one with no price."
+            placeholder={t("workshop.homebrew.spell.material.placeholder")}
+            hint={t("workshop.homebrew.spell.material.hint")}
           />
           <NumberField
-            label="Costs (gp)"
+            label={t("workshop.homebrew.spell.costGp")}
             value={cost ?? ""}
             min={0}
             max={1_000_000}
             onChange={(value) => set({ materialCostGp: value === "" || value === 0 ? undefined : value, ...(value === "" || value === 0 ? { materialConsumed: undefined } : {}) })}
-            hint="A priced material must be carried or paid for: the cast guard refuses the spell without it."
+            hint={t("workshop.homebrew.spell.cost.hint")}
           />
           <div className="flex items-end pb-1">
             <CheckField
-              label="The spell consumes it"
+              label={t("workshop.homebrew.spell.consumes")}
               checked={data.materialConsumed === true}
               onChange={(materialConsumed) => set({ materialConsumed: materialConsumed && cost ? true : undefined })}
             />
@@ -146,37 +148,37 @@ export function SpellFields({
       ) : null}
 
       <TextField
-        label="Runs as"
+        label={t("workshop.homebrew.spell.runsAs")}
         value={String(data.runsAs ?? "")}
         onChange={(runsAs) => set({ runsAs: runsAs.trim() || undefined })}
         maxLength={80}
         suggestions={RUNS_AS_OPTIONS}
-        hint="A published spell whose area, summons, reaction or transformation the engines lay for this one under its own name (a renamed Web still webs the board). A copy starts with the spell it was copied from."
+        hint={t("workshop.homebrew.spell.runsAs.hint")}
       />
 
       <div className="space-y-1">
-        <SectionHead title="Classes that can learn it" glyph="tab-characters" className="mb-1" />
+        <SectionHead title={t("workshop.homebrew.spell.classes")} glyph="tab-characters" className="mb-1" />
         <ToggleChips
           options={[...CLASS_IDS, ...ownClasses.map((klass) => klass.id)]}
           selected={tagged}
           onChange={(classes) => set({ classes })}
           labels={Object.fromEntries([
-            ...CLASS_IDS.map((id) => [id, id.charAt(0).toUpperCase() + id.slice(1)]),
+            ...CLASS_IDS.map((id) => [id, t(`workshop.homebrew.spell.class.${id}`)]),
             ...ownClasses.map((klass) => [klass.id, klass.name]),
           ])}
         />
         {ownClasses.length ? (
-          <p className="text-[11px] text-stone-500">Ticking one of your own classes puts the spell on its list, whichever list that class casts from.</p>
+          <p className="text-[11px] text-stone-500">{t("workshop.homebrew.spell.ownClasses.hint")}</p>
         ) : null}
       </div>
 
       <TextField
-        label="At higher levels"
+        label={t("workshop.homebrew.spell.higherLevel")}
         value={String(data.higher_level ?? "")}
         onChange={(higher_level) => set({ higher_level })}
-        placeholder="The damage increases by 1d6 for each slot level above 1st."
+        placeholder={t("workshop.homebrew.spell.higherLevel.placeholder")}
         maxLength={2000}
-        hint="The engine scales the dice from this sentence when a spell is upcast."
+        hint={t("workshop.homebrew.spell.higherLevel.hint")}
       />
 
       <div className="panel space-y-1 rounded-lg px-3 py-2 text-xs text-stone-400">

@@ -2,6 +2,7 @@
 
 import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import { cn } from "@/lib/cn";
+import { useI18n } from "@/lib/i18n/provider";
 import { HostSvgImage } from "@/components/ui/HostSvgImage";
 import {
   buildCells,
@@ -122,6 +123,7 @@ export const BattleMapGrid = memo(
     // A label with a reference was tapped (a lore entry, an NPC).
     onLabelClick?: (label: MapLabel) => void;
   }) {
+    const { t } = useI18n();
     const clickRef = useRef(onTileClick);
     const hoverRef = useRef(onTileHover);
     const tokenRef = useRef(onTokenClick);
@@ -380,7 +382,7 @@ export const BattleMapGrid = memo(
         viewBox={`0 0 ${width * TILE} ${height * TILE}`}
         className="h-auto w-full select-none rounded-lg border border-stone-800 bg-stone-950"
         role="img"
-        aria-label="Battle map"
+        aria-label={t("workshop.maps.canvas.battleMap")}
         onClick={handleSvgClick}
         onPointerDown={(event) => {
           pointerTypeRef.current = event.pointerType;

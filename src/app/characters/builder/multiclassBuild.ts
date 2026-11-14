@@ -16,11 +16,11 @@
 //
 // Pure, so scripts/test-builder-multiclass.mjs drives it without React.
 import type { ClassMechanics } from "@/lib/content/mechanics";
-import type { AbilityScores, ClassEntry } from "@/lib/schemas/sheet";
+import type { Ability, AbilityScores, ClassEntry } from "@/lib/schemas/sheet";
 import { asiLevelsFor } from "@/lib/srd/asi";
 import { subclassCastingProfileFor, subclassLevelFor, subclassSpellsFor } from "@/lib/srd/features";
 import { spellbookAllowance, spellStyleFor, type SpellStyle } from "@/lib/srd/spell-prep";
-import { MULTICLASS_CAP, canMulticlassInto, describeGrant, describePrereq, meetsPrereq, multiclassGrantsFor } from "@/lib/srd/multiclass";
+import { MULTICLASS_CAP, MULTICLASS_MIN_SCORE, canMulticlassInto, describeGrant, describePrereq, meetsPrereq, multiclassGrantsFor, multiclassPrereq } from "@/lib/srd/multiclass";
 import { thirdCasterProfileOf } from "@/lib/srd/third-caster";
 import { findClass } from "@/lib/srd";
 import { spellLevelOf } from "@/lib/srd/spell-lists";
@@ -423,6 +423,24 @@ function refusalWords(
 // Each class's prerequisite the final scores miss, in words for the
 // Abilities step's gate: decision 1 of the plan reads the final scores, as
 // the server does.
+export type UnmetMulticlassPrerequisite = {
+  className: string;
+  alternatives: Ability[][];
+  minimum: number;
+};
+
+export function unmetPrereqDetails(
+  classList: ReadonlyArray<ClassEntry>,
+  abilities: AbilityScores | null,
+  nameOf: (id: string) => string,
+): UnmetMulticlassPrerequisite[] {
+  if (!abilities || classList.length < 2) return [];
+  return classList.flatMap((entry) => {
+    if (meetsPrereq(abilities, entry.id)) return [];
+    const alternatives = multiclassPrereq(entry.id);
+    return alternatives ? [{ className: nameOf(entry.id), alternatives, minimum: MULTICLASS_MIN_SCORE }] : [];
+  });
+}
 export function unmetPrereqs(
   classList: ReadonlyArray<ClassEntry>,
   abilities: AbilityScores | null,

@@ -5,7 +5,8 @@ import { Select } from "@/components/ui/Select";
 import { SectionHead } from "@/components/ui/SectionHead";
 import { UnofficialPackNotice } from "@/components/UnofficialPackNotice";
 import { ui } from "@/lib/ui";
-import { GENRE_OPTIONS, RACE_OPTIONS, ALIGNMENT_OPTIONS, catalogLabel } from "@/lib/worlds/catalog";
+import { useI18n } from "@/lib/i18n/provider";
+import { GENRE_OPTIONS, RACE_OPTIONS, ALIGNMENT_OPTIONS } from "@/lib/worlds/catalog";
 import type { WorldPackDraft } from "@/lib/worlds/draft";
 import { DM_FLAVOR_FLOOR } from "@/lib/worlds/draft-check";
 import { ChipList, TextField } from "@/app/workshop/plugin/fields";
@@ -17,38 +18,39 @@ import type { SectionProps } from "@/app/workshop/plugin/types";
 // at once for anyone past the guided setup.
 
 export function NameFields({ draft, onDraft }: SectionProps) {
+  const { t } = useI18n();
   const set = (patch: Partial<WorldPackDraft>) => onDraft({ ...draft, ...patch });
   return (
     <div className="grid gap-3 sm:grid-cols-2">
       <TextField
-        label="Name"
+        label={t("workshop.plugin.identity.name")}
         value={draft.name}
         onChange={(name) => set({ name })}
         maxLength={70}
-        placeholder="The Sunken Coast"
+        placeholder={t("workshop.plugin.identity.name.placeholder")}
         className="sm:col-span-2"
         required
       />
       <TextField
-        label="One line about it"
+        label={t("workshop.plugin.identity.blurb")}
         value={draft.blurb}
         onChange={(blurb) => set({ blurb })}
         maxLength={200}
-        placeholder="A drowned dwarven kingdom and the tide-cults that kept living in it."
-        hint="What the picker shows under the name."
+        placeholder={t("workshop.plugin.identity.blurb.placeholder")}
+        hint={t("workshop.plugin.identity.blurb.hint")}
         className="sm:col-span-2"
         required
       />
-      <TextField label="Author" value={draft.author} onChange={(author) => set({ author })} maxLength={80} />
+      <TextField label={t("workshop.plugin.identity.author")} value={draft.author} onChange={(author) => set({ author })} maxLength={80} />
       <TextField
-        label="Version"
+        label={t("workshop.plugin.identity.version")}
         value={draft.version}
         onChange={(version) => set({ version })}
         maxLength={20}
-        hint="Bump it when you change the pack; servers offer an update when the number differs."
+        hint={t("workshop.plugin.identity.version.hint")}
       />
       <TextField
-        label="Homepage (optional)"
+        label={t("workshop.plugin.identity.homepage")}
         value={draft.homepage}
         onChange={(homepage) => set({ homepage })}
         maxLength={300}
@@ -60,25 +62,26 @@ export function NameFields({ draft, onDraft }: SectionProps) {
 }
 
 export function OriginFields({ draft, onDraft }: SectionProps) {
+  const { t } = useI18n();
   const set = (patch: Partial<WorldPackDraft>) => onDraft({ ...draft, ...patch });
   return (
     <div className="grid gap-3 sm:grid-cols-2">
       <TextField
-        label="Inspired by"
+        label={t("workshop.plugin.identity.inspiredBy")}
         value={draft.inspiredBy}
         onChange={(inspiredBy) => set({ inspiredBy })}
         maxLength={200}
-        placeholder="An original world, or the setting this is a homage to"
+        placeholder={t("workshop.plugin.identity.inspiredBy.placeholder")}
         className="sm:col-span-2"
         required
       />
       <TextField
-        label="Rights holder"
+        label={t("workshop.plugin.identity.rightsHolder")}
         value={draft.rightsHolder}
         onChange={(rightsHolder) => set({ rightsHolder })}
         maxLength={120}
-        placeholder="Leave empty if this is your own world"
-        hint="Who owns the setting you are referencing. Filling it in turns the notice below into a proper non-affiliation disclaimer."
+        placeholder={t("workshop.plugin.identity.rightsHolder.placeholder")}
+        hint={t("workshop.plugin.identity.rightsHolder.hint")}
         className="sm:col-span-2"
       />
       <UnofficialPackNotice
@@ -87,80 +90,85 @@ export function OriginFields({ draft, onDraft }: SectionProps) {
         className="sm:col-span-2"
       />
       <TextField
-        label="Franchise"
+        label={t("workshop.plugin.identity.franchise")}
         value={draft.franchise}
         onChange={(franchise) => set({ franchise })}
         maxLength={60}
-        placeholder="Defaults to the name"
-        hint="The group the picker files it under. One pack per era: 'Final Fantasy' with an edition of 'VII'."
+        placeholder={t("workshop.plugin.identity.franchise.placeholder")}
+        hint={t("workshop.plugin.identity.franchise.hint")}
       />
       <TextField
-        label="Edition"
+        label={t("workshop.plugin.identity.edition")}
         value={draft.edition}
         onChange={(edition) => set({ edition })}
         maxLength={60}
-        placeholder="Empty for a single-era world"
+        placeholder={t("workshop.plugin.identity.edition.placeholder")}
       />
       <div className="block">
-        <span className="mb-1 block font-display text-[11px] tracking-[0.1em] text-amber-300/85">Edition order</span>
+        <span className="mb-1 block font-display text-[11px] tracking-[0.1em] text-amber-300/85">{t("workshop.plugin.identity.editionOrder")}</span>
         <NumberStepper
-          label="Edition order"
+          label={t("workshop.plugin.identity.editionOrder")}
           min={0}
           max={999}
           value={draft.editionOrder}
           onChange={(next) => set({ editionOrder: Math.max(0, Math.min(999, next || 0)) })}
         />
-        <span className="mt-1 block text-[11px] text-stone-500">Sorts editions inside the franchise, release order first.</span>
+        <span className="mt-1 block text-[11px] text-stone-500">{t("workshop.plugin.identity.editionOrder.hint")}</span>
       </div>
     </div>
   );
 }
 
 export function WorldFields({ draft, onDraft }: SectionProps) {
+  const { t } = useI18n();
   const set = (patch: Partial<WorldPackDraft>) => onDraft({ ...draft, ...patch });
+  const alignments = ALIGNMENT_OPTIONS.map((option) => ({
+    value: option.value,
+    label: t(`workshop.plugin.alignment.${option.value}` as never),
+  }));
   return (
     <div className="grid gap-3 sm:grid-cols-2">
       <div className="block">
         <span className="mb-1 block font-display text-[11px] tracking-[0.1em] text-amber-300/85">
-          Base genre <span className="text-amber-400/80">*</span>
+          {t("workshop.plugin.identity.baseGenre")} <span className="text-amber-400/80">*</span>
         </span>
         <Select<WorldPackDraft["baseGenre"]>
-          label="Base genre"
+          label={t("workshop.plugin.identity.baseGenre")}
           value={draft.baseGenre}
           onChange={(baseGenre) => set({ baseGenre })}
-          options={GENRE_OPTIONS.map((option) => ({ value: option.value as WorldPackDraft["baseGenre"], label: option.label }))}
+          options={GENRE_OPTIONS.map((option) => ({ value: option.value as WorldPackDraft["baseGenre"], label: t(`createCampaign.identity.genre.${option.value}.name` as never) }))}
         />
         <span className="mt-1 block text-[11px] text-stone-500">
-          Every campaign that picks this world also takes this genre, so everything that knows about genres keeps working.
+          {t("workshop.plugin.identity.baseGenre.hint")}
         </span>
       </div>
       <TextField
-        label="Theme"
+        label={t("workshop.plugin.identity.theme")}
         value={draft.theme}
         onChange={(theme) => set({ theme })}
         maxLength={120}
-        placeholder="Salvage, faith and the things under the water"
-        hint="Seeds the campaign's theme line."
+        placeholder={t("workshop.plugin.identity.theme.placeholder")}
+        hint={t("workshop.plugin.identity.theme.hint")}
         required
       />
       <TextField
-        label="Premise"
+        label={t("workshop.plugin.identity.premise")}
         value={draft.premise}
         onChange={(premise) => set({ premise })}
         maxLength={500}
         rows={3}
-        placeholder="Where a new campaign in this world starts, in a paragraph."
-        hint="Seeds the campaign description."
+        placeholder={t("workshop.plugin.identity.premise.placeholder")}
+        hint={t("workshop.plugin.identity.premise.hint")}
         className="sm:col-span-2"
       />
       <div className="sm:col-span-2">
-        <span className="mb-1 block font-display text-[11px] tracking-[0.1em] text-amber-300/85">Alignments this world leans on</span>
+        <span className="mb-1 block font-display text-[11px] tracking-[0.1em] text-amber-300/85">{t("workshop.plugin.identity.alignments")}</span>
         <ChipList
           items={draft.alignments}
           onChange={(alignments) => set({ alignments })}
-          options={ALIGNMENT_OPTIONS}
-          prompt="Add an alignment"
-          labelFor={(code) => catalogLabel(ALIGNMENT_OPTIONS, code)}
+          options={alignments}
+          prompt={t("workshop.plugin.identity.addAlignment")}
+          labelFor={(code) => t(`workshop.plugin.alignment.${code}` as never)}
           max={9}
         />
       </div>
@@ -169,96 +177,102 @@ export function WorldFields({ draft, onDraft }: SectionProps) {
 }
 
 export function VoiceFields({ draft, onDraft }: SectionProps) {
+  const { t } = useI18n();
   const set = (patch: Partial<WorldPackDraft>) => onDraft({ ...draft, ...patch });
   const thin = draft.dmFlavor.trim().length < DM_FLAVOR_FLOOR;
+  const companionRaces = RACE_OPTIONS.map((option) => ({
+    ...option,
+    label: t(`campaign.npcEditor.raceOption.${option.value}` as never),
+  }));
   return (
     <div className="grid gap-3 sm:grid-cols-2">
       <TextField
-        label="The narrator's brief"
+        label={t("workshop.plugin.identity.narratorBrief")}
         value={draft.dmFlavor}
         onChange={(dmFlavor) => set({ dmFlavor })}
         maxLength={1400}
         rows={6}
-        placeholder="Tone, what magic feels like, what the stakes are, what the narrator must never do."
+        placeholder={t("workshop.plugin.identity.narratorBrief.placeholder")}
         hint={
           thin
-            ? `The highest-leverage field in the pack. ${DM_FLAVOR_FLOOR} characters or more is what steers the narrator; this is ${draft.dmFlavor.trim().length}.`
-            : "Appended to the genre's own brief in the narrator's system prompt."
+            ? t("workshop.plugin.identity.narratorBrief.short", { minimum: String(DM_FLAVOR_FLOOR), current: String(draft.dmFlavor.trim().length) })
+            : t("workshop.plugin.identity.narratorBrief.hint")
         }
         className="sm:col-span-2"
       />
       <TextField
-        label="Portrait style"
+        label={t("workshop.plugin.identity.portraitStyle")}
         value={draft.portraitStyle}
         onChange={(portraitStyle) => set({ portraitStyle })}
         maxLength={300}
-        placeholder="Painted, weathered, brine-stained leathers"
-        hint="Art-style words for portraits."
+        placeholder={t("workshop.plugin.identity.portraitStyle.placeholder")}
+        hint={t("workshop.plugin.identity.portraitStyle.hint")}
       />
       <TextField
-        label="Map style"
+        label={t("workshop.plugin.identity.mapStyle")}
         value={draft.mapStyle}
         onChange={(mapStyle) => set({ mapStyle })}
         maxLength={300}
-        placeholder="Inked nautical charts, kelp-green wash"
-        hint="Art-style words for maps."
+        placeholder={t("workshop.plugin.identity.mapStyle.placeholder")}
+        hint={t("workshop.plugin.identity.mapStyle.hint")}
       />
       <TextField
-        label="Scene style"
+        label={t("workshop.plugin.identity.sceneStyle")}
         value={draft.sceneStyle}
         onChange={(sceneStyle) => set({ sceneStyle })}
         maxLength={300}
-        placeholder="Salt-washed illustration, grey overcast light"
-        hint="Art-style words for scene pictures: the look, not what is in them."
+        placeholder={t("workshop.plugin.identity.sceneStyle.placeholder")}
+        hint={t("workshop.plugin.identity.sceneStyle.hint")}
       />
       <TextField
-        label="Name hints"
+        label={t("workshop.plugin.identity.nameHints")}
         value={draft.nameHints}
         onChange={(nameHints) => set({ nameHints })}
         maxLength={300}
-        placeholder="Dwarven names with tide-words; surnames are the ship they were born on"
-        hint="One line for the story-setup pass."
+        placeholder={t("workshop.plugin.identity.nameHints.placeholder")}
+        hint={t("workshop.plugin.identity.nameHints.hint")}
       />
       <TextField
-        label="Race hint"
+        label={t("workshop.plugin.identity.raceHint")}
         value={draft.raceHint}
         onChange={(raceHint) => set({ raceHint })}
         maxLength={300}
-        placeholder="Most people are dwarves or sea-elves; humans are traders from upriver"
-        hint="One line for the companion tools."
+        placeholder={t("workshop.plugin.identity.raceHint.placeholder")}
+        hint={t("workshop.plugin.identity.raceHint.hint")}
       />
       <div className="sm:col-span-2">
-        <span className="mb-1 block font-display text-[11px] tracking-[0.1em] text-amber-300/85">Companion races</span>
+        <span className="mb-1 block font-display text-[11px] tracking-[0.1em] text-amber-300/85">{t("workshop.plugin.identity.companionRaces")}</span>
         <ChipList
           items={draft.companionRaces}
           onChange={(companionRaces) => set({ companionRaces })}
-          options={RACE_OPTIONS}
-          prompt="Allow a race for AI companions"
-          labelFor={(id) => catalogLabel(RACE_OPTIONS, id)}
+          options={companionRaces}
+          prompt={t("workshop.plugin.identity.companionRaces.prompt")}
+          labelFor={(id) => t(`campaign.npcEditor.raceOption.${id}` as never)}
         />
-        <p className="mt-1 text-[11px] text-stone-500">Empty means no restriction.</p>
+        <p className="mt-1 text-[11px] text-stone-500">{t("workshop.plugin.identity.companionRaces.empty")}</p>
       </div>
     </div>
   );
 }
 
 export function IdentitySection(props: SectionProps) {
+  const { t } = useI18n();
   return (
     <div className="space-y-6">
       <section className={ui.card + " p-4"}>
-        <SectionHead title="What it is called" glyph="system-plugin" />
+        <SectionHead title={t("workshop.plugin.identity.section.name")} glyph="system-plugin" />
         <NameFields {...props} />
       </section>
       <section className={ui.card + " p-4"}>
-        <SectionHead title="Whose world it is" glyph="tab-friends" />
+        <SectionHead title={t("workshop.plugin.identity.section.origin")} glyph="tab-friends" />
         <OriginFields {...props} />
       </section>
       <section className={ui.card + " p-4"}>
-        <SectionHead title="What kind of world" glyph="system-region" />
+        <SectionHead title={t("workshop.plugin.identity.section.world")} glyph="system-region" />
         <WorldFields {...props} />
       </section>
       <section className={ui.card + " p-4"}>
-        <SectionHead title="How the narrator sounds" glyph="tab-ambience" />
+        <SectionHead title={t("workshop.plugin.identity.section.voice")} glyph="tab-ambience" />
         <VoiceFields {...props} />
       </section>
     </div>

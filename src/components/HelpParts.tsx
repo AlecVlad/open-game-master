@@ -6,6 +6,50 @@ import { GameIcon } from "@/components/ui/GameIcon";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui";
 import { textKey } from "@/lib/language/text-logic";
+import { useT } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages/index";
+
+const SECTION_TITLE_KEYS: Record<string, MessageKey> = {
+  "Guided tours": "help.section.guidedTours",
+  "Getting started": "help.section.gettingStarted",
+  "The lobby": "help.section.lobby",
+  "Talking to the GM": "help.section.talking",
+  "Your hand in a fight": "help.section.fightHand",
+  "When the GM gets it wrong": "help.section.gmWrong",
+  "Report a problem": "help.section.report",
+  "What the GM remembers": "help.section.memory",
+  "The side panel": "help.section.sidePanel",
+  "Dice": "help.section.dice",
+  "Voice and narration": "help.section.voice",
+  "Live voice chat": "help.section.liveVoice",
+  "Ambience and music": "help.section.ambience",
+  "Playing with a human GM": "help.section.humanGM",
+  "Party lead": "help.section.partyLead",
+  "Campaign plugins": "help.section.plugins",
+  "New to D&D?": "help.section.newcomer",
+  "About": "help.section.about",
+  "What this is": "help.section.whatThisIs",
+  "Taking your turn": "help.section.takingTurn",
+  "How the game is run": "help.section.howRun",
+  "One turn at a time": "help.section.oneTurn",
+  "If a reply lands badly": "help.section.badReply",
+  "If you get stuck": "help.section.stuck",
+  "What a workshop is": "help.section.workshopWhat",
+  "Into a campaign, and back out": "help.section.workshopImport",
+  "Copying things": "help.section.workshopCopy",
+  "With or without AI": "help.section.workshopAI",
+  "Where the rules live": "help.section.workshopRules",
+  "The tools, one by one": "help.section.workshopTools",
+};
+
+const MODE_LABEL_KEYS: Record<string, MessageKey> = {
+  Do: "help.mode.do",
+  Say: "help.mode.say",
+  OOC: "help.mode.ooc",
+  Direct: "help.mode.direct",
+};
+
+
 
 // The painted glyph each section of this dialog leads with, by title. The
 // other help dialogs pass titles that are not here and keep their line icon.
@@ -46,6 +90,7 @@ export function Section({
   title: string;
   children: ReactNode;
 }) {
+  const t = useT();
   const glyph = SECTION_GLYPHS[title];
   return (
     <section id={sectionId(title)} className="mb-6 scroll-mt-4 last:mb-0">
@@ -57,7 +102,7 @@ export function Section({
         ) : (
           <Icon className="size-4 shrink-0 text-amber-500/80" />
         )}
-        <h3 className="section-head-title">{title}</h3>
+        <h3 className="section-head-title">{SECTION_TITLE_KEYS[title] ? t(SECTION_TITLE_KEYS[title]) : title}</h3>
         <span className="section-head-rule motion-rule" aria-hidden="true" />
       </header>
       <div className="space-y-2 text-sm leading-relaxed text-stone-400">{children}</div>
@@ -74,6 +119,7 @@ export function ModeRow({
   lead?: boolean;
   children: ReactNode;
 }) {
+  const t = useT();
   return (
     <div className="flex items-start gap-3">
       <span
@@ -83,7 +129,7 @@ export function ModeRow({
             : "mt-0.5 w-14 shrink-0 rounded-full bg-gradient-to-b from-amber-100 to-amber-400 px-2 py-0.5 text-center text-xs font-medium text-amber-950"
         }
       >
-        {label}
+        {MODE_LABEL_KEYS[label] ? t(MODE_LABEL_KEYS[label]) : label}
       </span>
       <span>{children}</span>
     </div>
@@ -96,23 +142,23 @@ export function ModeRow({
 // chat. The search also reads each section's own text (below), so this list
 // only needs the words the text itself never uses.
 const SECTION_WORDS: Record<string, string> = {
-  "Guided tours": "tour walkthrough replay spotlight",
-  "Getting started": "start begin new campaign join invite code character build first",
-  "The lobby": "ready begin start invite room code settings waiting",
-  "Talking to the GM": "message type action speak ooc direct ask question composer",
-  "Your hand in a fight": "combat battle attack cards spells turn initiative",
-  "When the GM gets it wrong": "undo mistake reroll edit retry wrong fix",
-  "Report a problem": "bug broken error crash report problem github issue admin host",
-  "What the GM remembers": "memory pin remember canon facts forget",
-  "The side panel": "tabs inventory sheet hp party story notes chat settings layout arrange",
+  "Guided tours": "tour walkthrough replay spotlight обучение тур туры подсказка руководство повторить",
+  "Getting started": "start begin new campaign join invite code character build first начало начать новая кампания одиночная игра присоединиться герой персонаж",
+  "The lobby": "ready begin start invite room code settings waiting лобби комната готовность игроки код приглашение настройки",
+  "Talking to the GM": "message type action speak ooc direct ask question composer общение мастер сообщение действие речь вне роли указание спросить вопрос",
+  "Your hand in a fight": "combat battle attack cards spells turn initiative бой атака карточки заклинания ход инициатива оружие",
+  "When the GM gets it wrong": "undo mistake reroll edit retry wrong fix ошибка исправить повторить откат продолжить переброс изменить проверка лора",
+  "Report a problem": "bug broken error crash report problem github issue admin host проблема ошибка баг отчёт github сервер администратор",
+  "What the GM remembers": "memory pin remember canon facts forget память закрепить факты секреты запомнить архив",
+  "The side panel": "tabs inventory sheet hp party story notes chat settings layout arrange вкладки группа лист здоровье карта история заметки чат настройки расположение",
   Dice: "roll rolls secret physical real pixels bluetooth",
-  "Voice and narration": "volume mute unmute sound speaker read aloud tts microphone mic dictation push to talk",
-  "Live voice chat": "microphone mic headphones call talk mute proximity side rooms",
-  "Ambience and music": "volume sound music audio mute soundtrack",
-  "Playing with a human GM": "human gm dm console beats assisted",
-  "Party lead": "lead owner rewind permissions",
-  "Campaign plugins": "world pack plugin setting install",
-  "New to D&D?": "rules beginner learn reference rulebook glossary",
+  "Voice and narration": "volume mute unmute sound speaker read aloud tts microphone mic dictation push to talk голос громкость звук озвучка диктовка микрофон речь",
+  "Live voice chat": "microphone mic headphones call talk mute proximity side rooms голосовой чат микрофон наушники звонок разговор комнаты отключить",
+  "Ambience and music": "volume sound music audio mute soundtrack атмосфера музыка звук окружение фон саундтрек",
+  "Playing with a human GM": "human gm dm console beats assisted живой человек мастер ведущий ассистент",
+  "Party lead": "lead owner rewind permissions ведущий группы владелец полномочия перемотка приглашение",
+  "Campaign plugins": "world pack plugin setting install плагины кампания мир сеттинг установка набор",
+  "New to D&D?": "rules beginner learn reference rulebook glossary новичок правила справочник книга правил обучение",
   About: "license credits version",
 };
 
@@ -150,6 +196,7 @@ export function HelpContents({
   withReport?: boolean;
   initialSection?: string;
 }) {
+  const t = useT();
   const [find, setFind] = useState("");
   const needle = textKey(find);
   // Opened from a control that has a section of its own: brought into view
@@ -164,10 +211,11 @@ export function HelpContents({
     if (title === "Report a problem" && !withReport) return false;
     if (!needle) return true;
     const text = typeof document === "undefined" ? "" : document.getElementById(sectionId(title))?.textContent ?? "";
-    return helpMatches(title, needle, text);
+    const translatedTitle = SECTION_TITLE_KEYS[title] ? t(SECTION_TITLE_KEYS[title]) : title;
+    return helpMatches(title, needle, text) || helpMatches(translatedTitle, needle, text);
   });
   return (
-    <nav aria-label="Help contents" className="mb-5">
+    <nav aria-label={t("help.contents.aria")} className="mb-5">
       <div className="relative mb-2">
         <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-amber-300/70" />
         <input
@@ -180,8 +228,8 @@ export function HelpContents({
               jumpToSection(contents[0]);
             }
           }}
-          placeholder="Find a topic, a button or a word"
-          aria-label="Find a help topic"
+          placeholder={t("help.search.placeholder")}
+          aria-label={t("help.search.aria")}
           className={cn(ui.input, "h-10 pl-9")}
         />
       </div>
@@ -194,10 +242,10 @@ export function HelpContents({
             className="motion-press inline-flex min-h-9 items-center gap-1.5 rounded-full border border-stone-700/70 py-0.5 pl-1 pr-3 text-xs text-stone-300 hover:border-amber-500/40 hover:text-amber-100"
           >
             <GameIcon icon={{ kind: "glyph", key: SECTION_GLYPHS[title] }} size="size-6" />
-            {title}
+            {SECTION_TITLE_KEYS[title] ? t(SECTION_TITLE_KEYS[title]) : title}
           </button>
         ))}
-        {!contents.length ? <p className="text-xs text-stone-500">Nothing in Help mentions that. Try another word.</p> : null}
+        {!contents.length ? <p className="text-xs text-stone-500">{t("help.search.empty")}</p> : null}
       </div>
     </nav>
   );

@@ -70,11 +70,11 @@ export async function POST(
     return context;
   }
   if (!steersStory(context)) {
-    return Response.json({ error: "Only the party lead can add facts." }, { status: 403 });
+    return Response.json({ error: "Only the party lead can add facts.", errorCode: "FACTS_ADD_LEAD_REQUIRED" }, { status: 403 });
   }
   const parsed = createSchema.safeParse(await request.json().catch(() => ({})));
   if (!parsed.success) {
-    return Response.json({ error: "Invalid fact." }, { status: 400 });
+    return Response.json({ error: "Invalid fact.", errorCode: "INVALID_FACT" }, { status: 400 });
   }
   const { sourceSeq, ...data } = parsed.data;
   const fact = insertFact({
@@ -108,17 +108,17 @@ export async function PATCH(
   }
   const parsed = patchSchema.safeParse(await request.json().catch(() => ({})));
   if (!parsed.success) {
-    return Response.json({ error: "Invalid patch." }, { status: 400 });
+    return Response.json({ error: "Invalid patch.", errorCode: "INVALID_FACT_PATCH" }, { status: 400 });
   }
   const { factId, pinned, status, ...text } = parsed.data;
   const existing = getFactById(factId);
   if (!existing || existing.campaignId !== campaignId) {
-    return Response.json({ error: "Fact not found." }, { status: 404 });
+    return Response.json({ error: "Fact not found.", errorCode: "FACT_NOT_FOUND" }, { status: 404 });
   }
   const editing = status !== undefined || Object.keys(text).length > 0;
   if (editing && !steersStory(context)) {
     return Response.json(
-      { error: "Only the party lead can edit or retire facts." },
+      { error: "Only the party lead can edit or retire facts.", errorCode: "FACTS_EDIT_LEAD_REQUIRED" },
       { status: 403 },
     );
   }
@@ -130,7 +130,7 @@ export async function PATCH(
     seesStorytellerSecrets(context),
   ).some((fact) => fact.id === factId);
   if (!visible) {
-    return Response.json({ error: "Fact not found." }, { status: 404 });
+    return Response.json({ error: "Fact not found.", errorCode: "FACT_NOT_FOUND" }, { status: 404 });
   }
 
   let updated = existing;

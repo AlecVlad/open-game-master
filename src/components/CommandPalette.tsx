@@ -7,6 +7,7 @@ import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from 
 import { GameIcon } from "@/components/ui/GameIcon";
 import { cn } from "@/lib/cn";
 import { filterCommands } from "@/lib/palette/fuzzy";
+import { useT } from "@/lib/i18n/provider";
 
 // The command palette (docs/visual-overhaul-plan.md 8c.7): "/" when nothing
 // is being typed into, Ctrl or Cmd with K anywhere, or the hint chip this
@@ -41,9 +42,9 @@ function typingInto(target: EventTarget | null): boolean {
 
 export function CommandPalette({
   commands,
-  title = "Commands",
-  placeholder = "Type a command",
-  chipLabel = "Commands",
+  title,
+  placeholder,
+  chipLabel,
   className,
 }: {
   commands: PaletteCommand[];
@@ -53,6 +54,10 @@ export function CommandPalette({
   // Extra classes for the hint chip.
   className?: string;
 }) {
+  const t = useT();
+  const paletteTitle = title ?? t("commandPalette.title");
+  const palettePlaceholder = placeholder ?? t("commandPalette.placeholder");
+  const paletteChipLabel = chipLabel ?? t("commandPalette.chip");
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(0);
@@ -123,14 +128,14 @@ export function CommandPalette({
       <button
         type="button"
         onClick={show}
-        aria-label={`${title}: open the command palette`}
+        aria-label={t("commandPalette.open", { title: paletteTitle })}
         aria-keyshortcuts="/ Control+K Meta+K"
-        title="Press / or Ctrl K"
+        title={t("commandPalette.shortcut")}
         // A finger gets 40 px on a phone (audit WA-08).
         className={cn("kbd-chip shrink-0 pointer-coarse:min-h-10", className)}
       >
         <span className="kbd-key" aria-hidden="true">/</span>
-        {chipLabel}
+        {paletteChipLabel}
       </button>
       <RadixDialog.Root open={open} onOpenChange={setOpen}>
         <RadixDialog.Portal>
@@ -139,7 +144,7 @@ export function CommandPalette({
             aria-describedby={undefined}
             className="palette-panel panel fixed left-1/2 top-[12vh] z-[60] flex max-h-[70vh] w-[min(94vw,34rem)] -translate-x-1/2 flex-col overflow-hidden rounded-xl p-0 shadow-elev-2"
           >
-            <RadixDialog.Title className="sr-only">{title}</RadixDialog.Title>
+            <RadixDialog.Title className="sr-only">{paletteTitle}</RadixDialog.Title>
             <div className="flex items-center gap-2 border-b border-amber-400/15 px-3 py-2.5">
               <Search className="size-4 shrink-0 text-amber-200/70" aria-hidden="true" />
               <input
@@ -150,12 +155,12 @@ export function CommandPalette({
                   setActive(0);
                 }}
                 onKeyDown={onInputKey}
-                placeholder={placeholder}
+                placeholder={palettePlaceholder}
                 role="combobox"
                 aria-expanded="true"
                 aria-controls={listId}
                 aria-activedescendant={activeIndex >= 0 ? `${listId}-${shown[activeIndex].id}` : undefined}
-                aria-label={title}
+                aria-label={paletteTitle}
                 className="min-w-0 flex-1 bg-transparent text-sm text-stone-100 outline-none placeholder:text-stone-500"
               />
               {/* The Esc chip only means something with a keyboard. A phone,
@@ -163,13 +168,13 @@ export function CommandPalette({
                   Deck on its trackpad, needs a button to press. */}
               <span className="kbd-key hidden [@media(pointer:fine)]:inline" aria-hidden="true">Esc</span>
               <RadixDialog.Close
-                aria-label="Close"
+                aria-label={t("commandPalette.close")}
                 className="-my-1 shrink-0 rounded-md p-1.5 text-stone-400 transition-colors hover:bg-stone-800 hover:text-stone-200"
               >
                 <X className="size-4" />
               </RadixDialog.Close>
             </div>
-            <div ref={listRef} id={listId} role="listbox" aria-label={title} className="palette-list min-h-0 flex-1 overflow-y-auto p-1.5">
+            <div ref={listRef} id={listId} role="listbox" aria-label={paletteTitle} className="palette-list min-h-0 flex-1 overflow-y-auto p-1.5">
               {shown.map((command, index) => (
                 <PaletteRow
                   key={command.id}
@@ -183,13 +188,13 @@ export function CommandPalette({
                 />
               ))}
               {!shown.length ? (
-                <p className="reveal px-3 py-6 text-center text-sm text-stone-500">Nothing here answers to that.</p>
+                <p className="reveal px-3 py-6 text-center text-sm text-stone-500">{t("commandPalette.empty")}</p>
               ) : null}
             </div>
             <p className="flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-amber-400/10 px-3 py-1.5 text-[11px] text-stone-500">
-              <span><span className="kbd-key">↑</span> <span className="kbd-key">↓</span> move</span>
-              <span><span className="kbd-key">Enter</span> run</span>
-              <span className="ml-auto">{shown.length} of {commands.length}</span>
+              <span><span className="kbd-key">↑</span> <span className="kbd-key">↓</span> {t("commandPalette.move")}</span>
+              <span><span className="kbd-key">Enter</span> {t("commandPalette.run")}</span>
+              <span className="ml-auto">{t("commandPalette.count", { shown: shown.length, total: commands.length })}</span>
             </p>
           </RadixDialog.Content>
         </RadixDialog.Portal>

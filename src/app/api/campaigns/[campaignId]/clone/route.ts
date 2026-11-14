@@ -26,7 +26,7 @@ export async function POST(
     return unauthorized();
   }
   if (user.mustChangePassword) {
-    return Response.json({ error: "Set a new password to continue." }, { status: 403 });
+    return Response.json({ error: "Set a new password to continue.", errorCode: "PASSWORD_CHANGE_REQUIRED" }, { status: 403 });
   }
   if (!canCreateCampaigns(user)) {
     return campaignCreationRefusal();
@@ -34,12 +34,12 @@ export async function POST(
   const { campaignId } = await params;
   const parsed = cloneSchema.safeParse(await request.json().catch(() => ({})));
   if (!parsed.success) {
-    return Response.json({ error: "Invalid clone." }, { status: 400 });
+    return Response.json({ error: "Invalid clone.", errorCode: "INVALID_CAMPAIGN_CLONE" }, { status: 400 });
   }
 
   const result = cloneCampaign(user.id, campaignId, parsed.data.title);
   if ("error" in result) {
-    return Response.json({ error: result.error }, { status: 404 });
+    return Response.json({ error: result.error, errorCode: "CAMPAIGN_CLONE_NOT_FOUND" }, { status: 404 });
   }
   return Response.json(
     { campaign: publicCampaign(result.campaign), copied: result.copied },

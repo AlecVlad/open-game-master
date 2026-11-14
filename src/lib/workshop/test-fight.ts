@@ -26,7 +26,7 @@ import { TARGET_PARTY_LIMITS } from "@/lib/workshop/kind";
 import { buildStandIns } from "@/lib/workshop/stand-ins";
 import { layFightSetup } from "@/lib/workshop/fight-setup";
 import { relockOrder } from "@/lib/workshop/fight-setup-order";
-import { describeFightSetup, setupDice, type FightSetup, type SetupParty } from "@/lib/workshop/fight-setup-logic";
+import { describeFightSetup, describeFightSetupReadout, setupDice, type FightSetup, type SetupParty } from "@/lib/workshop/fight-setup-logic";
 import { setDiceScript } from "@/lib/db/dice-scripts";
 import { TEST_ALLY_LIMIT, testCompanionsSetting, testFightDmMode } from "@/lib/workshop/test-seats-logic";
 
@@ -399,6 +399,12 @@ export async function openTestFight(input: {
         seq: setupSeq,
         authorType: "system",
         glyph: "cue-battle",
+        fightSetup: {
+          version: 1,
+          readout: describeFightSetupReadout(setup),
+          initiativeOrderReplacesOpeningRolls: laid.order.size > 0,
+          partyStartsFresh: laid.notes.length > 0,
+        },
         // The deploy rolled an opening order before the set-up's was laid
         // in its place, and those rolls are in the chronicle above: said, so
         // the two do not read as a contradiction.

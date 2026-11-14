@@ -157,11 +157,14 @@ await test("wrong kind and version are refused by name", async () => {
   const bundle = await buildCharacterBundle(character(), fakeReader);
   const kind = parseCharacterBundle({ ...bundle, kind: "odm.workshop" });
   assert.equal(kind.ok, false);
+  assert.equal(kind.errorCode, "NOT_OGM_CHARACTER_FILE");
   assert.match(kind.error, /Not an Open Game Master character file/);
   const version = parseCharacterBundle({ ...bundle, version: 2 });
   assert.equal(version.ok, false);
   assert.match(version.error, /version \(2\)/);
-  assert.equal(parseCharacterBundle(null).ok, false);
+  const notCharacter = parseCharacterBundle(null);
+  assert.equal(notCharacter.ok, false);
+  assert.equal(notCharacter.errorCode, "NOT_CHARACTER_FILE");
   assert.equal(parseCharacterBundle("x").ok, false);
   assert.equal(parseCharacterBundle([]).ok, false);
 });
@@ -179,6 +182,7 @@ await test("oversize data URLs are refused", async () => {
   // The declared byte length is judged before the schema runs.
   const huge = parseCharacterBundle(bundle, MAX_BUNDLE_BYTES + 1);
   assert.equal(huge.ok, false);
+  assert.equal(huge.errorCode, "BUNDLE_TOO_LARGE");
   assert.match(huge.error, /12MB/);
   assert.ok(parseCharacterBundle(bundle, MAX_BUNDLE_BYTES).ok);
 });

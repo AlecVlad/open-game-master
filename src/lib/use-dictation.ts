@@ -20,6 +20,10 @@ import { encodeWav, SPEECH_SAMPLE_RATE, splitForUpload } from "@/lib/speech-wav"
 import { subscribeCapabilities, useCapabilities } from "@/lib/use-capabilities";
 
 export type DictationState = "idle" | "starting" | "recording" | "transcribing" | "error";
+export type DictationHint = {
+  code: string;
+  params?: Record<string, string | number>;
+};
 
 // One take of speech, turned into words. Shared by the hold-to-talk button
 // in the composer and the tap-to-dictate button on the DM's summaries and
@@ -50,6 +54,15 @@ export function useDictation({
 
   const [state, setState] = useState<DictationState>("idle");
   const [hint, setHint] = useState("");
+  const [hintDetail, setHintDetail] = useState<DictationHint | null>(null);
+  const setHintWithCode = useCallback((code: string, params: DictationHint["params"], legacyText: string) => {
+    setHint(legacyText);
+    setHintDetail({ code, ...(params ? { params } : {}) });
+  }, []);
+  const clearHint = useCallback(() => {
+    setHint("");
+    setHintDetail(null);
+  }, []);
   const [elapsed, setElapsed] = useState(0);
   // What the device's recognizer has heard so far (native takes only).
   const [partial, setPartial] = useState("");
@@ -109,13 +122,13 @@ export function useDictation({
   const deliver = useCallback((text: string) => {
     const said = text.trim();
     if (!said) {
-      setHint("No words came through. Try again a little closer to the mic.");
+      setHintWithCode("NO_WORDS", undefined, "No words came through. Try again a little closer to the mic.");
       setState("error");
       return;
     }
     onTranscriptRef.current(said);
     setState("idle");
-  }, []);
+  }, [setHintWithCode]);
 
   // One upload to /api/stt; the words, or an Error carrying the server's
   // sentence.
@@ -128,7 +141,19 @@ export function useDictation({
     const response = await fetch("/api/stt", { method: "POST", body: form, signal });
     const data = await response.json().catch(() => ({}));
     if (!response.ok) {
-      throw new Error(data.error || "Transcription failed.");
+      const failure = new Error(data.error || "Transcription failed.") as Error & {
+        errorCode?: string;
+        errorParams?: Record<string, string | number>;
+      };
+      if (typeof data.errorCode === "string") failure.errorCode = data.errorCode;
+      if (data.errorParams && typeof data.errorParams === "object" && !Array.isArray(data.errorParams)) {
+        failure.errorParams = Object.fromEntries(
+          Object.entries(data.errorParams).filter((entry): entry is [string, string | number] =>
+            typeof entry[1] === "string" || typeof entry[1] === "number",
+          ),
+        );
+      }
+      throw failure;
     }
     return String(data.text ?? "").trim();
   }, [campaignId]);
@@ -162,7 +187,24 @@ export function useDictation({
           onTranscriptRef.current(kept);
         }
         const reason = error instanceof TypeError ? "Could not reach the server." : errorText(error, "Transcription failed.");
-        setHint(kept ? `${reason} The part before that is in the field.` : reason);
+        const failure = error && typeof error === "object" ? error as { errorCode?: unknown; errorParams?: unknown } : {};
+        const code = error instanceof TypeError
+          ? "SERVER_UNREACHABLE"
+          : typeof failure.errorCode === "string"
+            ? failure.errorCode
+            : "TRANSCRIPTION_ERROR";
+        if (kept) {
+          setHintWithCode("TRANSCRIPTION_PARTIAL", { detail: reason }, `${reason} The part before that is in the field.`);
+        } else {
+          const params = failure.errorParams && typeof failure.errorParams === "object" && !Array.isArray(failure.errorParams)
+            ? Object.fromEntries(Object.entries(failure.errorParams).filter((entry): entry is [string, string | number] =>
+                typeof entry[1] === "string" || typeof entry[1] === "number",
+              ))
+            : code === "TRANSCRIPTION_ERROR"
+              ? { detail: reason }
+              : undefined;
+          setHintWithCode(code, params, reason);
+        }
         setState("error");
       } finally {
         setProgress(null);
@@ -171,7 +213,7 @@ export function useDictation({
         }
       }
     },
-    [deliver, upload],
+    [deliver, setHintWithCode, upload],
   );
 
   const stop = useCallback(() => {
@@ -195,7 +237,7 @@ export function useDictation({
             return;
           }
           if (!text.trim() && reason) {
-            setHint(reason);
+            setHintWithCode("DEVICE_SPEECH_RECOGNIZER_ERROR", { detail: reason }, reason);
             setState("error");
             return;
           }
@@ -203,7 +245,8 @@ export function useDictation({
         },
         (error: unknown) => {
           setPartial("");
-          setHint(errorText(error, "The device's speech recognizer stopped."));
+          const detail = errorText(error, "The device's speech recognizer stopped.");
+          setHintWithCode("DEVICE_SPEECH_RECOGNIZER_ERROR", { detail }, detail);
           setState("error");
         },
       );
@@ -212,7 +255,7 @@ export function useDictation({
     if (recorderRef.current?.state === "recording") {
       recorderRef.current.stop();
     }
-  }, [deliver, setLevel, stopTimer]);
+  }, [deliver, setHintWithCode, setLevel, stopTimer]);
 
   useEffect(() => {
     stopRef.current = stop;
@@ -240,7 +283,7 @@ export function useDictation({
       activeRef.current = true;
       discardRef.current = false;
       nativeErrorRef.current = "";
-      setHint("");
+      clearHint();
       setPartial("");
       setState("starting");
       // The table's language, as the server's engines hear a clip from this
@@ -260,7 +303,8 @@ export function useDictation({
         );
       } catch (error) {
         activeRef.current = false;
-        setHint(errorText(error, "This device's speech recognizer is unavailable."));
+        const detail = errorText(error, "This device's speech recognizer is unavailable.");
+        setHintWithCode("DEVICE_SPEECH_RECOGNIZER_UNAVAILABLE", { detail }, detail);
         setState("error");
         return;
       }
@@ -274,7 +318,7 @@ export function useDictation({
       setState("recording");
       startTimer(stop);
     },
-    [campaignId, setLevel, startTimer, stop],
+    [campaignId, clearHint, setHintWithCode, setLevel, startTimer, stop],
   );
 
   const start = useCallback(async () => {
@@ -283,7 +327,7 @@ export function useDictation({
     }
     const current = engineRef.current;
     if (current === "none") {
-      setHint("This server has no speech-to-text. An admin can install it under Admin > Speech.");
+      setHintWithCode("NO_SPEECH_TO_TEXT", undefined, "This server has no speech-to-text. An admin can install it under Admin > Speech.");
       setState("error");
       return;
     }
@@ -297,18 +341,18 @@ export function useDictation({
     // rather than blaming a permission the browser never asked for.
     const blocked = micBlockReason();
     if (blocked) {
-      setHint(micBlockMessage(blocked));
+      setHintWithCode(blocked === "insecure" ? "MIC_INSECURE" : "MIC_UNSUPPORTED", undefined, micBlockMessage(blocked));
       setState("error");
       return;
     }
     if (typeof MediaRecorder === "undefined") {
-      setHint("This browser cannot record audio.");
+      setHintWithCode("RECORDING_UNSUPPORTED", undefined, "This browser cannot record audio.");
       setState("error");
       return;
     }
     activeRef.current = true;
     discardRef.current = false;
-    setHint("");
+    clearHint();
     setState("starting");
     let stream: MediaStream;
     try {
@@ -323,7 +367,7 @@ export function useDictation({
       });
     } catch {
       activeRef.current = false;
-      setHint("Microphone unavailable. Check the permission for this page.");
+      setHintWithCode("MICROPHONE_UNAVAILABLE", undefined, "Microphone unavailable. Check the permission for this page.");
       setState("error");
       return;
     }
@@ -402,7 +446,7 @@ export function useDictation({
     recorderRef.current = recorder;
     recorder.start();
     setState("recording");
-  }, [send, setLevel, startNative, startTimer, stop, stopTimer]);
+  }, [clearHint, send, setHintWithCode, setLevel, startNative, startTimer, stop, stopTimer]);
 
   // Leaving the page or closing the editor mid-take drops it.
   useEffect(
@@ -442,6 +486,7 @@ export function useDictation({
   return {
     state,
     hint,
+    hintDetail,
     elapsed,
     partial,
     progress,
@@ -452,7 +497,7 @@ export function useDictation({
     stop,
     cancel,
     meterRef,
-    clearHint: () => setHint(""),
+    clearHint,
   };
 }
 

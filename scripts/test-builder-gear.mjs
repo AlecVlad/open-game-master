@@ -45,6 +45,13 @@ function stateWith(fields) {
 }
 
 test("each line of the barbarian's kit names its own items", () => {
+  const invalid = kits.resolveKit(kit, { options: [999], picks: [] }, { armor: [], weapons: [] }, "barbarian");
+  assert.equal(invalid.problemDetails[0]?.code, "invalidOption");
+  const clericKit = kits.classKitFor("cleric");
+  const notTrained = kits.resolveKit(clericKit, { options: [1], picks: [] }, { armor: [], weapons: [] }, "cleric");
+  assert.equal(notTrained.problemDetails[0]?.code, "notProficient");
+  const wrongWeapon = kits.resolveKit(kit, { options: [1], picks: ["Club"] }, { armor: [], weapons: [] }, "barbarian");
+  assert.equal(wrongWeapon.problemDetails[0]?.code, "invalidSlot");
   assert.deepEqual(kits.kitLineNames(kit, null, 0), ["Greataxe"]);
   assert.deepEqual(kits.kitLineNames(kit, { options: [0, 1], picks: ["Club"] }, 1), ["Club"]);
   assert.ok(kits.kitLineNames(kit, null, 2).includes("Javelin"));
@@ -110,6 +117,23 @@ test("the purse still refuses a magic item", () => {
     priceOf: () => ({ copper: null, magic: true }),
   });
   assert.ok(verdict.problems.some((problem) => problem.includes("magic item")), JSON.stringify(verdict));
+  assert.deepEqual(verdict.problemDetails, [{ code: "magic", params: { name: "Bag of Holding" } }]);
+
+  const homebrew = judgeStartingGear({
+    equipment: [{ name: "Moonblade", qty: 1, slug: "homebrew:moonblade" }],
+    freeKit: [],
+    coinCopper: 1000,
+    priceOf: () => ({ copper: 100, magic: false }),
+  });
+  assert.equal(homebrew.problemDetails[0]?.code, "homebrew");
+  const overBudget = judgeStartingGear({
+    equipment: [{ name: "Rope", qty: 2 }],
+    freeKit: [],
+    coinCopper: 1,
+    priceOf: () => ({ copper: 100, magic: false }),
+  });
+  assert.equal(overBudget.problemDetails[0]?.code, "insufficientFunds");
+  assert.ok(String(overBudget.problemDetails[0]?.params.shortfall).length > 0);
 });
 
 console.log(`\n${passed} passed`);

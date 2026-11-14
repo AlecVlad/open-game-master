@@ -120,6 +120,7 @@ export type TableRulesState = {
   wealth: WealthRoll | null;
   wealthBusy: boolean;
   wealthError: string;
+  wealthErrorCode: string;
   rollWealth: () => void;
   // The table's settings could not be read. The builder then says so and
   // offers to try again, rather than quietly showing the defaults as if
@@ -146,6 +147,7 @@ export function useTableRules(
   const [wealth, setWealth] = useState<WealthRoll | null>(null);
   const [wealthBusy, setWealthBusy] = useState(false);
   const [wealthError, setWealthError] = useState("");
+  const [wealthErrorCode, setWealthErrorCode] = useState("");
   const [rulesError, setRulesError] = useState("");
   const [attempt, setAttempt] = useState(0);
 
@@ -203,6 +205,7 @@ export function useTableRules(
         if (!cancelled) {
           setWealth(data?.wealth ?? null);
           setWealthError("");
+          setWealthErrorCode("");
         }
       })
       .catch(() => {
@@ -221,6 +224,7 @@ export function useTableRules(
     }
     setWealthBusy(true);
     setWealthError("");
+    setWealthErrorCode("");
     fetch("/api/characters/rolls", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -233,11 +237,16 @@ export function useTableRules(
       .then(({ ok, data }) => {
         if (ok && data?.wealth) {
           setWealth(data.wealth);
+          setWealthErrorCode("");
         } else {
           setWealthError(data?.error || "The server could not roll your starting wealth. Try again.");
+          setWealthErrorCode(data?.errorCode || "");
         }
       })
-      .catch(() => setWealthError("Could not reach the server to roll your starting wealth."))
+      .catch(() => {
+        setWealthError("Could not reach the server to roll your starting wealth.");
+        setWealthErrorCode("network");
+      })
       .finally(() => setWealthBusy(false));
   }, [campaignId, classId, wealthBusy]);
 
@@ -255,6 +264,7 @@ export function useTableRules(
     wealth: rolled ? mine : null,
     wealthBusy,
     wealthError,
+    wealthErrorCode,
     rollWealth,
     rulesError,
     retryRules,

@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import type { WorldNoticeDetail } from "@/lib/worldforge/format";
 import { followPins, pictureAspect, PICTURE_ONLY, type Failure, type Placement } from "@/lib/db/atlas-region";
 import { getWorldDoc, saveWorldDoc } from "@/lib/db/world-forge";
 import { isUploadedImagePath } from "@/lib/uploads";
@@ -41,17 +42,18 @@ export function readTarget(raw: unknown): AtlasTarget | null {
   return null;
 }
 
-export type DeletePlan = { impact: DeleteImpact; notes: string[]; applied: boolean; undo?: string };
+export type DeletePlan = { impact: DeleteImpact; notes: string[]; noteDetails?: WorldNoticeDetail[]; applied: boolean; undo?: string };
 
 export function deleteFromAtlas(campaignId: string, target: AtlasTarget, apply: boolean): DeletePlan | Failure {
   const doc = getWorldDoc(campaignId);
   const impact = deleteImpact(doc, target);
   if (!impact) return { error: "That is not on the Atlas any more.", status: 404 };
   const notes = impact.overRegion ? ["The Region keeps its picture and every place stays where it is. Undo makes this map stand over the Region again."] : [];
-  if (!apply) return { impact, notes, applied: false };
+  const noteDetails: WorldNoticeDetail[] = impact.overRegion ? [{ code: "workshop.world.atlas.edit.delete.note.regionMap", params: {} }] : [];
+  if (!apply) return { impact, notes, noteDetails, applied: false };
   const done = removeFromDoc(doc, target)!;
   saveWorldDoc(campaignId, done.doc);
-  return { impact, notes, applied: true, undo: hold(campaignId, done.removed) };
+  return { impact, notes, noteDetails, applied: true, undo: hold(campaignId, done.removed) };
 }
 
 export type RestoreResult = { restored: number; skipped: string[] };
@@ -91,6 +93,7 @@ export type FramePlan = {
   // Places on the Region that move because their bound pins' squares did.
   placements: Placement[];
   notes: string[];
+  noteDetails?: WorldNoticeDetail[];
   applied: boolean;
 };
 
@@ -132,9 +135,16 @@ export async function reframeMap(campaignId: string, mapId: string, ask: FrameAs
   const after = { ...doc, maps: doc.maps.map((entry) => (entry.id === atlas.id ? reframed : entry)), pins };
   const placements = followPins(campaignId, doc, after, false);
   const notes: string[] = [];
-  if (!ask.carry) notes.push("Pins and regions keep their places in the box, so they will sit over other parts of the picture.");
-  if (atlas.role === "region") notes.push(PICTURE_ONLY);
-  const plan: FramePlan = { map: { id: atlas.id, name: atlas.name }, before: old, after: stored ?? frameOf(null), moved, outside, placements, notes, applied: false };
+  const noteDetails: WorldNoticeDetail[] = [];
+  if (!ask.carry) {
+    notes.push("Pins and regions keep their places in the box, so they will sit over other parts of the picture.");
+    noteDetails.push({ code: "workshop.world.atlas.edit.frame.note.fixed", params: {} });
+  }
+  if (atlas.role === "region") {
+    notes.push(PICTURE_ONLY);
+    noteDetails.push({ code: "workshop.world.atlas.notice.pictureOnly", params: {} });
+  }
+  const plan: FramePlan = { map: { id: atlas.id, name: atlas.name }, before: old, after: stored ?? frameOf(null), moved, outside, placements, notes, noteDetails, applied: false };
   if (!apply) return plan;
   saveWorldDoc(campaignId, after);
   followPins(campaignId, doc, after, true);

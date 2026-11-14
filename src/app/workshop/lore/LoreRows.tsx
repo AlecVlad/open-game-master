@@ -2,13 +2,14 @@
 
 import { EmptyState } from "@/components/EmptyState";
 import { useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { EyeOff, Image as ImageIcon, Pin, Plus, Search } from "lucide-react";
 import { GameIcon } from "@/components/ui/GameIcon";
 import { GlyphPlate } from "@/app/workshop/kit";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui";
 import { ListTally, sortRows, type RowSort } from "@/app/workshop/ListHead";
-import { CATEGORY_LABELS, type LoreEntryView } from "@/app/workshop/lore/types";
+import type { LoreEntryView } from "@/app/workshop/lore/types";
 import { textKey } from "@/lib/language/text-logic";
 
 // The workshop's world lore as full-width rows: the title, whether it is
@@ -46,6 +47,7 @@ export function LoreRows({
   onOpen: (entry: LoreEntryView) => void;
   onNew: () => void;
 }) {
+  const { t, tp } = useI18n();
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<RowSort>("made");
   const shown = sortRows(entries.filter((entry) => matches(entry, query)), sort, (entry) => entry.title);
@@ -57,12 +59,20 @@ export function LoreRows({
         <input
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          placeholder="Search the lore"
-          aria-label="Search the lore by title, body or tag"
+          placeholder={t("campaign.lore.search.placeholder")}
+          aria-label={t("campaign.lore.search.aria")}
           className={`${ui.input} pl-9`}
         />
       </label>
-      <ListTally shown={shown.length} total={entries.length} noun={["entry", "entries"]} sort={sort} onSort={setSort} />
+      <ListTally
+        shown={shown.length}
+        total={entries.length}
+        noun={[t("campaign.lore.tally.one", { count: 1 }), t("campaign.lore.tally.other", { count: entries.length })]}
+        sort={sort}
+        onSort={setSort}
+        sortLabels={{ made: t("campaign.lore.sort.made"), name: t("campaign.lore.sort.name") }}
+        formatCount={(count, all) => count === all ? tp("campaign.lore.tally", count) : t("campaign.lore.tally.filtered", { shown: count, total: all })}
+      />
 
       <ul className="stagger-up grid gap-2 lg:grid-cols-2">
         {shown.map((entry) => {
@@ -88,20 +98,20 @@ export function LoreRows({
                   {entry.pinned ? (
                     <Pin
                       className="size-3.5 shrink-0 text-amber-400"
-                      aria-label="Pinned: included in every GM turn"
+                      aria-label={t("campaign.lore.actions.pinTitle")}
                     />
                   ) : null}
                   <span className="font-display tracking-wide text-amber-50">{entry.title}</span>
                   <span className="rounded-sm border border-stone-600/60 px-1.5 py-0.5 font-display text-[10px] tracking-wider text-stone-400">
-                    {CATEGORY_LABELS[entry.category]}
+                    {t(`campaign.lore.category.${entry.category}` as never)}
                   </span>
                   {entry.visibility === "dm" ? (
                     <span className="flex items-center gap-1 rounded-sm border border-violet-500/40 bg-violet-500/10 px-1.5 py-0.5 font-display text-[10px] tracking-wider text-violet-300">
-                      <EyeOff className="size-3" /> Secret
+                      <EyeOff className="size-3" /> {t("campaign.lore.visibility.secretBadge")}
                     </span>
                   ) : entry.imagePath ? (
                     <span className="flex items-center gap-1 rounded-sm border border-emerald-500/40 bg-emerald-500/10 px-1.5 py-0.5 font-display text-[10px] tracking-wider text-emerald-300">
-                      <ImageIcon className="size-3" /> Handout
+                      <ImageIcon className="size-3" /> {t("campaign.lore.visibility.handoutBadge")}
                     </span>
                   ) : null}
                 </span>
@@ -138,7 +148,7 @@ export function LoreRows({
                 <GameIcon icon={{ kind: "glyph", key: "system-lore" }} size="size-10" />
                 <Plus className="absolute -bottom-1 -right-1 size-4 rounded-full bg-stone-900 text-amber-300" aria-hidden="true" />
               </span>
-              <span className="font-display tracking-wide">New entry</span>
+              <span className="font-display tracking-wide">{t("campaign.lore.newEntry")}</span>
             </button>
           </li>
         ) : null}
@@ -148,11 +158,11 @@ export function LoreRows({
         <EmptyState
           size="md"
           art="scrolls"
-          title={steersStory ? "No lore yet. Write your world's places, factions, and history; the GM treats it as canon." : "The party lead has not written any world lore yet."}
-          hint={steersStory ? "Each entry is read by players or kept from them, as you choose. Pinned ones reach the narrator every turn." : undefined}
+          title={t(steersStory ? "campaign.lore.empty.lead" : "campaign.lore.empty.party")}
+          hint={steersStory ? t("campaign.lore.empty.hint.lead") : undefined}
         />
       ) : shown.length === 0 ? (
-        <p className="live-in text-xs text-stone-500">Nothing by that title, body or tag.</p>
+        <p className="live-in text-xs text-stone-500">{t("campaign.lore.empty.filtered")}</p>
       ) : null}
     </div>
   );

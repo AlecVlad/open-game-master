@@ -15,7 +15,7 @@ async function requireFaction(campaignId: string, factionId: string) {
   }
   const faction = getFaction(factionId);
   if (!faction || faction.campaignId !== campaignId) {
-    return Response.json({ error: "Faction not found." }, { status: 404 });
+    return Response.json({ error: "Faction not found.", errorCode: "FACTION_NOT_FOUND" }, { status: 404 });
   }
   return { faction, campaign: context.campaign };
 }
@@ -31,12 +31,12 @@ export async function PATCH(
   }
   const raw = (await request.json().catch(() => ({}))) as Record<string, unknown>;
   if (raw.portraitPath !== undefined && raw.portraitPath !== "" && !isUploadedImagePath(raw.portraitPath)) {
-    return Response.json({ error: "Not an uploaded file." }, { status: 400 });
+    return Response.json({ error: "Not an uploaded file.", errorCode: "FACTION_IMAGE_NOT_UPLOADED" }, { status: 400 });
   }
   // Standing is where a party stands, and a workshop has none (issue 553);
   // no import would carry it. Attitude is the prep that does.
   if (typeof raw.standing === "number" && found.campaign.kind === "workshop") {
-    return Response.json({ error: "A workshop has no party to stand with a faction. Set its attitude instead." }, { status: 400 });
+    return Response.json({ error: "A workshop has no party to stand with a faction. Set its attitude instead.", errorCode: "WORKSHOP_NO_FACTION_STANDING" }, { status: 400 });
   }
   const updated = updateFaction(factionId, {
     ...(typeof raw.name === "string" && raw.name.trim() ? { name: raw.name } : {}),

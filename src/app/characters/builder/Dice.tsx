@@ -1,6 +1,7 @@
 "use client";
 
 import type { CSSProperties } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { FLICKER_FACES, pipsFor, tossMs, type AbilityRoll } from "./abilityDice";
 
 // The gradients every die shares, mounted once per dice grid. Zero-sized
@@ -119,9 +120,10 @@ function Die({
 // The four dice of one ability. Keyed by the roll's id at the call site so a
 // reroll remounts them and the toss plays again.
 export function DiceRow({ roll }: { roll: AbilityRoll | null }) {
+  const { t } = useI18n();
   const label = roll
-    ? `Rolled ${roll.dice.join(", ")}; the ${roll.dice[roll.dropIndex]} is set aside`
-    : "Not rolled yet";
+    ? t("builder.extra.dice.rolled", { dice: roll.dice.join(", "), dropped: roll.dice[roll.dropIndex] })
+    : t("builder.extra.dice.notRolled");
   return (
     <span className="flex min-w-[192px] flex-[1_1_192px] items-center gap-[7px]" role="img" aria-label={label}>
       {[0, 1, 2, 3].map((index) => (

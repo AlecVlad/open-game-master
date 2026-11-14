@@ -5,6 +5,8 @@ import { returnFocus } from "@/components/ui/return-focus";
 import { Loader2, X } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/cn";
+import { useT } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages/index";
 import { offerCorrectionReason } from "@/lib/correction-offer";
 import { ui } from "@/lib/ui";
 import { GameIcon } from "@/components/ui/GameIcon";
@@ -22,7 +24,32 @@ import {
 // stay exactly as they landed; the guidance line steers this take alone and
 // is never remembered. Party lead only.
 
-const GUIDANCE_PRESETS = ["darker", "more dialogue", "shorter", "more sensory detail"];
+const GUIDANCE_PRESETS = [
+  { value: "darker", message: "campaign.session.renarrate.preset.darker" },
+  { value: "more dialogue", message: "campaign.session.renarrate.preset.dialogue" },
+  { value: "shorter", message: "campaign.session.renarrate.preset.shorter" },
+  { value: "more sensory detail", message: "campaign.session.renarrate.preset.sensory" },
+] as const;
+
+const RENARRATE_ERROR_MESSAGES: Record<string, MessageKey> = {
+  CAMPAIGN_NOT_FOUND: "campaign.session.renarrate.error.campaignNotFound",
+  MESSAGE_NOT_FOUND: "campaign.session.renarrate.error.messageNotFound",
+  NOT_DM_NARRATION: "campaign.session.renarrate.error.notDmNarration",
+  NO_DM_TURN: "campaign.session.renarrate.error.noTurn",
+  TURN_NOT_FOUND: "campaign.session.renarrate.error.turnNotFound",
+  NO_STORED_CONVERSATION: "campaign.session.renarrate.error.noConversation",
+  VARIANTS_CAPPED: "campaign.session.renarrate.error.variantsCapped",
+  MODEL_UNAVAILABLE: "campaign.session.renarrate.error.modelUnavailable",
+  EMPTY_NARRATION: "campaign.session.renarrate.error.emptyNarration",
+  STORE_FAILED: "campaign.session.renarrate.error.storeFailed",
+  VARIANT_NOT_FOUND: "campaign.session.renarrate.error.variantNotFound",
+  SELECT_FAILED: "campaign.session.renarrate.error.selectFailed",
+  INVALID_SELECT_REQUEST: "campaign.session.renarrate.error.invalidSelect",
+  INVALID_REROLL_REQUEST: "campaign.session.renarrate.error.invalidReroll",
+  NOT_LATEST_MESSAGE: "campaign.session.renarrate.error.notLatest",
+  DM_BUSY: "campaign.session.renarrate.error.dmBusy",
+  SESSION_ON_HOLD: "campaign.session.renarrate.error.sessionHeld",
+};
 
 export function RenarrateDialog({
   campaignId,
@@ -33,6 +60,7 @@ export function RenarrateDialog({
   message: CampaignMessage;
   onClose: () => void;
 }) {
+  const t = useT();
   const [guidance, setGuidance] = useState("");
   // NE-P opens its regenerate sheet at base + 0.1 and remembers a dragged
   // offset for the rest of the browse session. This dialog is per-reroll, so
@@ -55,15 +83,33 @@ export function RenarrateDialog({
           body: JSON.stringify({ action: "reroll", guidance, tempOffset }),
         },
       );
-      const data = await response.json().catch(() => ({}));
+      const data = (await response.json().catch(() => ({}))) as {
+        error?: unknown;
+        errorCode?: unknown;
+        sessionHold?: { number?: unknown };
+      };
       if (!response.ok) {
-        setError(data.error || "The reroll failed; try again.");
+        const code = typeof data.errorCode === "string" ? data.errorCode : "";
+        const messageKey = RENARRATE_ERROR_MESSAGES[code];
+        const params =
+          code === "VARIANTS_CAPPED"
+            ? { max: MAX_VARIANTS }
+            : code === "SESSION_ON_HOLD"
+              ? { number: typeof data.sessionHold?.number === "number" ? data.sessionHold.number : 1 }
+              : undefined;
+        setError(
+          messageKey
+            ? t(messageKey, params)
+            : typeof data.error === "string"
+              ? data.error
+              : t("campaign.session.renarrate.error.generic"),
+        );
         return;
       }
       offerCorrectionReason(campaignId, data);
       onClose();
     } catch {
-      setError("Could not reach the server.");
+      setError(t("campaign.session.renarrate.error.network"));
     } finally {
       setRunning(false);
     }
@@ -82,22 +128,20 @@ export function RenarrateDialog({
           <div className="mb-3 flex items-center justify-between">
             <Dialog.Title className="flex items-center gap-2.5 font-display text-lg">
               <GameIcon icon={{ kind: "glyph", key: "die-d20" }} size="size-8" />
-              <span className="gold-title">Reroll the narration</span>
+              <span className="gold-title">{t("campaign.session.renarrate.title")}</span>
             </Dialog.Title>
-            <Dialog.Close aria-label="Close" className={cn(ui.iconAction, "opacity-100")}>
+            <Dialog.Close aria-label={t("dialog.close")} className={cn(ui.iconAction, "opacity-100")}>
               <X className="size-4" />
             </Dialog.Close>
           </div>
 
           <p className="mb-3 text-xs leading-5 text-stone-400">
-            The GM says the same moment in different words. Nothing else moves: the
-            same rolls, the same damage, the same outcome. Take {taken} of{" "}
-            {MAX_VARIANTS}.
-            {capped ? " That is every take; browse them and pick one." : ""}
+            {t("campaign.session.renarrate.description", { taken, max: MAX_VARIANTS })}
+            {capped ? ` ${t("campaign.session.renarrate.capped")}` : ""}
           </p>
 
           <SectionHead
-            title="Variation"
+            title={t("campaign.session.renarrate.variation")}
             glyph="sky-wind"
             level="h4"
             aside={
@@ -113,31 +157,31 @@ export function RenarrateDialog({
             value={tempOffset}
             disabled={running}
             onChange={setTempOffset}
-            label="How far this take may drift from the last"
+            label={t("campaign.session.renarrate.temperatureLabel")}
             bubble={(value) => `+${value.toFixed(2)}`}
             className="mb-4 w-full"
           />
 
-          <SectionHead title="Guidance for this take (optional)" glyph="tab-log" level="h4" />
+          <SectionHead title={t("campaign.session.renarrate.guidance")} glyph="tab-log" level="h4" />
           <input
-            aria-label="Guidance for this take (optional)"
+            aria-label={t("campaign.session.renarrate.guidance")}
             value={guidance}
             onChange={(event) => setGuidance(event.target.value)}
             maxLength={MAX_GUIDANCE_LENGTH}
             disabled={running}
-            placeholder="darker, more dialogue, shorter..."
+            placeholder={t("campaign.session.renarrate.placeholder")}
             className={ui.input}
           />
           <div data-pill-group="" className="mt-2 flex flex-wrap gap-1.5">
             {GUIDANCE_PRESETS.map((preset) => (
-              <button data-on={guidance === preset ? "" : undefined}
-                key={preset}
+              <button data-on={guidance === preset.value ? "" : undefined}
+                key={preset.value}
                 type="button"
                 disabled={running}
-                onClick={() => setGuidance(preset)}
+                onClick={() => setGuidance(preset.value)}
                 className="session-subtab session-subtab-plain motion-press"
               >
-                {preset}
+                {t(preset.message)}
               </button>
             ))}
           </div>
@@ -146,7 +190,7 @@ export function RenarrateDialog({
 
           <div className="mt-4 flex justify-end gap-2">
             <button type="button" onClick={onClose} disabled={running} className={ui.btnSmall}>
-              Cancel
+              {t("campaign.session.renarrate.cancel")}
             </button>
             <button
               type="button"
@@ -156,10 +200,10 @@ export function RenarrateDialog({
             >
               {running ? (
                 <>
-                  <Loader2 className="size-4 animate-spin" /> Writing...
+                  <Loader2 className="size-4 animate-spin" /> {t("campaign.session.renarrate.writing")}
                 </>
               ) : (
-                "Reroll"
+                t("campaign.session.renarrate.submit")
               )}
             </button>
           </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { Plus, X } from "lucide-react";
+import { useT } from "@/lib/i18n/provider";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui";
 import { NumberStepper } from "@/components/ui/NumberStepper";
@@ -8,8 +9,9 @@ import { SectionHead } from "@/components/ui/SectionHead";
 import { Select } from "@/components/ui/Select";
 import { NumberField, SelectField, TextArea, TextField, ToggleChips } from "@/app/workshop/homebrew/fields";
 import { ChipList } from "@/app/workshop/plugin/fields";
+import { languageLabel, languageOptions, toolLabel, toolOptions } from "@/app/workshop/homebrew/catalogLabels";
 import { MechGroup, list, num, sub } from "@/app/workshop/homebrew/MechGroup";
-import { LANGUAGES, TOOL_PROFICIENCIES, VISION_SUGGESTIONS } from "@/lib/workshop/pickers";
+import { TOOL_PROFICIENCIES, VISION_SUGGESTIONS } from "@/lib/workshop/pickers";
 import { SKILL_IDS } from "@/lib/homebrew/item-magic-schema";
 import { SRD_WEAPONS } from "@/lib/srd/weapons";
 import { addChip, rowIcon } from "@/app/workshop/kit";
@@ -39,7 +41,7 @@ type AsiRow = { attributes: string[]; value: number };
 const ABILITY_NAMES = ["Strength", "Dexterity", "Constitution", "Intelligence", "Wisdom", "Charisma"] as const;
 const ABILITY_IDS = ["str", "dex", "con", "int", "wis", "cha"] as const;
 const ABILITY_LABELS = Object.fromEntries(ABILITY_IDS.map((id) => [id, id.toUpperCase()])) as Record<(typeof ABILITY_IDS)[number], string>;
-const SKILL_LABELS = Object.fromEntries(SKILL_IDS.map((id) => [id, id.replace(/_/g, " ")])) as Record<(typeof SKILL_IDS)[number], string>;
+
 const ARMOR = ["light", "medium", "heavy", "shields"] as const;
 const CANTRIP_LISTS = ["", "bard", "cleric", "druid", "sorcerer", "warlock", "wizard"];
 const TOOLS = TOOL_PROFICIENCIES.map((tool) => tool.toLowerCase());
@@ -58,6 +60,8 @@ function languageList(value: unknown): string[] {
 }
 
 function AbilityIncreases({ data, set }: Props) {
+  const t = useT();
+  const skilllessAbilityLabel = (name: string) => t(`workshop.homebrew.species.main.ability.${name}`);
   const asi = Array.isArray(data.asi) ? (data.asi as AsiRow[]) : [];
   const put = (next: AsiRow[]) => set({ asi: next });
   const choice = sub(data.asiChoice);
@@ -67,41 +71,41 @@ function AbilityIncreases({ data, set }: Props) {
   };
   return (
     <div className="space-y-1.5 text-sm">
-      <SectionHead title="Ability score increases" glyph="ability-str" className="mb-1" />
+      <SectionHead title={t("workshop.homebrew.species.main.abilityHeading")} glyph="ability-str" className="mb-1" />
       {asi.map((row, index) => (
         <div key={index} className="live-in flex flex-wrap items-center gap-1.5">
           <span className="w-44">
             <Select
               value={row.attributes[0] ?? "Strength"}
-              label="Ability"
+              label={t("workshop.homebrew.species.main.abilityLabel")}
               options={ABILITY_NAMES.map((name) => ({
                 value: name as string,
-                label: name,
+                label: skilllessAbilityLabel(name),
                 icon: { kind: "glyph" as const, key: `ability-${name.slice(0, 3).toLowerCase()}` },
               }))}
               onChange={(name) => put(asi.map((entry, at) => (at === index ? { ...entry, attributes: [name] } : entry)))}
             />
           </span>
-          <NumberStepper label="Increase" value={row.value} min={-2} max={3} onChange={(value) => put(asi.map((entry, at) => (at === index ? { ...entry, value } : entry)))} />
-          <button type="button" aria-label="Remove increase" onClick={() => put(asi.filter((_, at) => at !== index))} className={cn(ui.iconAction, rowIcon, "hover:text-red-300")}>
+          <NumberStepper label={t("workshop.homebrew.species.main.increase")} value={row.value} min={-2} max={3} onChange={(value) => put(asi.map((entry, at) => (at === index ? { ...entry, value } : entry)))} />
+          <button type="button" aria-label={t("workshop.homebrew.species.main.removeIncrease")} onClick={() => put(asi.filter((_, at) => at !== index))} className={cn(ui.iconAction, rowIcon, "hover:text-red-300")}>
             <X className="size-3.5" />
           </button>
         </div>
       ))}
       {asi.length < 6 ? (
         <button type="button" onClick={() => put([...asi, { attributes: ["Dexterity"], value: 1 }])} className={cn(ui.btnSmall, addChip)}>
-          <Plus className="size-3" /> Add an increase
+          <Plus className="size-3" /> {t("workshop.homebrew.species.main.addIncrease")}
         </button>
       ) : null}
       <div className="flex flex-wrap items-center gap-2 pt-1 text-[11px] text-stone-400">
-        <span>And the player picks</span>
-        <NumberStepper size="sm" label="Abilities the player picks" value={num(choice.count)} min={0} max={3} onChange={(count) => putChoice({ count })} />
-        <span>abilities to raise by</span>
-        <NumberStepper size="sm" label="Raised by" value={num(choice.amount, 1)} min={1} max={2} onChange={(amount) => putChoice({ amount })} />
+        <span>{t("workshop.homebrew.species.main.playerPicks")}</span>
+        <NumberStepper size="sm" label={t("workshop.homebrew.species.main.abilitiesPicked")} value={num(choice.count)} min={0} max={3} onChange={(count) => putChoice({ count })} />
+        <span>{t("workshop.homebrew.species.main.abilitiesRaise")}</span>
+        <NumberStepper size="sm" label={t("workshop.homebrew.species.main.raisedBy")} value={num(choice.amount, 1)} min={1} max={2} onChange={(amount) => putChoice({ amount })} />
       </div>
       {num(choice.count) > 0 ? (
         <div className="live-in space-y-1">
-          <span className="text-[11px] text-stone-400">From (none ticked: any ability)</span>
+          <span className="text-[11px] text-stone-400">{t("workshop.homebrew.species.main.fromAbility")}</span>
           <ToggleChips options={ABILITY_IDS} labels={ABILITY_LABELS} selected={list(choice.from)} onChange={(from) => putChoice({ from: from.length ? from : undefined })} />
         </div>
       ) : null}
@@ -110,6 +114,7 @@ function AbilityIncreases({ data, set }: Props) {
 }
 
 function Languages({ data, set }: Props) {
+  const t = useT();
   const known = languageList(data.languages);
   const choice = sub(data.languageChoice);
   const from = list(choice.from);
@@ -119,20 +124,20 @@ function Languages({ data, set }: Props) {
   };
   return (
     <div className="space-y-1.5 text-sm">
-      <SectionHead title="Languages" glyph="system-lore" className="mb-1" />
-      <ChipList items={known} onChange={(languages) => set({ languages })} options={LANGUAGES} prompt="Add a language" max={12} />
+      <SectionHead title={t("workshop.homebrew.species.main.languages")} glyph="system-lore" className="mb-1" />
+      <ChipList items={known} onChange={(languages) => set({ languages })} options={languageOptions(t)} labelFor={(value) => languageLabel(value, t)} prompt={t("workshop.homebrew.species.main.addLanguage")} max={12} />
       <div className="flex flex-wrap items-center gap-2 text-[11px] text-stone-400">
-        <span>Plus</span>
-        <NumberStepper size="sm" label="Languages of the player's choice" value={num(data.bonusLanguages)} min={0} max={4} onChange={(bonusLanguages) => set({ bonusLanguages: bonusLanguages || undefined })} />
-        <span>of the player&apos;s choice</span>
+        <span>{t("workshop.homebrew.species.main.plus")}</span>
+        <NumberStepper size="sm" label={t("workshop.homebrew.species.main.languagesChoice")} value={num(data.bonusLanguages)} min={0} max={4} onChange={(bonusLanguages) => set({ bonusLanguages: bonusLanguages || undefined })} />
+        <span>{t("workshop.homebrew.species.main.ofChoice")}</span>
       </div>
       <div className="space-y-1">
-        <span className="text-[11px] text-stone-400">Or a pick from a short list (&quot;Common or Undercommon&quot;)</span>
-        <ChipList items={from} onChange={(next) => putChoice({ from: next })} options={LANGUAGES} prompt="Offer a language" max={12} />
+        <span className="text-[11px] text-stone-400">{t("workshop.homebrew.species.main.languageShortList")}</span>
+        <ChipList items={from} onChange={(next) => putChoice({ from: next })} options={languageOptions(t)} labelFor={(value) => languageLabel(value, t)} prompt={t("workshop.homebrew.species.main.offerLanguage")} max={12} />
         {from.length ? (
           <span className="live-in flex items-center gap-2 text-[11px] text-stone-400">
-            The player picks
-            <NumberStepper size="sm" label="Languages picked from the list" value={num(choice.count, 1)} min={1} max={3} onChange={(count) => putChoice({ count })} />
+            {t("workshop.homebrew.species.main.playerPicksFromList")}
+            <NumberStepper size="sm" label={t("workshop.homebrew.species.main.languagesFromList")} value={num(choice.count, 1)} min={1} max={3} onChange={(count) => putChoice({ count })} />
           </span>
         ) : null}
       </div>
@@ -141,6 +146,8 @@ function Languages({ data, set }: Props) {
 }
 
 function Training({ data, set }: Props) {
+  const t = useT();
+  const skillLabels = Object.fromEntries(SKILL_IDS.map((id) => [id, t(`workshop.homebrew.skill.${id}`)]));
   const skills = list(data.skills);
   const tools = list(data.tools);
   const toolChoice = sub(data.toolChoice);
@@ -155,12 +162,12 @@ function Training({ data, set }: Props) {
     set({ skillChoice: next.count ? { count: next.count, ...(list(next.from).length ? { from: next.from } : {}) } : undefined });
   };
   const summary = [
-    skills.length ? skills.join(", ").replace(/_/g, " ") : "",
-    num(sub(data.skillChoice).count) ? `${num(sub(data.skillChoice).count)} skills of choice` : "",
-    tools.length ? tools.join(", ") : "",
-    armor.length ? `${armor.join(", ")} armor` : "",
-    weapons.length ? `${weapons.length} weapons` : "",
-    cantrip.list ? `a ${String(cantrip.list)} cantrip` : "",
+    skills.length ? skills.map((id) => skillLabels[id] ?? id).join(", ") : "",
+    num(skillChoice.count) ? t("workshop.homebrew.species.main.training.skillCount", { count: num(skillChoice.count) }) : "",
+    tools.length ? tools.map((tool) => toolLabel(tool, t)).join(", ") : "",
+    armor.length ? armor.map((kind) => t(`workshop.homebrew.species.main.armor.${kind}`)).join(", ") : "",
+    weapons.length ? t("workshop.homebrew.species.main.training.weaponCount", { count: weapons.length }) : "",
+    cantrip.list ? t("workshop.homebrew.species.main.training.cantrip", { name: t(`workshop.homebrew.spell.class.${String(cantrip.list)}`) }) : "",
   ].filter(Boolean).join("; ");
   const open = summary.length > 0;
   const putToolChoice = (patch: Data) => {
@@ -168,13 +175,13 @@ function Training({ data, set }: Props) {
     set({ toolChoice: list(next.from).length ? next : undefined });
   };
   return (
-    <MechGroup title="What it trains" summary={summary || "nothing"} open={open}>
+    <MechGroup title={t("workshop.homebrew.species.main.training.title")} summary={summary || t("workshop.homebrew.species.main.training.none")} open={open}>
       <div className="col-span-2 space-y-1 sm:col-span-4">
-        <span className="text-[11px] text-stone-400">Skills it is proficient in</span>
-        <ToggleChips options={SKILL_IDS} labels={SKILL_LABELS} selected={skills} max={RACE_LIMITS.skills} onChange={(next) => set({ skills: next.length ? next : undefined })} />
+        <span className="text-[11px] text-stone-400">{t("workshop.homebrew.species.main.training.skills")}</span>
+        <ToggleChips options={SKILL_IDS} labels={skillLabels} selected={skills} max={RACE_LIMITS.skills} onChange={(next) => set({ skills: next.length ? next : undefined })} />
       </div>
       <NumberField
-        label="Skills of the player's choice"
+        label={t("workshop.homebrew.species.main.training.skillsPick")}
         value={num(skillChoice.count)}
         min={0}
         max={4}
@@ -182,34 +189,34 @@ function Training({ data, set }: Props) {
       />
       {num(skillChoice.count) ? (
         <div className="live-in col-span-2 space-y-1 sm:col-span-4">
-          <span className="text-[11px] text-stone-400">Picked from (none ticked: any skill)</span>
-          <ToggleChips options={SKILL_IDS} labels={SKILL_LABELS} selected={skillFrom} onChange={(from) => putSkillChoice({ from })} />
+          <span className="text-[11px] text-stone-400">{t("workshop.homebrew.species.main.training.skillsFrom")}</span>
+          <ToggleChips options={SKILL_IDS} labels={skillLabels} selected={skillFrom} onChange={(from) => putSkillChoice({ from })} />
         </div>
       ) : null}
       <div className="col-span-2 space-y-1 sm:col-span-4">
-        <span className="text-[11px] text-stone-400">Tools it is proficient with</span>
-        <ChipList items={tools} onChange={(next) => set({ tools: next.length ? next : undefined })} options={TOOLS} prompt="Add a tool" max={6} />
+        <span className="text-[11px] text-stone-400">{t("workshop.homebrew.species.main.training.tools")}</span>
+        <ChipList items={tools} onChange={(next) => set({ tools: next.length ? next : undefined })} options={toolOptions(TOOLS, t)} labelFor={(value) => toolLabel(value, t)} prompt={t("workshop.homebrew.species.main.training.addTool")} max={6} />
       </div>
       <div className="col-span-2 space-y-1 sm:col-span-4">
-        <span className="text-[11px] text-stone-400">Or one tool of the player&apos;s choice from</span>
-        <ChipList items={toolFrom} onChange={(from) => putToolChoice({ from })} options={TOOLS} prompt="Offer a tool" max={12} />
+        <span className="text-[11px] text-stone-400">{t("workshop.homebrew.species.main.training.offerTool")}</span>
+        <ChipList items={toolFrom} onChange={(from) => putToolChoice({ from })} options={toolOptions(TOOLS, t)} labelFor={(value) => toolLabel(value, t)} prompt={t("workshop.homebrew.species.main.training.offerTool")} max={12} />
       </div>
       <div className="col-span-2 space-y-1 sm:col-span-4">
-        <span className="text-[11px] text-stone-400">Armor training</span>
-        <ToggleChips options={ARMOR} selected={armor} onChange={(next) => set({ armor: next.length ? next : undefined })} />
+        <span className="text-[11px] text-stone-400">{t("workshop.homebrew.species.main.training.armor")}</span>
+        <ToggleChips options={ARMOR} labels={Object.fromEntries(ARMOR.map((kind) => [kind, t(`workshop.homebrew.species.main.armor.${kind}`)]))} selected={armor} onChange={(next) => set({ armor: next.length ? next : undefined })} />
       </div>
       <div className="col-span-2 space-y-1 sm:col-span-4">
-        <span className="text-[11px] text-stone-400">Weapon training</span>
-        <ChipList items={weapons} onChange={(next) => set({ weapons: next.length ? next : undefined })} options={WEAPONS} prompt="Add a weapon" max={12} />
+        <span className="text-[11px] text-stone-400">{t("workshop.homebrew.species.main.training.weapon")}</span>
+        <ChipList items={weapons} onChange={(next) => set({ weapons: next.length ? next : undefined })} options={WEAPONS} prompt={t("workshop.homebrew.species.main.training.addWeapon")} max={12} />
       </div>
       <SelectField
-        label="A cantrip from"
+        label={t("workshop.homebrew.species.main.training.cantripFrom")}
         value={String(cantrip.list ?? "")}
-        options={CANTRIP_LISTS.map((value) => ({ value, label: value ? `the ${value} list` : "no list" }))}
+        options={CANTRIP_LISTS.map((value) => ({ value, label: value ? t("workshop.homebrew.spellList.classList.option", { name: t(`workshop.homebrew.spell.class.${value}`) }) : t("workshop.homebrew.species.main.training.noList") }))}
         onChange={(value) => set({ cantripChoice: value ? { list: value, count: num(cantrip.count, 1) } : undefined })}
       />
       {cantrip.list ? (
-        <NumberField label="Cantrips" value={num(cantrip.count, 1)} min={1} max={3} onChange={(count) => set({ cantripChoice: { list: cantrip.list, count: count || 1 } })} />
+        <NumberField label={t("workshop.homebrew.species.main.training.cantrips")} value={num(cantrip.count, 1)} min={1} max={3} onChange={(count) => set({ cantripChoice: { list: cantrip.list, count: count || 1 } })} />
       ) : null}
     </MechGroup>
   );
@@ -218,39 +225,41 @@ function Training({ data, set }: Props) {
 // The spells every one of its people casts by nature (issue #833), as the
 // tiefling's Infernal Legacy: shown on a host that keeps them.
 function Spells({ data, set }: Props) {
+  const t = useT();
   const group = readSpeciesSpells(data.spells);
   return (
-    <MechGroup title="Spells it casts" summary={speciesSpellsSummary(group) || "none"} open={Boolean(group)}>
+    <MechGroup title={t("workshop.homebrew.species.main.spells.title")} summary={speciesSpellsSummary(group) || t("workshop.homebrew.species.main.spells.summaryNone")} open={Boolean(group)}>
       <SpeciesSpellFields
         value={data.spells}
         put={(spells) => set({ spells })}
-        title="Spells every one of them casts"
-        hint="As a tiefling's Infernal Legacy. A cantrip is cast at will; a spell of 1st level or higher a set number of times without a spell slot, and again after a rest. An option of the player's choice below can give spells of its own."
-        pickLabel="Find a spell the species gives"
+        title={t("workshop.homebrew.species.main.spells.everyone")}
+        hint={t("workshop.homebrew.species.main.spells.hint")}
+        pickLabel={t("workshop.homebrew.species.main.spells.pick")}
       />
     </MechGroup>
   );
 }
 
 export function SpeciesFields({ data, set }: Props) {
+  const t = useT();
   const speed = (data.speed as { walk?: number } | undefined)?.walk ?? 30;
   const spells = hostOffers(useCapabilities(), "speciesSpells");
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         <SelectField
-          label="Size"
+          label={t("workshop.homebrew.species.main.size")}
           value={capital(String(data.size ?? "Medium").toLowerCase())}
-          options={["Tiny", "Small", "Medium", "Large"].map((value) => ({ value, label: value }))}
+          options={["Tiny", "Small", "Medium", "Large"].map((value) => ({ value, label: t(`workshop.homebrew.species.main.size.${value.toLowerCase()}`) }))}
           onChange={(size) => set({ size })}
-          hint="A Small creature swings a heavy weapon at disadvantage."
+          hint={t("workshop.homebrew.species.main.size.smallHeavyHint")}
         />
-        <NumberField label="Speed (ft)" value={speed} min={5} max={120} step={5} onChange={(walk) => set({ speed: { walk: walk === "" ? 30 : walk } })} />
+        <NumberField label={t("workshop.homebrew.species.main.speed")} value={speed} min={5} max={120} step={5} onChange={(walk) => set({ speed: { walk: walk === "" ? 30 : walk } })} />
         <TextField
-          label="Vision"
+          label={t("workshop.homebrew.species.main.vision")}
           value={String(data.vision ?? "")}
           onChange={(vision) => set({ vision })}
-          placeholder="Darkvision 60 ft"
+          placeholder={t("workshop.homebrew.species.main.vision.placeholder")}
           maxLength={120}
           suggestions={VISION_SUGGESTIONS}
         />
@@ -261,7 +270,7 @@ export function SpeciesFields({ data, set }: Props) {
             onChange={(event) => set({ heavyArmorSpeed: event.target.checked || undefined })}
             className="accent-amber-500"
           />
-          Heavy armor never slows it
+          {t("workshop.homebrew.species.main.heavyArmorSpeed")}
         </label>
       </div>
       <AbilityIncreases data={data} set={set} />
@@ -272,13 +281,13 @@ export function SpeciesFields({ data, set }: Props) {
       <div className="space-y-1.5">
         <SpeciesTraitPicker traits={String(data.traits ?? "")} onChange={(traits) => set({ traits })} />
         <TextArea
-          label="Traits"
+          label={t("workshop.homebrew.species.main.traits.label")}
           value={String(data.traits ?? "")}
           onChange={(traits) => set({ traits })}
-          placeholder={"**_Marsh Stride._** Difficult terrain in wetlands costs you no extra movement.\n\n**_Reed Sight._** You have advantage on Perception checks in tall grass."}
+          placeholder={t("workshop.homebrew.species.main.traits.placeholder")}
           rows={6}
           maxLength={6000}
-          hint="One trait per paragraph, its name in bold with a full stop: **Marsh Stride.** or **_Marsh Stride._** The traits the table reads are listed below. A trait picked above, or named like a published one (Draconic Ancestry, Dwarven Toughness, Lucky, Infernal Legacy), is run by the engine at the table."
+          hint={t("workshop.homebrew.species.main.traits.hint")}
         />
         <TraitsRead traits={String(data.traits ?? "")} />
         <Resistances traits={String(data.traits ?? "")} onChange={(traits) => set({ traits })} />
@@ -292,10 +301,11 @@ export function SpeciesFields({ data, set }: Props) {
 // read them (src/lib/content/mechanics.ts traitHeading), so a paragraph
 // written another way is seen to be missing here as well as in the findings.
 function TraitsRead({ traits }: { traits: string }) {
+  const t = useT();
   const names = heldTraitNames(traits);
   return (
     <p data-species-traits className="text-[11px] text-stone-400">
-      {names.length ? `Traits the table reads: ${names.join(", ")}.` : "The table reads no traits yet."}
+      {names.length ? t("workshop.homebrew.species.main.traitsRead", { names: names.join(", ") }) : t("workshop.homebrew.species.main.traitsNone")}
     </p>
   );
 }
@@ -304,12 +314,13 @@ function TraitsRead({ traits }: { traits: string }) {
 // damage engine reads a resistance from a trait's name ("Fire Resistance"),
 // so a pick writes the trait that way, where it stays editable.
 function Resistances({ traits, onChange }: { traits: string; onChange: (traits: string) => void }) {
+  const t = useT();
   const resisted = resistedByTraits(traits);
   return (
     <div className="flex flex-wrap items-center gap-2 text-[11px] text-stone-400" data-species-resists>
-      <span>{resisted.length ? `Resists at the table: ${resisted.join(", ")}.` : "Resists no damage at the table."}</span>
+      <span>{resisted.length ? t("workshop.homebrew.species.main.resists", { types: resisted.map((type) => t(`workshop.homebrew.item.damage.${type}`)).join(", ") }) : t("workshop.homebrew.species.main.resistsNone")}</span>
       <AddFromList
-        prompt="Add a resistance"
+        prompt={t("workshop.homebrew.species.main.addResistance")}
         options={DAMAGE_TYPES.filter((type) => !resisted.includes(type))}
         onPick={(type) => onChange(withTrait(traits, resistanceTrait(type)))}
       />
@@ -322,6 +333,7 @@ function Resistances({ traits, onChange }: { traits: string; onChange: (traits: 
 // ancestry has no damage type of its own. A species with a player's choice
 // of its own says what its options breathe in the findings instead.
 function DraconicNote({ traits, choice }: { traits: string; choice: boolean }) {
+  const t = useT();
   const rules = { traitNames: heldTraitNames(traits) };
   const ancestry = speciesHoldsTrait(rules, "draconic ancestry");
   const breath = speciesHoldsTrait(rules, "breath weapon");
@@ -329,10 +341,10 @@ function DraconicNote({ traits, choice }: { traits: string; choice: boolean }) {
   return (
     <p className="live-in text-[11px] text-stone-400" data-draconic-note>
       {ancestry && breath
-        ? "A player building this species picks a dragon: it sets their breath weapon's damage and save, and the damage they resist."
+        ? t("workshop.homebrew.species.main.draconic.both")
         : ancestry
-          ? "A player building this species picks a dragon: it sets the damage they resist. Add Breath Weapon above to give them the breath too."
-          : "Breath Weapon takes its damage and save from a dragon: add Draconic Ancestry above so the player picks one."}
+          ? t("workshop.homebrew.species.main.draconic.ancestry")
+          : t("workshop.homebrew.species.main.draconic.breath")}
     </p>
   );
 }

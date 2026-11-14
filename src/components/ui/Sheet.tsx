@@ -5,6 +5,7 @@ import { returnFocus } from "@/components/ui/return-focus";
 import { X } from "lucide-react";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/cn";
+import { useT } from "@/lib/i18n/provider";
 
 // Responsive Radix dialog. Below lg it is a bottom sheet: grip bar, rounded
 // top, slides up from the fold, capped at 85vh with safe-area padding. From
@@ -35,6 +36,7 @@ export function Sheet({
   children: ReactNode;
   className?: string;
 }) {
+  const t = useT();
   const popover = desktop === "popover";
   return (
     <RadixDialog.Root open={open} onOpenChange={onOpenChange}>
@@ -87,7 +89,7 @@ export function Sheet({
                 // the status bar an installed iOS app draws over the page.
                 hideTitle && "absolute right-3 top-[max(0.75rem,env(safe-area-inset-top))] z-10 lg:right-4 lg:top-4",
               )}
-              aria-label="Close"
+              aria-label={t("dialog.close")}
             >
               <X className="size-4" />
             </RadixDialog.Close>

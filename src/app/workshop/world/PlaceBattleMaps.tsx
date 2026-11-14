@@ -6,6 +6,7 @@ import { KitButton, PanelError } from "@/app/campaigns/[campaignId]/PanelKit";
 import { ContentPick } from "@/components/ui/ContentPick";
 import { Select } from "@/components/ui/Select";
 import { cn } from "@/lib/cn";
+import { useI18n } from "@/lib/i18n/provider";
 import { BINDINGS_MAX, type Binding, type PlaceBindingKind } from "@/lib/worldforge/model";
 import type { WorldEntity } from "@/lib/db/world-forge";
 import type { WorldApi } from "./useWorld";
@@ -27,11 +28,6 @@ import type { WorldApi } from "./useWorld";
 // workshop's own tools, or a sheet over the table's World tab.
 export type OpenPrep = (kind: PlaceBindingKind, id: string, from: string) => void;
 
-const WORDS: Record<PlaceBindingKind, { one: string; open: string; create: string; link: string }> = {
-  map: { one: "Battle map", open: "Open battle map", create: "Create battle map", link: "Link an existing battle map" },
-  encounter: { one: "Encounter", open: "Open encounter", create: "Create encounter", link: "Link an existing encounter" },
-};
-
 type Row = { id: string; name: string };
 type Own = { ref: string; name: string };
 
@@ -49,6 +45,11 @@ export function PlaceBattleMaps({
   // In an Atlas pin's card: the same actions, under a smaller heading.
   compact?: boolean;
 }) {
+  const { t } = useI18n();
+  const words: Record<PlaceBindingKind, { one: string; open: string; create: string; link: string }> = {
+    map: { one: t("workshop.world.placeBattleMaps.map.one"), open: t("workshop.world.placeBattleMaps.map.open"), create: t("workshop.world.placeBattleMaps.map.create"), link: t("workshop.world.placeBattleMaps.map.link") },
+    encounter: { one: t("workshop.world.placeBattleMaps.encounter.one"), open: t("workshop.world.placeBattleMaps.encounter.open"), create: t("workshop.world.placeBattleMaps.encounter.create"), link: t("workshop.world.placeBattleMaps.encounter.link") },
+  };
   const [linking, setLinking] = useState<PlaceBindingKind | null>(null);
   const [library, setLibrary] = useState<Row[] | null>(null);
   const [fighting, setFighting] = useState(false);
@@ -100,8 +101,8 @@ export function PlaceBattleMaps({
     setError("");
     const outcome = await api.update(entity.ref, { bindings: next }, { bindings });
     setBusy(false);
-    if (!outcome) setError(api.error || "That link did not save.");
-    else if ("conflicts" in outcome) setError("Someone else changed this place's links meanwhile. Here they are as they are now; try again.");
+    if (!outcome) setError(api.error || t("workshop.world.placeBattleMaps.error.linkNotSaved"));
+    else if ("conflicts" in outcome) setError(t("workshop.world.placeBattleMaps.error.concurrentEdit"));
     return Boolean(outcome && !("conflicts" in outcome));
   }
 
@@ -118,7 +119,7 @@ export function PlaceBattleMaps({
     const made = await api.makeForPlace(entity.ref, body);
     setBusy(false);
     if (!made) {
-      setError(api.error || "That could not be made.");
+      setError(api.error || t("workshop.world.placeBattleMaps.error.create"));
       return;
     }
     setFighting(false);
@@ -131,29 +132,29 @@ export function PlaceBattleMaps({
 
   return (
     <section className="flex flex-col gap-2" data-testid="place-battle-maps">
-      <span className={cn("eyebrow text-stone-500", compact ? "text-[10px]" : "text-[10px]")}>Battle maps and encounters</span>
+      <span className={cn("eyebrow text-stone-500", compact ? "text-[10px]" : "text-[10px]")}>{t("workshop.world.placeBattleMaps.heading")}</span>
       {records.length ? null : (
         <p className="text-xs text-stone-400" data-testid="place-battle-maps-none">
-          No battle map yet. A picture shows where {entity.name} is; a battle map holds the walls, doors and light a fight is played on.
+          {t("workshop.world.placeBattleMaps.empty", { name: entity.name })}
         </p>
       )}
       {records.map((record) => {
         const drawn = record.kind !== "map" || !record.geometry || record.geometry.walls || record.geometry.lights > 0;
         return (
           <div key={`${record.kind}|${record.ref}`} className="flex flex-wrap items-center gap-1.5 rounded-lg border border-stone-700/60 px-2 py-1.5 text-sm" data-testid="place-battle-record" data-kind={record.kind}>
-            <span className="text-[10px] uppercase tracking-[0.12em] text-stone-500">{WORDS[record.kind as PlaceBindingKind].one}</span>
+            <span className="text-[10px] uppercase tracking-[0.12em] text-stone-500">{words[record.kind as PlaceBindingKind].one}</span>
             {record.found ? (
               <span className="min-w-0 text-stone-100">
                 {record.name}
                 {record.detail ? <span className={drawn ? "text-stone-500" : "text-amber-300"} data-testid="place-battle-detail"> · {record.detail}</span> : null}
               </span>
             ) : (
-              <span className="text-amber-300">Not found at this table any more</span>
+              <span className="text-amber-300">{t("workshop.world.placeBattleMaps.notFound")}</span>
             )}
             <span className="ml-auto flex flex-wrap gap-1">
               {record.found ? (
-                <KitButton tone="small" onClick={() => onOpenPrep(record.kind as PlaceBindingKind, record.ownId, entity.ref)} aria-label={`${WORDS[record.kind as PlaceBindingKind].open}: ${record.name}`}>
-                  {record.kind === "map" ? <Grid3x3 className="size-3.5" /> : <Swords className="size-3.5" />} {WORDS[record.kind as PlaceBindingKind].open}
+                <KitButton tone="small" onClick={() => onOpenPrep(record.kind as PlaceBindingKind, record.ownId, entity.ref)} aria-label={`${words[record.kind as PlaceBindingKind].open}: ${record.name}`}>
+                  {record.kind === "map" ? <Grid3x3 className="size-3.5" /> : <Swords className="size-3.5" />} {words[record.kind as PlaceBindingKind].open}
                 </KitButton>
               ) : null}
               <KitButton
@@ -161,10 +162,10 @@ export function PlaceBattleMaps({
                 busy={busy}
                 disabled={busy}
                 onClick={() => void setLinks(bindings.filter((binding) => !(binding.kind === record.kind && binding.ref === record.ref)))}
-                title="Unlink it from this place; the map or fight itself stays"
-                aria-label={`Unlink ${record.name || "it"}`}
+                title={t("workshop.world.placeBattleMaps.unlink.title")}
+                aria-label={t("workshop.world.placeBattleMaps.unlink.aria", { name: record.name || t("workshop.world.placeBattleMaps.unlink.fallback") })}
               >
-                <Unlink className="size-3.5" /> Unlink
+                <Unlink className="size-3.5" /> {t("workshop.world.placeBattleMaps.unlink.action")}
               </KitButton>
             </span>
           </div>
@@ -174,21 +175,21 @@ export function PlaceBattleMaps({
       {linking ? (
         <div className="flex flex-col gap-1.5 rounded-lg border border-stone-700/60 p-2" data-testid="place-battle-linking">
           {library === null ? (
-            <span className="text-xs text-stone-400">Reading the library...</span>
+            <span className="text-xs text-stone-400">{t("workshop.world.placeBattleMaps.readingLibrary")}</span>
           ) : choices.length ? (
             <Select
-              label={WORDS[linking].link}
+              label={words[linking].link}
               value="__none"
-              placeholder={WORDS[linking].link}
+              placeholder={words[linking].link}
               onChange={(id) => id !== "__none" && void link(linking, id)}
-              options={[{ value: "__none", label: linking === "map" ? "Pick a battle map" : "Pick an encounter" }, ...choices.map((row) => ({ value: row.id, label: row.name }))]}
+              options={[{ value: "__none", label: linking === "map" ? t("workshop.world.placeBattleMaps.map.pick") : t("workshop.world.placeBattleMaps.encounter.pick") }, ...choices.map((row) => ({ value: row.id, label: row.name }))]}
             />
           ) : (
-            <span className="text-xs text-stone-400">{linking === "map" ? "No other battle map in the library yet." : "No other prepared encounter yet."}</span>
+            <span className="text-xs text-stone-400">{linking === "map" ? t("workshop.world.placeBattleMaps.map.noneOther") : t("workshop.world.placeBattleMaps.encounter.noneOther")}</span>
           )}
           <span>
             <KitButton tone="small" onClick={() => { setLinking(null); setLibrary(null); }}>
-              <X className="size-3.5" /> Cancel
+              <X className="size-3.5" /> {t("workshop.cancel")}
             </KitButton>
           </span>
         </div>
@@ -196,23 +197,23 @@ export function PlaceBattleMaps({
 
       {fighting ? (
         <div className="flex flex-col gap-1.5 rounded-lg border border-stone-700/60 p-2" data-testid="place-battle-fight">
-          <span className="text-xs text-stone-400">A fight at {entity.name} starts with one foe; add the rest in the encounter.</span>
+          <span className="text-xs text-stone-400">{t("workshop.world.placeBattleMaps.fight.intro", { name: entity.name })}</span>
           {own.length ? (
             <Select
-              label="Its first foe"
+              label={t("workshop.world.placeBattleMaps.fight.firstFoe")}
               value={foe && own.some((row) => row.ref === foe.ref) ? foe.ref : "__none"}
               onChange={(ref) => setFoe(own.find((row) => row.ref === ref) ?? null)}
-              options={[{ value: "__none", label: "One of your monsters" }, ...own.map((row) => ({ value: row.ref, label: row.name }))]}
+              options={[{ value: "__none", label: t("workshop.world.placeBattleMaps.fight.ownMonster") }, ...own.map((row) => ({ value: row.ref, label: row.name }))]}
             />
           ) : null}
-          <ContentPick kind="monsters" label="Or one from the rulebook" placeholder="Goblin, Owlbear..." onPick={(entry) => entry.slug && setFoe({ ref: entry.slug, name: entry.name })} />
-          {foe ? <span className="text-xs text-stone-300">First foe: {foe.name}</span> : null}
+          <ContentPick kind="monsters" label={t("workshop.world.placeBattleMaps.fight.rulebookMonster")} placeholder={t("workshop.world.placeBattleMaps.fight.monsterPlaceholder")} onPick={(entry) => entry.slug && setFoe({ ref: entry.slug, name: entry.name })} />
+          {foe ? <span className="text-xs text-stone-300">{t("workshop.world.placeBattleMaps.fight.firstFoeChosen", { name: foe.name })}</span> : null}
           {maps.length ? (
             <Select
-              label="On which battle map"
+              label={t("workshop.world.placeBattleMaps.fight.whichMap")}
               value={fightMap || maps[0].ownId}
               onChange={setFightMap}
-              options={[...maps.map((record) => ({ value: record.ownId, label: record.name })), { value: "__none", label: "No battle map" }]}
+              options={[...maps.map((record) => ({ value: record.ownId, label: record.name })), { value: "__none", label: t("workshop.world.placeBattleMaps.fight.noMap") }]}
             />
           ) : null}
           <span className="flex flex-wrap gap-1.5">
@@ -225,10 +226,10 @@ export function PlaceBattleMaps({
                 void create({ make: "encounter", monster: foe!.ref, ...(chosen && chosen !== "__none" ? { mapId: chosen } : {}) });
               }}
             >
-              Make the encounter
+              {t("workshop.world.placeBattleMaps.encounter.create")}
             </KitButton>
             <KitButton tone="small" onClick={() => { setFighting(false); setFoe(null); }}>
-              <X className="size-3.5" /> Cancel
+              <X className="size-3.5" /> {t("workshop.cancel")}
             </KitButton>
           </span>
         </div>
@@ -236,17 +237,17 @@ export function PlaceBattleMaps({
 
       {!full && !linking && !fighting ? (
         <span className="flex flex-wrap gap-1.5">
-          <KitButton tone="small" busy={busy} disabled={busy} onClick={() => void create({ make: "map" })} title={`A blank battle map named ${entity.name}, opened for its walls and light`}>
-            <Plus className="size-3.5" /> {WORDS.map.create}
+          <KitButton tone="small" busy={busy} disabled={busy} onClick={() => void create({ make: "map" })} title={t("workshop.world.placeBattleMaps.map.createTitle", { name: entity.name })}>
+            <Plus className="size-3.5" /> {words.map.create}
           </KitButton>
-          <KitButton tone="small" onClick={() => setLinking("map")} aria-label={WORDS.map.link}>
-            <Link2 className="size-3.5" /> Link existing
+          <KitButton tone="small" onClick={() => setLinking("map")} aria-label={words.map.link}>
+            <Link2 className="size-3.5" /> {t("workshop.world.placeBattleMaps.linkExisting")}
           </KitButton>
           <KitButton tone="small" onClick={() => setFighting(true)}>
-            <Plus className="size-3.5" /> {WORDS.encounter.create}
+            <Plus className="size-3.5" /> {words.encounter.create}
           </KitButton>
-          <KitButton tone="small" onClick={() => setLinking("encounter")} aria-label={WORDS.encounter.link}>
-            <Link2 className="size-3.5" /> Link existing
+          <KitButton tone="small" onClick={() => setLinking("encounter")} aria-label={words.encounter.link}>
+            <Link2 className="size-3.5" /> {t("workshop.world.placeBattleMaps.linkExisting")}
           </KitButton>
         </span>
       ) : null}

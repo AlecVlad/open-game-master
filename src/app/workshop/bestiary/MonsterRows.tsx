@@ -9,6 +9,7 @@ import { ContextMenu, type ContextMenuItem } from "@/components/ui/ContextMenu";
 import { GameIcon } from "@/components/ui/GameIcon";
 import { RowMenu } from "@/app/workshop/kit";
 import { ListHead, useListHead } from "@/app/workshop/ListHead";
+import { useI18n } from "@/lib/i18n/provider";
 import type { Monster } from "@/app/workshop/bestiary/types";
 
 // The workshop's bestiary list: one full-width row per built monster with
@@ -43,20 +44,25 @@ export function MonsterRows({
   onDuplicate: (monster: Monster) => void;
   onDelete: (monster: Monster) => void;
 }) {
+  const { t, tp } = useI18n();
   const head = useListHead(monsters, readMonster);
   if (!monsters.length) {
     return (
       <EmptyState
         size="md"
         art="chest"
-        title="Nothing built yet. A monster made here answers to its name wherever a fight starts."
-        hint="Start from a challenge rating or a rulebook monster. Then add it to a fight in Encounters, or give it a World entry to tie it to your setting; a campaign that brings that prep in gets its own copy."
+        title={t("workshop.bestiary.empty.title")}
+        hint={t("workshop.bestiary.empty.hint")}
       />
     );
   }
   return (
     <>
-    <ListHead head={head} noun={["monster", "monsters"]} placeholder="Find a monster" />
+    <ListHead
+      head={head}
+      noun={[t("workshop.bestiary.noun.one"), t("workshop.bestiary.noun.many")]}
+      placeholder={t("workshop.bestiary.search.placeholder")}
+    />
     <ul className="stagger space-y-2">
       {head.shown.map((monster) => {
         const { stats } = monster.draft;
@@ -64,9 +70,9 @@ export function MonsterRows({
         // One list for both doors: the kebab on the row and the right-click
         // or long-press menu. Opening stays the row itself.
         const items: ContextMenuItem[] = [
-          { id: "open", label: "Open", glyph: "system-bestiary", onSelect: () => onOpen(monster) },
-          { id: "duplicate", label: "Duplicate", glyph: "ui-duplicate", disabled: busy, onSelect: () => onDuplicate(monster) },
-          { id: "delete", label: "Delete", glyph: "ui-delete", tone: "danger", separated: true, onSelect: () => onDelete(monster) },
+          { id: "open", label: t("workshop.bestiary.action.open"), glyph: "system-bestiary", onSelect: () => onOpen(monster) },
+          { id: "duplicate", label: t("workshop.bestiary.action.duplicate"), glyph: "ui-duplicate", disabled: busy, onSelect: () => onDuplicate(monster) },
+          { id: "delete", label: t("workshop.bestiary.action.delete"), glyph: "ui-delete", tone: "danger", separated: true, onSelect: () => onDelete(monster) },
         ];
         return (
           <ContextMenu
@@ -100,14 +106,14 @@ export function MonsterRows({
               </div>
               <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-stone-300">
                 <span className="inline-flex items-center gap-1">
-                  <GameIcon icon={{ kind: "glyph", key: "rest-ac" }} size="size-5" /> AC {stats.ac}
+                  <GameIcon icon={{ kind: "glyph", key: "rest-ac" }} size="size-5" /> {t("workshop.bestiary.stats.ac")} {stats.ac}
                 </span>
                 <span className="inline-flex items-center gap-1">
-                  <GameIcon icon={{ kind: "glyph", key: "rest-hp" }} size="size-5" /> {stats.maxHp} hp
+                  <GameIcon icon={{ kind: "glyph", key: "rest-hp" }} size="size-5" /> {stats.maxHp} {t("workshop.bestiary.stats.hp")}
                 </span>
               </p>
               <p className="text-xs text-stone-500">
-                {swings} swing{swings === 1 ? "" : "s"} a turn · Dex {signed(stats.dexMod)}
+                {tp("workshop.bestiary.stats.attacksPerTurn", swings)} · {t("workshop.bestiary.stats.dex")} {signed(stats.dexMod)}
               </p>
               <div className="mt-1">
                 <RatingLine readout={monster.readout} />

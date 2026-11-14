@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { InfoButton } from "@/components/ui/InfoDialog";
 import { PanelError, SettingToggle } from "./PanelKit";
 import type { CharacterSheet } from "@/lib/schemas/sheet";
@@ -17,26 +18,28 @@ export type Consent = {
   route: "romance" | "pacts";
   // The sheet field the stream sends back.
   field: "openToAdvances" | "openToPacts";
-  label: string;
-  info: (name: string) => string;
+  labelKey: string;
+  infoKey: string;
 };
 
 export const ADVANCES_CONSENT: Consent = {
   route: "romance",
   field: "openToAdvances",
-  label: "Open to advances from NPCs",
-  info: (name) => `NPCs who already like ${name} may make the first move. You always answer, and switching this off stops it at once. Only you see this setting.`,
+  labelKey: "campaign.relationship.consent.advances",
+  infoKey: "campaign.relationship.consent.advancesInfo",
 };
 
 export const PACTS_CONSENT: Consent = {
   route: "pacts",
   field: "openToPacts",
-  label: "Pacts may approach me",
-  info: (name) =>
-    `Companions who turn against the party may quietly ask ${name} to join them. You always answer, in private: join, play along, tell the party, or refuse. Off, no pact ever approaches ${name}. Only you see this setting.`,
+  labelKey: "campaign.relationship.consent.pacts",
+  infoKey: "campaign.relationship.consent.pactsInfo",
 };
 
 export function ConsentSwitch({ campaignId, sheet, consent }: { campaignId: string; sheet: CharacterSheet; consent: Consent }) {
+  const { t } = useI18n();
+  const label = t(consent.labelKey as never);
+  const info = t(consent.infoKey as never, { name: sheet.name });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   // Shown at once while it saves, until the sheet the stream sends back
@@ -60,12 +63,12 @@ export function ConsentSwitch({ campaignId, sheet, consent }: { campaignId: stri
         body: JSON.stringify({ characterId: sheet.id, open: next }),
       });
       if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        setError(String(data.error ?? "Could not save that."));
+        await response.json().catch(() => ({}));
+        setError(t("campaign.relationship.consent.saveError"));
         setPending(null);
       }
     } catch {
-      setError("Could not reach the server.");
+      setError(t("campaign.relationship.consent.networkError"));
       setPending(null);
     } finally {
       setBusy(false);
@@ -75,10 +78,10 @@ export function ConsentSwitch({ campaignId, sheet, consent }: { campaignId: stri
   return (
     <div className="mb-1.5" data-advances-switch={consent.route === "romance" ? sheet.id : undefined} data-pacts-switch={consent.route === "pacts" ? sheet.id : undefined}>
       <span className="flex flex-wrap items-center gap-1">
-        <SettingToggle on={open} onToggle={() => void toggle()} aria-busy={busy || undefined} label={`${consent.label}, for ${sheet.name}`}>
-          {consent.label}
+        <SettingToggle on={open} onToggle={() => void toggle()} aria-busy={busy || undefined} label={t("campaign.relationship.consent.aria", { label, name: sheet.name })}>
+          {label}
         </SettingToggle>
-        <InfoButton label={consent.label} text={consent.info(sheet.name)} />
+        <InfoButton label={label} text={info} />
       </span>
       {error ? <PanelError>{error}</PanelError> : null}
     </div>

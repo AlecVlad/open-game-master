@@ -31,7 +31,7 @@ export async function PUT(request: Request) {
   const raw = await request.json().catch(() => null);
   const checked = validateDefaultsWrite(raw);
   if (!checked.ok) {
-    return Response.json({ error: checked.error }, { status: 400 });
+    return Response.json({ error: checked.error, errorCode: "INVALID_CAMPAIGN_DEFAULTS" }, { status: 400 });
   }
   const defaults = {
     version: CAMPAIGN_DEFAULTS_VERSION,

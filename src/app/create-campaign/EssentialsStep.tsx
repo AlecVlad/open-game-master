@@ -1,13 +1,14 @@
 "use client";
 
 import type { ReactNode, Ref } from "react";
+import { useI18n } from "@/lib/i18n/provider";
+import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/cn";
 import type { Genre } from "@/lib/schemas/game-settings";
 import type { FranchiseGroup, WorldPackSummary } from "@/lib/worlds/types";
 import { WorldSetupFields } from "@/app/WorldSetupFields";
 import { ContentImportPicker } from "@/app/workshop/ContentImportPicker";
 import { StorySetupNotice } from "@/components/StorySetupNotice";
-import { STORY_SETUP_WARNING_COMING } from "@/lib/dm/story-setup-logic";
 import { DetailGroup } from "@/app/create-campaign/fields";
 import { DmModeField, TitleField, WorldPackField } from "@/app/create-campaign/IdentityFields";
 import { CampaignLengthField, CharacterRulesFields, PartyBasics } from "@/app/create-campaign/PartyFields";
@@ -39,6 +40,8 @@ export function EssentialsStep(
     onPrepChosen: (chosen: { title: string; arcComing: boolean } | null) => void;
   },
 ) {
+  const { t } = useI18n();
+  const { t } = useI18n();
   const { draft, patch, gates, active, groups, selectedPack } = props;
   return (
     <div className={cn("space-y-4 text-sm", active && "cc-live")}>
@@ -49,16 +52,16 @@ export function EssentialsStep(
       <WorldFields draft={draft} patch={patch} gates={gates} active={active} onPickGenre={props.onPickGenre} />
 
       <div className="cc-group-head pt-1">
-        <span className="cc-eyebrow">More about this campaign</span>
+        <span className="cc-eyebrow">{t("createCampaign.essentials.more.title")}</span>
         <span className="cc-group-rule" aria-hidden="true" />
-        <span className="cc-note">optional</span>
+        <span className="cc-note">{t("createCampaign.essentials.optional")}</span>
       </div>
       <div className="space-y-2">
         <DetailGroup
           {...groupProps(groups, "world")}
-          title="World and story"
+          title={t("createCampaign.essentials.group.world")}
           glyph="system-world"
-          summary={worldSummary(draft, gates, selectedPack?.name ?? null)}
+          summary={worldSummary(draft, gates, selectedPack?.name ?? null, t)}
         >
           <WorldPackField
             draft={draft}
@@ -74,9 +77,9 @@ export function EssentialsStep(
 
         <DetailGroup
           {...groupProps(groups, "character")}
-          title="Character creation"
+          title={t("createCampaign.essentials.group.character")}
           glyph="tab-characters"
-          summary={characterSummary(draft)}
+          summary={characterSummary(draft, t)}
         >
           <CharacterRulesFields draft={draft} patch={patch} gates={gates} />
           <SheetRows draft={draft} patch={patch} gates={gates} keys={["multiclassingEnabled"]} />
@@ -84,9 +87,9 @@ export function EssentialsStep(
 
         <DetailGroup
           {...groupProps(groups, "prep")}
-          title="House rules, lore and prep"
+          title={t("createCampaign.essentials.group.prep")}
           glyph="system-lore"
-          summary={prepSummary(draft, props.prepSource)}
+          summary={prepSummary(draft, props.prepSource, t)}
         >
           <WorldSetupFields
             collapsible={false}
@@ -96,7 +99,7 @@ export function EssentialsStep(
             setLoreDrafts={(loreDrafts) => patch({ loreDrafts })}
           />
           <div className="rounded-lg border border-stone-800 bg-stone-950/40 p-3">
-            <span className="mb-1.5 block text-stone-400">Bring in prep</span>
+            <span className="mb-1.5 block text-stone-400">{t("createCampaign.essentials.bringPrep")}</span>
             <ContentImportPicker
               selection={draft.contentImport}
               onChange={(contentImport) => patch({ contentImport })}
@@ -106,7 +109,7 @@ export function EssentialsStep(
               storyboardNote={(arcComing) =>
                 arcComing && gates.aiNarrates && draft.aiStorySetup && !draft.storySetupKept ? (
                   <StorySetupNotice
-                    text={STORY_SETUP_WARNING_COMING}
+                    text={t("createCampaign.review.storyClash")}
                     onTurnOff={() => patch({ aiStorySetup: false })}
                     onKeep={() => patch({ storySetupKept: true })}
                   />

@@ -8,6 +8,7 @@ import {
   type FeatCandidate,
   type FeatWaiting,
   type PrerequisiteCheck,
+  type RequirementDetail,
 } from "@/lib/srd/legality/features";
 import { builderCasting } from "./casting";
 import type { PickerEntry } from "./useContentSearch";
@@ -172,6 +173,19 @@ export function builderFeatJudge(facts: BuilderFacts, prerequisites: Record<stri
   };
 }
 
+export type UnmetFeatDetail = { feat: string; requirements: RequirementDetail[] };
+
+export function unmetFeatDetail(judge: FeatJudge | undefined | null, feats: string[]): UnmetFeatDetail | null {
+  for (const feat of feats) {
+    const check = judge?.checkFeat(feat);
+    if (check?.state !== "unmet") continue;
+    const unmet = check.requirements.filter((entry) => entry.state === "unmet");
+    if (unmet.length && unmet.every((entry) => entry.detail)) {
+      return { feat, requirements: unmet.map((entry) => entry.detail!) };
+    }
+  }
+  return null;
+}
 // The first feat of these whose prerequisite a later choice has broken, in
 // words for the Continue blocker. A feat is never dropped for it: the
 // player chooses whether to change the feat or what it depends on.

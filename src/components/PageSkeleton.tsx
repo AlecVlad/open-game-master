@@ -1,4 +1,7 @@
+"use client";
+
 import { cn } from "@/lib/cn";
+import { useT } from "@/lib/i18n/provider";
 
 // A route's shape while its data loads (docs/visual-overhaul-plan.md 8c.3 and
 // 8d.2): the page's real layout with shimmering parchment blocks where the
@@ -31,10 +34,11 @@ function Lines({ count = 4 }: { count?: number }) {
 }
 
 export function PageSkeleton({ kind = "flat", className }: { kind?: SkeletonKind; className?: string }) {
+  const t = useT();
   const shell = cn("mx-auto w-full animate-overlay-soft px-4 py-6", className);
   if (kind === "table") {
     return (
-      <div className="flex h-dvh w-full animate-overlay-soft flex-col" aria-busy="true" aria-label="Loading the table">
+      <div className="flex h-dvh w-full animate-overlay-soft flex-col" aria-busy="true" aria-label={t("pageSkeleton.loadingTable")}>
         <Block className="m-2 h-12 rounded-xl" />
         <div className="flex min-h-0 flex-1 gap-2 px-2 pb-2">
           <div className="flex min-w-0 flex-1 flex-col gap-3 rounded-xl p-4">
@@ -49,7 +53,7 @@ export function PageSkeleton({ kind = "flat", className }: { kind?: SkeletonKind
     );
   }
   return (
-    <div className={cn(shell, kind === "hub" || kind === "shelf" ? "max-w-5xl" : "max-w-3xl")} aria-busy="true" aria-label="Loading">
+    <div className={cn(shell, kind === "hub" || kind === "shelf" ? "max-w-5xl" : "max-w-3xl")} aria-busy="true" aria-label={t("pageSkeleton.loading")}>
       <div className="mb-6 flex items-center gap-3">
         <Block className="size-12 rounded-xl" />
         <div className="flex-1 space-y-2">

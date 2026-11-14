@@ -1,4 +1,5 @@
 import type { Failure } from "@/lib/db/atlas-region";
+import type { WorldNoticeDetail } from "@/lib/worldforge/format";
 import { publishEphemeral } from "@/lib/events";
 import { listLocations } from "@/lib/db/locations";
 import { listLoreEntries } from "@/lib/db/lore";
@@ -45,6 +46,7 @@ export type ShowPlan = {
   // by: they appear as unlabelled markers.
   unlabelled: number;
   notes: string[];
+  noteDetails?: WorldNoticeDetail[];
   applied: boolean;
 };
 
@@ -64,6 +66,10 @@ export function showToParty(campaignId: string, mapId: string, apply: boolean): 
     notes: [
       "Players see the picture, the pins and regions listed here and their names. They never see notes, what a pin stands for, or anything you hid.",
       ...(atlas.image ? [] : ["This map has no picture: players see its pins on a blank ground."]),
+    ],
+    noteDetails: [
+      { code: "workshop.world.atlas.party.notice.visibility", params: {} },
+      ...(atlas.image ? [] : [{ code: "workshop.world.atlas.party.notice.noPicture", params: {} }]),
     ],
     applied: false,
   };

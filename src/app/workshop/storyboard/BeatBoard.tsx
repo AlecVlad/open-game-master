@@ -4,9 +4,11 @@ import { EmptyState } from "@/components/EmptyState";
 import { ArrowRight } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui";
-import { BEAT_LABELS, routeOf, type BeatLinks, type Board, type BoardInventory, type BoardNode } from "@/lib/workshop/board";
+import { routeOf, type BeatLinks, type Board, type BoardInventory, type BoardNode } from "@/lib/workshop/board";
 import { GameIcon } from "@/components/ui/GameIcon";
 import { KIND_CHIP, KIND_GLYPH, LINK_FIELDS, LINK_GLYPH } from "@/app/workshop/storyboard/beat-fields";
+import { useI18n } from "@/lib/i18n/provider";
+import { beatLabel, linkShortLabel } from "@/app/workshop/storyboard/storyboard-i18n";
 
 // The workshop's storyboard: every card as a card. Kind chip, title, the
 // first line of what happens, a chip per thing it points at (marked when it
@@ -36,13 +38,14 @@ export function BeatBoard({
   broken?: Record<string, Array<keyof BeatLinks>>;
   onOpen: (node: BoardNode) => void;
 }) {
+  const { t, tp } = useI18n();
   if (board.nodes.length === 0) {
     return (
       <EmptyState
         size="md"
         art="board"
-        title="Nothing on the board. Start with a reason the party would go somewhere."
-        hint="When a campaign brings the board in, its cards become lore, quests, prepared fights, GM notes and the story arc."
+        title={t("campaign.storyboard.empty.title")}
+        hint={t("campaign.storyboard.empty.hint")}
       />
     );
   }
@@ -64,7 +67,7 @@ export function BeatBoard({
             return [{ field, short, name: entry.name, from: entry.from ?? "", missing: false }];
           }
           return (broken[node.id] ?? []).includes(field)
-            ? [{ field, short, name: "missing", from: "", missing: true }]
+            ? [{ field, short, name: t("campaign.storyboard.link.missing"), from: "", missing: true }]
             : [];
         });
         const choices = node.out.filter((target) => routeOf(node, target) === "choice").length;
@@ -74,7 +77,7 @@ export function BeatBoard({
             <button
               type="button"
               onClick={() => onOpen(node)}
-              aria-label={`Open ${node.title}`}
+              aria-label={t("campaign.storyboard.openCard", { title: node.title })}
               className={cn(
                 ui.cardHover,
                 "flex h-full w-full flex-col gap-2 p-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/40",
@@ -88,7 +91,7 @@ export function BeatBoard({
                     KIND_CHIP[node.kind],
                   )}
                 >
-                  {BEAT_LABELS[node.kind]}
+                  {beatLabel(t, node.kind)}
                 </span>
               </span>
               <span className="font-display tracking-wide text-amber-50">{node.title}</span>
@@ -98,25 +101,25 @@ export function BeatBoard({
                   {links.map((link) => (
                     <span
                       key={link.field}
-                      title={link.from ? `From ${link.from}` : undefined}
+                      title={link.from ? t("campaign.storyboard.sharedFrom", { name: link.from }) : undefined}
                       className={cn(
                         "inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[11px]",
                         link.missing ? "border-amber-500/50 text-amber-300" : "border-stone-700 text-stone-400",
                       )}
                     >
                       <GameIcon icon={{ kind: "glyph", key: LINK_GLYPH[link.field] }} size="size-4" />
-                      <span className="text-stone-500">{link.short} </span>
+                      <span className="text-stone-500">{linkShortLabel(t, link.field)} </span>
                       {link.name}
-                      {link.from ? <span className="text-sky-300/70"> (shared)</span> : null}
+                      {link.from ? <span className="text-sky-300/70"> {t("campaign.storyboard.sharedTag")}</span> : null}
                     </span>
                   ))}
                 </span>
               ) : null}
               <span className="mt-auto flex items-center gap-1 text-[11px] text-stone-500">
                 <ArrowRight className="size-3" aria-hidden="true" />
-                leads to {node.out.length}
-                {choices ? <span className="text-amber-300/70"> · {choices} route{choices === 1 ? "" : "s"} to choose</span> : null}
-                {optional ? <span className="text-sky-300/70"> · {optional} only if</span> : null}
+                {tp("campaign.storyboard.leadsTo", node.out.length)}
+                {choices ? <span className="text-amber-300/70"> · {tp("campaign.storyboard.routesToChoose", choices)}</span> : null}
+                {optional ? <span className="text-sky-300/70"> · {tp("campaign.storyboard.optionalRoutes", optional)}</span> : null}
               </span>
             </button>
           </li>

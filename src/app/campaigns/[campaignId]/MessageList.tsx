@@ -3,6 +3,8 @@
 import { memo, useCallback, useEffect, useMemo, useRef } from "react";
 import { SectionHead } from "@/components/ui/SectionHead";
 import { D20Spinner } from "@/components/ui/D20Spinner";
+import { useI18n } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages/index";
 import type { CampaignMember } from "@/lib/campaign-types";
 import type { CastMember } from "@/lib/dm/cast";
 import type { CampaignMessage } from "@/lib/db/messages";
@@ -13,6 +15,7 @@ import { useGoneCompanions } from "@/app/campaigns/[campaignId]/useGoneCompanion
 import { MessageItem } from "@/app/campaigns/[campaignId]/MessageItem";
 import { Prose } from "@/app/campaigns/[campaignId]/Prose";
 import { DM_STATUS_PHRASES } from "@/app/campaigns/[campaignId]/dmStatusPhrases";
+import type { MeasurementSystem } from "@/lib/measurement-system";
 import { useDmDraft, useDmDraftSeq } from "@/app/campaigns/[campaignId]/liveStore";
 import { isNarration, voicedByServer } from "@/lib/dm/ooc-question";
 import type {
@@ -46,7 +49,7 @@ function hashString(value: string): number {
 // one turn to the next. Keyed on the id (not the message count, which the
 // 200-message cap pins in long sessions) and salted with the status, so the
 // beats within a single turn read differently too.
-function dmStatusPhrase(status: DmStatus, turnKey: string): string {
+function dmStatusPhrase(status: DmStatus, turnKey: string): MessageKey | "" {
   if (status === "idle") {
     return "";
   }
@@ -64,11 +67,16 @@ const DmDraftBubble = memo(function DmDraftBubble({
   dmStatus,
   statusPhrase,
   follow,
+  measurementSystem,
+  tableLanguage,
 }: {
   dmStatus: DmStatus;
   statusPhrase: string;
   follow: (behavior: ScrollBehavior) => void;
+  measurementSystem: MeasurementSystem;
+  tableLanguage: string;
 }) {
+  const { t } = useI18n();
   const dmDraft = useDmDraft();
   useEffect(() => {
     follow(dmDraft ? "auto" : "smooth");
@@ -77,9 +85,9 @@ const DmDraftBubble = memo(function DmDraftBubble({
   if (dmDraft) {
     return (
       <div className="session-dm animate-fade-up">
-        <SectionHead title="Game Master" glyph="tab-dm" level="h4" />
+        <SectionHead title={t("common.gameMaster")} glyph="tab-dm" level="h4" />
         <p className="session-dm-body whitespace-pre-wrap text-pretty font-serif text-base leading-relaxed text-stone-100">
-          <Prose text={dmDraft} />
+          <Prose text={dmDraft} measurementSystem={measurementSystem} tableLanguage={tableLanguage} />
           <span className="stream-caret" aria-hidden="true" />
         </p>
       </div>
@@ -107,6 +115,8 @@ export function MessageList({
   members = [],
   locations = [],
   dmStatus,
+  measurementSystem = "imperial",
+  tableLanguage = "english",
   mediaStatus = {},
   narrationStatus = NO_NARRATION_STATUS,
   onReplayAudio,
@@ -152,6 +162,8 @@ export function MessageList({
   // Names and faces of the cast, for speech lines.
   cast?: CastMember[];
   dmStatus: DmStatus;
+  measurementSystem?: MeasurementSystem;
+  tableLanguage?: string;
   mediaStatus?: Record<string, MediaStatus>;
   // Only failures are read here; a muted seat is handed none.
   narrationStatus?: Record<string, NarrationStatus>;
@@ -167,11 +179,13 @@ export function MessageList({
   // A shop's "is open" line opens the Market on that shop.
   onBrowseShop?: (shopId: string) => void;
 }) {
+  const { t } = useI18n();
   const containerRef = useRef<HTMLDivElement>(null);
   const nearBottomRef = useRef(true);
   const lastTopRef = useRef(0);
   const scrollPendingRef = useRef(false);
-  const statusPhrase = dmStatusPhrase(dmStatus, messages[messages.length - 1]?.id ?? "");
+  const statusPhraseKey = dmStatusPhrase(dmStatus, messages[messages.length - 1]?.id ?? "");
+  const statusPhrase = statusPhraseKey ? t(statusPhraseKey) : "";
   const rollsById = useMemo(() => new Map(rolls.map((roll) => [roll.id, roll])), [rolls]);
   const gone = useGoneCompanions(campaignId, `${goneRefreshKey}:${departing.length}`);
   const sheetsById = useMemo(() => transcriptSheets(sheets, departing, gone), [sheets, departing, gone]);
@@ -362,7 +376,7 @@ export function MessageList({
   const draftSeq = useDmDraftSeq();
   const draftAt = draftSeq === null ? -1 : messages.findIndex((message) => message.seq > draftSeq);
   const draftBubble = (
-    <DmDraftBubble key="dm-draft" dmStatus={dmStatus} statusPhrase={statusPhrase} follow={follow} />
+    <DmDraftBubble key="dm-draft" dmStatus={dmStatus} statusPhrase={statusPhrase} follow={follow} measurementSystem={measurementSystem} tableLanguage={tableLanguage} />
   );
 
   // Only the reader scrolling up leaves the end. A pane that shrinks also
@@ -400,6 +414,8 @@ export function MessageList({
           onDispute={stableDispute}
           message={message}
           campaignId={campaignId}
+          measurementSystem={measurementSystem}
+          tableLanguage={tableLanguage}
           canRetryTurn={canRetryTurn}
           canIllustrate={canIllustrate}
           rollsById={rollsById}

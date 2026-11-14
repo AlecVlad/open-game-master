@@ -1,11 +1,32 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui";
 import { JoinConfirmDialog, type JoinHero } from "@/app/campaigns/[campaignId]/JoinConfirmDialog";
 
 type Hero = { id: string; name: string; tagline: string; blurb: string };
+
+const PREGEN_TEXT_KEYS: Record<string, { tagline: string; blurb: string }> = {
+  brakk: {
+    tagline: "campaign.pregenPicker.brakk.tagline",
+    blurb: "campaign.pregenPicker.brakk.blurb",
+  },
+  kara: {
+    tagline: "campaign.pregenPicker.kara.tagline",
+    blurb: "campaign.pregenPicker.kara.blurb",
+  },
+  vex: {
+    tagline: "campaign.pregenPicker.vex.tagline",
+    blurb: "campaign.pregenPicker.vex.blurb",
+  },
+  sera: {
+    tagline: "campaign.pregenPicker.sera.tagline",
+    blurb: "campaign.pregenPicker.sera.blurb",
+  },
+};
+
 
 // Ready-made heroes for a seat with no character yet
 // (src/lib/starter/pregens.ts). A click opens the confirm sheet
@@ -15,7 +36,7 @@ type Hero = { id: string; name: string; tagline: string; blurb: string };
 // who joined with a room code and ten minutes to spare is who it is for.
 export function PregenPicker({
   campaignId,
-  heading = "Or take a ready-made hero",
+  heading,
   onSeated,
 }: {
   campaignId: string;
@@ -24,6 +45,8 @@ export function PregenPicker({
   // Called once the hero has its seat (the join page goes back to the table).
   onSeated?: () => void;
 }) {
+  const { t } = useI18n();
+  const headingText = heading === undefined ? t("campaign.pregenPicker.heading") : heading;
   const [heroes, setHeroes] = useState<Hero[] | null>(null);
   const [picked, setPicked] = useState<JoinHero | null>(null);
 
@@ -39,7 +62,7 @@ export function PregenPicker({
   }
   return (
     <div className={cn(ui.card, "space-y-2 px-4 py-3")} data-tour="pregen-picker">
-      {heading ? <p className="text-xs uppercase tracking-wide text-stone-500">{heading}</p> : null}
+      {headingText ? <p className="text-xs uppercase tracking-wide text-stone-500">{headingText}</p> : null}
       <ul className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
         {heroes.map((hero) => (
           <li key={hero.id}>
@@ -48,8 +71,8 @@ export function PregenPicker({
               onClick={() => setPicked({ kind: "pregen", id: hero.id, name: hero.name })}
               className="motion-press flex w-full flex-col items-start rounded-lg border border-stone-800 bg-stone-950/50 px-3 py-2 text-left hover:border-amber-500/40"
             >
-              <span className="text-sm text-stone-100">{hero.tagline}</span>
-              <span className="text-xs text-stone-500">{hero.blurb}</span>
+              <span className="text-sm text-stone-100">{PREGEN_TEXT_KEYS[hero.id] ? t(PREGEN_TEXT_KEYS[hero.id].tagline as never) : hero.tagline}</span>
+              <span className="text-xs text-stone-500">{PREGEN_TEXT_KEYS[hero.id] ? t(PREGEN_TEXT_KEYS[hero.id].blurb as never) : hero.blurb}</span>
             </button>
           </li>
         ))}

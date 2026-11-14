@@ -10,7 +10,7 @@ import { SystemView } from "@/app/workshop/[workshopId]/SystemView";
 import { TargetPartyBar } from "@/app/workshop/[workshopId]/TargetPartyBar";
 import { WorkshopHeader } from "@/app/workshop/[workshopId]/WorkshopHeader";
 import {
-  WORKSHOP_SYSTEMS,
+  SYSTEM_I18N_KEYS,
   isSystemId,
   systemCount,
   type SystemId,
@@ -34,6 +34,7 @@ const WorkshopHelpDialog = lazy(() =>
 import type { WorkshopSummary } from "@/app/workshop/types";
 import { workshopHref, worldEntryPlace } from "@/lib/workshop/links";
 import { useWorkshopVersions } from "@/app/workshop/[workshopId]/useWorkshopVersions";
+import { useI18n } from "@/lib/i18n/provider";
 import { mayLeaveDrafts } from "@/app/workshop/unsaved";
 import { CreateChooser } from "@/app/workshop/[workshopId]/CreateChooser";
 import type { CreateStep } from "@/lib/workshop/create-choices";
@@ -51,6 +52,7 @@ import type { CreateStep } from "@/lib/workshop/create-choices";
 // panel that owns the editor in question answers it.
 
 function WorkshopPageInner({ workshopId }: { workshopId: string }) {
+  const { t, tp } = useI18n();
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
@@ -281,21 +283,24 @@ function WorkshopPageInner({ workshopId }: { workshopId: string }) {
   // tool's own.
   const helpTours: HelpTour[] = [
     {
-      label: "Tour the workshop",
-      detail: "The hub: the party bar, the tool cards and the actions on the workshop.",
+      label: t("workshop.hub.tour.label"),
+      detail: t("workshop.hub.tour.detail"),
       onStart: () => setTour(HUB_TOUR_ID),
     },
     ...(system
       ? [
           {
-            label: `Tour ${WORKSHOP_SYSTEMS.find((entry) => entry.id === system)?.label ?? system}`,
-            detail: "This tool's controls, one at a time.",
+            label: t("workshop.hub.tour.system.label", { name: t(SYSTEM_I18N_KEYS[system].label) }),
+            detail: t("workshop.hub.tour.system.detail"),
             onStart: () => setTour(systemTourId(system)),
           },
         ]
       : []),
   ];
   const tourSteps = tour === HUB_TOUR_ID ? HUB_TOUR : tour ? SYSTEM_TOURS[tour.replace(/^workshop-/, "")] ?? [] : [];
+  const tourTranslationScope = tour === HUB_TOUR_ID
+    ? "hub"
+    : tour ? `system.${tour.replace(/^workshop-/, "")}` : undefined;
 
   if (loading) {
     return (
@@ -310,9 +315,9 @@ function WorkshopPageInner({ workshopId }: { workshopId: string }) {
           href="/workshop"
           className="mb-4 inline-flex items-center gap-1.5 text-sm text-stone-500 hover:text-amber-200"
         >
-          <ArrowLeft className="size-4" /> Workshop
+          <ArrowLeft className="size-4" /> {t("workshop.hub.backToWorkshop")}
         </Link>
-        <p className="text-stone-400">That workshop does not exist, or is not yours.</p>
+        <p className="text-stone-400">{t("workshop.hub.error.notFound")}</p>
       </main>
     );
   }
@@ -352,6 +357,7 @@ function WorkshopPageInner({ workshopId }: { workshopId: string }) {
           <GuidedTour
             open={tour !== null}
             steps={tourSteps}
+            translationScope={tourTranslationScope}
             onPrepare={requestTourPrepare}
             onClose={closeTour}
           />
@@ -375,11 +381,12 @@ function WorkshopPageInner({ workshopId }: { workshopId: string }) {
           }
           aside={
             <CommandPalette
-              title="Workshop commands"
-              placeholder="Jump to, or create"
+              title={t("workshop.hub.commands.title")}
+              placeholder={t("workshop.hub.commands.placeholder")}
               commands={workshopCommands({
+                t,
                 current: system,
-                phrase: (id) => systemCount(id, workshop, bestiary, homebrew, pregens, plugin, world).phrase,
+                phrase: (id) => systemCount(id, workshop, bestiary, homebrew, pregens, plugin, world, { t, tp }).phrase,
                 onJump: openSystem,
                 onCreate: createIn,
                 onHub: () => void go(pathname),

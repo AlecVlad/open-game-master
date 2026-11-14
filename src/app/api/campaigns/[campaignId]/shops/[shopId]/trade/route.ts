@@ -37,11 +37,11 @@ export async function POST(request: Request, { params }: { params: Promise<{ cam
   }
   const shop = getShop(shopId);
   if (!shop || shop.campaignId !== campaignId) {
-    return Response.json({ error: "No such shop." }, { status: 404 });
+    return Response.json({ error: "No such shop.", errorCode: "shop_missing", errorParams: { shop: shopId } }, { status: 404 });
   }
   const parsed = bodySchema.safeParse(await request.json().catch(() => ({})));
   if (!parsed.success) {
-    return Response.json({ error: "Say what you are doing at the counter." }, { status: 400 });
+    return Response.json({ error: "Say what you are doing at the counter.", errorCode: "invalid_trade_action" }, { status: 400 });
   }
   // A trade is play, and play waits out a table break (table audit
   // 2026-10-26, T05).
@@ -54,7 +54,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ cam
   const own = getSheetForUser(campaignId, context.user.id);
   const characterId = steersStory(context) && parsed.data.characterId ? parsed.data.characterId : own?.id;
   if (!characterId) {
-    return Response.json({ error: "You have no character to trade with." }, { status: 400 });
+    return Response.json({ error: "You have no character to trade with.", errorCode: "no_character" }, { status: 400 });
   }
   const raw = JSON.stringify({ characterId, shop: shop.id, item: parsed.data.item, qty: parsed.data.qty });
   const result =
@@ -70,7 +70,20 @@ export async function POST(request: Request, { params }: { params: Promise<{ cam
     }
     // away: the shop stands where the party is not, so the panel keeps its
     // shelf on view and offers no counter.
-    return Response.json({ error: String(result.error), ...(result.away === true ? { away: true } : {}) }, { status: 409 });
+    const errorCode = typeof result.errorCode === "string" ? result.errorCode : undefined;
+    const errorParams =
+      result.errorParams && typeof result.errorParams === "object" && !Array.isArray(result.errorParams)
+        ? result.errorParams
+        : undefined;
+    return Response.json(
+      {
+        error: String(result.error),
+        ...(errorCode ? { errorCode } : {}),
+        ...(errorParams ? { errorParams } : {}),
+        ...(result.away === true ? { away: true } : {}),
+      },
+      { status: 409 },
+    );
   }
   return Response.json({ result });
 }

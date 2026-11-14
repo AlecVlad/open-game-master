@@ -12,10 +12,12 @@ import { refusalText } from "@/app/characters/builder/refusal";
 import { builderDraftKey, clearBuilderDraft } from "@/app/characters/builder/builderDraft";
 import { readBuilderDoor } from "@/app/characters/builder/door";
 import { afterFirstSave } from "@/lib/characters/hero-tips";
+import { useI18n } from "@/lib/i18n/provider";
 
 const DRAFT_KEY = builderDraftKey("library");
 
 function NewCharacterInner() {
+  const { t } = useI18n();
   // What the link that opened the builder already decided (door.ts): it is
   // set here and not asked again.
   const door = readBuilderDoor(useSearchParams());
@@ -55,7 +57,7 @@ function NewCharacterInner() {
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError(refusalText(data, "Could not save the character."));
+        setError(refusalText(data, t("charUse.new.err"), t));
         return;
       }
       clearBuilderDraft(DRAFT_KEY);
@@ -64,7 +66,7 @@ function NewCharacterInner() {
       const id = typeof data?.character?.id === "string" ? data.character.id : "";
       navigateTo(id ? afterFirstSave(id, skipHeroPage.current) : "/characters");
     } catch {
-      setError("Could not reach the server.");
+      setError(t("charUse.new.net"));
     } finally {
       setBusy(false);
     }
@@ -74,20 +76,20 @@ function NewCharacterInner() {
     <main className="mx-auto w-full max-w-3xl flex-1 p-4 sm:p-6">
       <header className="mb-5">
         <Link href="/characters" className="text-sm text-stone-500 hover:text-stone-300">
-          &larr; Back to your characters
+          &larr; {t("charUse.new.back")}
         </Link>
         <div className="mt-2 flex items-center gap-3">
           <PixelTile src={PIXEL_ICONS.characters} />
           <div>
-            <GoldTitle size="text-2xl">Create a character</GoldTitle>
+            <GoldTitle size="text-2xl">{t("charUse.new.title")}</GoldTitle>
             <p className="text-sm text-stone-400">
-              Saved to your library; bring them into any campaign later.
+              {t("charUse.new.sub")}
             </p>
           </div>
         </div>
       </header>
       <CharacterBuilder
-        submitLabel="Save to library"
+        submitLabel={t("charUse.new.save")}
         onSubmit={submit}
         busy={busy}
         error={error}

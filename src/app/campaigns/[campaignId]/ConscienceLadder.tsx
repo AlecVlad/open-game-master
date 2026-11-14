@@ -1,7 +1,8 @@
 "use client";
 
 import { cn } from "@/lib/cn";
-import { CONSCIENCE_RUNGS, RUNG_LABEL, type ConscienceRung } from "@/lib/dm/conscience-logic";
+import { useI18n } from "@/lib/i18n/provider";
+import { CONSCIENCE_RUNGS, type ConscienceRung } from "@/lib/dm/conscience-logic";
 
 // A lasting companion's conscience on its Bonds row (issue 503): the five
 // rungs from content to the breaking point, with a marker that slides one
@@ -16,7 +17,7 @@ import { CONSCIENCE_RUNGS, RUNG_LABEL, type ConscienceRung } from "@/lib/dm/cons
 
 export type ConscienceView = {
   rung: ConscienceRung;
-  ultimatum: { condition: string; due: string; left: string } | null;
+  ultimatum: { condition: string; due: string; left: string; leftMinutes?: number } | null;
   // What they mean to do at their breaking point (issue 503 Phase 2): a
   // storyteller secret, sent only to a person running the table.
   plan?: string;
@@ -51,19 +52,38 @@ const WORD: Record<ConscienceRung, string> = {
   breaking: "text-rose-200",
 };
 
+function localizedDuration(minutes: number, t: ReturnType<typeof useI18n>["t"]): string {
+  const total = Math.max(0, Math.round(minutes));
+  const days = Math.floor(total / 1440);
+  const hours = Math.floor((total % 1440) / 60);
+  const mins = total % 60;
+  const parts: string[] = [];
+  if (days) parts.push(t("campaign.relationship.time.days", { count: days }));
+  if (hours) parts.push(t("campaign.relationship.time.hours", { count: hours }));
+  if (mins || parts.length === 0) parts.push(t("campaign.relationship.time.minutes", { count: mins }));
+  return parts.join(" ");
+}
+
 export function ConscienceLadder({ name, conscience }: { name: string; conscience: ConscienceView }) {
+  const { t } = useI18n();
   const step = CONSCIENCE_RUNGS.indexOf(conscience.rung);
+  const rungLabel = t(`campaign.relationship.conscience.rung.${conscience.rung}` as never);
+  const left = conscience.ultimatum
+    ? conscience.ultimatum.leftMinutes === undefined
+      ? conscience.ultimatum.left
+      : localizedDuration(conscience.ultimatum.leftMinutes, t)
+    : "";
   return (
     <div className="mt-1.5" data-conscience-ladder={name} data-rung={conscience.rung}>
       <p className="flex items-baseline gap-1.5 text-[11px] leading-4">
-        <span className="text-stone-400">Conscience</span>
+        <span className="text-stone-400">{t("campaign.relationship.conscience.title")}</span>
         <span key={conscience.rung} className={cn("live-in font-medium", WORD[conscience.rung])}>
-          {RUNG_LABEL[conscience.rung]}
+          {rungLabel}
         </span>
       </p>
       <span
         role="img"
-        aria-label={`${name}'s conscience: ${RUNG_LABEL[conscience.rung]}, step ${step + 1} of ${CONSCIENCE_RUNGS.length}, from content to breaking point`}
+        aria-label={t("campaign.relationship.conscience.aria", { name, rung: rungLabel, step: step + 1, steps: CONSCIENCE_RUNGS.length })}
         className="conscience-track relative mt-1 grid h-1.5 grid-cols-5 overflow-hidden rounded-full bg-stone-800"
       >
         {CONSCIENCE_RUNGS.map((rung, index) => (
@@ -76,48 +96,47 @@ export function ConscienceLadder({ name, conscience }: { name: string; conscienc
       </span>
       {conscience.ultimatum ? (
         <p className="reveal mt-1 text-xs leading-5 text-stone-300" data-ultimatum>
-          <span className="font-medium text-rose-300">Ultimatum:</span> {conscience.ultimatum.condition}
+          <span className="font-medium text-rose-300">{t("campaign.relationship.conscience.ultimatum")}</span> {conscience.ultimatum.condition}
           <span className="text-stone-400">
             {" "}
-            · by {conscience.ultimatum.due} · <span data-countdown>{conscience.ultimatum.left} left</span>
+            <span data-countdown>{t("campaign.relationship.conscience.deadline", { due: conscience.ultimatum.due, left })}</span>
           </span>
         </p>
       ) : null}
       {conscience.demand ? (
         <p key={`demand-${conscience.demand}`} className="reveal mt-1 text-xs leading-5 text-stone-300" data-share-demand>
-          <span className="font-medium text-amber-300">Wants their share:</span> {conscience.demand}
+          <span className="font-medium text-amber-300">{t("campaign.relationship.conscience.demand")}</span> {conscience.demand}
         </p>
       ) : null}
       {conscience.refused ? (
         <p key={`refused-${conscience.refused}`} className="reveal mt-1 text-xs leading-5 text-stone-300" data-refused>
-          <span className="font-medium text-rose-300">Refused:</span> {conscience.refused}
+          <span className="font-medium text-rose-300">{t("campaign.relationship.conscience.refused")}</span> {conscience.refused}
         </p>
       ) : null}
       {conscience.plan ? (
         <p className="reveal mt-1 text-xs leading-5 text-stone-300" data-conscience-plan>
-          <span className="font-medium text-violet-300">Their plan, yours alone:</span> {name} {conscience.plan}.
+          <span className="font-medium text-violet-300">{t("campaign.relationship.conscience.plan")}</span> {name} {conscience.plan}.
         </p>
       ) : null}
       {conscience.agenda ? (
         <p className="reveal mt-1 text-xs leading-5 text-stone-300" data-conscience-agenda>
-          <span className="font-medium text-violet-300">Their secret, yours alone:</span> {name} {conscience.agenda}.
+          <span className="font-medium text-violet-300">{t("campaign.relationship.conscience.agenda")}</span> {name} {conscience.agenda}.
         </p>
       ) : null}
       {conscience.hidden ? (
         <p className="reveal mt-1 text-xs leading-5 text-stone-300" data-conscience-hidden>
-          <span className="font-medium text-violet-300">Keeps it hidden, yours alone:</span>{" "}
-          {conscience.hidden.noticedBy.length ? `noticed by ${conscience.hidden.noticedBy.join(", ")}` : "nobody has noticed yet"}.
+          <span className="font-medium text-violet-300">{t("campaign.relationship.conscience.hidden")}</span>{" "}
+          {conscience.hidden.noticedBy.length ? conscience.hidden.noticedBy.join(", ") : t("campaign.relationship.conscience.nobodyNoticed")}.
         </p>
       ) : null}
       {conscience.unheard ? (
         <p key={`unheard-${conscience.rung}`} className="reveal mt-1 text-xs leading-5 text-stone-300" data-conscience-unheard>
-          <span className="font-medium text-amber-300">Not yet said at the table:</span> {name} says it when you next narrate, or the
-          server posts their line after it.
+          <span className="font-medium text-amber-300">{t("campaign.relationship.conscience.unheard")}</span> {t("campaign.relationship.conscience.unheardTail", { name })}
         </p>
       ) : null}
       {conscience.noticed ? (
         <p className="reveal mt-1 text-xs leading-5 text-stone-300" data-conscience-noticed>
-          <span className="font-medium text-violet-300">Only you noticed.</span> {name} keeps it from the rest of the party.
+          <span className="font-medium text-violet-300">{t("campaign.relationship.conscience.noticed")}</span> {t("campaign.relationship.conscience.noticedTail", { name })}
         </p>
       ) : null}
     </div>

@@ -379,4 +379,27 @@ test("improvements by class, and what an older sheet is owed", () => {
   assert.equal(readAsiLedger(taken(FIGHTER).features), null);
 });
 
+test("starting-kit and wealth diagnostics stay structured and aligned with legacy problem text", () => {
+  const invalidKit = judge({
+    ...FIGHTER,
+    kitChoices: { options: [3, 0, 0, 0], picks: [] },
+  });
+  const optionIndex = invalidKit.problems.findIndex((problem) => problem.includes("starting equipment offers"));
+  assert.ok(optionIndex >= 0, invalidKit.problems.join("\\n"));
+  assert.equal(invalidKit.problemDetails?.length, invalidKit.problems.length);
+  assert.equal(invalidKit.problemDetails?.[optionIndex]?.code, "invalidOption");
+  assert.equal(typeof invalidKit.problemDetails?.[optionIndex]?.params.options, "string");
+
+  const overBudget = judge({
+    ...FIGHTER,
+    equipment: [...FIGHTER.equipment, { name: "Plate Armor", qty: 1 }],
+  });
+  const fundsIndex = overBudget.problems.findIndex((problem) => problem.includes("costs"));
+  assert.ok(fundsIndex >= 0, overBudget.problems.join("\\n"));
+  assert.equal(overBudget.problemDetails?.length, overBudget.problems.length);
+  assert.equal(overBudget.problemDetails?.[fundsIndex]?.code, "insufficientFunds");
+  assert.equal(typeof overBudget.problemDetails?.[fundsIndex]?.params.cost, "string");
+  assert.equal(typeof overBudget.problemDetails?.[fundsIndex]?.params.shortfall, "string");
+});
+
 console.log(`test-sheet-legality: ${passed} passed`);

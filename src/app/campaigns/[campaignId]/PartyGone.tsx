@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
 import { DEPART_MS, DEPARTING_KEPT_MS, type DepartingSheet } from "@/app/campaigns/[campaignId]/departing";
 import { useGoneCompanions } from "@/app/campaigns/[campaignId]/useGoneCompanions";
 import { SectionHead } from "@/components/ui/SectionHead";
@@ -29,6 +30,7 @@ export function PartyGone({
   refreshKey: number;
   worldPack: string;
 }) {
+  const { t } = useI18n();
   const packArt = usePackArt(worldPack);
   // Departures whose dimming has run: their card is gone and their row is
   // the one that just arrived.
@@ -94,13 +96,13 @@ export function PartyGone({
           />
           <span className="min-w-0">
             <span className="block truncate font-medium">{sheet.name}</span>
-            <span className="block text-xs text-stone-400">{how || "Leaves the party"}</span>
+            <span className="block text-xs text-stone-400">{how || t("campaign.session.partyGone.leaves")}</span>
           </span>
         </div>
       ))}
       {rows.length ? (
         <section className="party-gone mt-4 space-y-2" aria-labelledby={`party-gone-${campaignId}`} data-party-gone="">
-          <SectionHead title={<span id={`party-gone-${campaignId}`}>Gone</span>} glyph="tab-party" level="h3" aside={rows.length} />
+          <SectionHead title={<span id={`party-gone-${campaignId}`}>{t("campaign.session.partyGone.title")}</span>} glyph="tab-party" level="h3" aside={rows.length} />
           <ul className="space-y-1.5">
             {rows.map((entry) => (
               <li
@@ -121,7 +123,7 @@ export function PartyGone({
                   <span className="block text-xs text-stone-400">{entry.how}</span>
                   {entry.caresFor?.length ? (
                     <span className="block text-xs text-stone-400" data-gone-cares="">
-                      Still cares for {entry.caresFor.join(" and ")}
+                      {t("campaign.session.partyGone.caresFor", { names: entry.caresFor.join(", ") })}
                     </span>
                   ) : null}
                 </span>

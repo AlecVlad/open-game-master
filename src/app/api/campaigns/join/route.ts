@@ -17,13 +17,13 @@ export async function POST(request: Request) {
     return unauthorized();
   }
   if (user.mustChangePassword) {
-    return Response.json({ error: "Set a new password to continue." }, { status: 403 });
+    return Response.json({ error: "Set a new password to continue.", errorCode: "PASSWORD_CHANGE_REQUIRED" }, { status: 403 });
   }
 
   const raw = await request.json().catch(() => ({}));
   const parsed = joinSchema.safeParse(raw);
   if (!parsed.success) {
-    return Response.json({ error: "Invalid invite code." }, { status: 400 });
+    return Response.json({ error: "Invalid invite code.", errorCode: "JOIN_INVALID_INVITE_CODE" }, { status: 400 });
   }
 
   // Room codes never expire, so wrong guesses get the same escalating
@@ -32,7 +32,7 @@ export async function POST(request: Request) {
   const gate = checkLogin(throttle);
   if (gate.blocked) {
     return Response.json(
-      { error: `Too many attempts. Try again in ${gate.retryAfterSec}s.` },
+      { error: `Too many attempts. Try again in ${gate.retryAfterSec}s.`, errorCode: "JOIN_THROTTLED", errorParams: { seconds: gate.retryAfterSec } },
       { status: 429, headers: { "Retry-After": String(gate.retryAfterSec) } },
     );
   }
@@ -40,7 +40,7 @@ export async function POST(request: Request) {
   const result = joinByInviteCode(user.id, parsed.data.inviteCode);
   if ("error" in result) {
     recordLoginFailure(throttle);
-    return Response.json({ error: result.error }, { status: 400 });
+    return Response.json(result, { status: 400 });
   }
   recordLoginSuccess(throttle);
 

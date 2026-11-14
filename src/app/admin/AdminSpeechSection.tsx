@@ -4,6 +4,7 @@ import { Check, Loader2, X, Zap } from "lucide-react";
 import { useRef, useState } from "react";
 import { registerOutput, releaseOutput } from "@/lib/audio-devices";
 import { ui } from "@/lib/ui";
+import { useI18n } from "@/lib/i18n/provider";
 import { PageSection } from "@/components/PageShell";
 import { BuiltinSpeechCard } from "@/app/admin/BuiltinSpeechCard";
 import { ModelChoiceField } from "@/app/admin/ModelChoice";
@@ -70,6 +71,7 @@ export function AdminSpeechSection({
   onSpeech: (speech: Speech) => void;
   onApiKey: (value: string) => void;
 }) {
+  const { t } = useI18n();
   const [testing, setTesting] = useState(false);
   const [result, setResult] = useState<TestResult | null>(null);
   // The paid dictation fallback is drawn once opened, so its picker does not
@@ -121,7 +123,7 @@ export function AdminSpeechSection({
         }),
       });
       const data = (await response.json().catch(() => null)) as TestResult | null;
-      setResult(data ?? { ok: false, error: "The test request failed without an answer." });
+      setResult(data ?? { ok: false, error: t("admin.speech.err.noAnswer") });
       if (data?.ok && data.audio) {
         if (audioRef.current) {
           releaseOutput(audioRef.current);
@@ -132,36 +134,35 @@ export function AdminSpeechSection({
         void audio.play().catch(() => {});
       }
     } catch {
-      setResult({ ok: false, error: "Could not reach this server." });
+      setResult({ ok: false, error: t("admin.speech.err.network") });
     } finally {
       setTesting(false);
     }
   }
 
   return (
-    <PageSection id="admin-speech" heading="Speech" glyph="ui-speech">
-      <h3 className="mb-1 text-sm font-medium text-stone-200">Narration (text to speech)</h3>
+    <PageSection id="admin-speech" heading={t("admin.speech.heading")} glyph="ui-speech">
+      <h3 className="mb-1 text-sm font-medium text-stone-200">{t("admin.speech.narr.title")}</h3>
       <p className="mb-3 text-xs text-stone-500">
-        Reads each of the storyteller&apos;s passages aloud in campaigns that switch Narration on.
-        Campaigns only choose a voice; where the text is sent is decided here, for all of them.
+        {t("admin.speech.narr.intro")}
       </p>
       <div className="grid gap-3 sm:grid-cols-2">
         <SelectField<Provider>
-          label="Narration server"
+          label={t("admin.speech.narr.server")}
           value={speech.ttsProvider}
           onChange={(ttsProvider) => set({ ttsProvider })}
           options={[
             {
               value: "",
-              label: `Auto (${envProvider === "openai" ? "OpenAI-compatible" : envProvider === "off" ? "off" : "Kokoro"})`,
+              label: t("admin.speech.opt.auto", { value: envProvider === "openai" ? t("admin.speech.opt.openaiCompat") : envProvider === "off" ? t("admin.speech.opt.off") : "Kokoro" }),
             },
-            { value: "kokoro", label: "Kokoro-FastAPI (local)" },
-            { value: "openai", label: "OpenAI-compatible server" },
-            { value: "off", label: "Off: no narration on this server" },
+            { value: "kokoro", label: t("admin.speech.opt.kokoroLocal") },
+            { value: "openai", label: t("admin.speech.opt.openaiServer") },
+            { value: "off", label: t("admin.speech.opt.offFull") },
           ]}
         />
         {provider === "kokoro" ? (
-          <Field label="Kokoro server URL" hint={inheritedHint(speech.kokoroUrl, env.kokoroUrl)}>
+          <Field label={t("admin.speech.kokoro.url")} hint={inheritedHint(speech.kokoroUrl, env.kokoroUrl, undefined, t)}>
             <input
               className={ui.input}
               value={speech.kokoroUrl}
@@ -173,11 +174,11 @@ export function AdminSpeechSection({
         {provider === "openai" ? (
           <>
             <Field
-              label="Server base URL"
+              label={t("admin.speech.base.label")}
               hint={
                 env.ttsBaseUrl
-                  ? inheritedHint(speech.ttsBaseUrl, env.ttsBaseUrl)
-                  : "Any server with OpenAI's /v1/audio/speech. Blank = api.openai.com."
+                  ? inheritedHint(speech.ttsBaseUrl, env.ttsBaseUrl, undefined, t)
+                  : t("admin.speech.base.hint")
               }
             >
               <input
@@ -188,8 +189,8 @@ export function AdminSpeechSection({
               />
             </Field>
             <ModelChoiceField
-              label="Model"
-              hint="What the server lists."
+              label={t("admin.speech.model")}
+              hint={t("admin.speech.model.hint")}
               role="narration"
               provider="speech"
               baseUrl={openaiAt}
@@ -201,7 +202,7 @@ export function AdminSpeechSection({
               onListing={setNarrationListing}
             />
             <SecretField
-              label="API key"
+              label={t("admin.speech.key")}
               isSet={speech.hasTtsApiKey}
               value={apiKey}
               onChange={(value) => {
@@ -210,21 +211,21 @@ export function AdminSpeechSection({
               }}
               hint={
                 env.hasTtsApiKey
-                  ? "An env-var key is also set; this one wins when filled."
+                  ? t("admin.speech.key.env")
                   : official
-                    ? "Blank uses the OpenAI key already saved for pictures, if there is one. Billed to whoever owns the key."
-                    : "Most local servers need none."
+                    ? t("admin.speech.key.official")
+                    : t("admin.speech.key.local")
               }
             />
           </>
         ) : null}
         {provider === "off" ? null : (
           <Field
-            label="Default voice"
+            label={t("admin.speech.voice.label")}
             hint={
               provider === "openai"
-                ? `Used for the test, and whenever a campaign asks for a voice this server does not have. Blank = ${official ? "alloy" : "the first voice the server lists"}.`
-                : "Used for the test. Blank = af_heart. Campaigns pick their own from the server's list, or type one."
+                ? t("admin.speech.voice.hint.openai", { fallback: official ? t("admin.speech.voice.fallback.alloy") : t("admin.speech.voice.fallback.first") })
+                : t("admin.speech.voice.hint.kokoro")
             }
           >
             <input
@@ -239,51 +240,52 @@ export function AdminSpeechSection({
       </div>
       {narrationNeedsModel ? (
         <p role="status" className="mt-3 text-xs text-amber-300" data-needs-model>
-          No narration model is picked, so nothing is read aloud until you pick one.
+          {t("admin.speech.needsModel")}
         </p>
       ) : null}
       <p className="mt-3 text-xs leading-5 text-stone-400">
         {provider === "off"
-          ? "No passage is read aloud and no text is sent anywhere. Campaigns that have Narration on are told it is off here."
+          ? t("admin.speech.route.off")
           : provider === "kokoro"
-            ? `Each passage is sent as text to the Kokoro server at ${host(kokoroAt)} and comes back as audio. It is not sent to the text model's server or anywhere else.`
-            : `Each passage is sent as text to ${host(openaiAt)} and comes back as audio${official ? ", billed to the API key" : ""}. It is not sent to the text model's server or anywhere else.`}
+            ? t("admin.speech.route.kokoro", { host: host(kokoroAt) })
+            : t(official ? "admin.speech.route.openaiBilled" : "admin.speech.route.openai", { host: host(openaiAt) })}
       </p>
       {provider === "off" ? null : (
         <div className="mt-3">
           <div className="flex flex-wrap items-center gap-3">
             <button type="button" onClick={test} disabled={testing} aria-busy={testing} className={ui.btnSmall}>
               {testing ? <Loader2 className="size-4 animate-spin" /> : <Zap className="size-4" />}
-              Test narration
+              {t("admin.speech.test.button")}
             </button>
             <span className="text-xs text-stone-500">
-              Speaks one line through the settings as typed, saved or not, and plays it here.
+              {t("admin.speech.test.note")}
             </span>
           </div>
           {testing ? (
             <p role="status" className="live-in mt-2 text-sm text-stone-400">
-              Asking the speech server for a line…
+              {t("admin.speech.test.asking")}
             </p>
           ) : null}
           {result?.ok ? (
             <p role="status" className="live-in mt-2 flex flex-wrap items-center gap-1 text-sm text-emerald-400">
-              <Check className="size-4" /> Spoken by {result.model} in the voice {result.voice}.
-              {result.voices ? ` The server lists ${result.voices} voices for campaigns to pick from.` : " The server lists no voices of its own, so campaigns type one."}
+              <Check className="size-4" /> {t("admin.speech.test.ok", { model: result.model ?? "", voice: result.voice ?? "" })}
+              {" "}
+              {result.voices ? t("admin.speech.test.voices", { count: result.voices }) : t("admin.speech.test.noVoices")}
             </p>
           ) : result ? (
             <p role="alert" className="motion-shake mt-2 flex items-start gap-1 text-sm text-red-400">
-              <X className="mt-0.5 size-4 shrink-0" /> {result.error || "The speech server did not answer."}
+              <X className="mt-0.5 size-4 shrink-0" /> {result.error || t("admin.speech.test.noAnswerShown")}
             </p>
           ) : null}
           {result && !result.ok && result.endpoint ? (
-            <p className="mt-1 break-all text-xs text-stone-500">Tried {result.endpoint}</p>
+            <p className="mt-1 break-all text-xs text-stone-500">{t("admin.speech.test.tried", { endpoint: result.endpoint })}</p>
           ) : null}
         </div>
       )}
 
-      <h3 className="mb-1 mt-6 text-sm font-medium text-stone-200">Dictation (speech to text)</h3>
+      <h3 className="mb-1 mt-6 text-sm font-medium text-stone-200">{t("admin.speech.dict.title")}</h3>
       <div className="grid gap-3 sm:grid-cols-2">
-        <Field label="Whisper STT URL" hint={inheritedHint(speech.sttUrl, env.sttUrl, "Type off when this server has no Whisper service.")}>
+        <Field label={t("admin.speech.whisper.url")} hint={inheritedHint(speech.sttUrl, env.sttUrl, t("admin.speech.whisper.extra"), t)}>
           <input
             className={ui.input}
             value={speech.sttUrl}
@@ -293,8 +295,8 @@ export function AdminSpeechSection({
         </Field>
         {whisperSwitchedOff(whisperAt) ? null : (
           <ModelChoiceField
-            label="Whisper model"
-            hint="What push-to-talk and the voice-chat transcript ask the Whisper service for."
+            label={t("admin.speech.whisper.model")}
+            hint={t("admin.speech.whisper.model.hint")}
             role="dictation"
             provider="speech"
             baseUrl={whisperAt}
@@ -311,12 +313,12 @@ export function AdminSpeechSection({
             if (event.currentTarget.open) setOpenAiDictation(true);
           }}
         >
-          <summary className="cursor-pointer text-sm text-stone-300">OpenAI transcription (paid, when nothing free listens)</summary>
+          <summary className="cursor-pointer text-sm text-stone-300">{t("admin.speech.openai.summary")}</summary>
           {openAiDictation ? (
             <div className="mt-3 grid gap-3 sm:grid-cols-2">
               <ModelChoiceField
-                label="Transcription model"
-                hint="On the OpenAI key saved for pictures, billed to it."
+                label={t("admin.speech.openai.model")}
+                hint={t("admin.speech.openai.model.hint")}
                 role="dictation"
                 provider="speech"
                 baseUrl={openaiSpeechBaseUrl}

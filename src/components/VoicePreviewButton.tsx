@@ -7,12 +7,21 @@ import { cn } from "@/lib/cn";
 import { ui } from "@/lib/ui";
 import { Tooltip } from "@/components/ui/Tooltip";
 
+const VOICE_PREVIEW_ERROR_KEYS: Record<string, MessageKey> = {
+  VOICE_UNKNOWN: "voicePreview.error.unknown",
+  NARRATION_OFF: "voicePreview.error.narrationOff",
+  VOICE_PREVIEW_LIMIT: "voicePreview.error.limit",
+};
+import { useT } from "@/lib/i18n/provider";
+import type { MessageKey } from "@/lib/i18n/messages/index";
+
 // Plays a short sample of a narrator voice next to the voice pickers. The
 // first play for a voice waits on the speech server rendering it (about a
 // second); after that the clip is cached server-side and starts immediately.
 // A sample that cannot be made says why, where it can be read without a
 // hover (issue 88).
 export function VoicePreviewButton({ voice, className }: { voice: string; className?: string }) {
+  const t = useT();
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [loading, setLoading] = useState(false);
   const [playing, setPlaying] = useState(false);
@@ -68,9 +77,14 @@ export function VoicePreviewButton({ voice, className }: { voice: string; classN
       // The element only knows that it failed; the route knows why.
       const reason = await fetch(source)
         .then((response) => (response.ok ? null : response.json()))
-        .then((data: { error?: string } | null) => data?.error ?? "")
+        .then((data: { error?: string; errorCode?: string } | null) => {
+          if (data?.errorCode && VOICE_PREVIEW_ERROR_KEYS[data.errorCode]) {
+            return t(VOICE_PREVIEW_ERROR_KEYS[data.errorCode]);
+          }
+          return data?.error ?? "";
+        })
         .catch(() => "");
-      setFailed(reason || "This voice could not be played.");
+      setFailed(reason || t("voicePreview.error.playback"));
       releaseOutput(audio);
     } finally {
       setLoading(false);
@@ -80,11 +94,11 @@ export function VoicePreviewButton({ voice, className }: { voice: string; classN
   const Icon = loading ? Loader2 : playing ? Square : Play;
   return (
     <>
-      <Tooltip content={failed || "Hear a sample of this voice"}>
+      <Tooltip content={failed || t("voicePreview.tooltip")}>
         <button
           type="button"
           onClick={toggle}
-          aria-label="Preview this voice"
+          aria-label={t("voicePreview.aria")}
           className={cn(ui.btnSmall, "shrink-0 px-2", failed && "border-red-800/70", className)}
         >
           <Icon className={cn("size-4", loading && "animate-spin")} />

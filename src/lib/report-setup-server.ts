@@ -20,7 +20,7 @@ import { providerForBaseUrl } from "@/lib/model-registry/catalog-logic";
 import { ollamaBaseUrl, soleListedModel } from "@/lib/model-registry/discovery";
 import { describeMachine, graphicsMemoryGb, LOCAL_STORYTELLER_MINIMUM_GB, machine, storytellerFit, type Machine } from "@/lib/model-registry/hardware";
 import { modelChoices, type ModelChoices } from "@/lib/model-registry/registry";
-import type { ReportAgentProgram, ReportModel, ReportSetup } from "@/lib/report-setup";
+import type { ReportAgentProgram, ReportCheckFirstItem, ReportModel, ReportSetup } from "@/lib/report-setup";
 import { isLoopbackOrigin } from "@/lib/server-address";
 import { isDeviceWorld, serverEnv } from "@/lib/server-env";
 import { identifyTextServer, TEXT_SERVER_LABEL, type TextServerKind } from "@/lib/setup/discovery-logic";
@@ -48,6 +48,24 @@ const LIST_MS = 5_000;
 const AGENT_MS = 6_000;
 
 export type ReportTable = { dmMode: string; role: string; game: Campaign["gameSettings"] };
+
+type CheckCollector = string[] & { items: ReportCheckFirstItem[] };
+
+function checkCollector(): CheckCollector {
+  const lines = [] as unknown as CheckCollector;
+  lines.items = [];
+  return lines;
+}
+
+function addCheck(
+  checks: CheckCollector,
+  code: string,
+  params: Record<string, string | number>,
+  legacyText: string,
+): void {
+  checks.push(legacyText);
+  checks.items.push({ code, params });
+}
 
 function within<T>(work: Promise<T>, ms: number, fallback: T): Promise<T> {
   return Promise.race([
@@ -103,7 +121,7 @@ type ModelInput = {
   backend: string;
   model: string;
   choices: ModelChoices | null;
-  checks: string[];
+  checks: CheckCollector;
 };
 
 // A model's facts and what is wrong with it, from the registry's answer.
@@ -112,11 +130,14 @@ function modelFacts(input: ModelInput): ReportModel {
   const chosen = choices?.models.find((row) => row.selected) ?? null;
   const tested = testedLine(choices);
   if (choices && choices.reachable === false) {
-    checks.push(choices.needsKey ? `${name}'s backend wants an API key.` : `${name}'s backend did not answer: ${choices.error}`);
+    if (choices.needsKey) addCheck(checks, "BACKEND_NEEDS_KEY", { modelName: name }, `${name}'s backend wants an API key.`);
+    else addCheck(checks, "BACKEND_UNREACHABLE", { modelName: name, detail: choices.error }, `${name}'s backend did not answer: ${choices.error}`);
   }
-  if (!model) checks.push(`${name} has no model chosen, and its server does not list exactly one.`);
-  for (const warning of chosen?.verdict.warnings ?? []) checks.push(`${name} (${model}): ${warning}`);
-  if (tested.failed) checks.push(`${name} (${model}) ${tested.failed}.`);
+  if (!model) addCheck(checks, "MODEL_NOT_CHOSEN", { modelName: name }, `${name} has no model chosen, and its server does not list exactly one.`);
+  for (const warning of chosen?.verdict.warnings ?? []) {
+    addCheck(checks, "MODEL_WARNING", { modelName: name, model, detail: warning }, `${name} (${model}): ${warning}`);
+  }
+  if (tested.failed) addCheck(checks, "BACKEND_TEST_FAILED", { modelName: name, model, detail: tested.failed }, `${name} (${model}) ${tested.failed}.`);
   return {
     backend: input.backend,
     model,
@@ -126,7 +147,7 @@ function modelFacts(input: ModelInput): ReportModel {
   };
 }
 
-async function narratorFacts(settings: StorySettings, here: Machine | null, checks: string[]): Promise<ReportModel> {
+async function narratorFacts(settings: StorySettings, here: Machine | null, checks: CheckCollector): Promise<ReportModel> {
   const cfg = getGlobalConfig();
   if (settings.textProvider === "none") return { backend: "none", model: "", off: true };
   if (settings.textProvider === "harness") {
@@ -150,7 +171,7 @@ async function narratorFacts(settings: StorySettings, here: Machine | null, chec
   } else {
     const base = settings.customBaseUrl.trim();
     if (!base) {
-      checks.push("The narrator has no backend address set.");
+      addCheck(checks, "NARRATOR_BACKEND_ADDRESS_MISSING", {}, "The narrator has no backend address set.");
       return { backend: TEXT_SERVER_LABEL["openai-compatible"], model: settings.customModel };
     }
     const key = backendKeyFor(base, settings.customApiKey ?? "");
@@ -168,7 +189,10 @@ async function narratorFacts(settings: StorySettings, here: Machine | null, chec
     const choices = await within(modelChoices({ role: "story", provider: "custom", baseUrl: base, apiKey: key, selected: model }), LIST_MS, null);
     facts = modelFacts({ name: "The narrator", backend: customBackend(base, engine), model, choices, checks });
     if (engine === "ollama") {
-      checks.push(
+      addCheck(
+        checks,
+        "NARRATOR_OLLAMA_COMPAT_WINDOW",
+        {},
         'The narrator reaches Ollama through its OpenAI-compatible address, which ignores the window the table asks for, so Ollama runs it at its own default (4K on a 16 GB card) and long prompts are cut. Choose "Ollama" as the storyteller backend instead, or run llama.cpp.',
       );
     }
@@ -181,32 +205,48 @@ async function narratorFacts(settings: StorySettings, here: Machine | null, chec
     facts.windowAssumed = true;
     // A backend that did not answer could not be asked; that is said above.
     if (facts.answers !== false) {
-      checks.push(
+      addCheck(
+        checks,
+        "NARRATOR_WINDOW_ASSUMED",
+        { tokens },
         `The narrator's server never said how large its context window is, so the table assumes ${tokens.toLocaleString("en-US")} tokens, too few for fights. Start the server with a larger window (llama-server -c 65536) or set OPENAI_COMPAT_CONTEXT.`,
       );
     }
   } else {
     const verdict = storyWindowVerdict(tokens);
-    if (verdict.level !== "ok") checks.push(`The narrator's window: ${verdict.text}`);
+    if (verdict.level !== "ok") {
+      const code = verdict.level === "short"
+        ? "NARRATOR_WINDOW_SHORT"
+        : verdict.level === "no-fights"
+          ? "NARRATOR_WINDOW_NO_FIGHTS"
+          : "NARRATOR_WINDOW_TIGHT";
+      addCheck(checks, code, { tokens }, `The narrator's window: ${verdict.text}`);
+    }
   }
   const params = storyModelParams(resolved);
   if (params) {
     facts.paramsB = Math.round(params / 1e8) / 10;
     if (params < SMALL_MODEL_PARAMS) {
-      checks.push(
+      addCheck(
+        checks,
+        "MODEL_TOO_SMALL",
+        { model: facts.model, paramsB: facts.paramsB, minimumB: SMALL_MODEL_PARAMS / 1e9 },
         `The narrator model (${facts.model}) is small, about ${facts.paramsB}B parameters. Models under ${SMALL_MODEL_PARAMS / 1e9}B are below the supported minimum: they run with short rules and get more wrong.`,
       );
     }
   }
   if (local && here && storytellerFit(here) === "below") {
-    checks.push(
+    addCheck(
+      checks,
+      "LOCAL_NARRATOR_MEMORY_LOW",
+      { memoryGb: Math.round(graphicsMemoryGb(here) ?? 0), minimumGb: LOCAL_STORYTELLER_MINIMUM_GB },
       `The narrator runs on this machine, which has about ${Math.round(graphicsMemoryGb(here) ?? 0)} GB of graphics memory; a local narrator needs at least ${LOCAL_STORYTELLER_MINIMUM_GB} GB.`,
     );
   }
   return facts;
 }
 
-async function helperFacts(settings: StorySettings, checks: string[]): Promise<ReportModel | null> {
+async function helperFacts(settings: StorySettings, checks: CheckCollector): Promise<ReportModel | null> {
   const model = settings.utilityModel.trim();
   const provider = settings.utilityProvider || settings.textProvider;
   if (provider === "harness") {
@@ -226,11 +266,11 @@ async function helperFacts(settings: StorySettings, checks: string[]): Promise<R
   return modelFacts({ name: "The helper model", backend: customBackend(endpoint.baseUrl, ""), model, choices, checks });
 }
 
-async function agentFacts(settings: StorySettings, checks: string[]): Promise<ReportAgentProgram | null> {
+async function agentFacts(settings: StorySettings, checks: CheckCollector): Promise<ReportAgentProgram | null> {
   const harness = harnessConfig();
   const used = settings.textProvider === "harness" || settings.utilityProvider === "harness" || settings.imageBackend === "harness";
   if (!harness.id) {
-    if (used) checks.push("An agent program is chosen as a backend, but none is set up under Admin > Agent program.");
+    if (used) addCheck(checks, "AGENT_NOT_CONFIGURED", {}, "An agent program is chosen as a backend, but none is set up under Admin > Agent program.");
     return null;
   }
   const status = await within(probeHarness(harness.id, { phone: hostPlatform() === "android" }), AGENT_MS, null);
@@ -244,9 +284,9 @@ async function agentFacts(settings: StorySettings, checks: string[]): Promise<Re
           ? `signed in${status.auth.kind === "api-key" ? " with an API key" : status.auth.kind === "subscription" ? " with a subscription" : ""}`
           : "sign-in not known";
   if (used && status) {
-    if (status.availability !== "ok") checks.push(`${status.label} cannot run here: ${status.message || status.availability}.`);
-    else if (!status.installed) checks.push(`${status.label} is chosen but not installed on the server.`);
-    else if (status.auth.state === "signed-out") checks.push(`${status.label} is signed out.`);
+    if (status.availability !== "ok") addCheck(checks, "AGENT_UNAVAILABLE", { agentName: status.label, detail: status.message || status.availability }, `${status.label} cannot run here: ${status.message || status.availability}.`);
+    else if (!status.installed) addCheck(checks, "AGENT_NOT_INSTALLED", { agentName: status.label }, `${status.label} is chosen but not installed on the server.`);
+    else if (status.auth.state === "signed-out") addCheck(checks, "AGENT_SIGNED_OUT", { agentName: status.label }, `${status.label} is signed out.`);
   }
   return {
     program: status?.label ?? harness.id,
@@ -266,7 +306,7 @@ const IMAGE_BACKENDS: Record<string, string> = {
   "sdnq-hs": "the FLUX worker (SDNQ)",
 };
 
-function picturesFacts(settings: StorySettings, caps: Capabilities | null, checks: string[]): NonNullable<ReportSetup["pictures"]> {
+function picturesFacts(settings: StorySettings, caps: Capabilities | null, checks: CheckCollector): NonNullable<ReportSetup["pictures"]> {
   const images = getGlobalConfig().images;
   const on = settings.imageGenerationEnabled !== false;
   const backend = settings.imageBackend;
@@ -282,13 +322,13 @@ function picturesFacts(settings: StorySettings, caps: Capabilities | null, check
     model = [images.openaiModel || "no model chosen", host ? `at ${host}` : ""].filter(Boolean).join(" ");
   }
   if (on && caps && caps.images.backend === backend) {
-    if (caps.images.needsModel) checks.push("Pictures are on, but no picture model is chosen.");
-    else if (!caps.images.reachable) checks.push(`Pictures are on, but ${IMAGE_BACKENDS[backend] ?? backend} did not answer.`);
+    if (caps.images.needsModel) addCheck(checks, "PICTURE_MODEL_MISSING", {}, "Pictures are on, but no picture model is chosen.");
+    else if (!caps.images.reachable) addCheck(checks, "PICTURE_BACKEND_UNREACHABLE", { backend: IMAGE_BACKENDS[backend] ?? backend }, `Pictures are on, but ${IMAGE_BACKENDS[backend] ?? backend} did not answer.`);
   }
   return { on, backend: IMAGE_BACKENDS[backend] ?? backend, model };
 }
 
-async function narrationFacts(table: ReportTable | undefined, caps: Capabilities | null, checks: string[]): Promise<NonNullable<ReportSetup["narration"]>> {
+async function narrationFacts(table: ReportTable | undefined, caps: Capabilities | null, checks: CheckCollector): Promise<NonNullable<ReportSetup["narration"]>> {
   const speech = ttsBackend();
   const on = speech.provider !== "off" && (table ? table.game.ttsEnabled !== false : true);
   const model = await within(narrationModel(speech), PROBE_MS, speech.model);
@@ -301,18 +341,18 @@ async function narrationFacts(table: ReportTable | undefined, caps: Capabilities
           ? `${hostedProvider(speech.v1)} speech (hosted API)`
           : `an OpenAI-compatible speech server ${where(speech.v1)}`;
   if (on && caps) {
-    if (caps.tts.needsModel) checks.push("Narration is on, but no speech model is chosen.");
-    else if (!caps.tts.reachable) checks.push("Narration is on, but the speech server did not answer.");
+    if (caps.tts.needsModel) addCheck(checks, "NARRATION_MODEL_MISSING", {}, "Narration is on, but no speech model is chosen.");
+    else if (!caps.tts.reachable) addCheck(checks, "NARRATION_SERVER_UNREACHABLE", {}, "Narration is on, but the speech server did not answer.");
   }
   return { on, backend, model, voice: table?.game.ttsVoice || speech.defaultVoice, characterVoices: Boolean(table?.game.ttsAutoCast) };
 }
 
-async function dictationFacts(checks: string[]): Promise<NonNullable<ReportSetup["dictation"]>> {
+async function dictationFacts(checks: CheckCollector): Promise<NonNullable<ReportSetup["dictation"]>> {
   const speech = getGlobalConfig().speech;
   const stt = await within(sttStatus(), PROBE_MS, null);
   if (!stt) return { backend: "not known (the check took too long)", model: "" };
-  if (stt.active === "whisper" && stt.whisper.needsModel) checks.push("Dictation's Whisper service lists several models and none is chosen.");
-  if (stt.active === "openai" && stt.openai.needsModel) checks.push("Dictation's OpenAI-compatible speech-to-text has no model chosen.");
+  if (stt.active === "whisper" && stt.whisper.needsModel) addCheck(checks, "DICTATION_MODEL_MISSING", { service: "Whisper" }, "Dictation's Whisper service lists several models and none is chosen.");
+  if (stt.active === "openai" && stt.openai.needsModel) addCheck(checks, "DICTATION_MODEL_MISSING", { service: "OpenAI-compatible speech-to-text" }, "Dictation's OpenAI-compatible speech-to-text has no model chosen.");
   switch (stt.active) {
     case "whisper":
       return { backend: "a Whisper service", model: speech.sttModel || "the service's own model" };
@@ -363,18 +403,18 @@ export async function gatherSetup(settings: StorySettings, table?: ReportTable):
     within(checkForUpdate(build), PROBE_MS, null),
   ]);
   // Each piece keeps its own list, so the order below is the order read.
-  const first: string[] = [];
-  const narratorChecks: string[] = [];
-  const helperChecks: string[] = [];
-  const agentChecks: string[] = [];
-  const pictureChecks: string[] = [];
-  const narrationChecks: string[] = [];
-  const dictationChecks: string[] = [];
+  const first = checkCollector();
+  const narratorChecks = checkCollector();
+  const helperChecks = checkCollector();
+  const agentChecks = checkCollector();
+  const pictureChecks = checkCollector();
+  const narrationChecks = checkCollector();
+  const dictationChecks = checkCollector();
   if (update?.state === "available") {
-    first.push(`A newer release is out (${update.latest.version}); this server runs ${build.version}. Update first: the problem may already be fixed.`);
+    addCheck(first, "UPDATE_AVAILABLE", { version: update.latest.version, running: build.version }, `A newer release is out (${update.latest.version}); this server runs ${build.version}. Update first: the problem may already be fixed.`);
   }
   if (table && settings.textProvider === "none" && table.dmMode !== "human") {
-    first.push(`No narrator is set up, but this table's GM mode (${table.dmMode}) needs one.`);
+    addCheck(first, "NO_NARRATOR_FOR_MODE", { mode: table.dmMode }, `No narrator is set up, but this table's GM mode (${table.dmMode}) needs one.`);
   }
   const [narrator, helper, agentProgram, narration, dictation] = await Promise.all([
     narratorFacts(settings, here, narratorChecks),
@@ -385,9 +425,18 @@ export async function gatherSetup(settings: StorySettings, table?: ReportTable):
   ]);
   const pictures = picturesFacts(settings, caps, pictureChecks);
   const voice = voiceConfig();
-  const checkFirst = [
-    ...new Set([...first, ...narratorChecks, ...helperChecks, ...agentChecks, ...pictureChecks, ...narrationChecks, ...dictationChecks]),
-  ];
+  const checkCollectors = [first, narratorChecks, helperChecks, agentChecks, pictureChecks, narrationChecks, dictationChecks];
+  const seenChecks = new Set<string>();
+  const checkFirst: string[] = [];
+  const checkFirstItems: ReportCheckFirstItem[] = [];
+  for (const collector of checkCollectors) {
+    collector.forEach((line, index) => {
+      if (seenChecks.has(line)) return;
+      seenChecks.add(line);
+      checkFirst.push(line);
+      checkFirstItems.push(collector.items[index] ?? { code: "UNKNOWN", params: { detail: line } });
+    });
+  }
   return {
     version: build.version,
     build: build.label,
@@ -406,6 +455,7 @@ export async function gatherSetup(settings: StorySettings, table?: ReportTable):
     pictures,
     narration,
     dictation,
+    checkFirstItems,
     voiceChat: {
       on: voice.enabled && (table ? table.game.voice.enabled !== false : true),
       mode: voice.mode,

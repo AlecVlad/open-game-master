@@ -22,7 +22,7 @@ export async function POST(
   const { characterId } = await params;
   const character = duplicateCharacter(user.id, characterId);
   if (!character) {
-    return Response.json({ error: "Character not found." }, { status: 404 });
+    return Response.json({ error: "Character not found.", errorCode: "CHARACTER_NOT_FOUND" }, { status: 404 });
   }
   return Response.json(
     {

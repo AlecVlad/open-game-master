@@ -93,6 +93,21 @@ test("a school is written capitalised in code, not left to CSS a native list nev
   assert.deepEqual(filters.withSpellFilterPick({ ...filters.NO_SPELL_FILTER, school: "evocation" }, "school", "any"), filters.NO_SPELL_FILTER);
 });
 
+test("school and casting-time labels use the active language", () => {
+  const translate = (key) => "[" + key + "]";
+  assert.equal(filters.schoolLabel("evocation", translate), "[builder.spells.filter.school.evocation]");
+  const options = filters.spellFilterOptions(["Fireball", "Shield"].map((name) => filters.spellDeskFacts({ name })));
+  const pickers = filters.spellFilterPickers(options, translate);
+  assert.ok(pickers.find((picker) => picker.key === "school").options.some((option) =>
+    option.label.endsWith("[builder.spells.filter.school.abjuration]")));
+  assert.ok(pickers.find((picker) => picker.key === "castingTime").options.some((option) =>
+    option.label.endsWith("[builder.spells.filter.time.action]")));
+  assert.equal(
+    filters.spellFilterWords({ ...filters.NO_SPELL_FILTER, school: "evocation", ritual: true, concentration: "no", castingTime: "action" }, translate),
+    "[builder.spells.filter.school.evocation], [builder.spells.filter.ritualWord], [builder.spells.filter.noConcentrationWord], [builder.spells.filter.time.action]",
+  );
+});
+
 test("a filter value the page no longer offers is dropped, never on behind an 'any' or a missing picker", () => {
   const facts = (names) => filters.spellFilterOptions(names.map((name) => filters.spellDeskFacts({ name })));
   const chosen = { school: "abjuration", castingTime: "reaction", concentration: "yes", ritual: true };
@@ -140,7 +155,7 @@ test("the builder's book draws the filters as the kit's pickers and a finger-siz
   assert.ok(/<label class="pk-tap [^"]*"><input type="checkbox"[^>]*\/>Rituals only<\/label>/.test(markup), "Rituals only is not a finger-sized label");
   assert.ok(!markup.includes("Clear filters"), "Clear filters shows with nothing to clear");
   const book = read("src/components/sheet/SpellBook.tsx");
-  assert.match(book, /className=\{cn\(ui\.btnSmall, "pk-tap"\)\}>\s*Clear filters/, "Clear filters is not a finger-sized kit button");
+  assert.match(book, /className=\{cn\(ui\.btnSmall, "pk-tap"\)\}>\s*\{t\("builder\.spells\.book\.filter\.clear"\)\}/, "Clear filters is not a finger-sized localized kit button");
   assert.match(book, /const live = liveSpellFilter\(desk, options\);/, "the book filters by values the page no longer offers");
   assert.match(book, /matchesSpellFilter\([^\n]*, live\)/, "the tiles are matched against the stale filter");
   const sheet = renderToStaticMarkup(createElement(SpellBook, { tiles, maxLevel: 1, onTile() {} }));
@@ -283,11 +298,11 @@ test("the step offers a swap on each full list, shows the desk and keeps the fil
   assert.ok(!step.includes("document.activeElement"), "the swap remembers focus instead of the tile");
   // A third caster's swap is offered only where the two schools allow it.
   assert.match(step, /problem: listRule\.third \? offSchool : undefined/, "the school rule does not narrow the swap");
-  assert.match(step, /ruledOut \? "Outside your two schools" : listFullText/, "a tile the schools rule out still offers a swap");
+  assert.match(step, /choicesFor\("spell", name\)\.ruledOut \? t\("builder\.spells\.full\.schools"\) : listFullText/, "a tile the schools rule out still offers a swap");
   assert.match(step, /<SpellDeskHeader/, "the desk header is not drawn");
   assert.match(step, /\n\s+filters\n/, "the step's book has no filters");
   assert.match(step, /const fill = fillSpells\(/, "the suggested fill went");
-  assert.equal((step.match(/\$\{limitWhy\}/g) ?? []).length, 2, "a refusal lost its working");
+  assert.equal((step.match(/why: limitWhy/g) ?? []).length, 2, "a refusal lost its working");
   assert.match(step, /data-casting-numbers/);
   assert.match(step, /data-chosen-spells/);
 });

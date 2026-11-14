@@ -101,11 +101,13 @@ function sessionReminderJob(now: number) {
             campaignId: session.campaignId,
             kind: "session_reminder",
             body: `${campaign.title}: ${title} starts soon, at ${sessionWhen(session.startsAt)}. See you at the table.`,
+            params: { campaignTitle: campaign.title, sessionTitle: session.title, startsAt: session.startsAt },
           }
         : {
             campaignId: session.campaignId,
             kind: "session_starting",
             body: `${campaign.title}: ${title} is starting now. To the table!`,
+            params: { campaignTitle: campaign.title, sessionTitle: session.title, startsAt: session.startsAt },
           },
     );
   }
@@ -132,6 +134,7 @@ function idleCampaignJob(now: number) {
         campaignId: campaign.id,
         kind: "campaign_idle",
         body: `The table misses you: ${campaign.title} has been quiet for a few days.`,
+        params: { campaignTitle: campaign.title },
       },
     );
   }

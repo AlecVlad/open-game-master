@@ -14,8 +14,15 @@ import type { WorldPack } from "@/lib/worlds/types";
 import { textKey } from "@/lib/language/text-logic";
 import { PLAYED_DOCUMENTS_SQL } from "@/lib/content/edition";
 
+export type IntegrityMessage = {
+  key: string;
+  params?: Record<string, string | number>;
+};
+
 export type IntegrityReport = {
+  // English fallback remains for scripts and non-UI callers.
   problems: string[];
+  details: IntegrityMessage[];
   // True when the content pack was there to ask. When it is not, the
   // problems list is empty and means nothing, which the caller should say.
   checked: boolean;
@@ -24,20 +31,25 @@ export type IntegrityReport = {
 export function checkPackIntegrity(pack: WorldPack): IntegrityReport {
   const db = getContentDb();
   if (!db) {
-    return { problems: [], checked: false };
+    return { problems: [], details: [], checked: false };
   }
   const problems: string[] = [];
+  const details: IntegrityMessage[] = [];
+  const addProblem = (message: string, key: string, params: Record<string, string | number>) => {
+    problems.push(message);
+    details.push({ key, params });
+  };
 
   if (pack.monsters.length) {
     const lookup = db.prepare(`SELECT cr, type FROM monsters WHERE slug = ?`);
     for (const entry of pack.monsters) {
       const row = lookup.get(entry.slug) as { cr: number; type: string } | undefined;
       if (!row) {
-        problems.push(`Monster "${entry.slug}" is not in the content pack.`);
+        addProblem(`Monster "${entry.slug}" is not in the content pack.`, "workshop.plugin.integrity.monsterMissing", { slug: entry.slug });
       } else if (row.cr !== entry.cr) {
-        problems.push(`${entry.name} says CR ${entry.cr}; the content pack has ${entry.slug} at CR ${row.cr}.`);
+        addProblem(`${entry.name} says CR ${entry.cr}; the content pack has ${entry.slug} at CR ${row.cr}.`, "workshop.plugin.integrity.monsterCr", { name: entry.name, cr: entry.cr, slug: entry.slug, actualCr: row.cr });
       } else if (entry.type && normalizeCreatureType(row.type) !== entry.type) {
-        problems.push(`${entry.name} says it is a ${entry.type}; the content pack has ${entry.slug} as ${normalizeCreatureType(row.type) ?? "unknown"}.`);
+        addProblem(`${entry.name} says it is a ${entry.type}; the content pack has ${entry.slug} as ${normalizeCreatureType(row.type) ?? "unknown"}.`, "workshop.plugin.integrity.monsterType", { name: entry.name, type: entry.type, slug: entry.slug, actualType: normalizeCreatureType(row.type) ?? "unknown" });
       }
     }
   }
@@ -47,7 +59,7 @@ export function checkPackIntegrity(pack: WorldPack): IntegrityReport {
       (db.prepare(`SELECT name FROM spells WHERE ${PLAYED_DOCUMENTS_SQL}`).all() as Array<{ name: string }>).map((row) => textKey(row.name)),
     );
     for (const entry of pack.spells) {
-      if (!names.has(textKey(entry.from))) problems.push(`"${entry.from}" is not a spell in the content pack.`);
+      if (!names.has(textKey(entry.from))) addProblem(`"${entry.from}" is not a spell in the content pack.`, "workshop.plugin.integrity.spellMissing", { name: entry.from });
     }
   }
 
@@ -58,9 +70,9 @@ export function checkPackIntegrity(pack: WorldPack): IntegrityReport {
     for (const weapon of SRD_WEAPONS) names.add(textKey(weapon.name));
     for (const armor of SRD_ARMOR) names.add(textKey(armor.name));
     for (const entry of pack.items) {
-      if (!names.has(textKey(entry.from))) problems.push(`"${entry.from}" is not an item in the content pack.`);
+      if (!names.has(textKey(entry.from))) addProblem(`"${entry.from}" is not an item in the content pack.`, "workshop.plugin.integrity.itemMissing", { name: entry.from });
     }
   }
 
-  return { problems, checked: true };
+  return { problems, details, checked: true };
 }

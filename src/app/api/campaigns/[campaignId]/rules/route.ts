@@ -41,7 +41,7 @@ export async function PUT(
   }
   const parsed = putSchema.safeParse(await request.json().catch(() => ({})));
   if (!parsed.success) {
-    return Response.json({ error: "Invalid house rules." }, { status: 400 });
+    return Response.json({ error: "Invalid house rules.", errorCode: "INVALID_HOUSE_RULES" }, { status: 400 });
   }
   const chunks = setHouseRules(campaignId, parsed.data.text);
   return Response.json({ text: getHouseRulesText(campaignId), chunks });
@@ -65,11 +65,11 @@ export async function PATCH(
   }
   const parsed = patchSchema.safeParse(await request.json().catch(() => ({})));
   if (!parsed.success) {
-    return Response.json({ error: "Invalid chunk update." }, { status: 400 });
+    return Response.json({ error: "Invalid chunk update.", errorCode: "INVALID_RULE_CHUNK_UPDATE" }, { status: 400 });
   }
   const chunk = setRuleChunkFlags(campaignId, parsed.data.chunkId, parsed.data);
   if (!chunk) {
-    return Response.json({ error: "Rule chunk not found." }, { status: 404 });
+    return Response.json({ error: "Rule chunk not found.", errorCode: "RULE_CHUNK_NOT_FOUND" }, { status: 404 });
   }
   return Response.json({ chunk });
 }

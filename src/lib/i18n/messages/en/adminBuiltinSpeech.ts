@@ -1,0 +1,21 @@
+// English, the source language: the built-in speech recognition card in the admin Speech section.
+export const enAdminBuiltinSpeech = {
+  "admin.builtinSpeech.active.whisper": "the Whisper service",
+  "admin.builtinSpeech.active.builtin": "the built-in engine",
+  "admin.builtinSpeech.active.openai": "OpenAI, on this server's key",
+  "admin.builtinSpeech.active.none": "nothing yet, so the mic buttons are hidden (the Android app uses the phone's own recognizer)",
+  "admin.builtinSpeech.err.read": "Could not read the speech engine's state.",
+  "admin.builtinSpeech.err.network": "Could not reach the server.",
+  "admin.builtinSpeech.title": "Built-in speech recognition",
+  "admin.builtinSpeech.intro": "Runs Whisper inside this server on the CPU, so dictation and push-to-talk work without a separate speech service. Downloads {mb} MB once. A Whisper service, when one answers, still comes first.",
+  "admin.builtinSpeech.installed": "Installed",
+  "admin.builtinSpeech.installing": "Installing",
+  "admin.builtinSpeech.retry": "Try again",
+  "admin.builtinSpeech.install": "Install",
+  "admin.builtinSpeech.downloading": "Downloading {model}: {percent}%",
+  "admin.builtinSpeech.starting": "Starting the download of {model}...",
+  "admin.builtinSpeech.failed": "The install failed: {error}",
+  "admin.builtinSpeech.using": "Dictation is using ",
+  "admin.builtinSpeech.note.whisper": "A Whisper service answers, but no model is picked for it and it doesn't list exactly one, so dictation skips it. Pick its model in the Whisper model field.",
+  "admin.builtinSpeech.note.openai": "An OpenAI key is saved, but no transcription model is picked, so nothing is heard until you pick one under OpenAI transcription in Admin > Speech.",
+} satisfies Record<string, string>;

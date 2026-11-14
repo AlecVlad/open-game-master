@@ -291,6 +291,8 @@ export type CompileSummary = {
   lines: string[];
   // Why the arc will not be written, or "" when it will be.
   arcRefusal: string;
+  arcRefusalCode?: string;
+  arcRefusalParams?: Record<string, number>;
   total: number;
 };
 
@@ -328,23 +330,30 @@ export function summarizeCompile(
   }
 
   let arcRefusal = "";
+  let arcRefusalCode: string | undefined;
+  let arcRefusalParams: Record<string, number> | undefined;
   if (targetHasArc && arcMode === "append") {
     if (compiled.arcBeats.length) {
       lines.push(`a new act of up to ${compiled.arcBeats.length} beat${compiled.arcBeats.length === 1 ? "" : "s"}`);
     } else {
       arcRefusal = "The board has nothing that happens on its main line, so there is no act to add.";
+      arcRefusalCode = "workshop.contentImport.plan.board.arcReason.emptyMainline";
     }
   } else if (targetHasArc) {
     arcRefusal =
       "This campaign already has a story arc the table has been playing, so the board's beats are left here rather than written over it.";
+    arcRefusalCode = "workshop.contentImport.plan.board.arcReason.campaignAlreadyHasArc";
   } else if (!compiled.premise) {
     arcRefusal =
       "The arc needs something that says what this world is. Add a place or a piece of history and it can be written.";
+    arcRefusalCode = "workshop.contentImport.plan.board.arcReason.noPremise";
   } else if (compiled.arcBeats.length < MIN_ARC_BEATS) {
     arcRefusal = `An arc needs at least ${MIN_ARC_BEATS} things that happen; the board has ${compiled.arcBeats.length}.`;
+    arcRefusalCode = "workshop.contentImport.plan.board.arcReason.tooFewBeats";
+    arcRefusalParams = { minimum: MIN_ARC_BEATS, count: compiled.arcBeats.length };
   } else {
     lines.push(`a story arc of ${compiled.arcBeats.length} beats`);
   }
 
-  return { lines, arcRefusal, total: lines.length };
+  return { lines, arcRefusal, arcRefusalCode, arcRefusalParams, total: lines.length };
 }

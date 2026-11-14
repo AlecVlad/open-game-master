@@ -1,4 +1,6 @@
 import { getDatabase } from "@/lib/db/core";
+import { getSheetById } from "@/lib/db/sheets";
+import { coinMove, formatPrice } from "@/lib/srd/currency";
 import type { ItemProposal } from "@/lib/db/item-proposals";
 import type { ProposalStatus } from "@/lib/dm/proposal-logic";
 import { parseOfferArgs } from "@/lib/dm/proposal-logic";
@@ -70,6 +72,39 @@ export function offerVisibleTo(
 // The offer as the stream and the snapshot carry it. An offer of items is
 // party knowledge; an owner-only one reaches only the seats above
 // (offerVisibleTo), and says so with ownerOnly, which the apps notify on.
+
+function proposalSummaryData(proposal: ItemProposal) {
+  const args = parseOfferArgs(proposal.argsJson);
+  const quantity = Math.max(1, Math.floor(Number(args.qty ?? 1) || 1));
+  const item = text(args.item).trim();
+  const delta = Number(args.delta ?? 0) || 0;
+  const move = coinMove(args.delta, args.coins);
+  const targetId = proposal.toolName === "trade" ? proposal.toCharacterId : proposal.characterId;
+  const characterName = getSheetById(targetId)?.name ?? "";
+  const price = Math.max(0, Number(args.price ?? 0) || 0) * quantity;
+  const currency = "copper" in move ? formatPrice(Math.abs(move.copper)) : "";
+
+  return {
+    characterName,
+    ...(proposal.toolName === "trade"
+      ? { fromName: getSheetById(proposal.characterId)?.name ?? "", toName: characterName }
+      : {}),
+    item,
+    quantity,
+    action: text(args.action),
+    delta,
+    currency,
+    currencyDirection: "copper" in move ? (move.copper >= 0 ? "give" : "take") : "",
+    price,
+    amount: Math.max(0, Number(args.amount ?? 0) || 0),
+    damageType: text(args.type).trim(),
+    temporary: args.temp === true,
+    spell: text(args.spell).trim(),
+    condition: text(args.condition).trim(),
+    rounds: Math.max(0, Math.floor(Number(args.rounds ?? 0) || 0)),
+  };
+}
+
 export function publicItemProposal(proposal: ItemProposal) {
   return {
     id: proposal.id,
@@ -77,6 +112,7 @@ export function publicItemProposal(proposal: ItemProposal) {
     userId: proposal.userId,
     toolName: proposal.toolName,
     summary: proposal.summary,
+    summaryData: proposal.toolName === "trade" || ["grant_item", "remove_item", "modify_gold", "purchase", "apply_damage", "heal", "set_condition", "clear_condition"].includes(proposal.toolName) ? proposalSummaryData(proposal) : undefined,
     reason: proposal.reason,
     status: proposal.status,
     outcome: proposal.outcome,

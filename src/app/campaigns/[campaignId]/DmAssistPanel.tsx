@@ -21,29 +21,13 @@ import type { PublicEncounter } from "@/lib/db/encounter-view";
 import type { CharacterSheet } from "@/lib/schemas/sheet";
 import { LengthNote } from "@/components/ui/LengthNote";
 import { QUESTION_MAX_CHARS, questionLength } from "@/lib/dm/ask-logic";
+import { useI18n } from "@/lib/i18n/provider";
+import { localizeCatalogEntry } from "@/lib/dm/catalog-ui";
 
 // The DM's assist rail: read-only answers from engines that already exist.
 // Nothing here applies anything to the game. The one exception is the
 // suggestion, which hands the DM a prefilled adjudication form; they still
 // press the button.
-
-const TIER_LABELS: Record<DifficultyTier, string> = {
-  very_easy: "Very easy",
-  easy: "Easy",
-  moderate: "Moderate",
-  hard: "Hard",
-  very_hard: "Very hard",
-  nearly_impossible: "Nearly impossible",
-};
-
-const VERDICT_LABELS: Record<EncounterVerdict, string> = {
-  trivial: "Trivial",
-  easy: "Easy",
-  medium: "Medium",
-  hard: "Hard",
-  deadly: "Deadly",
-  beyond_deadly: "Beyond deadly",
-};
 
 const VERDICT_TONE: Record<EncounterVerdict, string> = {
   trivial: "text-stone-400",
@@ -82,6 +66,7 @@ function IntentSuggest({
   intent: string;
   onIntentChange: (next: string) => void;
 }) {
+  const { t } = useI18n();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
@@ -103,30 +88,39 @@ function IntentSuggest({
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError(data.error || "Could not work that out.");
+        setError(data.error || t("campaign.dmAssist.suggest.error"));
         return;
       }
       setSuggestions(data.suggestions ?? []);
       if (!data.suggestions?.length) {
-        setError("Nothing in the engine matches that. It may just be narration.");
+        setError(t("campaign.dmAssist.suggest.empty"));
       }
     } catch {
-      setError("Could not reach the server.");
+      setError(t("campaign.dmAssist.error.server"));
     } finally {
       setBusy(false);
     }
   }
 
   const openEntry = open ? findAdjudication(ADJUDICATIONS, open.name) : null;
+  const displaySuggestions = suggestions.map((suggestion) => {
+    const entry = findAdjudication(ADJUDICATIONS, suggestion.name);
+    const displayEntry = entry ? localizeCatalogEntry(entry, t) : null;
+    return {
+      ...suggestion,
+      label: displayEntry?.label ?? suggestion.label,
+      summary: displayEntry?.summary ?? suggestion.summary,
+    };
+  });
 
   return (
-    <DeskCard glyph="die-d20" title="What should I press?">
+    <DeskCard glyph="die-d20" title={t("campaign.dmAssist.suggest.title")}>
       <textarea
         value={intent}
         onChange={(event) => onIntentChange(event.target.value.slice(0, 1000))}
         rows={2}
-        placeholder="I try to talk the guard into letting us through."
-        aria-label="What the player said"
+        placeholder={t("campaign.dmAssist.suggest.placeholder")}
+        aria-label={t("campaign.dmAssist.suggest.inputLabel")}
         className={cn(inputClass, "resize-y")}
       />
       <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
@@ -138,23 +132,23 @@ function IntentSuggest({
           className={ui.btnPrimary}
         >
           {busy ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
-          Suggest
+          {t("campaign.dmAssist.suggest.action")}
         </button>
         <button
           type="button"
           onClick={() => ask(false)}
           disabled={busy || !intent.trim()}
-          title="Skips the model and just matches keywords against the catalog."
+          title={t("campaign.dmAssist.suggest.withoutModel.title")}
           className={cn(ui.btnSmall, "min-h-10 text-xs")}
         >
-          Without the model
+          {t("campaign.dmAssist.suggest.withoutModel")}
         </button>
       </div>
       {error ? <p className="motion-shake mt-1.5 text-xs text-red-400">{error}</p> : null}
 
       {suggestions.length ? (
         <ul className="stagger mt-2 space-y-1.5">
-          {suggestions.map((suggestion) => (
+          {displaySuggestions.map((suggestion) => (
             <li key={suggestion.name}>
               {open?.name === suggestion.name && openEntry ? (
                 <div className="reveal space-y-1">
@@ -176,7 +170,7 @@ function IntentSuggest({
                   badge={
                     suggestion.args ? (
                       <span className="ml-1.5 rounded-full border border-amber-500/40 bg-amber-400/10 px-1.5 py-px align-middle font-display text-[10px] tracking-[0.1em] text-amber-200">
-                        filled in
+                        {t("campaign.dmAssist.suggest.filled")}
                       </span>
                     ) : null
                   }
@@ -194,15 +188,24 @@ function IntentSuggest({
 
 // The DMG's difficulty ladder, so "hard" is DC 20 in every scene.
 function DcLadder() {
+  const { t } = useI18n();
+  const tierLabels: Record<DifficultyTier, string> = {
+    very_easy: t("campaign.dmAssist.dc.veryEasy"),
+    easy: t("campaign.dmAssist.dc.easy"),
+    moderate: t("campaign.dmAssist.dc.moderate"),
+    hard: t("campaign.dmAssist.dc.hard"),
+    very_hard: t("campaign.dmAssist.dc.veryHard"),
+    nearly_impossible: t("campaign.dmAssist.dc.nearlyImpossible"),
+  };
   return (
-    <DeskCard glyph="rest-proficiency" title="What should this cost?">
+    <DeskCard glyph="rest-proficiency" title={t("campaign.dmAssist.dc.title")}>
       <div className="stagger-pop flex flex-wrap gap-1">
         {DIFFICULTY_TIERS.map((tier) => (
           <span
             key={tier}
             className="inline-flex items-center rounded-lg border border-amber-500/25 bg-stone-950/50 px-2 py-1 text-xs text-stone-200"
           >
-            {TIER_LABELS[tier]}
+            {tierLabels[tier]}
             <span className="ml-1.5 font-display font-semibold tracking-wide text-amber-200">
               DC {dcForDifficulty(tier)}
             </span>
@@ -210,8 +213,7 @@ function DcLadder() {
         ))}
       </div>
       <p className="mt-1.5 text-[11px] text-stone-500">
-        Naming the tier rather than the number is what keeps a hard lock the
-        same difficulty in chapter one and chapter nine.
+        {t("campaign.dmAssist.dc.explanation")}
       </p>
     </DeskCard>
   );
@@ -225,6 +227,15 @@ function EncounterBudget({
   sheets: CharacterSheet[];
   encounter: PublicEncounter | null;
 }) {
+  const { t } = useI18n();
+  const verdictLabels: Record<EncounterVerdict, string> = {
+    trivial: t("campaign.dmAssist.encounter.verdict.trivial"),
+    easy: t("campaign.dmAssist.encounter.verdict.easy"),
+    medium: t("campaign.dmAssist.encounter.verdict.medium"),
+    hard: t("campaign.dmAssist.encounter.verdict.hard"),
+    deadly: t("campaign.dmAssist.encounter.verdict.deadly"),
+    beyond_deadly: t("campaign.dmAssist.encounter.verdict.beyondDeadly"),
+  };
   const evaluation = useMemo(() => {
     const levels = sheets.filter((sheet) => !sheet.deathSaves?.dead).map((sheet) => sheet.level);
     const crs = (encounter?.enemies ?? [])
@@ -238,28 +249,26 @@ function EncounterBudget({
 
   if (!evaluation) {
     return (
-      <DeskCard glyph="system-encounters" title="How hard is this fight?">
+      <DeskCard glyph="system-encounters" title={t("campaign.dmAssist.encounter.title")}>
         <p className="text-xs text-stone-500">
-          Nothing on the board yet. Add enemies and this reads the budget as
-          they land.
+          {t("campaign.dmAssist.encounter.empty")}
         </p>
       </DeskCard>
     );
   }
   return (
-    <DeskCard glyph="system-encounters" title="How hard is this fight?">
+    <DeskCard glyph="system-encounters" title={t("campaign.dmAssist.encounter.title")}>
       <p key={evaluation.verdict} className={cn("count-pop flex items-center gap-2 font-display text-base tracking-wide", VERDICT_TONE[evaluation.verdict])}>
         <GameIcon icon={{ kind: "glyph", key: "tab-battle" }} size="size-6" />
-        {VERDICT_LABELS[evaluation.verdict]}
+        {verdictLabels[evaluation.verdict]}
       </p>
       <p className="mt-0.5 text-[11px] leading-snug text-stone-500">
-        {evaluation.adjustedXp.toLocaleString()} adjusted XP against thresholds
-        of {evaluation.thresholds.easy.toLocaleString()} easy,{" "}
-        {evaluation.thresholds.medium.toLocaleString()} medium,{" "}
-        {evaluation.thresholds.hard.toLocaleString()} hard,{" "}
-        {evaluation.thresholds.deadly.toLocaleString()} deadly. Raw XP is{" "}
-        {evaluation.totalXp.toLocaleString()}; the rest is the many-enemies
-        multiplier.
+        {t("campaign.dmAssist.encounter.adjustedXp", { xp: evaluation.adjustedXp.toLocaleString() })}
+        {" "}{t("campaign.dmAssist.encounter.threshold.easy", { xp: evaluation.thresholds.easy.toLocaleString() })}
+        {", "}{t("campaign.dmAssist.encounter.threshold.medium", { xp: evaluation.thresholds.medium.toLocaleString() })}
+        {", "}{t("campaign.dmAssist.encounter.threshold.hard", { xp: evaluation.thresholds.hard.toLocaleString() })}
+        {", "}{t("campaign.dmAssist.encounter.threshold.deadly", { xp: evaluation.thresholds.deadly.toLocaleString() })}
+        {" "}{t("campaign.dmAssist.encounter.rawXp", { xp: evaluation.totalXp.toLocaleString() })}
       </p>
     </DeskCard>
   );
@@ -274,6 +283,7 @@ function EncounterBudget({
 // rule_chunks, sorts pinned ones first, and tells the model they override the
 // standard rules.
 function RulesLookup({ campaignId }: { campaignId: string }) {
+  const { t } = useI18n();
   const [question, setQuestion] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -304,19 +314,19 @@ function RulesLookup({ campaignId }: { campaignId: string }) {
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError(data.error || "Could not look that up.");
+        setError(data.error || t("campaign.dmAssist.rules.error"));
         return;
       }
       setAnswer({ answer: data.ask?.answer ?? "", citations: data.ask?.citations ?? [] });
     } catch {
-      setError("Could not reach the server.");
+      setError(t("campaign.dmAssist.error.server"));
     } finally {
       setBusy(false);
     }
   }
 
   return (
-    <DeskCard glyph="system-rules" title="Look up a rule">
+    <DeskCard glyph="system-rules" title={t("campaign.dmAssist.rules.title")}>
       <div className="flex gap-1.5">
         <input
           value={question}
@@ -326,8 +336,8 @@ function RulesLookup({ campaignId }: { campaignId: string }) {
               void look();
             }
           }}
-          placeholder="Can you cast a spell and use a bonus action?"
-          aria-label="Rules question"
+          placeholder={t("campaign.dmAssist.rules.placeholder")}
+          aria-label={t("campaign.dmAssist.rules.inputLabel")}
           aria-describedby={noteId}
           aria-invalid={tooLong || undefined}
           className={cn(inputClass, tooLong && "border-red-500/60")}
@@ -339,7 +349,7 @@ function RulesLookup({ campaignId }: { campaignId: string }) {
           aria-busy={busy}
           className={cn(ui.btnSecondary, "shrink-0")}
         >
-          {busy ? <Loader2 className="size-4 animate-spin" /> : "Ask"}
+          {busy ? <Loader2 className="size-4 animate-spin" />  : t("campaign.dmAssist.rules.ask")}
         </button>
       </div>
       <LengthNote id={noteId} length={length} max={QUESTION_MAX_CHARS} from={0.8} className="mt-1" />

@@ -20,7 +20,7 @@ export async function POST(
 
   const inviteCode = regenerateInviteCode(campaignId);
   if (!inviteCode) {
-    return Response.json({ error: "Could not regenerate the invite code." }, { status: 500 });
+    return Response.json({ error: "Could not regenerate the invite code.", errorCode: "INVITE_REGENERATE_FAILED" }, { status: 500 });
   }
 
   publishPersisted(campaignId, "campaign_updated", { inviteCode });

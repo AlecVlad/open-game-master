@@ -11,6 +11,8 @@ import {
   X,
 } from "lucide-react";
 import { useState } from "react";
+import { useI18n } from "@/lib/i18n/provider";
+import { campaignApiErrorText } from "@/lib/i18n/campaignApiError";
 import { cn } from "@/lib/cn";
 import type { CampaignMember } from "@/lib/campaign-types";
 import type { Note } from "@/lib/db/notes";
@@ -49,20 +51,32 @@ function NoteCard({
   deleteLabel: string;
   refreshNotes: () => Promise<void>;
 }) {
+  const { t } = useI18n();
   const [editing, setEditing] = useState(false);
   const [title, setTitle] = useState(note.title);
   const [body, setBody] = useState(note.body);
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
 
-  async function patch(payload: Record<string, unknown>) {
+  async function patch(payload: Record<string, unknown>): Promise<boolean> {
     setBusy(true);
+    setError("");
     try {
-      await fetch(`/api/campaigns/${campaignId}/notes/${note.id}`, {
+      const response = await fetch(`/api/campaigns/${campaignId}/notes/${note.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        setError(campaignApiErrorText(data, t("campaign.notes.error.update"), t));
+        return false;
+      }
       await refreshNotes();
+      return true;
+    } catch {
+      setError(t("campaign.notes.error.server"));
+      return false;
     } finally {
       setBusy(false);
     }
@@ -70,9 +84,17 @@ function NoteCard({
 
   async function remove() {
     setBusy(true);
+    setError("");
     try {
-      await fetch(`/api/campaigns/${campaignId}/notes/${note.id}`, { method: "DELETE" });
+      const response = await fetch(`/api/campaigns/${campaignId}/notes/${note.id}`, { method: "DELETE" });
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        setError(campaignApiErrorText(data, t("campaign.notes.error.remove"), t));
+        return;
+      }
       await refreshNotes();
+    } catch {
+      setError(t("campaign.notes.error.server"));
     } finally {
       setBusy(false);
     }
@@ -80,16 +102,17 @@ function NoteCard({
 
   return (
     <li className="rounded-lg border border-stone-800 bg-stone-950/40 p-2.5">
+      {error ? <p role="alert" className="mb-2 text-[11px] text-red-400">{error}</p> : null}
       {editing ? (
         <div className="reveal space-y-1.5">
           <input
             value={title}
             onChange={(event) => setTitle(event.target.value)}
             maxLength={120}
-            placeholder="Title (optional)"
+            placeholder={t("campaign.notes.title.optional")}
             className="w-full rounded border border-stone-700 bg-stone-900 px-2 py-1 text-xs outline-none focus:border-amber-600"
           />
-          <DictateField label="Note" onTranscript={(text) => setBody((current) => appendDictation(current, text, 2000))}>
+          <DictateField label={t("campaign.notes.label")} onTranscript={(text) => setBody((current) => appendDictation(current, text, 2000))}>
             <textarea
               value={body}
               onChange={(event) => setBody(event.target.value)}
@@ -103,13 +126,12 @@ function NoteCard({
               type="button"
               disabled={busy || !body.trim()}
               onClick={async () => {
-                await patch({ title: title.trim(), body: body.trim() });
-                setEditing(false);
+                if (await patch({ title: title.trim(), body: body.trim() })) setEditing(false);
               }}
               className="flex items-center gap-1 rounded border border-stone-700 px-2 py-0.5 text-[11px] text-stone-300 hover:bg-stone-900 disabled:opacity-50"
             >
               {busy ? <Loader2 className="size-3 animate-spin" /> : <Check className="size-3" />}
-              Save
+              {t("common.action.save")}
             </button>
             <button
               type="button"
@@ -120,7 +142,7 @@ function NoteCard({
               }}
               className="flex items-center gap-1 rounded border border-stone-700 px-2 py-0.5 text-[11px] text-stone-500 hover:bg-stone-900"
             >
-              <X className="size-3" /> Cancel
+              <X className="size-3" /> {t("wizard.cancel")}
             </button>
           </div>
         </div>
@@ -143,10 +165,10 @@ function NoteCard({
                   type="button"
                   disabled={busy} aria-busy={busy}
                   onClick={() => patch({ status: "active" })}
-                  title="Approve: publish to the whole party"
+                  title={t("campaign.notes.approve.title")}
                   className="flex items-center gap-0.5 rounded border border-emerald-900 px-1.5 py-0.5 text-emerald-400 hover:bg-emerald-950/50"
                 >
-                  <Check className="size-3" /> Approve
+                  <Check className="size-3" /> {t("campaign.notes.action.approve")}
                 </button>
               ) : null}
               {canPin ? (
@@ -154,7 +176,7 @@ function NoteCard({
                   type="button"
                   disabled={busy} aria-busy={busy}
                   onClick={() => patch({ pinned: !note.pinned })}
-                  title={note.pinned ? "Unpin" : "Pin to the top (the GM treats pinned notes as key canon)"}
+                  title={note.pinned ? t("campaign.notes.pin.unpin") : t("campaign.notes.pin.title")}
                   className="text-stone-500 hover:text-amber-300"
                 >
                   {note.pinned ? <PinOff className="size-3" /> : <Pin className="size-3" />}
@@ -164,7 +186,7 @@ function NoteCard({
                 <button
                   type="button"
                   onClick={() => setEditing(true)}
-                  title="Edit"
+                  title={t("campaign.notes.action.edit")}
                   className="text-stone-500 hover:text-stone-300"
                 >
                   <Pencil className="size-3" />
@@ -200,17 +222,16 @@ export function NoteComposer({
   steersStory: boolean;
   refreshNotes: () => Promise<void>;
 }) {
+  const { t } = useI18n();
   const [visibility, setVisibility] = useState<"public" | "private">("private");
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
-  const publicLabel = characterId
-    ? "Party note"
-    : steersStory
-      ? "Party note"
-      : "Suggest party note";
+  const publicLabel = characterId || steersStory
+    ? t("campaign.notes.visibility.party")
+    : t("campaign.notes.visibility.suggest");
 
   async function submit() {
     if (!body.trim() || busy) {
@@ -231,14 +252,14 @@ export function NoteComposer({
       });
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        setError(data.error || "Could not save the note.");
+        setError(campaignApiErrorText(data, t("campaign.notes.error.save"), t));
         return;
       }
       setTitle("");
       setBody("");
       await refreshNotes();
     } catch {
-      setError("Could not reach the server.");
+      setError(t("campaign.notes.error.server"));
     } finally {
       setBusy(false);
     }
@@ -249,7 +270,7 @@ export function NoteComposer({
       <div className="mb-1.5 flex gap-1">
         {(
           [
-            ["private", "Private note"],
+            ["private", t("campaign.notes.visibility.private")],
             ["public", publicLabel],
           ] as Array<["private" | "public", string]>
         ).map(([value, label]) => (
@@ -273,11 +294,11 @@ export function NoteComposer({
           value={title}
           onChange={(event) => setTitle(event.target.value)}
           maxLength={120}
-          placeholder="Title (optional)"
+          placeholder={t("campaign.notes.title.optional")}
           className="mb-1.5 w-full rounded border border-stone-700 bg-stone-900 px-2 py-1 text-xs outline-none focus:border-amber-600"
         />
       ) : null}
-      <DictateField label="Note" onTranscript={(text) => setBody((current) => appendDictation(current, text, 2000))}>
+      <DictateField label={t("campaign.notes.label")} onTranscript={(text) => setBody((current) => appendDictation(current, text, 2000))}>
         <textarea
           value={body}
           onChange={(event) => setBody(event.target.value)}
@@ -285,10 +306,10 @@ export function NoteComposer({
           maxLength={2000}
           placeholder={
             visibility === "private"
-              ? "Only you will see this"
+              ? t("campaign.notes.placeholder.private")
               : steersStory || characterId
-                ? "Visible to the whole party"
-                : "Sent to the party lead for approval"
+                ? t("campaign.notes.placeholder.party")
+                : t("campaign.notes.placeholder.approval")
           }
           className="w-full rounded border border-stone-700 bg-stone-900 px-2 py-1 text-[11px] leading-4 outline-none focus:border-amber-600"
         />
@@ -301,7 +322,7 @@ export function NoteComposer({
         className="mt-1.5 flex w-full items-center justify-center gap-1 rounded border border-stone-700 py-1 text-[11px] text-stone-400 hover:bg-stone-900 disabled:opacity-50"
       >
         {busy ? <Loader2 className="size-3 animate-spin" /> : <StickyNote className="size-3" />}
-        Add note
+        {t("campaign.notes.action.add")}
       </button>
     </div>
   );
@@ -332,8 +353,9 @@ export function PendingNotesList({
   meUserId: string;
   refreshNotes: () => Promise<void>;
 }) {
+  const { t } = useI18n();
   const nameFor = (userId: string) =>
-    members.find((member) => member.userId === userId)?.username ?? "Unknown";
+    members.find((member) => member.userId === userId)?.username ?? t("campaign.notes.author.unknown");
   return (
     <ul className="stagger space-y-1.5">
       {notes.map((note) => (
@@ -341,12 +363,12 @@ export function PendingNotesList({
           key={note.id}
           campaignId={campaignId}
           note={note}
-          authorName={note.authorKind === "dm" ? "The GM" : nameFor(note.authorUserId)}
+          authorName={note.authorKind === "dm" ? t("campaign.notes.author.gm") : nameFor(note.authorUserId)}
           canEdit={note.authorUserId === meUserId}
           canDelete
           canPin={false}
           canApprove
-          deleteLabel="Reject suggestion"
+          deleteLabel={t("campaign.notes.action.reject")}
           refreshNotes={refreshNotes}
         />
       ))}
@@ -369,8 +391,9 @@ export function NotesPanel({
   steersStory: boolean;
   refreshNotes: () => Promise<void>;
 }) {
+  const { t } = useI18n();
   const nameFor = (userId: string) =>
-    members.find((member) => member.userId === userId)?.username ?? "Unknown";
+    members.find((member) => member.userId === userId)?.username ?? t("campaign.notes.author.unknown");
 
   const campaignNotes = notes.filter((note) => note.characterId === null);
   const partyNotes = campaignNotes
@@ -395,7 +418,7 @@ export function NotesPanel({
 
       {leadQueue.length ? (
         <div className="reveal space-y-1.5">
-          <h3 className={cn(section, "text-amber-400")}>Suggestions awaiting you</h3>
+          <h3 className={cn(section, "text-amber-400")}>{t("campaign.notes.section.waiting")}</h3>
           <PendingNotesList
             campaignId={campaignId}
             notes={leadQueue}
@@ -408,19 +431,19 @@ export function NotesPanel({
 
       {mySuggestions.length ? (
         <div className="reveal space-y-1.5">
-          <h3 className={section}>My suggestions (awaiting the lead)</h3>
+          <h3 className={section}>{t("campaign.notes.section.mine")}</h3>
           <ul className="stagger space-y-1.5">
             {mySuggestions.map((note) => (
               <NoteCard
                 key={note.id}
                 campaignId={campaignId}
                 note={note}
-                authorName="You"
+                authorName={t("campaign.notes.author.you")}
                 canEdit
                 canDelete
                 canPin={false}
                 canApprove={false}
-                deleteLabel="Withdraw suggestion"
+                deleteLabel={t("campaign.notes.action.withdraw")}
                 refreshNotes={refreshNotes}
               />
             ))}
@@ -429,7 +452,7 @@ export function NotesPanel({
       ) : null}
 
       <div className="space-y-1.5">
-        <h3 className={section}>Party notes</h3>
+        <h3 className={section}>{t("campaign.notes.section.party")}</h3>
         {partyNotes.length ? (
           <ul className="stagger space-y-1.5">
             {partyNotes.map((note) => (
@@ -442,7 +465,7 @@ export function NotesPanel({
                 canDelete={steersStory || note.authorUserId === meUserId}
                 canPin={steersStory}
                 canApprove={false}
-                deleteLabel="Delete note"
+                deleteLabel={t("campaign.notes.action.delete")}
                 refreshNotes={refreshNotes}
               />
             ))}
@@ -450,14 +473,14 @@ export function NotesPanel({
         ) : (
           <p className="px-1 text-[11px] text-stone-600">
             {steersStory
-              ? "Write key events and facts here; the GM treats them as canon."
-              : "Nothing recorded yet. Suggest a note and the party lead can publish it."}
+              ? t("campaign.notes.empty.party.lead")
+              : t("campaign.notes.empty.party.player")}
           </p>
         )}
       </div>
 
       <div className="space-y-1.5">
-        <h3 className={section}>My private notes</h3>
+        <h3 className={section}>{t("campaign.notes.section.private")}</h3>
         {myPrivate.length ? (
           <ul className="stagger space-y-1.5">
             {myPrivate.map((note) => (
@@ -465,18 +488,18 @@ export function NotesPanel({
                 key={note.id}
                 campaignId={campaignId}
                 note={note}
-                authorName="Only you can see this"
+                authorName={t("campaign.notes.author.onlyYou")}
                 canEdit
                 canDelete
                 canPin={false}
                 canApprove={false}
-                deleteLabel="Delete note"
+                deleteLabel={t("campaign.notes.action.delete")}
                 refreshNotes={refreshNotes}
               />
             ))}
           </ul>
         ) : (
-          <p className="px-1 text-[11px] text-stone-600">No private notes yet.</p>
+          <p className="px-1 text-[11px] text-stone-600">{t("campaign.notes.empty.private")}</p>
         )}
       </div>
     </div>
