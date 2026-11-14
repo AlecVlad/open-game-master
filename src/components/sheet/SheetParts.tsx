@@ -7,6 +7,7 @@ import { GameTerm } from "@/components/ui/GameTerm";
 import { InfoChipList } from "@/components/ui/InfoDialog";
 import { CountPop } from "@/components/ui/Reveal";
 import { cn } from "@/lib/cn";
+import { useT } from "@/lib/i18n/provider";
 import { conditionIconKey } from "@/lib/battlemap/condition-glyphs";
 import { describeConditionDuration } from "@/lib/dm/condition-logic";
 import { backgroundFeatureReference, contentSlug, describeFeature } from "@/lib/help";
@@ -111,6 +112,7 @@ export function AbilityTiles({
   saveProficiencies?: string[];
   explainSave?: (ability: Ability) => string;
 }) {
+  const t = useT();
   return (
     <div className="stagger-up grid grid-cols-3 gap-2 sm:grid-cols-6">
       {ABILITIES.map((ability, index) => {
@@ -121,7 +123,7 @@ export function AbilityTiles({
             className="sheet-ability motion-card"
             data-tier={scoreTier(abilities[ability])}
             style={{ animationDelay: `${index * 45}ms` }}
-            title={ABILITY_NAMES[ability]}
+            title={t(`charSheet.ability.${ability}` as never)}
           >
             <GameIcon icon={{ kind: "glyph", key: `ability-${ability}` }} size="size-9" className="mx-auto" />
             <p className="eyebrow mt-1 text-[10px] text-stone-400">{ability}</p>
@@ -213,13 +215,14 @@ export function HpBar({
 }) {
   const span = Math.max(1, max + temp);
   const width = (value: number) => `${Math.max(0, Math.min(100, (value / span) * 100))}%`;
+  const t = useT();
   return (
-    <div className="sheet-hp" title={`${current}${temp ? ` +${temp} temporary` : ""} of ${max} hit points${note ? `. ${note}` : ""}`}>
+    <div className="sheet-hp" title={t("charSheet.hpBar.title", { current, temporary: temp ? ` +${temp} ${t("charSheet.hp.temporary")}` : "", max, note: note ? `. ${note}` : "" })}>
       <GameIcon icon={{ kind: "glyph", key: "rest-hp" }} size="size-7" />
       <div className="min-w-0 grow">
         <div className="flex items-baseline justify-between gap-2">
           <span className="sheet-vital-label">
-            <GameTerm id="hit_points">Hit points</GameTerm>
+            <GameTerm id="hit_points">{t("charSheet.hp")}</GameTerm>
           </span>
           <span className="font-display text-sm text-amber-50">
             {current}
@@ -261,27 +264,28 @@ export function TrainingLines({
     // the "s" after a possessive's apostrophe ("Alchemist'S Supplies").
     value.replace(/[-_]/g, " ").replace(/(^|\s)(['‘]?)([a-z])/g, (_, before: string, quote: string, letter: string) => `${before}${quote}${letter.toUpperCase()}`);
   const rows: Array<[string, string[]]> = [
-    ["Languages", proficiencies.languages],
-    ["Tools", proficiencies.tools],
-    ["Armor", proficiencies.armor],
-    ["Weapons", proficiencies.weapons],
+    [t("charSheet.training.languages"), proficiencies.languages],
+    [t("charSheet.training.tools"), proficiencies.tools],
+    [t("charSheet.training.armor"), proficiencies.armor],
+    [t("charSheet.training.weapons"), proficiencies.weapons],
   ];
+  const t = useT();
   return (
     <dl className="stagger-up grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs">
       {rows.map(([label, values]) => (
         <div key={label} className="contents">
           <dt className="text-stone-500">{label}</dt>
-          <dd className="text-stone-200">{values.length ? [...new Set(values.map(nice))].join(", ") : <span className="text-stone-600">none</span>}</dd>
+          <dd className="text-stone-200">{values.length ? [...new Set(values.map(nice))].join(", ") : <span className="text-stone-600">{t("charSheet.none")}</span>}</dd>
         </div>
       ))}
       {conditional.length ? (
         <div className="contents">
-          <dt className="text-stone-500">Conditional</dt>
+          <dt className="text-stone-500">{t("charSheet.training.conditional")}</dt>
           <dd className="text-stone-200">
             {conditional.map((entry, at) => (
               <span key={`${entry.by}-${entry.skill}`}>
                 {at ? ", " : ""}
-                {nice(entry.skill)} {entry.while} ({entry.by}){entry.active ? ": holds now" : ": not now"}
+                {nice(entry.skill)} {entry.while} ({entry.by}){entry.active ? t("charSheet.training.conditional.active") : t("charSheet.training.conditional.inactive")}
               </span>
             ))}
           </dd>
@@ -333,11 +337,12 @@ export function EquipmentChips({
   const explicit = wearingIsExplicit(equipment);
   const wornNote = (item: (typeof equipment)[number]) => {
     const idle = explicit ? wornButIdle(item, equipment) : null;
-    if (idle) return `worn, not in effect: ${oneOfKind(idle) ?? "one of its kind"} at a time`;
-    if (item.equipped && item.layered) return "worn beside another, on the GM's say";
+    if (idle) return t("charSheet.gear.wornNotEffective", { item: oneOfKind(idle) ?? t("charSheet.gear.oneOfKind") });
+    if (item.equipped && item.layered) return t("charSheet.gear.wornLayered");
     // A weapon is held, in the words the Hand and the sheet's toggle use.
-    return item.equipped ? (matchWeapon(item) ? "in hand" : "worn") : null;
+    return item.equipped ? (matchWeapon(item) ? t("charSheet.gear.inHand") : t("charSheet.gear.worn")) : null;
   };
+  const t = useT();
   return (
     <InfoChipList
       items={equipment.map((item, index) => ({
@@ -346,7 +351,7 @@ export function EquipmentChips({
         note:
           [
             wornNote(item),
-            item.attuned ? "attuned" : item.attuning ? "attunes at the next rest" : null,
+            item.attuned ? t("charSheet.gear.attuned") : item.attuning ? t("charSheet.gear.attuning") : null,
             extra?.(index) ?? null,
           ]
             .filter(Boolean)
@@ -379,8 +384,8 @@ export function FeatureChips({
       items={features.map((feature) => ({
         name: feature.name,
         icon: { kind: "feature" as const, key: feature.name, family: `class-${classId.toLowerCase()}` },
-        note: feature.source === "story" ? "(story)" : undefined,
-        meta: feature.level ? `Level ${feature.level}` : undefined,
+        note: feature.source === "story" ? t("charSheet.story.tag") : undefined,
+        meta: feature.level ? t("charSheet.level", { level: feature.level }) : undefined,
         text: describeFeature(classId, subclass ?? "", feature.name) ?? undefined,
         reference: backgroundFeatureReference(feature, background, classId, subclass ?? "") ?? undefined,
       }))}
