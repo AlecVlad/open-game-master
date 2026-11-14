@@ -417,4 +417,5 @@ export const ruBuilderExtras: Partial<Record<keyof typeof enBuilderExtras, strin
   "builder.extra.buildMath.working.abilityJoin": "и",
   "builder.extra.buildMath.working.ancestryOwedAmounts": "Осталось распределить повышения характеристик: {amounts}",
   "builder.extra.lineage.choice.abilityAmounts": "Повышения характеристик на выбор: {amounts}",
+  "builder.extra.tableScope.retry": "Повторить",
 };

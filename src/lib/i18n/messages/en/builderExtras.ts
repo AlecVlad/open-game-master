@@ -380,4 +380,5 @@ export const enBuilderExtras = {
   "builder.extra.undo.noun.race": "ancestry",
   "builder.extra.undo.noun.subclass": "subclass",
   "builder.extra.undo.noun.level": "level",
+  "builder.extra.tableScope.retry": "Try again",
 } satisfies Record<string, string>;
