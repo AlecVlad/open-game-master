@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useT } from "@/lib/i18n/provider";
 import { EmptyState } from "@/components/EmptyState";
 import { appConfirm } from "@/components/ui/ConfirmDialog";
 import { cn } from "@/lib/cn";
@@ -121,6 +122,7 @@ export function DmEncounterPrepPanel({
   // The table's characters, for the Deploy dialog's "Not at this fight".
   sheets?: CharacterSheet[];
 }) {
+  const t = useT();
   const [testing, setTesting] = useState<PreparedEncounter | null>(null);
   const test = useTestFight(testFight?.workshopId ?? null);
   const [templates, setTemplates] = useState<PreparedEncounter[]>([]);
@@ -430,7 +432,7 @@ export function DmEncounterPrepPanel({
       const payload = sent.payload;
       if (payload.cued !== undefined) {
         setNote(
-          payload.cued
+          payload.{t("campaign.session.encounterPrep.cuedBadge")}
             ? "Cued. The storyteller runs it, map and plan included, as soon as the scene allows. The players are not told."
             : "Cue taken back.",
         );
@@ -478,7 +480,7 @@ export function DmEncounterPrepPanel({
       <div className="space-y-3">
         <DmWorkbenchPanel campaignId={campaignId} collapsible />
         {testFight ? <OpenTestFightCard workshopId={testFight.workshopId} info={test.info} onEnded={test.reload} /> : null}
-        <Listed loaded={loaded} error={loadError} onRetry={() => void load()} loading="Opening the fights...">
+        <Listed loaded={loaded} error={loadError} onRetry={() => void load()} loading={t("campaign.session.encounterPrep.loading")}>
           <EncounterRows
             encounters={templates}
             maps={maps}
@@ -518,7 +520,7 @@ export function DmEncounterPrepPanel({
             onChange={setDraft}
             maps={maps}
             busy={busy}
-            submitLabel={editing ? "Save" : "Prepare it"}
+            submitLabel={editing ? t("campaign.session.encounterPrep.save") : t("campaign.session.encounterPrep.prepare")}
             onSubmit={() => void save()}
             variant="sheet"
           />
@@ -532,7 +534,7 @@ export function DmEncounterPrepPanel({
     <div className="space-y-3">
       <section>
         <SectionHead
-          title="Prepared encounters"
+          title={t("campaign.session.encounterPrep.title")}
           glyph="system-encounters"
           aside={templates.length ? <span key={templates.length} className="count-pop">{templates.length}</span> : undefined}
         />
@@ -542,7 +544,7 @@ export function DmEncounterPrepPanel({
             {templates.map((template) => {
               // Deploy stays the row's one visible button; the two that were
               // icons keep the names they announced, in the row's menu.
-              const deployLabel = cue ? (template.cued ? "Take back the cue" : "Cue the storyteller") : "Deploy";
+              const deployLabel = cue ? (template.cued ? t("campaign.session.encounterPrep.takeBackCue") : t("campaign.session.encounterPrep.cueStoryteller")) : t("campaign.session.encounterPrep.deploy");
               const items: ContextMenuItem[] = [
                 {
                   id: "deploy",
@@ -551,8 +553,8 @@ export function DmEncounterPrepPanel({
                   disabled: busy,
                   onSelect: () => pressDeploy(template),
                 },
-                { id: "duplicate", label: `Duplicate ${template.name}`, glyph: "ui-duplicate", disabled: busy, onSelect: () => void duplicate(template) },
-                { id: "delete", label: `Delete ${template.name}`, glyph: "ui-delete", tone: "danger", separated: true, onSelect: () => void remove(template) },
+                { id: "duplicate", label: t("campaign.session.encounterPrep.duplicateNamed", { name: template.name }), glyph: "ui-duplicate", disabled: busy, onSelect: () => void duplicate(template) },
+                { id: "delete", label: t("campaign.session.encounterPrep.deleteNamed", { name: template.name }), glyph: "ui-delete", tone: "danger", separated: true, onSelect: () => void remove(template) },
               ];
               return (
                 <ContextMenu key={template.id} as="li" items={items} label={template.name} className={panelRow}>
@@ -569,7 +571,7 @@ export function DmEncounterPrepPanel({
                       </p>
                       <p className="truncate text-xs text-stone-400">
                         {rosterSummary(template.enemies, template.readout.names)}
-                        {template.battlefield ? ` on ${template.battlefield}` : ""}
+                        {template.battlefield ? ` ${t("campaign.session.encounterPrep.mapOn", { map: template.battlefield })}` : ""}
                       </p>
                       <DifficultyLine readout={template.readout} cue={cue} />
                       {template.notes ? (
@@ -586,7 +588,7 @@ export function DmEncounterPrepPanel({
                         onClick={() => pressDeploy(template)}
                         className={cn(cue && template.cued ? ui.btnSecondary : ui.btnPrimary, "h-9 px-3 text-[11px]")}
                       >
-                        {cue ? (template.cued ? "Take back" : "Cue") : "Deploy"}
+                        {cue ? (template.cued ? t("campaign.session.encounterPrep.takeBack") : t("campaign.session.encounterPrep.cue")) : t("campaign.session.encounterPrep.deploy")}
                       </button>
                       <RowMenu items={items} label={template.name} />
                     </div>
@@ -599,8 +601,8 @@ export function DmEncounterPrepPanel({
           <EmptyState
             size="sm"
             art="map"
-            title="Nothing prepared. Write a roster below and it is one button at the table."
-            hint="Pick monsters from the Bestiary or the rulebook and a map to fight on; the difficulty is measured against the party."
+            title={t("campaign.session.encounterPrep.emptyTitle")}
+            hint={t("campaign.session.encounterPrep.emptyHint")}
           />
         )}
         </Listed>
@@ -612,7 +614,7 @@ export function DmEncounterPrepPanel({
         onChange={setDraft}
         maps={maps}
         busy={busy}
-        submitLabel="Prepare it"
+        submitLabel={t("campaign.session.encounterPrep.prepare")}
         onSubmit={() => void save()}
       />
 
