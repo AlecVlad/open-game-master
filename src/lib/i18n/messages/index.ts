@@ -367,6 +367,11 @@ export const MESSAGE_ALIASES = {
   "builder.bg.pick": "builder.race.repeat.placeholder",
   "builder.race.weapon.placeholder": "builder.feat.choice.weapon.placeholder",
   "builder.race.tool.placeholder": "builder.feat.choice.tool.placeholder",
+  "builder.screen.action.close": "dialog.close",
+  "builder.screen.hp.help.aria": "builder.screen.hp.title",
+  "builder.screen.levelup.subclass.label": "builder.screen.levelup.subclass.title",
+  "builder.call.subclass": "builder.screen.levelup.subclass.title",
+  "builder.call.spec": "builder.screen.levelup.subclass.specialization",
 } as const satisfies Record<string, keyof typeof en>;
 export type MessageKey = keyof typeof en | keyof typeof MESSAGE_ALIASES;
 

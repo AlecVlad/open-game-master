@@ -4,7 +4,6 @@ import type { enBuilderScreens } from "../en/builderScreens.ts";
 export const ruBuilderScreens: Partial<Record<keyof typeof enBuilderScreens, string>> & Record<string, string> = {
   "builder.screen.method.threeWays": "Три способа",
   "builder.screen.method.chosen": "выбрано",
-  "builder.screen.action.close": "Закрыть",
   "builder.screen.hp.title": "Как рассчитываются ваши хиты",
   "builder.screen.hp.intro": "На первом уровне вы получаете максимальное значение кости хитов, затем прибавляете модификатор Телосложения.",
   "builder.screen.hp.die.max": "максимальное значение кости ({face})",
@@ -29,7 +28,6 @@ export const ruBuilderScreens: Partial<Record<keyof typeof enBuilderScreens, str
   "builder.screen.hp.formula.full": "полное здоровье",
   "builder.screen.hp.includes.lineage": "Включает +{bonus} за уровень от происхождения и черт.",
   "builder.screen.hp.includes.feature": "Включает +{bonus} от «Драконьей стойкости».",
-  "builder.screen.hp.help.aria": "Как рассчитываются ваши хиты",
   "builder.screen.hp.help.button": "Как рассчитываются мои хиты?",
 
   "builder.screen.levelup.hero": "Ваш герой",
@@ -48,7 +46,6 @@ export const ruBuilderScreens: Partial<Record<keyof typeof enBuilderScreens, str
   "builder.screen.levelup.action.choose": "Выбрать за меня",
   "builder.screen.levelup.action.choosing": "Подбираем...",
   "builder.screen.levelup.subclass.title": "Подкласс",
-  "builder.screen.levelup.subclass.label": "Подкласс",
   "builder.screen.levelup.subclass.none": "Пока не выбран",
   "builder.screen.levelup.subclass.specialization": "Специализация внутри вашего класса.",
   "builder.screen.levelup.subclass.pending": "Осталось выбрать.",

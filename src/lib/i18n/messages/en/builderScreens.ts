@@ -2,7 +2,6 @@
 export const enBuilderScreens = {
   "builder.screen.method.threeWays": "Three ways",
   "builder.screen.method.chosen": "chosen",
-  "builder.screen.action.close": "Close",
   "builder.screen.hp.title": "How your health is worked out",
   "builder.screen.hp.intro": "At first level you take the best your hit die can give, then add your Constitution modifier.",
   "builder.screen.hp.die.max": "the die's highest face ({face})",
@@ -25,7 +24,6 @@ export const enBuilderScreens = {
   "builder.screen.hp.formula.full": "full health",
   "builder.screen.hp.includes.lineage": "Includes +{bonus} per level from your lineage and feats.",
   "builder.screen.hp.includes.feature": "Includes +{bonus} from Draconic Resilience.",
-  "builder.screen.hp.help.aria": "How your health is worked out",
   "builder.screen.hp.help.button": "How is my health worked out?",
 
   "builder.screen.levelup.hero": "Your hero",
@@ -42,7 +40,6 @@ export const enBuilderScreens = {
   "builder.screen.levelup.action.choose": "Choose for me",
   "builder.screen.levelup.action.choosing": "Choosing...",
   "builder.screen.levelup.subclass.title": "Subclass",
-  "builder.screen.levelup.subclass.label": "Subclass",
   "builder.screen.levelup.subclass.none": "None yet",
   "builder.screen.levelup.subclass.specialization": "A specialization within your class.",
   "builder.screen.levelup.subclass.pending": "Still to choose.",
