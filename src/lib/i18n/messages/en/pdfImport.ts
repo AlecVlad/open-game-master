@@ -143,4 +143,5 @@ export const enPdfImport = {
   "pdfImport.model.note.unreadable": "The model could not read the book ({reason}). The import kept what the book’s layout gives.",
   "pdfImport.model.note.partial": "The model could not read {failed} of the book’s {total} pieces ({reason}); what they hold is still in the GM’s lore.",
   "pdfImport.model.note.partialNoReason": "The model could not read {failed} of the book’s {total} pieces; what they hold is still in the GM’s lore.",
+  "pdfImport.review.selectedCount": "{selected} of {total}",
 };
