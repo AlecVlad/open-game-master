@@ -1,6 +1,23 @@
-// English, the source language: the sign-in / registration form.
-export const enAuthForm = {
-  "auth.oauth.discord": "Discord sign-in failed. Try again.",
+// English, the source language: account access and authentication.
+export const enAuth = {
+"door.forced.title": "Set a new password",
+  "door.forced.body": "An admin reset your password. Enter the temporary password you were given and pick a new one.",
+  "door.forced.submit": "Set new password",
+  "door.w.high-fantasy": "High fantasy",
+  "door.w.dark-fantasy": "Dark fantasy",
+  "door.w.horror": "Horror",
+  "door.w.mystery": "Mystery",
+  "door.w.steampunk": "Steampunk",
+  "door.w.cyberpunk": "Cyberpunk",
+  "door.w.post-apocalyptic": "Post-apocalyptic",
+  "door.behind": "Behind the door tonight",
+  "door.sevenKinds": "One of seven kinds of world your table can play.",
+  "door.tagline": "Gather your party. An AI Game Master runs the table; the dice are honest and the story is yours.",
+  "door.howto": "How to play",
+  "door.licenses": "Licenses",
+  "door.privacy": "Privacy",
+  "door.terms": "Terms",
+"auth.oauth.discord": "Discord sign-in failed. Try again.",
   "auth.oauth.signups_disabled": "Signups are disabled on this server.",
   "auth.oauth.invite_required": "This server needs an invite code to create an account.",
   "auth.oauth.invite_invalid": "That invite code is not valid (or has been used up).",
@@ -41,4 +58,10 @@ export const enAuthForm = {
   "auth.switch.create": "Create an account",
   "auth.switch.login": "Log in",
   "auth.closed": "This server is not accepting new accounts.",
+"password.mismatch": "New passwords don't match.",
+  "password.err": "Could not change the password.",
+  "password.current": "Current password",
+  "password.new": "New password",
+  "password.confirm": "Confirm new password",
+  "password.submit": "Change password",
 } satisfies Record<string, string>;
