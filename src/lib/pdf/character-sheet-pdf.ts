@@ -615,8 +615,8 @@ export async function buildCharacterSheetPdf(
   let bold: PDFFont;
   if (options.fontBytes && options.boldFontBytes) {
     doc.registerFontkit(fontkit);
-    font = await doc.embedFont(options.fontBytes, { subset: true });
-    bold = await doc.embedFont(options.boldFontBytes, { subset: true });
+    font = await doc.embedFont(options.fontBytes);
+    bold = await doc.embedFont(options.boldFontBytes);
   } else if (!options.fontBytes && !options.boldFontBytes) {
     // Retain a standard-font fallback for non-browser callers that do not
     // pass the bundled fonts. Browser downloads always provide Unicode fonts.
