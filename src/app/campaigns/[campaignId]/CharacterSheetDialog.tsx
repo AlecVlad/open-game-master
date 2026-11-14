@@ -442,15 +442,9 @@ export function CharacterSheetDialog({
                     ) : null}
                   </div>
                   <p className="text-[11px] leading-snug text-stone-500">
-                    Casting a spell of level I or higher uses up one slot of that level (or a higher
-                    one, to cast it stronger); cantrips never use one. Filled marks are slots still
-                    available, empty ones are spent. They all come back after a long rest
-                    {sheet.class === "warlock" || sheet.spellcasting.pact ? " (a warlock's pact slots after a short rest too)" : ""}.
-                    {corrects
-                      ? " The GM marks them as spells are cast; the buttons correct the count."
-                      : mine
-                        ? " The GM marks them as you cast; the button marks one the count missed."
-                        : ""}
+                    {t("charSheet.spellSlots.explanation")}
+                    {sheet.class === "warlock" || sheet.spellcasting.pact ? ` ${t("charSheet.spellSlots.warlockRest")}` : ""}
+                    {corrects ? ` ${t("charSheet.spellSlots.dmCorrection")}` : mine ? ` ${t("charSheet.spellSlots.playerCorrection")}` : ""}
                   </p>
                 </div>
               ) : null}
