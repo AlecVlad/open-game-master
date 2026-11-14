@@ -32,7 +32,6 @@ export const ruInvite: Partial<Record<keyof typeof enInvite, string>> = {
   "invite.codeHeld.newCode": "Получить новый код",
   "invite.error.copy": "Не удалось скопировать. Выделите текст и скопируйте его вручную.",
   "invite.error.regenerate": "Не удалось создать новый код приглашения.",
-  "invite.error.server": "Не удалось связаться с сервером.",
   "invite.myCampaign": "моя кампания",
   "invite.share.title": "Присоединиться: {title}",
   "invite.share.textNamed": "Присоединяйтесь к кампании «{title}» в Open Game Master",

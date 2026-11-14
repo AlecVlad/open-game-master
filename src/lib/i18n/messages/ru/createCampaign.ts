@@ -29,7 +29,6 @@ export const ruCreateCampaign: Partial<Record<keyof typeof enCreateCampaign, str
   "createCampaign.dialog.error.adminOnly": "На этом сервере создавать кампании и мастерские может только администратор. Попросите у него код комнаты, чтобы присоединиться к игре.",
   "createCampaign.dialog.error.passwordChange": "Перед созданием кампании задайте новый пароль.",
   "createCampaign.dialog.error.invalidSettings": "Параметры кампании указаны неверно. Проверьте поля и попробуйте ещё раз.",
-  "createCampaign.dialog.error.network": "Не удалось связаться с сервером.",
   "createCampaign.dialog.error.import": "Не удалось добавить подготовленный материал «{title}»: {error}",
   "createCampaign.dialog.prep.chosen": "Выбранный подготовленный материал",
   "createCampaign.dialog.draft.solo": "одиночная игра",

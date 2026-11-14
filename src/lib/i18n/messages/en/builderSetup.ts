@@ -23,7 +23,6 @@ export const enBuilderSetup = {
   "builder.bg.default": "What your character did before adventuring.",
   "builder.bg.feature": "Feature: {name}",
   "builder.bg.langs.when": " once a lineage is chosen",
-  "builder.bg.skill": "Skill",
   "builder.bg.pick": "Choose a skill...",
   "builder.bg.aria": "Background skill {n}",
   "builder.bg.langs.one": "This background adds one more language to your bonus languages, picked below{when}.",

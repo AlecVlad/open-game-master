@@ -198,7 +198,6 @@ export const enPlugin = {
   "workshop.plugin.publish.reportReadFailed": "What the pack leaves out could not be read.",
   "workshop.plugin.publish.reportServerFailed": "Could not reach the server to read what the pack leaves out.",
   "workshop.plugin.publish.buildFailed": "That could not be built.",
-  "workshop.plugin.publish.serverFailed": "Could not reach the server.",
   "workshop.plugin.publish.ready": "Ready to export",
   "workshop.plugin.publish.problems.one": "One thing to fix first",
   "workshop.plugin.publish.problems.other": "{count} things to fix first",

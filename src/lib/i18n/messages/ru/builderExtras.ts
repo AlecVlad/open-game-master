@@ -38,13 +38,6 @@ export const ruBuilderExtras: Partial<Record<keyof typeof enBuilderExtras, strin
   "builder.extra.grid.selected": "Выбрано",
   "builder.extra.grid.showFewer": "Показать меньше",
   "builder.extra.grid.showAll": "Показать все: {total} (ещё {hidden})",
-
-  "builder.extra.ability.str": "Сила",
-  "builder.extra.ability.dex": "Ловкость",
-  "builder.extra.ability.con": "Телосложение",
-  "builder.extra.ability.int": "Интеллект",
-  "builder.extra.ability.wis": "Мудрость",
-  "builder.extra.ability.cha": "Харизма",
   "builder.extra.ability.method.standard": "Стандартный набор",
   "builder.extra.ability.method.pointbuy": "Покупка очков",
   "builder.extra.ability.method.roll": "Бросок 4к6",

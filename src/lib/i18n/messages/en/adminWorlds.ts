@@ -1,7 +1,6 @@
 // English, the source language: the Admin > Campaign plugins (world packs) panel.
 export const enAdminWorlds = {
   "admin.worlds.err.registrySave": "Could not save the registry URL.",
-  "admin.worlds.err.network": "Could not reach the server.",
   "admin.worlds.err.install": "Could not install that world.",
   "admin.worlds.err.remove": "Could not remove that world.",
   "admin.worlds.err.big": "That file is larger than 16MB, so it is not a world pack.",

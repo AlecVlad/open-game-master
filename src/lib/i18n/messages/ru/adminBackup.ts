@@ -7,7 +7,6 @@ export const ruAdminBackup: Partial<Record<keyof typeof enAdminBackup, string>> 
   "admin.backup.unit.mb": "МБ",
   "admin.backup.unit.kb": "КБ",
   "admin.backup.err.create": "Не удалось создать резервную копию.",
-  "admin.backup.err.reach": "Не удалось связаться с сервером.",
   "admin.backup.err.verify": "Этот архив не прошёл проверку.",
   "admin.backup.err.restore": "Восстановление не удалось.",
   "admin.backup.restore.confirm": "Восстановить {name}? Всё, что сейчас есть на этом сервере (кампании, учётные записи, загрузки и настройки), будет заменено содержимым этого архива. Как только файлы окажутся на месте, сервер перестанет принимать игру; перезапустите его, чтобы загрузить восстановленный мир.",

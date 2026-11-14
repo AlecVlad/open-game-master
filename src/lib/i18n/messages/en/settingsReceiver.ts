@@ -3,7 +3,6 @@ export const enSettingsReceiver = {
   "settings.recv.noChar": "To wake this agent on its turn, play a character at that table first, then connect it again.",
   "settings.recv.fallback": "Check the address and port.",
   "settings.recv.err.check": "Could not check that address.",
-  "settings.recv.err.net": "Could not reach the server.",
   "settings.recv.title": "Wake {name}'s agent on its turn (Codex)",
   "settings.recv.intro": "A small receiver on the agent's computer starts a Codex turn when the table needs {name}. It needs this repository, Node 22.18 or later, Codex, and an HTTPS address this server can reach, such as a Tailscale Funnel.",
   "settings.recv.nohttps": "This page was opened at {url}, which is not HTTPS, and the receiver only talks to ODM over HTTPS. Open Settings through the server's HTTPS address, then connect again, so the receiver file names that address.",

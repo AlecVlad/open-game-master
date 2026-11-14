@@ -14,7 +14,6 @@ export const enAdminAddonCard = {
   "admin.addon.st.broken": "Broken",
   "admin.addon.st.unfit": "Cannot run here",
   "admin.addon.st.unsupported": "Not available",
-  "admin.addon.err.network": "Could not reach the server.",
   "admin.addon.err.generic": "That did not work.",
   "admin.addon.err.notStarted": "It did not start.",
   "admin.addon.err.setupNotStarted": "Its setup did not start.",

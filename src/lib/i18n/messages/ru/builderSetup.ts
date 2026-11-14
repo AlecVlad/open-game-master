@@ -26,7 +26,6 @@ export const ruBuilderSetup: Partial<Record<keyof typeof enBuilderSetup, string>
   "builder.bg.default": "Чем ваш персонаж занимался до приключений.",
   "builder.bg.feature": "Особенность: {name}",
   "builder.bg.langs.when": " после выбора происхождения",
-  "builder.bg.skill": "Навык",
   "builder.bg.pick": "Выберите навык...",
   "builder.bg.aria": "Навык предыстории {n}",
   "builder.bg.langs.one": "Эта предыстория добавляет ещё один язык к вашим дополнительным языкам, выбираемым ниже{when}.",

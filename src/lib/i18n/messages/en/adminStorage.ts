@@ -5,7 +5,6 @@ export const enAdminStorage = {
   "admin.storage.unit.kb": "KB",
   "admin.storage.andMore": "and {count} more",
   "admin.storage.err.action": "The server could not do that.",
-  "admin.storage.err.reach": "Could not reach the server.",
   "admin.storage.done.compacted": "Compacted: {before} to {after}.",
   "admin.storage.done.removed": "Removed {files}, {size}.",
   "admin.storage.done.tidied": "Tidied.",

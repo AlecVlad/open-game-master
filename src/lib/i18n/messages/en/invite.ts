@@ -30,7 +30,6 @@ export const enInvite = {
   "invite.codeHeld.newCode": "Get a new code",
   "invite.error.copy": "Copying failed. Select the text and copy it by hand.",
   "invite.error.regenerate": "Could not regenerate the invite code.",
-  "invite.error.server": "Could not reach the server.",
   "invite.myCampaign": "my campaign",
   "invite.share.title": "Join {title}",
   "invite.share.textNamed": "Join {title} on Open Game Master",

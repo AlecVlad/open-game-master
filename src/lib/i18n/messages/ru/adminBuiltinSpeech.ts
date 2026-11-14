@@ -8,7 +8,6 @@ export const ruAdminBuiltinSpeech: Partial<Record<keyof typeof enAdminBuiltinSpe
   "admin.builtinSpeech.active.openai": "OpenAI по ключу этого сервера",
   "admin.builtinSpeech.active.none": "пока ничего, поэтому кнопки микрофона скрыты (приложение для Android использует собственный распознаватель телефона)",
   "admin.builtinSpeech.err.read": "Не удалось прочитать состояние движка речи.",
-  "admin.builtinSpeech.err.network": "Не удалось связаться с сервером.",
   "admin.builtinSpeech.title": "Встроенное распознавание речи",
   "admin.builtinSpeech.intro": "Запускает Whisper внутри этого сервера на процессоре, поэтому диктовка и «нажми и говори» работают без отдельной службы речи. Один раз скачивает {mb} МБ. Служба Whisper, если она отвечает, по-прежнему в приоритете.",
   "admin.builtinSpeech.installed": "Установлено",

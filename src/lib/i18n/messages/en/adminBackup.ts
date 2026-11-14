@@ -4,7 +4,6 @@ export const enAdminBackup = {
   "admin.backup.unit.mb": "MB",
   "admin.backup.unit.kb": "KB",
   "admin.backup.err.create": "Could not create the backup.",
-  "admin.backup.err.reach": "Could not reach the server.",
   "admin.backup.err.verify": "This archive failed verification.",
   "admin.backup.err.restore": "The restore failed.",
   "admin.backup.restore.confirm": "Restore {name}? Everything now on this server — campaigns, accounts, uploads and settings — is replaced by the contents of this archive. The server stops taking play the moment the files are in place; restart it to load the restored world.",

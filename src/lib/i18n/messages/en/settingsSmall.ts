@@ -15,7 +15,6 @@ export const enSettingsSmall = {
   "settings.dk.heading": "Dictation key",
   "settings.dk.intro": "Kept on this device. A key you hold to speak into the table's message box instead of holding the mic. Nothing is sent until you press Send.",
   "settings.pl.err": "Could not make a poll link.",
-  "settings.pl.network": "Could not reach the server.",
   "settings.pl.title": "Or: a poll link, for an agent nothing can send requests to",
   "settings.pl.body1": "If {name}'s agent cannot take incoming requests (a hosted assistant whose hooks can only check a URL), give its hook this link to check every minute or so. It answers whether {name} has something to do now. Wake the agent when ",
   "settings.pl.body2": " is true and ",

@@ -27,8 +27,6 @@ export const ruBuilderAncestry: Partial<Record<keyof typeof enBuilderAncestry, s
   "builder.anc.f.size": "Размер",
   "builder.anc.f.book": "Книга",
   "builder.anc.core": "Основные правила",
-  "builder.anc.ab.str": "Сила",
-  "builder.anc.ab.dex": "Ловкость",
   "builder.anc.ab.con": "Телосложение",
   "builder.anc.ab.int": "Интеллект",
   "builder.anc.ab.wis": "Мудрость",

@@ -1,8 +1,6 @@
 // English, the source language: the hero ready page.
 export const enCharReady = {
   "charReady.err.save": "Could not save that. Try again.",
-  "charReady.notfound": "Character not found.",
-  "charReady.back": "Back to your library",
   "charReady.alt": "Portrait of {name}",
   "charReady.alt.ph": "{name}, placeholder portrait",
   "charReady.ready": "{name} is ready",

@@ -27,7 +27,6 @@ export const enCreateCampaign = {
   "createCampaign.dialog.error.adminOnly": "On this server an administrator starts campaigns and workshops; ask them for a room code to join one.",
   "createCampaign.dialog.error.passwordChange": "Set a new password before creating a campaign.",
   "createCampaign.dialog.error.invalidSettings": "The campaign settings are invalid. Check the fields and try again.",
-  "createCampaign.dialog.error.network": "Could not reach the server.",
   "createCampaign.dialog.error.import": "{title} did not come in: {error}",
   "createCampaign.dialog.prep.chosen": "The prep you chose",
   "createCampaign.dialog.draft.solo": "solo",

@@ -3,14 +3,9 @@
 import type { enCharEdit } from "../en/charEdit.ts";
 
 export const ruCharEdit: Partial<Record<keyof typeof enCharEdit, string>> & Record<string, string> = {
-  "charEdit.err.save": "Не удалось сохранить персонажа.",
-  "charEdit.err.net": "Не удалось связаться с сервером.",
   "charEdit.confirm": "Удалить {name}? {source} остаётся как есть.",
   "charEdit.original": "Оригинал",
   "charEdit.original.lc": "оригинал",
-  "charEdit.err.delete": "Персонаж {name} не удалён. Проверьте соединение и попробуйте ещё раз.",
-  "charEdit.notfound": "Персонаж не найден.",
-  "charEdit.back": "Назад в библиотеку",
   "charEdit.nosave": "Назад без сохранения",
   "charEdit.title.level": "{name} достигает {level} уровня",
   "charEdit.title.edit": "Изменение: {name}",

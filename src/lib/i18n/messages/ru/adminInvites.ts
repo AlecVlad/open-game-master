@@ -4,7 +4,6 @@ import type { enAdminInvites } from "../en/adminInvites.ts";
 
 export const ruAdminInvites: Partial<Record<keyof typeof enAdminInvites, string>> & Record<string, string> = {
   "admin.invites.err.create": "Не удалось создать приглашение.",
-  "admin.invites.err.network": "Не удалось связаться с сервером.",
   "admin.invites.revoke.confirm": "Отозвать приглашение {code}? Те, у кого оно осталось, не смогут по нему зарегистрироваться.",
   "admin.invites.revoke.title": "Отозвать это приглашение?",
   "admin.invites.revoke.action": "Отозвать",

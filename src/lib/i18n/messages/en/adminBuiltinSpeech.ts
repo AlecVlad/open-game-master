@@ -5,7 +5,6 @@ export const enAdminBuiltinSpeech = {
   "admin.builtinSpeech.active.openai": "OpenAI, on this server's key",
   "admin.builtinSpeech.active.none": "nothing yet, so the mic buttons are hidden (the Android app uses the phone's own recognizer)",
   "admin.builtinSpeech.err.read": "Could not read the speech engine's state.",
-  "admin.builtinSpeech.err.network": "Could not reach the server.",
   "admin.builtinSpeech.title": "Built-in speech recognition",
   "admin.builtinSpeech.intro": "Runs Whisper inside this server on the CPU, so dictation and push-to-talk work without a separate speech service. Downloads {mb} MB once. A Whisper service, when one answers, still comes first.",
   "admin.builtinSpeech.installed": "Installed",

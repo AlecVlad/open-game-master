@@ -4,8 +4,6 @@ import type { enCharReady } from "../en/charReady.ts";
 
 export const ruCharReady: Partial<Record<keyof typeof enCharReady, string>> & Record<string, string> = {
   "charReady.err.save": "Не удалось сохранить. Попробуйте ещё раз.",
-  "charReady.notfound": "Персонаж не найден.",
-  "charReady.back": "Назад в библиотеку",
   "charReady.alt": "Портрет персонажа {name}",
   "charReady.alt.ph": "{name}, портрет-заглушка",
   "charReady.ready": "{name} готов к игре",

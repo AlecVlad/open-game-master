@@ -36,13 +36,6 @@ export const enBuilderExtras = {
   "builder.extra.grid.selected": "Selected",
   "builder.extra.grid.showFewer": "Show fewer",
   "builder.extra.grid.showAll": "Show all {total} ({hidden} more)",
-
-  "builder.extra.ability.str": "Strength",
-  "builder.extra.ability.dex": "Dexterity",
-  "builder.extra.ability.con": "Constitution",
-  "builder.extra.ability.int": "Intelligence",
-  "builder.extra.ability.wis": "Wisdom",
-  "builder.extra.ability.cha": "Charisma",
   "builder.extra.ability.method.standard": "Standard array",
   "builder.extra.ability.method.pointbuy": "Point buy",
   "builder.extra.ability.method.roll": "Roll 4d6",

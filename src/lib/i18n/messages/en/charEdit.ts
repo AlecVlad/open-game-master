@@ -1,13 +1,8 @@
 // English, the source language: the library character edit page.
 export const enCharEdit = {
-  "charEdit.err.save": "Could not save the character.",
-  "charEdit.err.net": "Could not reach the server.",
   "charEdit.confirm": "Delete {name}? {source} stays as it is.",
   "charEdit.original": "The original",
   "charEdit.original.lc": "the original",
-  "charEdit.err.delete": "{name} was not deleted. Check the connection and try again.",
-  "charEdit.notfound": "Character not found.",
-  "charEdit.back": "Back to your library",
   "charEdit.nosave": "Back without saving",
   "charEdit.title.level": "{name} reaches level {level}",
   "charEdit.title.edit": "Edit {name}",

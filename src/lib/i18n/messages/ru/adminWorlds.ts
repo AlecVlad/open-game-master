@@ -4,7 +4,6 @@ import type { enAdminWorlds } from "../en/adminWorlds.ts";
 
 export const ruAdminWorlds: Partial<Record<keyof typeof enAdminWorlds, string>> & Record<string, string> = {
   "admin.worlds.err.registrySave": "Не удалось сохранить адрес реестра.",
-  "admin.worlds.err.network": "Не удалось связаться с сервером.",
   "admin.worlds.err.install": "Не удалось установить этот мир.",
   "admin.worlds.err.remove": "Не удалось удалить этот мир.",
   "admin.worlds.err.big": "Этот файл больше 16 МБ, так что это не мировой набор.",

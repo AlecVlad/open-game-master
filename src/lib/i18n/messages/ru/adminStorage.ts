@@ -8,7 +8,6 @@ export const ruAdminStorage: Partial<Record<keyof typeof enAdminStorage, string>
   "admin.storage.unit.kb": "КБ",
   "admin.storage.andMore": "и ещё {count}",
   "admin.storage.err.action": "Серверу не удалось это сделать.",
-  "admin.storage.err.reach": "Не удалось связаться с сервером.",
   "admin.storage.done.compacted": "Сжато: с {before} до {after}.",
   "admin.storage.done.removed": "Удалено: {files}, {size}.",
   "admin.storage.done.tidied": "Уборка выполнена.",

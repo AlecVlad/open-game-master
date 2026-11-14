@@ -2,7 +2,6 @@
 export const enCharactersPage = {
   "characters.err.queue": "The portrait could not be queued.",
   "characters.err.portrait.noImageModel": "This server has no image model to paint with. Upload a portrait instead.",
-  "characters.err.net": "Could not reach the server.",
   "characters.err.portrait": "The portrait was not saved. Check the connection and try again.",
   "characters.err.clone": "No copy was made. Check the connection and try again.",
   "characters.err.notFound": "That character could not be found.",

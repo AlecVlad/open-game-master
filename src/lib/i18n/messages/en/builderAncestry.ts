@@ -24,8 +24,6 @@ export const enBuilderAncestry = {
   "builder.anc.f.size": "Size",
   "builder.anc.f.book": "Book",
   "builder.anc.core": "Core rules",
-  "builder.anc.ab.str": "Strength",
-  "builder.anc.ab.dex": "Dexterity",
   "builder.anc.ab.con": "Constitution",
   "builder.anc.ab.int": "Intelligence",
   "builder.anc.ab.wis": "Wisdom",

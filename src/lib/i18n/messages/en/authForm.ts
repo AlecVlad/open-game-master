@@ -11,7 +11,6 @@ export const enAuthForm = {
   "auth.err.taken": "That name is already taken at this table. Pick another, or ask the host to remove the old seat.",
   "auth.err.generic": "Something went wrong.",
   "auth.err.notLoggedIn": "You are not logged in.",
-  "auth.err.network": "Could not reach the server.",
   "auth.reset.body": "An admin reset your password. Pick a new one to continue.",
   "auth.reset.submit": "Set new password",
   "auth.device.note": "This world runs inside the Open Game Master app on this device, and the app makes its first account itself. Open the app and choose Enter my world; there is no code to type.",

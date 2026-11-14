@@ -12,7 +12,6 @@ export const ruAdminAddons: Partial<Record<keyof typeof enAdminAddons, string>> 
   "admin.addons.kind.board": "Вид поля",
   "admin.addons.err.read": "Не удалось прочитать аддоны этого сервера.",
   "admin.addons.err.generic": "Не получилось.",
-  "admin.addons.err.network": "Не удалось связаться с сервером.",
   "admin.addons.err.nothingReplaced": "Ничего не заменено.",
   "admin.addons.err.tooBig": "Архив аддона, устанавливаемый из файла, может весить до 64 МБ.",
   "admin.addons.err.archive": "Не удалось установить этот архив.",

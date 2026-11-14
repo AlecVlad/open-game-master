@@ -1,7 +1,6 @@
 // English, the source language: invite codes in the admin Accounts section.
 export const enAdminInvites = {
   "admin.invites.err.create": "Could not create the invite.",
-  "admin.invites.err.network": "Could not reach the server.",
   "admin.invites.revoke.confirm": "Revoke the invite {code}? Anyone still holding it will not be able to register with it.",
   "admin.invites.revoke.title": "Revoke this invite?",
   "admin.invites.revoke.action": "Revoke",

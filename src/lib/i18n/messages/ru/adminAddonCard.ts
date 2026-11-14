@@ -17,7 +17,6 @@ export const ruAdminAddonCard: Partial<Record<keyof typeof enAdminAddonCard, str
   "admin.addon.st.broken": "Сломан",
   "admin.addon.st.unfit": "Здесь не запустится",
   "admin.addon.st.unsupported": "Недоступен",
-  "admin.addon.err.network": "Не удалось связаться с сервером.",
   "admin.addon.err.generic": "Не получилось.",
   "admin.addon.err.notStarted": "Не запустился.",
   "admin.addon.err.setupNotStarted": "Подготовка не запустилась.",

@@ -200,7 +200,6 @@ export const ruPlugin: Partial<Record<keyof typeof enPlugin, string>> = {
   "workshop.plugin.publish.reportReadFailed": "Не удалось прочитать список материалов, которые не войдут в пакет.",
   "workshop.plugin.publish.reportServerFailed": "Не удалось связаться с сервером и получить список материалов, которые не войдут в пакет.",
   "workshop.plugin.publish.buildFailed": "Не удалось собрать пакет.",
-  "workshop.plugin.publish.serverFailed": "Не удалось связаться с сервером.",
   "workshop.plugin.publish.ready": "Пакет готов к экспорту",
   "workshop.plugin.publish.problems.one": "Сначала исправьте одну проблему",
   "workshop.plugin.publish.problems.other": "Сначала исправьте проблем: {count}",

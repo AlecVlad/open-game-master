@@ -9,7 +9,6 @@ export const enAdminAddons = {
   "admin.addons.kind.board": "Board view",
   "admin.addons.err.read": "Could not read this server's addons.",
   "admin.addons.err.generic": "That did not work.",
-  "admin.addons.err.network": "Could not reach the server.",
   "admin.addons.err.nothingReplaced": "Nothing was replaced.",
   "admin.addons.err.tooBig": "An addon archive installed from a file may be up to 64 MB.",
   "admin.addons.err.archive": "Could not install that archive.",
