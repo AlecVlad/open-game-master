@@ -478,6 +478,10 @@ export const MESSAGE_ALIASES = {
   "pageSkeleton.loading": "common.status.loading",
   "commandPalette.chip": "commandPalette.title",
   "diceLook.summary.presetDice": "diceLook.preset.aria",
+  "home.menu.starter": "home.starter.title",
+  "home.menu.workshop": "home.bench.aria",
+  "home.hero.between": "home.slot.between",
+  "home.tables.aria": "home.tables.plural",
 } as const satisfies Record<string, keyof typeof en>;
 export type MessageKey = keyof typeof en | keyof typeof MESSAGE_ALIASES;
 
