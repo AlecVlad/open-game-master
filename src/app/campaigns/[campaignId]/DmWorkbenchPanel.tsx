@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { useT } from "@/lib/i18n/provider";
 import { ui } from "@/lib/ui";
 import { GameIcon } from "@/components/ui/GameIcon";
 import { SectionHead } from "@/components/ui/SectionHead";
@@ -68,6 +69,7 @@ export function DmWorkbenchPanel({
   // the DM console renders as it always has.
   collapsible?: boolean;
 }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const [enemies, setEnemies] = useState("");
   const [partyLevel, setPartyLevel] = useState<number | "">("");
@@ -98,7 +100,7 @@ export function DmWorkbenchPanel({
         error?: string;
       };
       if (!response.ok || !payload.readout) {
-        setError(payload.error ?? "That roster could not be costed.");
+        setError(payload.error ?? t("campaign.dmWorkbench.error.generic"));
         setResult(null);
         return;
       }
@@ -114,7 +116,7 @@ export function DmWorkbenchPanel({
   const body = (
     <div className="flex flex-col gap-4">
       <div className={collapsible ? innerCard : cn(ui.card, "dm-card flex flex-col gap-2 p-3")}>
-        {collapsible ? null : <SectionHead title="Weigh a fight" glyph="rest-proficiency" />}
+        {collapsible ? null : <SectionHead title={t("campaign.dmWorkbench.title")} glyph="rest-proficiency" />}
         {/* The same search the prepared-encounter form has: pick from what
             this world holds rather than remembering a spelling. */}
         <MonsterRosterPicker campaignId={campaignId} roster={enemies} onChange={setEnemies} />
@@ -124,32 +126,32 @@ export function DmWorkbenchPanel({
           rows={3}
           placeholder={"goblin x4\nhobgoblin"}
           data-tour="encounters-workbench-roster"
-          aria-label="Roster to weigh"
+          aria-label={t("campaign.dmWorkbench.roster.aria")}
           className={cn(ui.input, "resize-y font-code text-xs")}
         />
         <div className="flex flex-wrap items-end gap-2">
           {/* An empty figure means "the party as it is", and is left out of
               the request, so both stay clearable. */}
           <div>
-            <FieldLabel>Party level (what if)</FieldLabel>
+            <FieldLabel>{t("campaign.dmWorkbench.partyLevel")}</FieldLabel>
             <OptionalNumber
               value={partyLevel}
               onChange={setPartyLevel}
               min={1}
               max={20}
-              label="Party level (what if)"
-              emptyHint="as it is"
+              label={t("campaign.dmWorkbench.partyLevel")}
+              emptyHint={t("campaign.dmWorkbench.asIs")}
               size="sm"
             />
           </div>
           <div>
-            <FieldLabel>Party size</FieldLabel>
+            <FieldLabel>{t("campaign.dmWorkbench.partySize")}</FieldLabel>
             <OptionalNumber
               value={partySize}
               onChange={setPartySize}
               min={1}
               max={8}
-              label="Party size"
+              label={t("campaign.dmWorkbench.partySize")}
               emptyHint="as it is"
               size="sm"
             />
@@ -162,7 +164,7 @@ export function DmWorkbenchPanel({
             className={ui.btnSecondary}
           >
             {busy ? <Loader2 className="size-4 animate-spin" /> : <GameIcon icon={{ kind: "glyph", key: "die-d20" }} size="size-5" />}
-            Work it out
+            {t("campaign.dmWorkbench.calculate")}
           </button>
         </div>
         {error ? <p className="motion-shake text-[11px] text-red-400">{error}</p> : null}
@@ -173,22 +175,20 @@ export function DmWorkbenchPanel({
           <div className={cn(collapsible ? innerCard : cn(ui.card, "flex flex-col gap-2 p-3"), "live-in")}>
             <p className="text-sm">
               <span key={budget.verdict} className={cn("count-pop inline-block font-display text-base tracking-wide", VERDICT_TONE[budget.verdict] ?? "text-stone-300")}>
-                {budget.verdict.replace(/_/g, " ")}
+                {t(`campaign.dmWorkbench.verdict.${budget.verdict}` as never)}
               </span>{" "}
               <span className="text-stone-500">
-                for {result.party.size} character{result.party.size === 1 ? "" : "s"} at level{" "}
-                {[...new Set(result.party.levels)].join(", ")}
+                {t("campaign.dmWorkbench.result.forParty", { party: t(result.party.size === 1 ? "campaign.dmWorkbench.characters.one" : "campaign.dmWorkbench.characters.other", { count: result.party.size } as never), levels: [...new Set(result.party.levels)].join(", ") })}
               </span>
             </p>
             {budget.overCeiling ? (
               <p className="motion-shake text-[11px] text-red-400">
-                Past this campaign&apos;s ceiling. The engine will refuse to start it as written.
+                {t("campaign.dmWorkbench.result.overCeiling")}
               </p>
             ) : null}
             {budget.monsterCount > result.maxEnemies ? (
               <p className="reveal text-[11px] text-amber-300/80">
-                {budget.monsterCount} creatures. A fight takes {result.maxEnemies} or fewer, so this
-                roster is a plan rather than something that will deploy.
+                {t(budget.monsterCount === 1 ? "campaign.dmWorkbench.result.tooManyCreatures.one" : "campaign.dmWorkbench.result.tooManyCreatures.other", { count: budget.monsterCount, max: result.maxEnemies } as never)}
               </p>
             ) : null}
             <Parts parts={budget.parts} />
@@ -198,16 +198,15 @@ export function DmWorkbenchPanel({
             <p className="text-sm text-stone-200">{attrition.outcome}</p>
             <div className="flex flex-wrap gap-x-6 gap-y-1 text-[11px] text-stone-500">
               <span>
-                Party{" "}
+                {t("campaign.dmWorkbench.result.party")}{" "}
                 <span className="text-amber-100">
-                  {attrition.party.hitPoints} hp, {attrition.party.damagePerRound.toFixed(1)} a round
+                  {t("campaign.dmWorkbench.result.sideSummary", { hp: attrition.party.hitPoints, damage: attrition.party.damagePerRound.toFixed(1) })}
                 </span>
               </span>
               <span>
-                Roster{" "}
+                {t("campaign.dmWorkbench.result.roster")}{" "}
                 <span className="text-amber-100">
-                  {attrition.monsters.hitPoints} hp,{" "}
-                  {attrition.monsters.damagePerRound.toFixed(1)} a round
+                  {t("campaign.dmWorkbench.result.sideSummary", { hp: attrition.monsters.hitPoints, damage: attrition.monsters.damagePerRound.toFixed(1) })}
                 </span>
               </span>
             </div>
@@ -232,7 +231,7 @@ export function DmWorkbenchPanel({
         open={open}
         onToggle={() => setOpen((current) => !current)}
         glyph="rest-proficiency"
-        title="How hard is this?"
+        title={t("campaign.dmWorkbench.result.title")}
         tour="encounters-workbench"
       />
       {open ? <div className="reveal mt-3">{body}</div> : null}
