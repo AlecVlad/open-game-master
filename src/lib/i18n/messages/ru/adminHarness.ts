@@ -13,7 +13,6 @@ export const ruAdminHarness: Partial<Record<keyof typeof enAdminHarness, string>
   "admin.harness.st.unavailable": "Здесь недоступно",
   "admin.harness.st.notInstalled": "Не установлено",
   "admin.harness.st.signIn": "Нужен вход",
-  "admin.harness.st.installed": "Установлено",
   "admin.harness.st.ready": "Готово",
   "admin.harness.heading": "Программа-агент",
   "admin.harness.looking": "Поиск программ-агентов",

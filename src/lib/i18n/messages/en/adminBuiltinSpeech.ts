@@ -7,7 +7,6 @@ export const enAdminBuiltinSpeech = {
   "admin.builtinSpeech.err.read": "Could not read the speech engine's state.",
   "admin.builtinSpeech.title": "Built-in speech recognition",
   "admin.builtinSpeech.intro": "Runs Whisper inside this server on the CPU, so dictation and push-to-talk work without a separate speech service. Downloads {mb} MB once. A Whisper service, when one answers, still comes first.",
-  "admin.builtinSpeech.installed": "Installed",
   "admin.builtinSpeech.installing": "Installing",
   "admin.builtinSpeech.retry": "Try again",
   "admin.builtinSpeech.install": "Install",

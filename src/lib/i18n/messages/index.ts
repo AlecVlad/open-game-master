@@ -436,6 +436,8 @@ export const MESSAGE_ALIASES = {
   "admin.usage.unit.gb": "common.unit.gb",
   "admin.usage.unit.mb": "common.unit.mb",
   "admin.usage.unit.kb": "common.unit.kb",
+  "admin.builtinSpeech.installed": "common.status.installed",
+  "admin.harness.st.installed": "common.status.installed",
 } as const satisfies Record<string, keyof typeof en>;
 export type MessageKey = keyof typeof en | keyof typeof MESSAGE_ALIASES;
 

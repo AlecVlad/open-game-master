@@ -10,7 +10,6 @@ export const ruAdminBuiltinSpeech: Partial<Record<keyof typeof enAdminBuiltinSpe
   "admin.builtinSpeech.err.read": "Не удалось прочитать состояние движка речи.",
   "admin.builtinSpeech.title": "Встроенное распознавание речи",
   "admin.builtinSpeech.intro": "Запускает Whisper внутри этого сервера на процессоре, поэтому диктовка и «нажми и говори» работают без отдельной службы речи. Один раз скачивает {mb} МБ. Служба Whisper, если она отвечает, по-прежнему в приоритете.",
-  "admin.builtinSpeech.installed": "Установлено",
   "admin.builtinSpeech.installing": "Установка",
   "admin.builtinSpeech.retry": "Повторить",
   "admin.builtinSpeech.install": "Установить",

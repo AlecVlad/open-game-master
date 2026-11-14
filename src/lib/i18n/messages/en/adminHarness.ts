@@ -10,7 +10,6 @@ export const enAdminHarness = {
   "admin.harness.st.unavailable": "Not available here",
   "admin.harness.st.notInstalled": "Not installed",
   "admin.harness.st.signIn": "Sign in needed",
-  "admin.harness.st.installed": "Installed",
   "admin.harness.st.ready": "Ready",
   "admin.harness.heading": "Agent program",
   "admin.harness.looking": "Looking for agent programs",
