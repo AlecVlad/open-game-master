@@ -369,6 +369,7 @@ export function FeatureChips({
   // its row for the text the bundled tables lack.
   background?: string | null;
 }) {
+  const t = useT();
   // A genre class's feature text arrives on demand (issue 411).
   useClassFeatureText([classId, ...features.map((feature) => feature.classId)]);
   return (
