@@ -473,6 +473,9 @@ export const MESSAGE_ALIASES = {
   "builder.spells.book.concentration": "builder.spells.filter.concentration",
   "builder.extra.buildMath.row.spellAttack": "builder.spells.spellAttack",
   "builder.extra.lineage.close": "dialog.close",
+  "builder.sum.calling.label": "builder.step.calling.label",
+  "builder.sum.gear.label": "builder.step.gear.label",
+  "builder.sum.title": "builder.yourHero",
 } as const satisfies Record<string, keyof typeof en>;
 export type MessageKey = keyof typeof en | keyof typeof MESSAGE_ALIASES;
 
