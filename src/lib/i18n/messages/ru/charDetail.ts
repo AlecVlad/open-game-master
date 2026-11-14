@@ -43,4 +43,6 @@ export const ruCharDetail: Partial<Record<keyof typeof enCharDetail, string>> & 
   "charDetail.dup": "Дублировать",
   "charDetail.dupEdit": "Дублировать и изменить",
   "charDetail.portrait.upload": "Загрузить портрет",
+  "charDetail.notInCampaign": "Пока не участвует ни в одной кампании.",
+  "charDetail.portrait.title": "Портрет персонажа «{name}»",
 };
