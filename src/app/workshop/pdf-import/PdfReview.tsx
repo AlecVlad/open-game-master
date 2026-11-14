@@ -143,7 +143,7 @@ export function PdfReview({
                 className={cn(ui.btnSmall, chip, "rounded-full normal-case", on && usable ? chipOn : "text-stone-500", !usable && "opacity-50")}
               >
                 <Check className={cn("size-3.5", on && usable ? "text-amber-300" : "opacity-20")} aria-hidden="true" />
-                {on === records.length ? records.length : `${on} of ${records.length}`} {kindLabel(kind, records.length, tp)}
+                {on === records.length ? records.length : t("pdfImport.review.selectedCount", { selected: on, total: records.length })} {kindLabel(kind, records.length, tp)}
               </button>
             </li>
           );
