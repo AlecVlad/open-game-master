@@ -493,6 +493,13 @@ export const MESSAGE_ALIASES = {
   "admin.quality.err.network": "common.error.network",
   "admin.settings.apiKey.envAlso": "admin.shared.apiKeyEnv",
   "admin.settings.apiKey.label": "admin.shared.apiKey",
+  "builder.anc.lang.info.label": "builder.target.languages",
+  "builder.anc.lang.pick": "builder.feat.choice.language.placeholder",
+  "builder.call.left": "builder.cc.left",
+  "builder.call.skill.term2": "builder.cc.exp.term2",
+  "builder.finish.retry": "builder.extra.tableScope.retry",
+  "builder.set.gender": "builder.id.gender",
+  "builder.set.gender.none": "builder.id.gender.none",
 } as const satisfies Record<string, keyof typeof en>;
 export type MessageKey = keyof typeof en | keyof typeof MESSAGE_ALIASES;
 

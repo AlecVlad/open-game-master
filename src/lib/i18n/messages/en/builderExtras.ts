@@ -366,7 +366,6 @@ export const enBuilderExtras = {
   "builder.extra.lineage.choice.abilityAmounts": "Ability increases to choose: {amounts}",
 }; the die showing {dropped} is set aside.",
   "builder.extra.tableScope.loadFailed": "Could not load the list of {noun} for {scope} from the server, so only built-in options are shown.",
-  "builder.extra.tableScope.retry": "Try again",
   "builder.extra.tableScope.unadmitted": "Your own {names} are not offered at this table. To make homebrew available to the group, send the owner, GM, or assistant GM a Workshop bundle with those entries selected. They will be offered here once imported; in your own library they are available immediately.",
   "builder.extra.tableScope.noun.class": "class",
   "builder.extra.tableScope.noun.classes": "classes",

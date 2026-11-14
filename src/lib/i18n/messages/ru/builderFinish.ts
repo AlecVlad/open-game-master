@@ -22,6 +22,5 @@ export const ruBuilderFinish: Partial<Record<keyof typeof enBuilderFinish, strin
   "builder.finish.pc.note": "Вступает в кампанию как ваш персонаж, которым вы управляете.",
   "builder.finish.feats": "Черты (feats)",
   "builder.finish.feats.help": "Черты, которые этот персонаж уже имеет. Новые черты приходят вместе с повышением характеристик.",
-  "builder.finish.retry": "Повторить",
   "builder.finish.refused": "Сервер не сохранил персонажа:",
 };

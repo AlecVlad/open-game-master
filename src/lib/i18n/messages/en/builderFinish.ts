@@ -19,6 +19,5 @@ export const enBuilderFinish = {
   "builder.finish.pc.note": "Joins a campaign as yours to control.",
   "builder.finish.feats": "Feats",
   "builder.finish.feats.help": "Feats this character already holds. New feats come with an ability score improvement.",
-  "builder.finish.retry": "Try again",
   "builder.finish.refused": "The server did not save the character:",
 } satisfies Record<string, string>;

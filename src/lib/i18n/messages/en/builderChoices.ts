@@ -1,10 +1,8 @@
 // English, the source language: class picks and tool grants in the builder.
 export const enBuilderChoices = {
   "builder.cc.exp.title": "Expertise (pick {n})",
-  "builder.cc.left": "{n} still to choose. ",
   "builder.cc.exp.term": "Expertise",
   "builder.cc.exp.mid": " doubles your",
-  "builder.cc.exp.term2": "proficiency bonus",
   "builder.cc.exp.post": " on the chosen skills.",
   "builder.cc.exp.first": "Pick your class skills above first.",
   "builder.cc.thieves": "Thieves' tools",

@@ -4,10 +4,8 @@ import type { enBuilderChoices } from "../en/builderChoices.ts";
 
 export const ruBuilderChoices: Partial<Record<keyof typeof enBuilderChoices, string>> & Record<string, string> = {
   "builder.cc.exp.title": "Мастерство (выберите: {n})",
-  "builder.cc.left": "Ещё выбрать: {n}. ",
   "builder.cc.exp.term": "Мастерство",
   "builder.cc.exp.mid": " удваивает ваш",
-  "builder.cc.exp.term2": "бонус мастерства",
   "builder.cc.exp.post": " для выбранных навыков.",
   "builder.cc.exp.first": "Сначала выберите навыки класса выше.",
   "builder.cc.thieves": "Воровские инструменты",

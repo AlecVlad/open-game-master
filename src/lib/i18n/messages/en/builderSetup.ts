@@ -11,8 +11,6 @@ export const enBuilderSetup = {
   "builder.set.level": "Level",
   "builder.set.level.fixed": "{n} (campaign)",
   "builder.set.level.floor": "Improvements taken in play are in their scores, so they stay level {n} or higher.",
-  "builder.set.gender": "Gender",
-  "builder.set.gender.none": "Not chosen",
   "builder.set.gender.chosen": "The cards show your choice, and the GM uses it for pronouns.",
   "builder.set.gender.open": "Optional. The cards show a mix of looks until you choose.",
   "builder.bg.title": "What did they do before adventuring?",

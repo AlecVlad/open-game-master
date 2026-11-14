@@ -400,7 +400,6 @@ export const ruBuilderExtras: Partial<Record<keyof typeof enBuilderExtras, strin
   "builder.extra.dice.notRolled": "Бросок ещё не выполнен.",
   "builder.extra.dice.rolled": "Результаты броска: {dice}. Кость со значением {dropped} отброшена.",
   "builder.extra.tableScope.loadFailed": "Не удалось загрузить с сервера список {noun} для {scope}, поэтому показаны только встроенные варианты.",
-  "builder.extra.tableScope.retry": "Повторить",
   "builder.extra.tableScope.unadmitted": "Ваши материалы ({names}) не предлагаются за этим столом. Чтобы открыть группе доступ к домашнему контенту, отправьте владельцу, ведущему или помощнику ведущего пакет из Мастерской с отмеченными материалами. После импорта они станут доступны за столом. В вашей библиотеке они доступны сразу.",
   "builder.extra.tableScope.noun.class": "класса",
   "builder.extra.tableScope.noun.classes": "классов",

@@ -14,8 +14,6 @@ export const ruBuilderSetup: Partial<Record<keyof typeof enBuilderSetup, string>
   "builder.set.level": "Уровень",
   "builder.set.level.fixed": "{n} (кампания)",
   "builder.set.level.floor": "Улучшения, взятые в игре, уже учтены в значениях, поэтому персонаж остаётся на {n} уровне или выше.",
-  "builder.set.gender": "Пол",
-  "builder.set.gender.none": "Не выбран",
   "builder.set.gender.chosen": "Карточки показывают ваш выбор, а ведущий использует его для местоимений.",
   "builder.set.gender.open": "Необязательно. Пока вы не выберете, карточки показывают разные облики.",
   "builder.bg.title": "Чем он занимался до приключений?",
