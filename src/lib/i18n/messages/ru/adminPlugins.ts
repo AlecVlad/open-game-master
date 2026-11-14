@@ -4,7 +4,6 @@ import type { enAdminPlugins } from "../en/adminPlugins.ts";
 
 export const ruAdminPlugins: Partial<Record<keyof typeof enAdminPlugins, string>> & Record<string, string> = {
   "admin.plugins.bundled": "встроен",
-  "admin.plugins.install": "Установить",
   "admin.plugins.update": "Обновить до v{version}",
   "admin.plugins.remove": "Удалить",
   "admin.plugins.ships": "Поставляется с приложением и не может быть удалён.",

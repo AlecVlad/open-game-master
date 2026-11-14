@@ -412,6 +412,21 @@ export const MESSAGE_ALIASES = {
   "admin.images.openai.key": "admin.shared.apiKey",
   "admin.speech.key.env": "admin.shared.apiKeyEnv",
   "admin.images.openai.key.env": "admin.shared.apiKeyEnv",
+  "admin.addon.err.generic": "common.error.generic",
+  "admin.addon.note.setupStarted": "admin.addons.n.setup",
+  "admin.addon.setup.gb": "common.unit.gbValue",
+  "admin.addon.setup.mb": "common.unit.mbValue",
+  "admin.addons.err.generic": "common.error.generic",
+  "admin.addons.gb": "common.unit.gbValue",
+  "admin.addons.mb": "common.unit.mbValue",
+  "admin.addons.save": "common.action.save",
+  "admin.addons.install": "common.action.install",
+  "admin.addons.avail": "common.status.availableDownload",
+  "admin.worlds.save": "common.action.save",
+  "admin.worlds.avail": "common.status.availableDownload",
+  "admin.worlds.installed": "admin.addons.installed",
+  "admin.worlds.by": "admin.addons.by",
+  "admin.plugins.install": "common.action.install",
 } as const satisfies Record<string, keyof typeof en>;
 export type MessageKey = keyof typeof en | keyof typeof MESSAGE_ALIASES;
 

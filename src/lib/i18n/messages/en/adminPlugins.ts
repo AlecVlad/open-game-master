@@ -1,7 +1,6 @@
 // English, the source language: plugin cards and filter bar in Admin > Campaign plugins.
 export const enAdminPlugins = {
   "admin.plugins.bundled": "bundled",
-  "admin.plugins.install": "Install",
   "admin.plugins.update": "Update to v{version}",
   "admin.plugins.remove": "Remove",
   "admin.plugins.ships": "Ships with the app and cannot be removed.",
