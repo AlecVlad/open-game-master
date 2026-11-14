@@ -9,7 +9,6 @@ export const enAppShell = {
   "appShell.menu.campaigns": "All campaigns",
   "appShell.menu.characters": "Characters",
   "appShell.menu.rulebook": "Rulebook",
-  "appShell.menu.friends": "Friends",
   "appShell.menu.settings": "Settings",
   "appShell.menu.admin": "Admin panel",
   "appShell.menu.help": "Help",

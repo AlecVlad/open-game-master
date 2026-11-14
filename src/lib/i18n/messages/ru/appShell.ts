@@ -11,7 +11,6 @@ export const ruAppShell: Partial<Record<keyof typeof enAppShell, string>> = {
   "appShell.menu.campaigns": "Все кампании",
   "appShell.menu.characters": "Персонажи",
   "appShell.menu.rulebook": "Книга правил",
-  "appShell.menu.friends": "Друзья",
   "appShell.menu.settings": "Настройки",
   "appShell.menu.admin": "Панель администратора",
   "appShell.menu.help": "Помощь",

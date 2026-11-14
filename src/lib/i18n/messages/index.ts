@@ -562,6 +562,10 @@ export const MESSAGE_ALIASES = {
   "settings.grace.later.many": "settings.grace.later.other",
   "settings.login": "auth.mode.login",
   "settings.pw.heading": "auth.password",
+  "appShell.menu.friends": "friends.page.title",
+  "friends.section.title": "friends.page.title",
+  "invite.copied": "common.status.copied",
+  "invite.share": "serverAddress.share",
 } as const satisfies Record<string, keyof typeof en>;
 export type MessageKey = keyof typeof en | keyof typeof MESSAGE_ALIASES;
 

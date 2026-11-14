@@ -18,7 +18,6 @@ export const ruSocial: Partial<Record<keyof typeof enSocial, string>> = {
   "friends.requests.waitingRibbon": "Ожидают вашего ответа",
   "friends.action.accept": "Принять",
   "friends.action.decline": "Отклонить",
-  "friends.section.title": "Друзья",
   "friends.empty.title": "Пока никого нет за пределами вашей группы.",
   "friends.empty.hint": "Добавьте человека по его точному имени пользователя на этом сервере.",
   "friends.requests.outgoing": "Отправленные запросы",

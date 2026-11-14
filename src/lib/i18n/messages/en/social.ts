@@ -16,7 +16,6 @@ export const enSocial = {
   "friends.requests.waitingRibbon": "Waiting on you",
   "friends.action.accept": "Accept",
   "friends.action.decline": "Decline",
-  "friends.section.title": "Friends",
   "friends.empty.title": "No party outside the party yet.",
   "friends.empty.hint": "Add someone by their exact username on this server.",
   "friends.requests.outgoing": "Sent requests",
