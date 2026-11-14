@@ -302,11 +302,11 @@ export function FieldInput({
       return (
         <PickOrType
           key={pets?.kind ?? ""}
-          field={{ ...field, other: petFormTyped(pets?.kind ?? "") ? { label: "Not in the list", placeholder: "clockwork crow" } : undefined }}
+          field={{ ...field, other: petFormTyped(pets?.kind ?? "") ? { label: t("campaign.dmAction.field.notInList"), placeholder: t("campaign.dmAction.field.petPlaceholder") } : undefined }}
           value={String(value ?? "")}
           onChange={onChange}
           options={petFormOptions(pets?.kind ?? "", pets?.catalogue ?? null)}
-          placeholder={pets?.kind ? "Pick a creature" : "Pick the kind first"}
+          placeholder={pets?.kind ? t("campaign.dmAction.field.pickCreature") : t("campaign.dmAction.field.pickKind")}
         />
       );
     case "summonKind": {
@@ -342,14 +342,14 @@ export function FieldInput({
       // The empty row stays in the list, as it did in the browser's own
       // select, so a picked target can be unpicked.
       const options: SelectOption<string>[] = [
-        { value: "", label: "Pick a character" },
+        { value: "", label: t("campaign.dmAction.field.pickCharacter") },
         ...sheets.map((sheet) => ({
           value: sheet.id,
           label: sheet.name,
           icon: { kind: "glyph" as const, key: "tab-characters" },
         })),
       ];
-      return <Select value={String(value ?? "")} onChange={onChange} options={options} label={field.label} placeholder="Pick a character" />;
+      return <Select value={String(value ?? "")} onChange={onChange} options={options} label={field.label} placeholder={t("campaign.dmAction.field.pickCharacter")} />;
     }
     case "characters":
       return (
@@ -358,7 +358,7 @@ export function FieldInput({
           picked={Array.isArray(value) ? (value as string[]) : []}
           choices={sheets.map((sheet) => ({ id: sheet.id, name: sheet.name }))}
           onChange={onChange}
-          empty="Nobody has a character yet."
+          empty={t("campaign.dmAction.field.nobody")}
         />
       );
     case "enemies":
@@ -368,19 +368,19 @@ export function FieldInput({
           picked={Array.isArray(value) ? (value as string[]) : []}
           choices={enemies.map((enemy) => ({ id: enemy.id, name: enemyLabel(enemy) }))}
           onChange={onChange}
-          empty="No enemy is standing."
+          empty={t("campaign.dmAction.field.noEnemy")}
         />
       );
     case "enemy": {
       const options: SelectOption<string>[] = [
-        { value: "", label: "Pick an enemy" },
+        { value: "", label: t("campaign.dmAction.field.pickEnemy") },
         ...enemies.map((enemy) => ({
           value: enemy.id,
           label: enemyLabel(enemy),
           icon: { kind: "glyph" as const, key: "system-bestiary" },
         })),
       ];
-      return <Select value={String(value ?? "")} onChange={onChange} options={options} label={field.label} placeholder="Pick an enemy" />;
+      return <Select value={String(value ?? "")} onChange={onChange} options={options} label={field.label} placeholder={t("campaign.dmAction.field.pickEnemy")} />;
     }
     case "combatant":
       return (
@@ -388,7 +388,7 @@ export function FieldInput({
           field={field}
           value={String(value ?? "")}
           onChange={onChange}
-          placeholder="Pick who"
+          placeholder={t("campaign.dmAction.field.pickWho")}
           options={[
             ...sheets.map((sheet) => ({
               value: sheet.id,
@@ -420,13 +420,13 @@ export function FieldInput({
     case "select": {
       const options = (field.options ?? []).map((option) => ({ value: option.value, label: option.label }));
       if (field.other) {
-        return <PickOrType field={field} value={String(value ?? "")} onChange={onChange} options={options} placeholder="Not set" />;
+        return <PickOrType field={field} value={String(value ?? "")} onChange={onChange} options={options} placeholder={t("campaign.dmAction.field.notSet")} />;
       }
       return (
         <Select
           value={String(value ?? "")}
           onChange={onChange}
-          options={[{ value: "", label: "Not set" }, ...options]}
+          options={[{ value: "", label: t("campaign.dmAction.field.notSet") }, ...options]}
           label={field.label}
           placeholder="Not set"
         />
@@ -442,7 +442,7 @@ export function FieldInput({
           max={field.max}
           onChange={onChange}
           label={field.label}
-          emptyHint="Not set"
+          emptyHint={t("campaign.dmAction.field.notSet")}
         />
       );
     case "longtext":
