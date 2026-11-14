@@ -126,6 +126,12 @@ function ShareRows({
   enemies: Enemy[];
 }) {
   const t = useT();
+  const shares = [
+    { value: "full", label: t("campaign.dmAction.share.full") },
+    { value: "half", label: t("campaign.dmAction.share.half") },
+    { value: "double", label: t("campaign.dmAction.share.double") },
+    { value: "none", label: t("campaign.dmAction.share.none") },
+  ];
   const refOf = (row: ShareRow) => (row.enemyId ? `enemy:${row.enemyId}` : `character:${row.characterId}`);
   const taken = new Set(value.map(refOf));
   const choices: SelectOption<string>[] = [
@@ -133,13 +139,13 @@ function ShareRows({
       value: `enemy:${enemy.id}`,
       label: enemyLabel(enemy),
       icon: { kind: "glyph" as const, key: "system-bestiary" },
-      group: "Enemies",
+      group: t("campaign.dmAction.group.enemies"),
     })),
     ...sheets.map((sheet) => ({
       value: `character:${sheet.id}`,
       label: sheet.name,
       icon: { kind: "glyph" as const, key: "tab-characters" },
-      group: "Characters",
+      group: t("campaign.dmAction.group.characters"),
     })),
   ];
   const nameOf = (ref: string) => choices.find((choice) => choice.value === ref)?.label ?? ref;
@@ -158,14 +164,14 @@ function ShareRows({
             <span className="min-w-0 grow truncate text-sm text-stone-200">{nameOf(refOf(row))}</span>
             <SegmentedControl
               size="sm"
-              label={`Share for ${nameOf(refOf(row))}`}
-              options={SHARES}
+              label={t("campaign.dmAction.share.for", { name: nameOf(refOf(row)) })}
+              options={shares}
               value={row.share}
               onChange={(share) => onChange(value.map((entry, at) => (at === index ? { ...entry, share } : entry)))}
             />
             <button
               type="button"
-              aria-label={`Take ${nameOf(refOf(row))} off`}
+              aria-label={t("campaign.dmAction.share.remove", { name: nameOf(refOf(row)) })}
               onClick={() => onChange(value.filter((_, at) => at !== index))}
               className={cn(ui.btnSmall, "min-h-9 px-2")}
             >
@@ -178,11 +184,11 @@ function ShareRows({
         value=""
         onChange={add}
         options={[
-          { value: "", label: "Add a creature" },
+          { value: "", label: t("campaign.dmAction.addCreature") },
           ...choices.map((choice) => ({ ...choice, disabled: taken.has(choice.value) })),
         ]}
-        label={`Add to ${field.label}`}
-        placeholder="Add a creature"
+        label={t("campaign.dmAction.field.addTo", { field: field.label })}
+        placeholder={t("campaign.dmAction.addCreature")}
       />
     </div>
   );
@@ -210,7 +216,7 @@ function HitDiceRows({
             <span className="min-w-0 grow">
               <span className="block truncate text-sm text-stone-200">{sheet.name}</span>
               <span className="block text-[11px] text-stone-500">
-                {left ? `${left} left, ${sheet.hitDice.die}` : "No hit dice left"}
+                {left ? t("campaign.dmAction.hitDice.left", { count: left, die: sheet.hitDice.die }) : t("campaign.dmAction.hitDice.none")}
               </span>
             </span>
             <NumberStepper
@@ -219,7 +225,7 @@ function HitDiceRows({
               min={0}
               max={Math.min(20, left)}
               disabled={left === 0}
-              label={`Hit dice for ${sheet.name}`}
+              label={t("campaign.dmAction.hitDice.label", { name: sheet.name })}
               onChange={(dice) => set(sheet.id, dice)}
             />
           </li>
