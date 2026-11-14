@@ -466,7 +466,7 @@ async function drawTraits(ctx: Ctx, c: PdfCharacter, portraitBytes?: Uint8Array)
   // Features & traits (features + feats).
   const featText = [
     ...c.features.map((f) => f.name),
-    ...c.feats.map((name) => `Feat: ${name}`),
+    ...c.feats.map((name) => `${tr(ctx, "charSheet.pdfSheet.feat", "Feat")}: ${name}`),
   ].join("\n");
   const featH = 176;
   box(ctx, x, y - featH, w, featH, true);
