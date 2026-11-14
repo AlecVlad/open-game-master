@@ -2148,6 +2148,14 @@ assert.match(translate(DICTIONARIES, "ru", "createCampaign.defaults.error.invali
 assert.match(translate(DICTIONARIES, "ru", "createCampaign.defaults.error.saveNetwork"), /не сохранены/);
 assert.match(translate(DICTIONARIES, "ru", "createCampaign.defaults.error.removeNetwork"), /не удалены/);
 
+// The adventure PDF importer is a first-class user flow, not untranslated fallback UI.
+const pdfImportKeys = Object.keys(DICTIONARIES.en).filter((key) => key.startsWith("pdfImport."));
+assert.ok(pdfImportKeys.length >= 100, "PDF import message set is unexpectedly small");
+for (const key of pdfImportKeys) {
+  assert.ok(key in DICTIONARIES.ru, `Russian PDF import message missing: ${key}`);
+  assert.notEqual(translate(DICTIONARIES, "ru", key), key, `PDF import message fell back to its key: ${key}`);
+}
+
 // Report (not fail on) what Russian still lacks, so progress is visible.
 const missing = Object.keys(DICTIONARIES.en).filter((key) => !(key in DICTIONARIES.ru));
 console.log(`i18n: ${Object.keys(DICTIONARIES.en).length} messages, ${missing.length} not yet in Russian`);
