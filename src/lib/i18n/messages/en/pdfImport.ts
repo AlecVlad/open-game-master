@@ -159,4 +159,6 @@ export const enPdfImport = {
   "pdfImport.error.networkContinue": "Could not reach the server. Your progress is kept; pick the PDF again to carry on.",
   "pdfImport.error.serverRefused": "The server would not take that. Try again.",
   "pdfImport.error.cancelled": "The import was stopped.",
+  "pdfImport.error.campaignAdminOnly": "On this server an administrator starts campaigns and workshops; ask them for a room code to join one.",
+  "pdfImport.error.storageLow": "The server is low on storage space and is not accepting uploads right now.",
 };
