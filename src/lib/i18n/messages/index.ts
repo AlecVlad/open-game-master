@@ -30,11 +30,9 @@ import { enHome } from "./en/home.ts";
 import { enAuth } from "./en/auth.ts";
 import { enSettings } from "./en/settings.ts";
 import { enAvatarCrop } from "./en/avatarCrop.ts";
-import { enCharactersPage } from "./en/charactersPage.ts";
 import { enRosterPortrait } from "./en/rosterPortrait.ts";
-import { enCharUse } from "./en/charUse.ts";
 import { enCharSheet } from "./en/charSheet.ts";
-import { enCharLifecycle } from "./en/charLifecycle.ts";
+import { enCharacters } from "./en/characters.ts";
 import { enBuilderShell } from "./en/builderShell.ts";
 import { enWizard } from "./en/wizard.ts";
 import { enBuilderShared } from "./en/builderShared.ts";
@@ -92,11 +90,9 @@ import { ruHome } from "./ru/home.ts";
 import { ruAuth } from "./ru/auth.ts";
 import { ruSettings } from "./ru/settings.ts";
 import { ruAvatarCrop } from "./ru/avatarCrop.ts";
-import { ruCharactersPage } from "./ru/charactersPage.ts";
 import { ruRosterPortrait } from "./ru/rosterPortrait.ts";
-import { ruCharUse } from "./ru/charUse.ts";
 import { ruCharSheet } from "./ru/charSheet.ts";
-import { ruCharLifecycle } from "./ru/charLifecycle.ts";
+import { ruCharacters } from "./ru/characters.ts";
 import { ruBuilderShell } from "./ru/builderShell.ts";
 import { ruWizard } from "./ru/wizard.ts";
 import { ruBuilderShared } from "./ru/builderShared.ts";
@@ -128,7 +124,7 @@ import { ruSetup } from "./ru/setup.ts";
 import { ruPdfImport } from "./ru/pdfImport.ts";
 import { ruCreateCampaign } from "./ru/createCampaign.ts";
 
-export const en = { ...enCommon, ...enHelp, ...enSocial, ...enAppShell, ...enInvite, ...enPlugin, ...enMonsterEditor, ...enWorkshop, ...enAdmin, ...enAdminSettings, ...enAdminBackup , ...enAdminStorage , ...enAdminUsers , ...enAdminReports , ...enAdminLog , ...enAdminUsage , ...enAdminInvites , ...enAdminAgents , ...enAdminNetwork , ...enAdminQuality , ...enAdminFields , ...enAdminSpeech , ...enAdminImages , ...enAdminBuiltinSpeech , ...enAdminHarness , ...enAdminAddonCard , ...enAdminAddons , ...enAdminWorlds , ...enAdminPlugins , ...enAdminSpeed , ...enAdminModelChoice , ...enHome , ...enAuth ,  ,  , ...enSettings ,  ,  ,  , ...enAvatarCrop , ...enCharactersPage , ...enRosterPortrait , ...enCharUse , ...enCharSheet , ...enCharLifecycle ,  ,  , ...enBuilderShell , ...enWizard , ...enBuilderShared , ...enBuilderFinish , ...enBuilderSummary , ...enBuilderIdentity , ...enBuilderAbilitiesStep , ...enBuilderExtras , ...enBuilderScreens , ...enBuilderSpells , ...enBuilderRemaining , ...enBuilderSetup , ...enBuilderCalling , ...enBuilderChoices , ...enBuilderAncestry, ...enCampaignSession, ...enCampaignPanels, ...enEncounterEvents, ...enTurnTrace, ...enCreateCampaign, ...enSetup, ...enPdfImport };
+export const en = { ...enCommon, ...enHelp, ...enSocial, ...enAppShell, ...enInvite, ...enPlugin, ...enMonsterEditor, ...enWorkshop, ...enAdmin, ...enAdminSettings, ...enAdminBackup , ...enAdminStorage , ...enAdminUsers , ...enAdminReports , ...enAdminLog , ...enAdminUsage , ...enAdminInvites , ...enAdminAgents , ...enAdminNetwork , ...enAdminQuality , ...enAdminFields , ...enAdminSpeech , ...enAdminImages , ...enAdminBuiltinSpeech , ...enAdminHarness , ...enAdminAddonCard , ...enAdminAddons , ...enAdminWorlds , ...enAdminPlugins , ...enAdminSpeed , ...enAdminModelChoice , ...enHome , ...enAuth ,  ,  , ...enSettings ,  ,  ,  , ...enAvatarCrop ,  , ...enRosterPortrait ,  , ...enCharSheet , ...enCharacters ,  ,  , ...enBuilderShell , ...enWizard , ...enBuilderShared , ...enBuilderFinish , ...enBuilderSummary , ...enBuilderIdentity , ...enBuilderAbilitiesStep , ...enBuilderExtras , ...enBuilderScreens , ...enBuilderSpells , ...enBuilderRemaining , ...enBuilderSetup , ...enBuilderCalling , ...enBuilderChoices , ...enBuilderAncestry, ...enCampaignSession, ...enCampaignPanels, ...enEncounterEvents, ...enTurnTrace, ...enCreateCampaign, ...enSetup, ...enPdfImport };
 export const MESSAGE_ALIASES = {
   "campaign.afterRoll.error.server": "common.error.network",
   "campaign.characterVoices.error.server": "common.error.network",
@@ -490,7 +486,7 @@ export const MESSAGE_ALIASES = {
 } as const satisfies Record<string, keyof typeof en>;
 export type MessageKey = keyof typeof en | keyof typeof MESSAGE_ALIASES;
 
-const ru: Record<string, string> = { ...ruCommon, ...ruHelp, ...ruSocial, ...ruAppShell, ...ruInvite, ...ruPlugin, ...ruMonsterEditor, ...ruWorkshop, ...ruAdmin, ...ruAdminSettings , ...ruAdminBackup , ...ruAdminStorage , ...ruAdminUsers , ...ruAdminReports , ...ruAdminLog , ...ruAdminUsage , ...ruAdminInvites , ...ruAdminAgents , ...ruAdminNetwork , ...ruAdminQuality , ...ruAdminFields , ...ruAdminSpeech , ...ruAdminImages , ...ruAdminBuiltinSpeech , ...ruAdminHarness , ...ruAdminAddonCard , ...ruAdminAddons , ...ruAdminWorlds , ...ruAdminPlugins , ...ruAdminSpeed , ...ruAdminModelChoice , ...ruHome , ...ruAuth ,  ,  , ...ruSettings ,  ,  ,  , ...ruAvatarCrop , ...ruCharactersPage , ...ruRosterPortrait , ...ruCharUse , ...ruCharSheet , ...ruCharLifecycle ,  ,  , ...ruBuilderShell , ...ruWizard , ...ruBuilderShared , ...ruBuilderFinish , ...ruBuilderSummary , ...ruBuilderIdentity , ...ruBuilderAbilitiesStep , ...ruBuilderExtras , ...ruBuilderScreens , ...ruBuilderSpells , ...ruBuilderRemaining , ...ruBuilderSetup , ...ruBuilderCalling , ...ruBuilderChoices , ...ruBuilderAncestry, ...ruCampaignSession, ...ruCampaignPanels, ...ruEncounterEvents, ...ruTurnTrace, ...ruCreateCampaign, ...ruSetup, ...ruPdfImport } as Record<string, string>;
+const ru: Record<string, string> = { ...ruCommon, ...ruHelp, ...ruSocial, ...ruAppShell, ...ruInvite, ...ruPlugin, ...ruMonsterEditor, ...ruWorkshop, ...ruAdmin, ...ruAdminSettings , ...ruAdminBackup , ...ruAdminStorage , ...ruAdminUsers , ...ruAdminReports , ...ruAdminLog , ...ruAdminUsage , ...ruAdminInvites , ...ruAdminAgents , ...ruAdminNetwork , ...ruAdminQuality , ...ruAdminFields , ...ruAdminSpeech , ...ruAdminImages , ...ruAdminBuiltinSpeech , ...ruAdminHarness , ...ruAdminAddonCard , ...ruAdminAddons , ...ruAdminWorlds , ...ruAdminPlugins , ...ruAdminSpeed , ...ruAdminModelChoice , ...ruHome , ...ruAuth ,  ,  , ...ruSettings ,  ,  ,  , ...ruAvatarCrop ,  , ...ruRosterPortrait ,  , ...ruCharSheet , ...ruCharacters ,  ,  , ...ruBuilderShell , ...ruWizard , ...ruBuilderShared , ...ruBuilderFinish , ...ruBuilderSummary , ...ruBuilderIdentity , ...ruBuilderAbilitiesStep , ...ruBuilderExtras , ...ruBuilderScreens , ...ruBuilderSpells , ...ruBuilderRemaining , ...ruBuilderSetup , ...ruBuilderCalling , ...ruBuilderChoices , ...ruBuilderAncestry, ...ruCampaignSession, ...ruCampaignPanels, ...ruEncounterEvents, ...ruTurnTrace, ...ruCreateCampaign, ...ruSetup, ...ruPdfImport } as Record<string, string>;
 
 function withAliases(messages: Record<string, string>): Record<string, string> {
   const resolved = { ...messages };
