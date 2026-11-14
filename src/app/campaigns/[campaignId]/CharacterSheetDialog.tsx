@@ -271,7 +271,7 @@ export function CharacterSheetDialog({
               vitals={[
                 {
                   glyph: "rest-ac",
-                  label: <GameTerm id="armor_class">Armor class</GameTerm>,
+                  label: <GameTerm id="armor_class">{t("charSheet.ac")}</GameTerm>,
                   value: sheet.ac,
                   title: sheet.acOverride ? t("charSheet.ac.pinned") : armor.parts.join(" + "),
                 },
@@ -284,13 +284,13 @@ export function CharacterSheetDialog({
                 },
                 {
                   glyph: "rest-initiative",
-                  label: <GameTerm id="initiative">Initiative</GameTerm>,
+                  label: <GameTerm id="initiative">{t("charSheet.init")}</GameTerm>,
                   value: formatModifier(derived.initiative),
                   title: explainParts(derived.parts.initiative),
                 },
                 {
                   glyph: "sense-passive-perception",
-                  label: <GameTerm id="passive_perception">Passive perception</GameTerm>,
+                  label: <GameTerm id="passive_perception">{t("charSheet.pp")}</GameTerm>,
                   value: derived.passivePerception,
                   title: explainParts(derived.parts.passivePerception),
                 },
@@ -299,7 +299,7 @@ export function CharacterSheetDialog({
                 { glyph: "rest-xp", label: t("charSheet.experience"), value: `${sheet.xp} ${t("charSheet.experience.short")}` },
                 {
                   glyph: `die-${sheet.hitDice.die}`,
-                  label: <GameTerm id="hit_dice">Hit dice</GameTerm>,
+                  label: <GameTerm id="hit_dice">{t("charSheet.hitDice")}</GameTerm>,
                   // Every pool of a multiclass character, not only the first.
                   value: hitDiceLine(sheet),
                 },
@@ -411,7 +411,7 @@ export function CharacterSheetDialog({
                 <div className="reveal space-y-1.5 text-xs text-stone-300">
                   <p className="flex items-center gap-1 text-stone-400">
                     <GameIcon icon={{ kind: "glyph", key: "rest-spell-slot" }} size="size-5" />
-                    <GameTerm id="spell_slot">Spell slots</GameTerm>
+                    <GameTerm id="spell_slot">{t("charSheet.spellSlots")}</GameTerm>
                     <span className="text-stone-500">: {t("charSheet.spellSlots.remaining")}</span>
                   </p>
                   <div className="flex flex-wrap gap-1.5">
