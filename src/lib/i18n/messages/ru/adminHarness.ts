@@ -56,7 +56,6 @@ export const ruAdminHarness: Partial<Record<keyof typeof enAdminHarness, string>
   "admin.harness.default": "Рассказывать новые кампании с её помощью",
   "admin.harness.default.hint": "У существующих кампаний рассказчик остаётся прежним; переключить его можно на вкладке «Настройки» кампании, в разделе «ИИ истории».",
   "admin.harness.save": "Сохранить настройки агента",
-  "admin.harness.saved": "Сохранено",
   "admin.harness.plan": "Использовано по плану",
   "admin.harness.narrating.one": "Рассказываю {count} стол сейчас.",
   "admin.harness.narrating.other": "Рассказываю {count} столов сейчас.",

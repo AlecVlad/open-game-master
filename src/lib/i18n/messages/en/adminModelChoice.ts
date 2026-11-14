@@ -10,8 +10,6 @@ export const enAdminModelChoice = {
   "admin.model.notInCatalog": "Not in the catalog; ODM will try it as typed.",
   "admin.model.role.painter": "painter",
   "admin.model.role.storyteller": "storyteller",
-  "admin.model.hide": "Hide them",
-  "admin.model.show": "Show them",
   "admin.model.showingAll": "Showing every model the server lists. ",
   "admin.model.only": "Only {kind}",
   "admin.model.showAll": "Show all",

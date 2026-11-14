@@ -29,7 +29,6 @@ export const enAdminNetwork = {
   "admin.network.discord.intro1": "Optional. Create an application at discord.com/developers, add the redirect URI",
   "admin.network.discord.intro2": "(the exact address players use, e.g. https://your.domain or http://lan-host:3005), then paste the client ID and secret. The login button appears once both are set. Behind a reverse proxy, also set the Public URL in the Server section above.",
   "admin.network.discord.clientId": "Client ID",
-  "admin.network.discord.notSet": "Not set",
   "admin.network.discord.secret": "Client secret",
   "admin.network.discord.envSecret": "An env-var secret is also set.",
 } satisfies Record<string, string>;

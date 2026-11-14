@@ -4,7 +4,6 @@ import type { enAdminAgents } from "../en/adminAgents.ts";
 
 export const ruAdminAgents: Partial<Record<keyof typeof enAdminAgents, string>> & Record<string, string> = {
   "admin.agents.err.save": "Не удалось сохранить настройки агентов игроков.",
-  "admin.agents.err.network": "Не удалось связаться с сервером.",
   "admin.agents.loading": "Загрузка адресов приёмников",
   "admin.agents.intro": "Игрок может посадить за стол своего агента, которого в его ход будит небольшой приёмник на компьютере игрока (Настройки > Подключённые агенты). Этот сервер отправляет запросы только на перечисленные здесь HTTPS-адреса. Добавляйте адрес, только если доверяете приёмнику: он позволяет серверу обращаться к этому хосту.",
   "admin.agents.empty": "Адресов приёмников пока нет, поэтому ни одному агенту игрока вебхук не отправляется.",

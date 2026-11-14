@@ -47,8 +47,6 @@ export const ruAdminAddonCard: Partial<Record<keyof typeof enAdminAddonCard, str
   "admin.addon.reinstall": "Установить заново",
   "admin.addon.less": "Свернуть",
   "admin.addon.more": "Настройки и проверки",
-  "admin.addon.settings.save": "Сохранить настройки",
-  "admin.addon.settings.saved": "Сохранено",
   "admin.addon.settings.none": "У него нет настроек.",
   "admin.addon.check": "Проверить, что ему нужно, и его журнал",
   "admin.addon.test.switchFirst": "Сначала включите его",

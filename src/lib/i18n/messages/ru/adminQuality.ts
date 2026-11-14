@@ -12,7 +12,6 @@ export const ruAdminQuality: Partial<Record<keyof typeof enAdminQuality, string>
   "admin.quality.mode.human": "Мастер-человек",
   "admin.quality.mode.assisted": "С помощником",
   "admin.quality.err.load": "Не удалось загрузить данные о качестве рассказчика.",
-  "admin.quality.err.network": "Не удалось связаться с сервером.",
   "admin.quality.err.export": "Не удалось экспортировать данные о качестве рассказчика.",
   "admin.quality.title": "Качество рассказчика",
   "admin.quality.intro": "Чем заканчивались ходы ИИ и что исправляли столы: одна строка на вид бэкенда и режим мастера. Сравнивайте доли только внутри строки, но не между строками: учитываются лишь ошибки, которые кто-то заметил.",

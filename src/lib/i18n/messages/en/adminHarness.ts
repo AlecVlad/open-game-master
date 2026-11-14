@@ -53,7 +53,6 @@ export const enAdminHarness = {
   "admin.harness.default": "Narrate new campaigns with it",
   "admin.harness.default.hint": "Existing campaigns keep their storyteller; switch one in its Settings tab, under Story AI.",
   "admin.harness.save": "Save agent settings",
-  "admin.harness.saved": "Saved",
   "admin.harness.plan": "Plan used",
   "admin.harness.narrating.one": "Narrating {count} table now.",
   "admin.harness.narrating.other": "Narrating {count} tables now.",

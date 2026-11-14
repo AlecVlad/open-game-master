@@ -483,6 +483,16 @@ export const MESSAGE_ALIASES = {
   "createCampaign.summary.common.on": "createCampaign.experience.variantRules.on",
   "createCampaign.summary.common.off": "createCampaign.experience.variantRules.off",
   "createCampaign.review.prep.workshop": "createCampaign.summary.prep.workshop",
+  "admin.addon.settings.save": "admin.settings.save",
+  "admin.addon.settings.saved": "admin.settings.saved",
+  "admin.agents.err.network": "common.error.network",
+  "admin.harness.saved": "admin.settings.saved",
+  "admin.model.hide": "admin.images.catalog.hide",
+  "admin.model.show": "admin.images.catalog.show",
+  "admin.network.discord.notSet": "admin.fields.secret.notSet",
+  "admin.quality.err.network": "common.error.network",
+  "admin.settings.apiKey.envAlso": "admin.shared.apiKeyEnv",
+  "admin.settings.apiKey.label": "admin.shared.apiKey",
 } as const satisfies Record<string, keyof typeof en>;
 export type MessageKey = keyof typeof en | keyof typeof MESSAGE_ALIASES;
 

@@ -44,8 +44,6 @@ export const enAdminAddonCard = {
   "admin.addon.reinstall": "Reinstall",
   "admin.addon.less": "Less",
   "admin.addon.more": "Settings and checks",
-  "admin.addon.settings.save": "Save settings",
-  "admin.addon.settings.saved": "Saved",
   "admin.addon.settings.none": "It has no settings.",
   "admin.addon.check": "Check what it needs, and its log",
   "admin.addon.test.switchFirst": "Switch it on first",

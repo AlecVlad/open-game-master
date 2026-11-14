@@ -32,7 +32,6 @@ export const ruAdminNetwork: Partial<Record<keyof typeof enAdminNetwork, string>
   "admin.network.discord.intro1": "Необязательно. Создайте приложение на discord.com/developers, добавьте URI перенаправления",
   "admin.network.discord.intro2": "(точный адрес, которым пользуются игроки, например https://your.domain или http://lan-host:3005), затем вставьте идентификатор клиента и секрет. Кнопка входа появится, когда заданы оба. За обратным прокси также задайте Публичный URL в разделе «Сервер» выше.",
   "admin.network.discord.clientId": "Идентификатор клиента",
-  "admin.network.discord.notSet": "Не задано",
   "admin.network.discord.secret": "Секрет клиента",
   "admin.network.discord.envSecret": "Секрет также задан переменной окружения.",
 };

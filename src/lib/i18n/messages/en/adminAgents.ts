@@ -1,7 +1,6 @@
 // English, the source language: player agents' webhook receivers in the admin panel.
 export const enAdminAgents = {
   "admin.agents.err.save": "Could not save the player agent settings.",
-  "admin.agents.err.network": "Could not reach the server.",
   "admin.agents.loading": "Loading receiver addresses",
   "admin.agents.intro": "A player can seat their own agent at a table and have it woken on its turn by a small receiver on their computer (Settings > Connected agents). This server sends only to the HTTPS addresses listed here. Add one only for a receiver you trust: it lets the server make requests to that host.",
   "admin.agents.empty": "No receiver addresses yet, so no player agent is sent a webhook.",

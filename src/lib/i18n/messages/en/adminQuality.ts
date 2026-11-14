@@ -9,7 +9,6 @@ export const enAdminQuality = {
   "admin.quality.mode.human": "Human GM",
   "admin.quality.mode.assisted": "Assisted",
   "admin.quality.err.load": "Could not load narrator quality.",
-  "admin.quality.err.network": "Could not reach the server.",
   "admin.quality.err.export": "Could not export narrator quality.",
   "admin.quality.title": "Narrator quality",
   "admin.quality.intro": "How the AI’s turns ended and what tables fixed, one row per kind of backend and GM mode. Compare rates within a row, never across: it counts only the mistakes someone noticed.",

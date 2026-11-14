@@ -64,8 +64,6 @@ export const enAdminSettings = {
   "admin.settings.ollama.hint": "What this machine's Ollama has pulled; any tag it serves can be typed.",
   "admin.settings.baseUrl.label": "Backend base URL",
   "admin.settings.model.label": "Model name",
-  "admin.settings.apiKey.label": "API key",
-  "admin.settings.apiKey.envAlso": "An env-var key is also set; this one wins when filled.",
   "admin.settings.apiKey.none": "Most local servers need none.",
   "admin.settings.speed.label": "Processing speed",
   "admin.settings.utility.intro": "A second, smaller model for the mechanical work: history compaction, chapter summaries and fact extraction, world-arc ticks, lore checks, and Ask answers. None of it is narration, so a small model does it well while the story model keeps its weights and prompt cache resident. Leave the model name blank to turn this off, and every one of those calls goes back to the story model. If a configured utility model is unreachable, the story model picks the job up anyway.",
