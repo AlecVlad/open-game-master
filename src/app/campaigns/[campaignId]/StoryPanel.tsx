@@ -694,19 +694,18 @@ function ArcCard({ campaignId }: { campaignId: string }) {
               {beatError ? <PanelError>{beatError}</PanelError> : null}
               {aheadSketches.length ? (
                 <div>
-                  <SectionHead title="Acts ahead (sketches)" glyph="quest-hidden" level="h4" className="mb-1" />
+                  <SectionHead title={t("campaign.storyPanel.section.actsAhead")} glyph="quest-hidden" level="h4" className="mb-1" />
                   <ul className="mt-0.5 space-y-0.5">
                     {aheadSketches.map((sketch) => (
                       <li key={sketch.act} className="list-none text-xs leading-5 text-stone-500">
-                        Act {sketch.act}: {sketch.milestone}
+                        {t("campaign.storyPanel.label.act", { act: sketch.act })}: {sketch.milestone}
                         {sketch.boss ? (
-                          <span className="text-stone-600"> &middot; boss: {sketch.boss.name}</span>
+                          <span className="text-stone-600"> &middot; {t("campaign.storyPanel.label.boss", { name: sketch.boss.name })}</span>
                         ) : null}
                         {sketch.allies.length ? (
                           <span className="text-stone-600">
                             {" "}
-                            &middot; {sketch.allies.length} planned all
-                            {sketch.allies.length === 1 ? "y" : "ies"}
+                            &middot; {t("campaign.storyPanel.label.plannedAllies", { count: sketch.allies.length })}
                           </span>
                         ) : null}
                       </li>
@@ -716,25 +715,25 @@ function ArcCard({ campaignId }: { campaignId: string }) {
               ) : null}
               {arc.finale ? (
                 <p className="reveal text-xs leading-5 text-stone-400">
-                  Finale: {arc.finale}
+                  {t("campaign.storyPanel.label.finale", { text: arc.finale })}
                   {arc.saga?.finaleBoss ? (
                     <span className="text-stone-500">
                       {" "}
-                      &middot; final boss: {arc.saga.finaleBoss.name}
+                      &middot; {t("campaign.storyPanel.label.finalBoss", { name: arc.saga.finaleBoss.name })}
                     </span>
                   ) : null}
                 </p>
               ) : null}
               {cast?.length ? (
                 <div>
-                  <SectionHead title="Recurring cast" glyph="system-cast" level="h4" className="mb-1" />
+                  <SectionHead title={t("campaign.storyPanel.section.recurringCast")} glyph="system-cast" level="h4" className="mb-1" />
                   <ul className="mt-0.5 space-y-0.5">
                     {cast.map((npc) => (
                       <li key={npc.id} className="list-none text-xs leading-5 text-stone-400">
                         {npc.name}
                         {npc.role ? `, ${npc.role}` : ""}
                         {npc.agenda ? (
-                          <span className="text-stone-500"> wants: {npc.agenda}</span>
+                          <span className="text-stone-500"> {t("campaign.storyPanel.label.wants", { text: npc.agenda })}</span>
                         ) : null}
                       </li>
                     ))}
@@ -743,15 +742,15 @@ function ArcCard({ campaignId }: { campaignId: string }) {
               ) : null}
               {plannedEvents?.length ? (
                 <div>
-                  <SectionHead title="Planned events (may never fire)" glyph="tab-timeline" level="h4" className="mb-1" />
+                  <SectionHead title={t("campaign.storyPanel.section.plannedEvents")} glyph="tab-timeline" level="h4" className="mb-1" />
                   <ul className="mt-0.5 space-y-0.5">
                     {plannedEvents.map((event) => (
                       <li key={event.id} className="list-none text-xs leading-5 text-stone-400">
                         {event.name}
                         <span className="text-stone-500">
                           {" "}
-                          [{event.kind.replaceAll("_", " ")}]
-                          {event.trigger ? ` when ${event.trigger}` : ""}
+                          [{t(`campaign.storyPanel.event.${event.kind}` as never)}]
+                          {event.trigger ? ` ${t("campaign.storyPanel.label.when", { trigger: event.trigger })}` : ""}
                         </span>
                       </li>
                     ))}
@@ -760,7 +759,7 @@ function ArcCard({ campaignId }: { campaignId: string }) {
               ) : null}
               {openThreads?.length ? (
                 <div>
-                  <SectionHead title="Open threads" glyph="quest-active" level="h4" className="mb-1" />
+                  <SectionHead title={t("campaign.storyPanel.section.openThreads")} glyph="quest-active" level="h4" className="mb-1" />
                   <ul className="mt-0.5 space-y-0.5">
                     {openThreads.map((subArc) => (
                       <li key={subArc.id} className="list-none text-xs leading-5 text-stone-400">
@@ -772,7 +771,7 @@ function ArcCard({ campaignId }: { campaignId: string }) {
               ) : null}
               {arc.saga?.priorSagas.length ? (
                 <div>
-                  <SectionHead title="Previous sagas" glyph="quest-done" level="h4" className="mb-1" />
+                  <SectionHead title={t("campaign.storyPanel.section.previousSagas")} glyph="quest-done" level="h4" className="mb-1" />
                   <ul className="mt-0.5 space-y-0.5">
                     {arc.saga.priorSagas.map((prior, index) => (
                       <li key={index} className="list-none text-xs leading-5 text-stone-500">
@@ -789,17 +788,17 @@ function ArcCard({ campaignId }: { campaignId: string }) {
           ) : outline ? (
             <p className="reveal whitespace-pre-wrap text-xs leading-5 text-stone-400">{outline}</p>
           ) : (
-            <EmptyState size="sm" art="scrolls" title={canPlot ? "No story arc yet. It is written when the adventure begins, or generate one now." : "No story arc yet."} />
+            <EmptyState size="sm" art="scrolls" title={canPlot ? t("campaign.storyPanel.empty.noArcGenerate") : t("campaign.storyPanel.empty.noArc")} />
           )}
           {!loading && canPlot ? (
-            <KitButton onClick={regenerate} disabled={regenerating} title="Discard the current arc and have the GM plot a fresh one from the premise">
+            <KitButton onClick={regenerate} disabled={regenerating} title={t("campaign.storyPanel.regenerate.title")}>
               {regenerating ? (
                 <>
-                  <Loader2 className="size-3 animate-spin" /> Plotting a new arc...
+                  <Loader2 className="size-3 animate-spin" /> {t("campaign.storyPanel.action.plotArc")}
                 </>
               ) : (
                 <>
-                  <RefreshCw className="size-3" /> Regenerate arc
+                  <RefreshCw className="size-3" /> {t("campaign.storyPanel.action.regenerateArc")}
                 </>
               )}
             </KitButton>
