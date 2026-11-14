@@ -69,6 +69,19 @@ function importText(value: string, t: Translate): string {
     "That match could not be saved. Try it again.": t("pdfImport.error.matchSave"),
     "The book could not be brought in.": t("pdfImport.error.import"),
     "It could not start again.": t("pdfImport.error.restart"),
+    "That book's details could not be read. Pick the PDF again.": t("pdfImport.error.detailsUnreadable"),
+    "Your unfinished book imports hold as much as they may. Finish or discard one to make room.": t("pdfImport.error.importsFull"),
+    "This import has all its pages already.": t("pdfImport.error.pagesAlreadySent"),
+    "Those pages could not be read. Try the PDF again.": t("pdfImport.error.pagesUnreadable"),
+    "A page past the end of the book arrived.": t("pdfImport.error.pagePastEnd"),
+    "This book has more text than an import can read. Split the PDF and import it in parts.": t("pdfImport.error.bookTooLong"),
+    "This import has its pictures already.": t("pdfImport.error.picturesAlreadySent"),
+    "That picture could not be read.": t("pdfImport.error.pictureUnreadable"),
+    "A picture past the end of the book arrived.": t("pdfImport.error.picturePastEnd"),
+    "That picture is empty or over 8 MB.": t("pdfImport.error.pictureSize"),
+    "That picture is not a PNG, JPEG or WebP.": t("pdfImport.error.pictureType"),
+    "Could not reach the server. Your progress is kept; pick the PDF again to carry on.": t("pdfImport.error.networkContinue"),
+    "The server would not take that. Try again.": t("pdfImport.error.serverRefused"),
     "The import stopped on an error. Try again, or import without the model.": t("pdfImport.error.stopped"),
     "No pages arrived from this book. Pick the PDF again.": t("pdfImport.error.noPages"),
     "This import is not ready to bring in yet.": t("pdfImport.error.notReady"),
@@ -81,6 +94,9 @@ function importText(value: string, t: Translate): string {
   if (value === "Those choices could not be read.") return t("pdfImport.error.choicesUnreadable");
   if (value === "This import lost its draft. Read the book again.") return t("pdfImport.error.draftLost");
   if (value === "That is not something an import can do.") return t("pdfImport.error.invalidAction");
+  if (value === "Stopped.") return t("pdfImport.error.cancelled");
+  const tooMany = value.match(/^You have (\\d+) imports open already\\. Finish or discard one where you began it \\(the Workshop page, or the WorldForge you began it in\\), then try again\\.$/);
+  if (tooMany) return t("pdfImport.error.tooManyImports", { count: Number(tooMany[1]) });
   if (value === "This import cannot be read again.") return t("pdfImport.error.cannotRestart");
   if (value === "The WorldForge this import was begun in is gone. Bring it in as a new workshop instead.") return t("pdfImport.error.worldGone");
   const pages = value.match(/^Only (\d+) of the book's (\d+) pages arrived\. Pick the PDF again to send the rest\.$/);
