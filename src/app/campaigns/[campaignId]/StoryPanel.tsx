@@ -437,24 +437,24 @@ function ArcCard({ campaignId }: { campaignId: string }) {
             <>
               {arc.saga ? (
                 <p className="reveal text-[11px] font-medium leading-4 text-amber-200">
-                  {arc.saga.sagaIndex > 1 ? `Saga ${arc.saga.sagaIndex} (sequel): ` : ""}
+                  {arc.saga.sagaIndex > 1 ? `${t("campaign.storyPanel.label.saga", { index: arc.saga.sagaIndex })} ` : ""}
                   &ldquo;{arc.saga.title}&rdquo;
                   <span className="font-normal text-stone-400">
                     {" "}
-                    &middot; act {currentAct} of {arc.saga.plannedActs}
+                    &middot; {t("campaign.storyPanel.label.actProgress", { current: currentAct, total: arc.saga.plannedActs })}
                   </span>
                 </p>
               ) : null}
               <p className="text-xs leading-5 text-stone-300">{arc.premise}</p>
               {arc.stakes ? (
-                <p className="reveal text-xs leading-5 text-stone-400">Stakes: {arc.stakes}</p>
+                <p className="reveal text-xs leading-5 text-stone-400">{t("campaign.storyPanel.label.stakes", { text: arc.stakes })}</p>
               ) : null}
               {arc.antagonist ? (
-                <p className="reveal text-xs leading-5 text-stone-400">Antagonist: {arc.antagonist}</p>
+                <p className="reveal text-xs leading-5 text-stone-400">{t("campaign.storyPanel.label.antagonist", { name: arc.antagonist })}</p>
               ) : null}
               {actGroups.map((act) => (
                 <div key={act}>
-                  <SectionHead title={`Act ${act}`} glyph="tab-story" level="h4" className="mb-1" />
+                  <SectionHead title={t("campaign.storyPanel.label.act", { act })} glyph="tab-story" level="h4" className="mb-1" />
                   <ol className="mt-0.5 space-y-0.5">
                     {arc.beats.map((beat, index) => {
                       if (beat.act !== act) {
@@ -465,7 +465,7 @@ function ArcCard({ campaignId }: { campaignId: string }) {
                       if (editingBeat === number) {
                         return (
                           <li key={index} className="list-none">
-                            <DictateField single label="Beat" onTranscript={(text) => setDraft((current) => appendDictation(current, text, MAX_BEAT_TEXT))}>
+                            <DictateField single label={t("campaign.storyPanel.label.beat")} onTranscript={(text) => setDraft((current) => appendDictation(current, text, MAX_BEAT_TEXT))}>
                               <input
                                 value={draft}
                                 autoFocus
@@ -488,14 +488,14 @@ function ArcCard({ campaignId }: { campaignId: string }) {
                                 disabled={beatBusy || !draft.trim()}
                                 className={cn(ui.btnSmall, "pk-tap px-2.5 py-1 text-xs")}
                               >
-                                <Check className="size-3" /> Save
+                                <Check className="size-3" /> {t("campaign.storyPanel.action.save")}
                               </button>
                               <button
                                 type="button"
                                 onClick={closeEditor}
                                 className={cn(ui.btnSmall, "pk-tap px-2.5 py-1 text-xs")}
                               >
-                                Cancel
+                                {t("campaign.storyPanel.action.cancel")}
                               </button>
                             </div>
                           </li>
@@ -506,12 +506,12 @@ function ArcCard({ campaignId }: { campaignId: string }) {
                         : [
                             ...(beat.status === "active"
                               ? []
-                              : [{ id: "now", label: "Make this the beat in play", glyph: "quest-active", disabled: beatBusy, onSelect: () => void editBeat({ op: "setNow", beat: number }) }]),
-                            { id: "up", label: "Move up", glyph: "ui-up", disabled: beatBusy, onSelect: () => void editBeat({ op: "move", beat: number, direction: "up" }) },
-                            { id: "down", label: "Move down", glyph: "ui-down", disabled: beatBusy, onSelect: () => void editBeat({ op: "move", beat: number, direction: "down" }) },
+                              : [{ id: "now", label: t("campaign.storyPanel.action.setBeatNow"), glyph: "quest-active", disabled: beatBusy, onSelect: () => void editBeat({ op: "setNow", beat: number }) }]),
+                            { id: "up", label: t("campaign.storyPanel.action.moveUp"), glyph: "ui-up", disabled: beatBusy, onSelect: () => void editBeat({ op: "move", beat: number, direction: "up" }) },
+                            { id: "down", label: t("campaign.storyPanel.action.moveDown"), glyph: "ui-down", disabled: beatBusy, onSelect: () => void editBeat({ op: "move", beat: number, direction: "down" }) },
                             {
                               id: "reword",
-                              label: "Reword this beat",
+                              label: t("campaign.storyPanel.action.rewordBeat"),
                               glyph: "ui-edit",
                               disabled: beatBusy,
                               onSelect: () => {
@@ -520,13 +520,13 @@ function ArcCard({ campaignId }: { campaignId: string }) {
                                 setDraft(beat.text);
                               },
                             },
-                            { id: "skip", label: "Skip this beat", glyph: "ui-skip", separated: true, disabled: beatBusy, onSelect: () => void editBeat({ op: "skip", beat: number }) },
+                            { id: "skip", label: t("campaign.storyPanel.action.skipBeat"), glyph: "ui-skip", separated: true, disabled: beatBusy, onSelect: () => void editBeat({ op: "skip", beat: number }) },
                           ];
                       return (
                         <ContextMenu
                           as="li"
                           items={beatItems}
-                          label={`Beat ${number}`}
+                          label={t("campaign.storyPanel.label.beatNumber", { number })}
                           key={index}
                           className={`group flex items-start gap-1 text-xs leading-5 ${
                             settled
@@ -537,8 +537,8 @@ function ArcCard({ campaignId }: { campaignId: string }) {
                           }`}
                         >
                           <span className="min-w-0 flex-1">
-                            {number}. {beat.status === "active" ? "(now) " : ""}
-                            {beat.status === "skipped" ? "(skipped) " : ""}
+                            {number}. {beat.status === "active" ? `${t("campaign.storyPanel.label.beatNow")} ` : ""}
+                            {beat.status === "skipped" ? `${t("campaign.storyPanel.label.beatSkipped")} ` : ""}
                             {beat.text}
                             {beat.detail ? (
                               <span className="text-stone-500"> [{beat.detail}]</span>
@@ -554,13 +554,13 @@ function ArcCard({ campaignId }: { campaignId: string }) {
                                         className="mt-0.5 size-3 shrink-0 accent-amber-400"
                                         checked={waypoint.done}
                                         disabled={beatBusy}
-                                        aria-label={`Waypoint: ${waypoint.text}`}
+                                        aria-label={t("campaign.storyPanel.label.waypoint", { text: waypoint.text })}
                                         onChange={(event) =>
                                           void editBeat({ op: "waypoint", beat: number, index: at, done: event.target.checked })
                                         }
                                       />
                                       <span className={waypoint.done ? "text-stone-600 line-through" : ""}>
-                                        {waypoint.text} <span className="text-stone-600">({waypoint.kind})</span>
+                                        {waypoint.text} <span className="text-stone-600">({t(`campaign.storyPanel.waypoint.${waypoint.kind}` as never)})</span>
                                       </span>
                                     </label>
                                   </li>
@@ -578,8 +578,8 @@ function ArcCard({ campaignId }: { campaignId: string }) {
                                   disabled={beatBusy}
                                   onClick={() => void editBeat({ op: "setNow", beat: number })}
                                   className={cn(ui.iconAction, "p-1")}
-                                  title="Make this the beat in play"
-                                  aria-label="Make this the beat in play"
+                                  title={t("campaign.storyPanel.action.setBeatNow")}
+                                  aria-label={t("campaign.storyPanel.action.setBeatNow")}
                                 >
                                   <Crosshair className="size-3" />
                                 </button>
@@ -591,8 +591,8 @@ function ArcCard({ campaignId }: { campaignId: string }) {
                                   void editBeat({ op: "move", beat: number, direction: "up" })
                                 }
                                 className={cn(ui.iconAction, "p-1")}
-                                title="Move up"
-                                aria-label="Move up"
+                                title={t("campaign.storyPanel.action.moveUp")}
+                                aria-label={t("campaign.storyPanel.action.moveUp")}
                               >
                                 <ArrowUp className="size-3" />
                               </button>
@@ -603,8 +603,8 @@ function ArcCard({ campaignId }: { campaignId: string }) {
                                   void editBeat({ op: "move", beat: number, direction: "down" })
                                 }
                                 className={cn(ui.iconAction, "p-1")}
-                                title="Move down"
-                                aria-label="Move down"
+                                title={t("campaign.storyPanel.action.moveDown")}
+                                aria-label={t("campaign.storyPanel.action.moveDown")}
                               >
                                 <ArrowDown className="size-3" />
                               </button>
@@ -617,8 +617,8 @@ function ArcCard({ campaignId }: { campaignId: string }) {
                                   setDraft(beat.text);
                                 }}
                                 className={cn(ui.iconAction, "p-1")}
-                                title="Reword this beat"
-                                aria-label="Reword this beat"
+                                title={t("campaign.storyPanel.action.rewordBeat")}
+                                aria-label={t("campaign.storyPanel.action.rewordBeat")}
                               >
                                 <Pencil className="size-3" />
                               </button>
@@ -627,8 +627,8 @@ function ArcCard({ campaignId }: { campaignId: string }) {
                                 disabled={beatBusy}
                                 onClick={() => void editBeat({ op: "skip", beat: number })}
                                 className={cn(ui.iconAction, "p-1")}
-                                title="Skip this beat"
-                                aria-label="Skip this beat"
+                                title={t("campaign.storyPanel.action.skipBeat")}
+                                aria-label={t("campaign.storyPanel.action.skipBeat")}
                               >
                                 <SkipForward className="size-3" />
                               </button>
@@ -647,7 +647,7 @@ function ArcCard({ campaignId }: { campaignId: string }) {
                           value={draft}
                           autoFocus
                           maxLength={MAX_BEAT_TEXT}
-                          placeholder="What happens in this beat"
+                          placeholder={t("campaign.storyPanel.beat.placeholder")}
                           onChange={(event) => setDraft(event.target.value)}
                           onKeyDown={(event) => {
                             if (event.key === "Enter") {
@@ -666,7 +666,7 @@ function ArcCard({ campaignId }: { campaignId: string }) {
                           disabled={beatBusy || !draft.trim()}
                           className={cn(ui.btnSmall, "pk-tap px-2.5 py-1 text-xs")}
                         >
-                          <Check className="size-3" /> Add
+                          <Check className="size-3" /> {t("campaign.storyPanel.action.add")}
                         </button>
                         <button
                           type="button"
@@ -686,7 +686,7 @@ function ArcCard({ campaignId }: { campaignId: string }) {
                       }}
                       className="mt-0.5"
                     >
-                      <Plus className="size-3" /> Add a beat
+                      <Plus className="size-3" /> {t("campaign.storyPanel.action.addBeat")}
                     </KitButton>
                   )}
                 </div>
