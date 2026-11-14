@@ -334,4 +334,5 @@ export const ruBuilderRemaining: Partial<Record<keyof typeof enBuilderRemaining,
   "builder.race.expertise.help": "Мастерство: удвоенный бонус мастерства для навыка или инструмента, которым вы владеете",
   "builder.race.expertise.label": "Мастерство",
   "builder.race.feat.browseHint": "Просмотрите список черт ниже (нажмите ⓘ, чтобы прочитать описание) или найдите нужную по названию.",
+  "builder.levelProgression.header.proficiency": "Бонус мастерства",
 };

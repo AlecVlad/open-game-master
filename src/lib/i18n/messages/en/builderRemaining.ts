@@ -314,4 +314,5 @@ export const enBuilderRemaining = {
   "builder.racialCantrip.search.label": "Or search by name:",
   "builder.racialCantrip.search.placeholder": "Search cantrips...",
   "builder.kit.armorClassWithKit": "Armor class with this kit",
+  "builder.levelProgression.header.proficiency": "Proficiency bonus",
 } satisfies Record<string, string>;
