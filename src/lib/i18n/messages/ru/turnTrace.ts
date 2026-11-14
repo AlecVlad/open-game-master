@@ -1,7 +1,6 @@
 // Русские переводы журнала хода тестового боя.
 export const ruTurnTrace = {
   "campaign.session.turnTrace.title": "Журнал хода",
-  "campaign.session.turnTrace.button": "Журнал хода",
   "campaign.session.turnTrace.intro": "Все вызовы, которые ИИ-ведущий сделал в этом тесте, начиная с последнего хода: кого он указал, что ответил движок и почему действие было отклонено или возвращено. Журнал виден только вам: в тестовом бою вы занимаете все места.",
   "campaign.session.turnTrace.loading": "Загружаем журнал ходов...",
   "campaign.session.turnTrace.empty": "Ходов ИИ-ведущего пока нет. Сыграйте раунд — здесь появятся все его вызовы.",
@@ -27,12 +26,10 @@ export const ruTurnTrace = {
   "campaign.session.turnTrace.source.story": "от игрового движка, по сюжету",
   "campaign.session.turnTrace.source.agent": "от программы-агента",
   "campaign.session.turnTrace.source.person": "от вас",
-  "campaign.session.turnTrace.outcome.ok": "Выполнено",
   "campaign.session.turnTrace.outcome.refused": "Отклонено",
   "campaign.session.turnTrace.outcome.refusedRules": "Отклонено правилами",
   "campaign.session.turnTrace.outcome.refusedLimit": "Превышен лимит хода",
   "campaign.session.turnTrace.outcome.retry": "Возвращено",
-  "campaign.session.turnTrace.outcome.waiting": "Ожидает броска",
   "campaign.session.turnTrace.outcome.unanswered": "Нет ответа",
   "campaign.session.turnTrace.afterCorrection": ", после возврата движком на доработку",
   "campaign.session.turnTrace.calledAgain": "В этом ходу действие было повторено.",

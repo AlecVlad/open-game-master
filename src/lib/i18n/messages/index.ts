@@ -482,6 +482,11 @@ export const MESSAGE_ALIASES = {
   "home.menu.workshop": "home.bench.aria",
   "home.hero.between": "home.slot.between",
   "home.tables.aria": "home.tables.plural",
+  "help.report.button": "help.section.report",
+  "help.howto.turn.intro": "help.talking.intro",
+  "campaign.session.turnTrace.button": "campaign.session.turnTrace.title",
+  "campaign.session.turnTrace.outcome.ok": "campaign.session.turnTrace.status.done",
+  "campaign.session.turnTrace.outcome.waiting": "campaign.session.turnTrace.status.waiting",
 } as const satisfies Record<string, keyof typeof en>;
 export type MessageKey = keyof typeof en | keyof typeof MESSAGE_ALIASES;
 

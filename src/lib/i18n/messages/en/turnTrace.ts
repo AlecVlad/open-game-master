@@ -1,7 +1,6 @@
 // English source messages for the test-fight turn trace.
 export const enTurnTrace = {
   "campaign.session.turnTrace.title": "Turn trace",
-  "campaign.session.turnTrace.button": "Turn trace",
   "campaign.session.turnTrace.intro": "Every call the AI GM made in this test, newest turn first: whom it named, what the engine answered, and why a call was refused or sent back. Only you see this: at a test fight you hold every seat.",
   "campaign.session.turnTrace.loading": "Reading the turns...",
   "campaign.session.turnTrace.empty": "No AI GM turn yet. Play a round, and each call the AI GM makes shows here.",
@@ -27,12 +26,10 @@ export const enTurnTrace = {
   "campaign.session.turnTrace.source.story": "by the engine, from the story",
   "campaign.session.turnTrace.source.agent": "by the agent program",
   "campaign.session.turnTrace.source.person": "by you",
-  "campaign.session.turnTrace.outcome.ok": "Done",
   "campaign.session.turnTrace.outcome.refused": "Refused",
   "campaign.session.turnTrace.outcome.refusedRules": "Refused by the rules",
   "campaign.session.turnTrace.outcome.refusedLimit": "Over the turn's limit",
   "campaign.session.turnTrace.outcome.retry": "Sent back",
-  "campaign.session.turnTrace.outcome.waiting": "Waiting on a roll",
   "campaign.session.turnTrace.outcome.unanswered": "No answer",
   "campaign.session.turnTrace.afterCorrection": ", after the engine sent it back",
   "campaign.session.turnTrace.calledAgain": "Called again later this turn.",
